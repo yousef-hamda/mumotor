@@ -104,26 +104,32 @@ Open **http://localhost:5173**.
 
 ---
 
-## Deployment (Railway + Vercel)
+## Deployment
 
-> Real deploys require **your** Railway and Vercel accounts. Everything below is wired and ready; run the commands from the monorepo root.
+> Real deploys require **your** accounts. Everything below is wired and ready; run the commands from the monorepo root.
 
-### Backend → Railway
-- Provisions: Backend (Docker) + PostgreSQL + Redis.
-- `Dockerfile` (root, multi-stage) and `railway.toml` are included. `NODE_ENV=staging`. Railway assigns `PORT` (the app reads it from env).
-- Set env vars on the service (see below). Then:
+### Option A — Railway only (recommended, single service)
+
+One Railway service runs **everything**: the API, the published teacher sites (`/site/:slug`), uploads (`/uploads`), **and the built React SPA** (the `Dockerfile` builds the frontend and the Express server serves it). No Vercel needed.
+
+- Provision on Railway: this service (Docker) + **PostgreSQL** + **Redis** plugins.
+- The included root `Dockerfile` + `railway.toml` handle it. `NODE_ENV=staging`; Railway assigns `PORT` (read from env).
+- Set env vars (below), pointing the public-URL vars at the **same** Railway domain:
   ```bash
+  # in the Railway service variables:
+  #   APP_URL=https://<your-app>.up.railway.app
+  #   FRONTEND_URL=https://<your-app>.up.railway.app   (same origin)
+  #   DATABASE_URL / REDIS_URL  → from the Railway Postgres/Redis plugins
+  #   JWT_SECRET=<long random string>
   railway up --detach
-  railway run npm run db:deploy --workspace @otto/backend   # migrations as a separate step
+  railway run npm run db:deploy --workspace @otto/backend   # migrations (separate step)
   ```
-- Wildcard DNS `*.drivesawa.com` → the service enables per-teacher subdomains; `GET /site/:slug` serves each.
+- Everything is served from `https://<your-app>.up.railway.app` (or your custom domain): the app at `/`, the API at `/api`, published sites at `/site/{slug}`.
+- *Per-teacher subdomains* (`{slug}.drivesawa.com`) are optional and need wildcard DNS + host-based routing; the path form `…/site/{slug}` works out of the box.
 
-### Frontend → Vercel
-- Root directory override: `packages/frontend` (SPA rewrite in `packages/frontend/vercel.json`).
-- Set `VITE_API_URL=https://<backend>/api` and `VITE_SITE_BASE=https://<backend>`. Then:
-  ```bash
-  npx vercel --prod --yes
-  ```
+### Option B — Railway + Vercel (split, optional)
+
+If you prefer the SPA on Vercel's CDN: deploy the backend to Railway (as above) and the frontend to Vercel — root directory `packages/frontend` (SPA rewrite in `vercel.json`), with `VITE_API_URL=https://<backend>/api` and `VITE_SITE_BASE=https://<backend>`, then `npx vercel --prod --yes`. (The backend still serves the SPA too, so this is purely for CDN/edge.)
 
 ---
 

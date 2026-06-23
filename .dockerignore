@@ -1,10 +1,9 @@
-node_modules
 **/node_modules
 **/dist
-packages/frontend
+**/e2e/shots
+**/e2e
 .git
 .env
 **/.env
-e2e
-**/e2e/shots
+packages/backend/uploads
 *.log

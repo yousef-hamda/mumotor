@@ -20,7 +20,8 @@ const MIME_EXT: Record<string, string> = {
 };
 const MAX_BYTES = 6 * 1024 * 1024; // ~6MB
 
-router.use(verifyToken);
+// Note: verifyToken is applied per-route (not router-wide) because this router is
+// mounted at the API root — a router-wide guard would 401 every unmatched /api path.
 
 async function ownWebsite(id: string, userId: string) {
   const w = await prisma.website.findUnique({ where: { id } });
@@ -32,6 +33,7 @@ async function ownWebsite(id: string, userId: string) {
 // POST /websites/:websiteId/media  { dataUrl, type? }
 router.post(
   '/websites/:websiteId/media',
+  verifyToken,
   asyncHandler(async (req, res) => {
     await ownWebsite(req.params.websiteId, req.user!.id);
     const { dataUrl, type } = z
@@ -60,6 +62,7 @@ router.post(
 // GET /websites/:websiteId/media
 router.get(
   '/websites/:websiteId/media',
+  verifyToken,
   asyncHandler(async (req, res) => {
     await ownWebsite(req.params.websiteId, req.user!.id);
     const media = await prisma.media.findMany({
@@ -74,6 +77,7 @@ router.get(
 // DELETE /media/:id
 router.delete(
   '/media/:id',
+  verifyToken,
   asyncHandler(async (req, res) => {
     const media = await prisma.media.findUnique({ where: { id: req.params.id }, include: { website: { select: { userId: true } } } });
     if (!media) throw notFound('Media not found');
