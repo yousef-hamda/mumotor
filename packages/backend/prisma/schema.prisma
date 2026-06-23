@@ -1,0 +1,381 @@
+// DriveSawa — AI no-code website builder for driving instructors.
+// Prisma schema (PostgreSQL). One teacher = one website.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Locale {
+  HE
+  AR
+  EN
+}
+
+enum UserRole {
+  TEACHER
+  ADMIN
+}
+
+enum BusinessCategory {
+  DRIVING_SCHOOL
+}
+
+enum WebsiteStatus {
+  DRAFT
+  PUBLISHED
+  SUSPENDED
+}
+
+enum ClientEnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  SUSPENDED
+  INACTIVE
+}
+
+enum BulkEmailStatus {
+  PENDING
+  SENDING
+  COMPLETED
+  FAILED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  STUDIO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+enum NotificationType {
+  ENROLLMENT
+  BOOKING
+  REVIEW
+  BILLING
+  SYSTEM
+}
+
+enum MediaType {
+  CAR_PHOTO
+  GALLERY
+  AVATAR
+  LOGO
+  OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Teacher (owner / authenticated user)
+// ---------------------------------------------------------------------------
+
+model User {
+  id                String        @id @default(uuid()) @db.Uuid
+  email             String        @unique
+  passwordHash      String
+  name              String
+  phone             String?
+  role              UserRole      @default(TEACHER)
+  preferredLanguage Locale        @default(HE)
+  emailVerified     Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  websites      Website[]
+  subscription  Subscription?
+  notifications Notification[]
+
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Website — one teacher's generated + published site
+// ---------------------------------------------------------------------------
+
+model Website {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @db.Uuid
+  name             String
+  slug             String           @unique
+  businessCategory BusinessCategory @default(DRIVING_SCHOOL)
+  tagline          String?
+  status           WebsiteStatus    @default(DRAFT)
+  selectedPreset   String? // one of the 9 driving presets
+  locale           Locale           @default(HE)
+  // scheduling + presentation config (see DrivingConfig type)
+  configuration    Json             @default("{}")
+  styleSettings    Json             @default("{}")
+  seoSettings      Json             @default("{}")
+  // generated draft HTML lives in configuration.generatedHTML; published copy here
+  publishedHtml    String?
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  settings    SiteSettings?
+  services    Service[]
+  enrollments ClientEnrollment[]
+  dailyCodes  DailyCode[]
+  bulkEmails  BulkEmail[]
+  bookings    Booking[]
+  pages       Page[]
+  reviews     Review[]
+  media       Media[]
+  domain      Domain?
+  versions    WebsiteVersion[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([status])
+}
+
+model SiteSettings {
+  id            String   @id @default(uuid()) @db.Uuid
+  websiteId     String   @unique @db.Uuid
+  businessHours Json     @default("{}")
+  socialLinks   Json     @default("{}")
+  contactInfo   Json     @default("{}")
+  customCss     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  website       Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+// Generated page snapshots (for the visual editor / multi-page model)
+model Page {
+  id        String    @id @default(uuid()) @db.Uuid
+  websiteId String    @db.Uuid
+  slug      String // home, about, gallery, faq, reviews, contact, book
+  title     String
+  order     Int       @default(0)
+  html      String?
+  isHidden  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  website   Website   @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  sections  Section[]
+
+  @@unique([websiteId, slug])
+  @@index([websiteId])
+}
+
+model Section {
+  id        String   @id @default(uuid()) @db.Uuid
+  pageId    String   @db.Uuid
+  type      String
+  order     Int      @default(0)
+  content   Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+}
+
+model Service {
+  id        String    @id @default(uuid()) @db.Uuid
+  websiteId String    @db.Uuid
+  name      String
+  duration  Int       @default(60)
+  price     Float     @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  website   Website   @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+
+  @@index([websiteId])
+}
+
+// ---------------------------------------------------------------------------
+// Driving business
+// ---------------------------------------------------------------------------
+
+model ClientEnrollment {
+  id             String                 @id @default(uuid()) @db.Uuid
+  websiteId      String                 @db.Uuid
+  studentName    String
+  studentEmail   String
+  studentPhone   String?
+  enrollmentCode String // hashed: "sha256:{salt}:{hash}"
+  status         ClientEnrollmentStatus @default(ACTIVE)
+  classCount     Int                    @default(0)
+  notes          String?
+  enrolledAt     DateTime               @default(now())
+  finishedAt     DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  website        Website                @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, studentEmail])
+  @@unique([websiteId, enrollmentCode])
+  @@index([websiteId])
+  @@index([status])
+}
+
+model DailyCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  websiteId String   @db.Uuid
+  code      String
+  date      DateTime @db.Date
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, date])
+  @@index([websiteId])
+}
+
+model BulkEmail {
+  id          String          @id @default(uuid()) @db.Uuid
+  websiteId   String          @db.Uuid
+  subject     String
+  body        String
+  targetGroup String          @default("all")
+  sentCount   Int             @default(0)
+  failedCount Int             @default(0)
+  status      BulkEmailStatus @default(PENDING)
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  website     Website         @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model Booking {
+  id            String        @id @default(uuid()) @db.Uuid
+  websiteId     String        @db.Uuid
+  serviceId     String        @db.Uuid
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  bookingDate   DateTime      @db.Date
+  bookingTime   String
+  duration      Int
+  status        BookingStatus @default(CONFIRMED)
+  reminderSent  Boolean       @default(false)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+  @@index([websiteId, bookingDate])
+  @@index([customerEmail])
+  @@index([reminderSent])
+}
+
+// ---------------------------------------------------------------------------
+// Platform
+// ---------------------------------------------------------------------------
+
+model Review {
+  id          String       @id @default(uuid()) @db.Uuid
+  websiteId   String       @db.Uuid
+  studentName String
+  rating      Int          @default(5)
+  comment     String
+  status      ReviewStatus @default(PENDING)
+  reply       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  website     Website      @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+  @@index([status])
+}
+
+model Media {
+  id        String    @id @default(uuid()) @db.Uuid
+  websiteId String    @db.Uuid
+  type      MediaType @default(GALLERY)
+  url       String
+  cdnUrl    String?
+  fileName  String?
+  fileSize  BigInt?
+  createdAt DateTime  @default(now())
+  website   Website   @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model Domain {
+  id          String   @id @default(uuid()) @db.Uuid
+  websiteId   String   @unique @db.Uuid
+  domainName  String   @unique
+  sslStatus   String   @default("pending")
+  dnsVerified Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  userId               String             @unique @db.Uuid
+  plan                 SubscriptionPlan   @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType @default(SYSTEM)
+  title     String
+  body      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+}
+
+model WebsiteVersion {
+  id        String   @id @default(uuid()) @db.Uuid
+  websiteId String   @db.Uuid
+  version   Int
+  html      String
+  createdAt DateTime @default(now())
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+npm-debug.log*
+.DS_Store
+coverage/
+.vite/
+packages/frontend/dist/
+packages/backend/dist/
+prisma/dev.db
+*.tsbuildinfo
+packages/frontend/e2e/shots/

@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+**/dist
+packages/frontend
+.git
+.env
+**/.env
+e2e
+**/e2e/shots
+*.log

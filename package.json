@@ -1,0 +1,29 @@
+{
+  "name": "otto-driving-teacher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Otto — a complete platform for individual driving instructors: students enroll with a code, book lessons, and the teacher runs everything from one dashboard.",
+  "workspaces": [
+    "packages/backend",
+    "packages/frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm run dev --workspace @otto/backend",
+    "dev:frontend": "npm run dev --workspace @otto/frontend",
+    "build": "npm run build --workspace @otto/backend && npm run build --workspace @otto/frontend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate --workspace @otto/backend",
+    "db:seed": "npm run db:seed --workspace @otto/backend",
+    "db:studio": "npm run db:studio --workspace @otto/backend",
+    "setup": "npm install && npm run db:migrate && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "playwright": "^1.61.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

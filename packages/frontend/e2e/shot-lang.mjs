@@ -1,0 +1,13 @@
+import { chromium } from 'playwright';
+const [, , url, lang, out] = process.argv;
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
+const p = await ctx.newPage();
+await p.goto(url, { waitUntil: 'domcontentloaded' });
+await p.evaluate((l) => localStorage.setItem('drivesawa_lang', l), lang);
+await p.reload({ waitUntil: 'networkidle' });
+await p.waitForTimeout(1000);
+const dir = await p.evaluate(() => document.documentElement.dir);
+await p.screenshot({ path: out, fullPage: true });
+await b.close();
+console.log('dir=', dir, '->', out);

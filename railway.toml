@@ -1,0 +1,13 @@
+# Railway deployment config for the DriveSawa backend.
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Migrations run as a SEPARATE step (do not chain into the start command):
+#   railway run npm run db:deploy --workspace @otto/backend
+startCommand = "node packages/backend/dist/index.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5
