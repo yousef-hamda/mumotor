@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/auth';
 import { cn } from '../../lib/utils';
 import { Logo } from '../Logo';
 import { LanguageSwitcher } from '../LanguageSwitcher';
+import { NotificationBell } from '../NotificationBell';
 
 const nav = [
   { to: '/dashboard', labelKey: 'common.overview', icon: LayoutDashboard, exact: true },
@@ -85,12 +86,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
-          <button onClick={() => setOpen((v) => !v)} className="rounded-lg p-2 hover:bg-zinc-100">
+        <header className="flex items-center gap-2 border-b border-zinc-200 bg-white px-4 py-2.5">
+          <button onClick={() => setOpen((v) => !v)} className="rounded-lg p-2 hover:bg-zinc-100 lg:hidden">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <Logo size="sm" />
-          <div className="w-9" />
+          <div className="lg:hidden">
+            <Logo size="sm" />
+          </div>
+          <div className="ms-auto">
+            <NotificationBell />
+          </div>
         </header>
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>

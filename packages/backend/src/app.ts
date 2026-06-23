@@ -5,6 +5,8 @@ import routes from './routes/index.js';
 import siteServingRoutes from './routes/siteServing.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { env } from './config/env.js';
+import { uploadsDir } from './lib/uploads.js';
+import { stripeWebhookHandler } from './services/billing/stripeWebhook.js';
 
 export function createApp() {
   const app = express();
@@ -27,11 +29,15 @@ export function createApp() {
       credentials: true,
     })
   );
+  // Stripe webhook needs the raw body — register BEFORE the JSON parser.
+  app.post('/api/checkout/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler);
+
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
   app.get('/', (_req, res) => res.json({ name: 'DriveSawa API', docs: '/api/health' }));
+  app.use('/uploads', express.static(uploadsDir, { maxAge: '7d' }));
   app.use('/api', routes);
   app.use(siteServingRoutes); // GET /site/:slug (published teacher sites)
 

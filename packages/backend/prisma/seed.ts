@@ -37,6 +37,13 @@ async function main() {
   });
   console.log(`  ✓ Teacher: ${teacher.email} (password: password123)`);
 
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@otto.local' },
+    update: { role: 'ADMIN' },
+    create: { email: 'admin@otto.local', passwordHash, name: 'Platform Admin', role: 'ADMIN', emailVerified: true },
+  });
+  console.log(`  ✓ Admin: ${admin.email} (password: password123)`);
+
   const businessConfig = {
     enrollmentCode: 'DRIVE2026',
     classDuration: 60,

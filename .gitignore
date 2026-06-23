@@ -13,3 +13,4 @@ packages/backend/dist/
 prisma/dev.db
 *.tsbuildinfo
 packages/frontend/e2e/shots/
+packages/backend/uploads/

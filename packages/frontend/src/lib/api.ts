@@ -83,11 +83,52 @@ export const reviewsApi = {
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/reviews/${id}`).then((r) => r.data),
 };
 
+// Notifications
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  read: boolean;
+  createdAt: string;
+}
+export const notificationsApi = {
+  list: () => api.get<{ notifications: Notification[]; unread: number }>('/notifications').then((r) => r.data),
+  markRead: (id: string) => api.patch(`/notifications/${id}/read`).then((r) => r.data),
+  markAllRead: () => api.post('/notifications/read-all').then((r) => r.data),
+};
+
+// Media
+export interface MediaItem {
+  id: string;
+  url: string;
+  type: string;
+  createdAt?: string;
+}
+export const mediaApi = {
+  upload: (websiteId: string, data: { dataUrl: string; type?: 'CAR_PHOTO' | 'GALLERY' | 'AVATAR' | 'LOGO' | 'OTHER' }) =>
+    api.post<{ media: MediaItem }>(`/websites/${websiteId}/media`, data).then((r) => r.data.media),
+  list: (websiteId: string) => api.get<{ media: MediaItem[] }>(`/websites/${websiteId}/media`).then((r) => r.data.media),
+  remove: (id: string) => api.delete<{ deleted: boolean }>(`/media/${id}`).then((r) => r.data),
+};
+
+// Admin
+export interface AdminStats { users: number; websites: number; published: number; enrollments: number; bookings: number; reviews: number }
+export interface AdminUser { id: string; email: string; name: string; role: string; createdAt: string; _count: { websites: number } }
+export interface AdminWebsite { id: string; name: string; slug: string; status: string; createdAt: string; user: { email: string }; _count: { enrollments: number; bookings: number } }
+export const adminApi = {
+  stats: () => api.get<{ stats: AdminStats }>('/admin/stats').then((r) => r.data.stats),
+  users: () => api.get<{ users: AdminUser[] }>('/admin/users').then((r) => r.data.users),
+  websites: () => api.get<{ websites: AdminWebsite[] }>('/admin/websites').then((r) => r.data.websites),
+};
+
 // Subscriptions / billing
 export const subscriptionApi = {
   get: () => api.get<SubscriptionInfo>('/subscriptions').then((r) => r.data),
   checkout: (plan: 'FREE' | 'PRO' | 'STUDIO') =>
-    api.post<{ success: boolean; plan: string; note: string }>('/subscriptions/checkout', { plan }).then((r) => r.data),
+    api
+      .post<{ success?: boolean; mode?: string; plan?: string; note?: string; url?: string }>('/subscriptions/checkout', { plan })
+      .then((r) => r.data),
 };
 
 // ---------------------------------------------------------------------------

@@ -25,6 +25,13 @@ const schema = z.object({
   SMTP_SECURE: z.coerce.boolean().default(false),
   EMAIL_FROM: z.string().default('DriveSawa Driving School <no-reply@otto.local>'),
 
+  // Stripe (billing runs in demo mode when these are unset)
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_PRO: z.string().optional(),
+  STRIPE_PRICE_STUDIO: z.string().optional(),
+
   // Toggle cron jobs (off during tests)
   ENABLE_CRON: z
     .union([z.boolean(), z.string()])

@@ -10,7 +10,14 @@ export default function Billing() {
   const { data, isLoading } = useQuery({ queryKey: ['subscription'], queryFn: subscriptionApi.get });
   const checkout = useMutation({
     mutationFn: (plan: 'FREE' | 'PRO' | 'STUDIO') => subscriptionApi.checkout(plan),
-    onSuccess: (res) => { toast.success(`Switched to ${res.plan}`); qc.invalidateQueries({ queryKey: ['subscription'] }); },
+    onSuccess: (res) => {
+      if (res.url) {
+        window.location.href = res.url; // redirect to Stripe Checkout
+        return;
+      }
+      toast.success(`Switched to ${res.plan}`);
+      qc.invalidateQueries({ queryKey: ['subscription'] });
+    },
     onError: (e) => toast.error(apiError(e).message),
   });
 

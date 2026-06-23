@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Check, ExternalLink, Monitor, Smartphone, Tablet, Loader2 } from 'lucide-react';
-import { aiApi, apiError, siteUrl, websiteApi, type PresetSummary } from '../../lib/api';
+import { aiApi, apiError, mediaApi, siteUrl, websiteApi, type PresetSummary } from '../../lib/api';
 import { Button, CenteredSpinner, Field, Input, Modal, Select, Textarea } from '../../components/ui';
 import { Logo } from '../../components/Logo';
 
@@ -41,6 +41,51 @@ export default function EditorPage() {
   const currentPreset = useMemo(() => presets?.find((p) => p.id === presetId), [presets, presetId]);
   const setField = (k: string, v: unknown) => setDraft((d) => ({ ...d, [k]: v }));
   const setColor = (k: 'primary' | 'accent', v: string) => setDraft((d) => ({ ...d, colors: { ...(d.colors || {}), [k]: v } }));
+  const [uploading, setUploading] = useState(false);
+
+  const readFile = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+
+  async function uploadCover(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setUploading(true);
+    try {
+      const dataUrl = await readFile(f);
+      const m = await mediaApi.upload(id, { dataUrl, type: 'CAR_PHOTO' });
+      setDraft((d) => ({ ...d, carPhoto: { url: m.url } }));
+      toast.success('Cover photo updated');
+    } catch (err) {
+      toast.error(apiError(err).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function uploadGallery(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const f of files) {
+        const dataUrl = await readFile(f);
+        const m = await mediaApi.upload(id, { dataUrl, type: 'GALLERY' });
+        urls.push(m.url);
+      }
+      setDraft((d) => ({ ...d, galleryPhotos: [...(((d.galleryPhotos as string[]) || [])), ...urls] }));
+      toast.success(`${urls.length} photo(s) added`);
+    } catch (err) {
+      toast.error(apiError(err).message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   // Debounced live preview
   const draftKey = JSON.stringify({ name, presetId, draft });
@@ -155,6 +200,31 @@ export default function EditorPage() {
               <ColorField label="Primary" value={primary} onChange={(v) => setColor('primary', v)} />
               <ColorField label="Accent" value={accent} onChange={(v) => setColor('accent', v)} />
             </div>
+          </Section>
+
+          <Section title="Photos">
+            <Field label="Cover photo" hint="Overrides the hero & about images">
+              {(draft.carPhoto as { url?: string })?.url && (
+                <img src={(draft.carPhoto as { url: string }).url} alt="" className="mb-2 h-24 w-full rounded-lg object-cover" />
+              )}
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadCover}
+                className="block w-full text-sm text-zinc-500 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-white" />
+              {(draft.carPhoto as { url?: string })?.url && (
+                <button type="button" onClick={() => setDraft((d) => { const n = { ...d }; delete (n as Record<string, unknown>).carPhoto; return n; })} className="mt-2 text-xs font-medium text-red-600">
+                  Remove cover
+                </button>
+              )}
+            </Field>
+            <Field label="Gallery">
+              <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadGallery}
+                className="block w-full text-sm text-zinc-500 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-white" />
+              {(((draft.galleryPhotos as string[]) || []).length > 0) && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {((draft.galleryPhotos as string[]) || []).map((u, i) => <img key={i} src={u} alt="" className="h-14 w-full rounded object-cover" />)}
+                </div>
+              )}
+            </Field>
+            {uploading && <p className="text-xs text-zinc-500">Uploading…</p>}
           </Section>
 
           <Section title="Content">

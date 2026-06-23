@@ -149,7 +149,8 @@ Frontend: `npm run dev` · `npm run build` · `node e2e/capture.mjs <tag>` (scre
 - **Generation** — `GET /ai/v2/quick-templates`, `POST /ai/v2/generate-website`
 - **Websites** — CRUD `/websites`, `POST /websites/:id/publish|unpublish`
 - **Driving school (17 endpoints)** — teacher: settings, students, daily-report, daily-code, bulk-email; public: enroll, check-enrollment, public-availability, book-lesson, daily-code/validate, validate-magic-link, self-deactivate, public-settings
-- **Reviews / Subscriptions** — `/reviews`, `/subscriptions`
+- **Reviews / Subscriptions** — `/reviews`, `/subscriptions` (real Stripe Checkout + webhook when keys set; demo otherwise)
+- **Media** — `POST /websites/:id/media` (image upload → `/uploads`, S3-ready), notifications `/notifications`, admin `/admin/*` (role-gated)
 - **Site serving** — `GET /site/:slug` (root)
 
 ---

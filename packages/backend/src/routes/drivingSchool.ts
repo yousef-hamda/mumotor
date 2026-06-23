@@ -26,6 +26,7 @@ import {
   normalizeConfig,
 } from '../services/scheduling/schedulingService.js';
 import { consumeMagicToken, generateMagicToken } from '../services/auth/magicLinkService.js';
+import { createNotification } from '../services/notifications/notificationService.js';
 import {
   sendBulkCustomEmail,
   sendBookingConfirmation,
@@ -128,11 +129,16 @@ router.post(
       },
     });
 
-    // fire-and-forget welcome email
+    // fire-and-forget welcome email + teacher notification
     void sendWelcomeEnrollment(email, {
       studentName: enrollment.studentName,
       schoolName: website.name,
       bookingUrl: `${env.FRONTEND_URL}/p/${website.slug}/book-lesson`,
+    });
+    void createNotification(website.userId, {
+      type: 'ENROLLMENT',
+      title: 'New student enrolled',
+      body: `${enrollment.studentName} (${email})`,
     });
 
     res.status(201).json({
@@ -416,13 +422,18 @@ router.post(
         return { created, enrollment };
       });
 
-      // fire-and-forget confirmation
+      // fire-and-forget confirmation + teacher notification
       void sendBookingConfirmation(email, {
         studentName: booking.enrollment.studentName,
         date: data.date,
         time: data.time,
         teacherName: cfg.teacherName,
         duration: cfg.classDuration,
+      });
+      void createNotification(website.userId, {
+        type: 'BOOKING',
+        title: 'New lesson booked',
+        body: `${booking.enrollment.studentName} — ${data.date} at ${data.time}`,
       });
 
       res.status(201).json({

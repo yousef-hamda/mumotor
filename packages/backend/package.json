@@ -33,6 +33,7 @@
     "nanoid": "^5.0.9",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
+    "stripe": "^22.2.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -12,6 +12,7 @@ import Billing from './pages/dashboard/Billing';
 import Settings from './pages/dashboard/Settings';
 import BuilderWizard from './pages/builder/BuilderWizard';
 import EditorPage from './pages/editor/EditorPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import PublicSite from './pages/public/PublicSite';
 import Enroll from './pages/public/Enroll';
 import BookLesson from './pages/public/BookLesson';
@@ -100,6 +101,15 @@ export default function App() {
       <Route path="/p/:websiteSlug" element={<PublicSite />} />
       <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
       <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="/404" element={<NotFound />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
