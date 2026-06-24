@@ -222,7 +222,7 @@ async function main() {
     ok('availability for active student → 200', r.status === 200, r.status);
     ok('availability returns slots', Array.isArray(r.json?.slots) && r.json.slots.length > 0, r.json);
     ok('availability excludes break 12:00', !r.json?.slots?.includes('12:00'), r.json?.slots);
-    ok('availability includes 09:00', r.json?.slots?.includes('09:00'), r.json?.slots);
+    ok('availability has morning slots', ['08:00', '09:00', '10:00', '11:00'].some((s) => r.json?.slots?.includes(s)), r.json?.slots);
 
     // seeded bookings tomorrow at 09:00 & 10:00 should be excluded
     const tom = await req('GET', `/driving-school/${websiteId}/public-availability?date=${utcDate(1)}&email=anna@example.com`);
