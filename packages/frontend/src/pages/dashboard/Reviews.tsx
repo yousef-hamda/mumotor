@@ -1,14 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, Star, Trash2, X, Reply } from 'lucide-react';
+import { Check, Star, Trash2, X, Reply, MessageSquare } from 'lucide-react';
 import { apiError, reviewsApi, websiteApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, EmptyState, Select, StatusBadge, Textarea } from '../../components/ui';
+import { FadeUp, Stagger } from '../../components/motion';
 import { formatDate } from '../../lib/utils';
 import type { Review } from '../../lib/types';
 
 function Stars({ n }: { n: number }) {
-  return <span className="text-amber-500">{'★'.repeat(n)}<span className="text-zinc-300">{'★'.repeat(5 - n)}</span></span>;
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-3.5 w-3.5 ${i < n ? 'fill-sun-400 text-sun-400' : 'fill-sand-200 text-sand-200'}`}
+        />
+      ))}
+    </span>
+  );
 }
 
 export default function Reviews() {
@@ -38,63 +48,120 @@ export default function Reviews() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Reviews</h1>
-          <p className="text-zinc-500">Approve student reviews to show them on your site.</p>
+    <div className="mx-auto max-w-3xl space-y-7">
+      <FadeUp>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="section-eyebrow">
+              <Star className="h-3.5 w-3.5 text-sun-500" /> Reviews
+            </p>
+            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+              Student reviews
+            </h1>
+            <p className="mt-1 text-sand-500">Approve reviews to show them on your public site.</p>
+          </div>
+          {websites && websites.length > 1 && (
+            <Select value={wid} onChange={(e) => setWid(e.target.value)} className="w-auto">
+              {websites.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </Select>
+          )}
         </div>
-        {websites && websites.length > 1 && (
-          <Select value={wid} onChange={(e) => setWid(e.target.value)} className="w-auto">
-            {websites.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-          </Select>
-        )}
-      </div>
+      </FadeUp>
 
       {isLoading ? (
         <CenteredSpinner />
       ) : !reviews || reviews.length === 0 ? (
-        <Card><EmptyState icon={<Star className="h-10 w-10" />} title="No reviews yet" description="Reviews submitted on your site will appear here for approval." /></Card>
+        <Card>
+          <EmptyState
+            icon={<Star className="h-10 w-10 text-sand-300" />}
+            title="No reviews yet"
+            description="Reviews submitted on your site will appear here for approval."
+          />
+        </Card>
       ) : (
-        <div className="space-y-4">
+        <Stagger className="space-y-4">
           {reviews.map((r) => (
-            <Card key={r.id} className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-zinc-900">{r.studentName}</span>
-                    <StatusBadge status={r.status} />
+            <Stagger.Item key={r.id}>
+              <div className="group relative overflow-hidden rounded-3xl border border-sand-200/80 bg-white p-6 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold tracking-tight text-sand-900">{r.studentName}</span>
+                      <StatusBadge status={r.status} />
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-2.5">
+                      <Stars n={r.rating} />
+                      <span className="text-xs text-sand-400">{formatDate(r.createdAt)}</span>
+                    </div>
                   </div>
-                  <Stars n={r.rating} />
-                  <p className="mt-1 text-xs text-zinc-400">{formatDate(r.createdAt)}</p>
+                  <div className="flex items-center gap-0.5">
+                    {r.status !== 'APPROVED' && (
+                      <button
+                        title="Approve"
+                        onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })}
+                        className="rounded-xl p-2 text-emerald-600 transition-colors hover:bg-emerald-50"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+                    )}
+                    {r.status !== 'REJECTED' && (
+                      <button
+                        title="Reject"
+                        onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })}
+                        className="rounded-xl p-2 text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      title="Reply"
+                      onClick={() => { setReplyFor(r.id); setReplyText(r.reply || ''); }}
+                      className="rounded-xl p-2 text-sun-600 transition-colors hover:bg-sun-50"
+                    >
+                      <Reply className="h-4 w-4" />
+                    </button>
+                    <button
+                      title="Delete"
+                      onClick={() => remove.mutate(r.id)}
+                      className="rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {r.status !== 'APPROVED' && (
-                    <button title="Approve" onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })} className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"><Check className="h-4 w-4" /></button>
-                  )}
-                  {r.status !== 'REJECTED' && (
-                    <button title="Reject" onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100"><X className="h-4 w-4" /></button>
-                  )}
-                  <button title="Reply" onClick={() => { setReplyFor(r.id); setReplyText(r.reply || ''); }} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100"><Reply className="h-4 w-4" /></button>
-                  <button title="Delete" onClick={() => remove.mutate(r.id)} className="rounded-lg p-2 text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
-                </div>
+
+                <p className="mt-4 border-s-2 border-sun-200 ps-3.5 text-[15px] leading-relaxed text-sand-700">{r.comment}</p>
+
+                {r.reply && replyFor !== r.id && (
+                  <div className="mt-3.5 rounded-2xl border border-sand-200/70 bg-sand-50/80 p-3.5 text-sm text-sand-600">
+                    <span className="font-semibold text-sand-800">Your reply: </span>
+                    {r.reply}
+                  </div>
+                )}
+
+                {replyFor === r.id && (
+                  <div className="mt-3 space-y-2">
+                    <Textarea
+                      rows={2}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Write a reply…"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => update.mutate({ id: r.id, data: { reply: replyText } })}
+                        loading={update.isPending}
+                      >
+                        Save reply
+                      </Button>
+                      <Button variant="secondary" onClick={() => setReplyFor(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="mt-3 text-zinc-700">"{r.comment}"</p>
-              {r.reply && replyFor !== r.id && (
-                <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600"><span className="font-semibold text-zinc-800">Your reply:</span> {r.reply}</div>
-              )}
-              {replyFor === r.id && (
-                <div className="mt-3 space-y-2">
-                  <Textarea rows={2} value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Write a reply…" />
-                  <div className="flex gap-2">
-                    <Button onClick={() => update.mutate({ id: r.id, data: { reply: replyText } })} loading={update.isPending}>Save reply</Button>
-                    <Button variant="secondary" onClick={() => setReplyFor(null)}>Cancel</Button>
-                  </div>
-                </div>
-              )}
-            </Card>
+            </Stagger.Item>
           ))}
-        </div>
+        </Stagger>
       )}
     </div>
   );

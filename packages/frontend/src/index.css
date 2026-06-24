@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: light;
+  --ink: #221c15;
 }
 
 html,
@@ -12,87 +13,197 @@ body,
   height: 100%;
 }
 
-body {
-  @apply bg-white text-zinc-900 antialiased;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-  -webkit-font-smoothing: antialiased;
+html {
+  scroll-behavior: smooth;
 }
 
+body {
+  @apply bg-sand-50 text-sand-900 antialiased;
+  font-feature-settings: 'cv02', 'cv03', 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #fbc74a;
+  color: #221c15;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography helpers
+--------------------------------------------------------------------------- */
+@layer base {
+  .font-display {
+    font-family: 'Fraunces', 'Plus Jakarta Sans', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+--------------------------------------------------------------------------- */
 @layer components {
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40 focus-visible:ring-offset-1;
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-full text-sm font-semibold tracking-tight transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-sun-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-sand-50 active:scale-[0.97];
   }
+  /* Primary = warm ink pill with a soft lift */
   .btn-primary {
-    @apply btn bg-zinc-900 px-4 py-2.5 text-white shadow-sm hover:bg-zinc-800;
+    @apply btn bg-sand-900 px-5 py-2.5 text-sand-50 shadow-[0_10px_24px_-12px_rgba(34,28,21,0.7)] hover:bg-sand-800 hover:shadow-[0_16px_30px_-12px_rgba(34,28,21,0.6)] hover:-translate-y-0.5;
+  }
+  /* Sun = the golden CTA */
+  .btn-sun {
+    @apply btn bg-sun-500 px-5 py-2.5 text-white shadow-glow hover:bg-sun-600 hover:-translate-y-0.5;
   }
   .btn-secondary {
-    @apply btn border border-zinc-200 bg-white px-4 py-2.5 text-zinc-800 shadow-sm hover:bg-zinc-50;
+    @apply btn border border-sand-200 bg-white/80 px-5 py-2.5 text-sand-800 shadow-ring backdrop-blur hover:bg-white hover:border-sand-300 hover:-translate-y-0.5;
   }
   .btn-ghost {
-    @apply btn px-3 py-2 text-zinc-600 hover:bg-zinc-100;
+    @apply btn px-4 py-2 text-sand-600 hover:bg-sand-100 hover:text-sand-900;
   }
   .btn-danger {
-    @apply btn bg-red-600 px-4 py-2.5 text-white shadow-sm hover:bg-red-700;
+    @apply btn bg-ember-600 px-5 py-2.5 text-white shadow-[0_10px_24px_-12px_rgba(210,58,27,0.7)] hover:bg-ember-700 hover:-translate-y-0.5;
   }
   .input {
-    @apply w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm transition placeholder:text-zinc-400 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-600/10;
+    @apply w-full rounded-2xl border border-sand-200 bg-white px-4 py-2.5 text-sm text-sand-900 shadow-[inset_0_1px_2px_rgba(58,38,16,0.04)] transition placeholder:text-sand-400 focus:border-sun-400 focus:outline-none focus:ring-4 focus:ring-sun-400/15;
   }
   .label {
-    @apply mb-1.5 block text-sm font-medium text-zinc-700;
+    @apply mb-1.5 block text-sm font-semibold text-sand-700;
   }
   .card {
-    @apply rounded-xl border border-zinc-200 bg-white shadow-card;
+    @apply rounded-3xl border border-sand-200/80 bg-white shadow-card;
+  }
+  /* frosted, warm glass surface */
+  .glass {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
   .section-eyebrow {
-    @apply text-xs font-semibold uppercase tracking-wider text-brand-700;
+    @apply inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sun-700;
   }
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-sand-200 bg-white/70 px-3 py-1 text-xs font-semibold text-sand-700 shadow-ring backdrop-blur;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-sand-200/70;
+  }
+  .link-underline {
+    @apply relative font-semibold text-sand-900 after:absolute after:-bottom-0.5 after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-sun-500 after:transition-all hover:after:w-full;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities — textures, gradients, accents
+--------------------------------------------------------------------------- */
+@layer utilities {
+  /* warm gradient text */
+  .text-sunrise {
+    @apply bg-sunrise bg-clip-text text-transparent;
+  }
+  /* animated gradient text */
+  .text-sunrise-anim {
+    background: linear-gradient(120deg, #f9b021, #e54e26, #e8736b, #f2940b);
+    background-size: 220% 220%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    @apply animate-gradient-pan;
+  }
+  /* gradient hairline ring (for cards / CTAs) */
+  .ring-sunrise {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(120deg, #fbc74a, #e54e26) border-box;
+  }
+}
+
+/* film-grain / paper noise for warmth (kills the flat "AI" look) */
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+}
+.bg-grid-warm {
+  background-image: linear-gradient(to right, rgba(120, 76, 24, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 76, 24, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
+}
+.bg-dots-warm {
+  background-image: radial-gradient(rgba(120, 76, 24, 0.1) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+/* soft sun glow blob */
+.sun-glow {
+  background: radial-gradient(circle at center, rgba(249, 176, 33, 0.55) 0%, rgba(229, 78, 38, 0.25) 38%, transparent 70%);
+}
+/* dashed lane-line accent */
+.lane-line {
+  background-image: repeating-linear-gradient(90deg, #f2940b 0 28px, transparent 28px 52px);
+  background-size: 80px 100%;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-zinc-300;
+  @apply rounded-full bg-sand-300;
+  border: 3px solid transparent;
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-400;
+  @apply bg-sand-400;
 }
 
 /* scroll-reveal (client-rendered SPA, so opacity:0 default is safe) */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal.in {
   opacity: 1;
   transform: none;
 }
+
+/* shimmer sweep for buttons/cards */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+}
+.shine:hover::after {
+  @apply animate-shimmer;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
     transition: none;
   }
-}
-
-/* subtle background patterns for hero depth */
-.bg-grid {
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
-}
-.bg-dots {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-@layer components {
-  .skeleton {
-    @apply animate-pulse rounded-md bg-zinc-200/70;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }

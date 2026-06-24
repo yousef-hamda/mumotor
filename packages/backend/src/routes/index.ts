@@ -12,7 +12,7 @@ import adminRoutes from './admin.js';
 const router = Router();
 
 router.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'drivesawa', time: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'mumotor', time: new Date().toISOString() });
 });
 
 router.use('/auth', authRoutes);

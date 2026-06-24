@@ -16,7 +16,7 @@ async function main() {
 
   const app = createApp();
   const server = app.listen(env.PORT, () => {
-    logger.info(`🚗 DriveSawa API listening on http://localhost:${env.PORT}`);
+    logger.info(`🚗 Mumotor API listening on http://localhost:${env.PORT}`);
     logger.info(`   Health: http://localhost:${env.PORT}/api/health`);
   });
 

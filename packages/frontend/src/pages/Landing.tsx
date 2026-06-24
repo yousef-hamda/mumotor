@@ -1,174 +1,304 @@
-import { lazy, Suspense } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarCheck, KeyRound, Users, Mail, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { motion, useScroll } from 'framer-motion';
+import { CalendarCheck, KeyRound, Users, Mail, ShieldCheck, ArrowRight, Sparkles, Plus, Minus, Check, ArrowUpRight } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { siteUrl } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { Reveal } from '../components/motion';
-
-// Code-split the 3D scene so three.js loads only on the landing page.
-const CarScene = lazy(() => import('../components/three/CarScene').then((m) => ({ default: m.CarScene })));
+import { FadeUp, Stagger, Tilt, Magnetic, Marquee, CountUp } from '../components/motion';
+import { CinematicHero } from '../components/hero/CinematicHero';
+import { useIntro } from '../lib/useIntro';
 
 const features = [
-  { icon: Sparkles, title: 'AI site generator', desc: 'Answer a few questions and get a complete, on-brand website — instantly.' },
-  { icon: KeyRound, title: 'Enrollment codes', desc: 'Hand students a code to self-enroll — no accounts or passwords to manage.' },
-  { icon: CalendarCheck, title: 'Online booking', desc: 'Students book lessons straight into your real availability. No phone tag.' },
-  { icon: Users, title: 'Student roster', desc: 'Track every student, their lesson count, and progress from one place.' },
-  { icon: Mail, title: 'Automated email', desc: 'Daily booking nudges, two-hour reminders, and an evening schedule report.' },
-  { icon: ShieldCheck, title: 'Secure by design', desc: 'Hashed codes, rate limiting, and transactional booking that never double-books.' },
+  { icon: Sparkles, n: '01', title: 'Instant website', desc: 'Answer a few warm questions and get a complete, on-brand site — generated in seconds, not weeks.' },
+  { icon: KeyRound, n: '02', title: 'Enrollment codes', desc: 'Hand students a code to self-enroll. No accounts, no passwords, no admin headaches.' },
+  { icon: CalendarCheck, n: '03', title: 'Online booking', desc: 'Students book straight into your real availability. The phone tag finally stops.' },
+  { icon: Users, n: '04', title: 'Student roster', desc: 'Every student, their lesson count and progress — gathered in one quiet place.' },
+  { icon: Mail, n: '05', title: 'Automatic reminders', desc: 'Booking nudges, two-hour reminders and an evening recap go out on their own.' },
+  { icon: ShieldCheck, n: '06', title: 'Never double-books', desc: 'Hashed codes, rate limiting and transactional booking keep your calendar honest.' },
 ];
 
 const steps = [
-  { n: '01', title: 'Describe yourself', desc: 'A short wizard: your hours, pricing, and style.' },
-  { n: '02', title: 'Pick a design', desc: 'Choose one of nine premium templates.' },
-  { n: '03', title: 'Publish', desc: 'Go live at your own address in minutes.' },
-  { n: '04', title: 'Take bookings', desc: 'Students enroll and book; you run it all from one dashboard.' },
+  { n: '01', title: 'Describe yourself', desc: 'A short, friendly wizard: your hours, pricing and teaching style.' },
+  { n: '02', title: 'Pick a design', desc: 'Choose one of nine hand-tuned templates. Make it yours in the editor.' },
+  { n: '03', title: 'Publish', desc: 'Go live at your own address in minutes — trilingual out of the box.' },
+  { n: '04', title: 'Take bookings', desc: 'Students enroll and book; you run it all from one calm dashboard.' },
 ];
+
+const faqs = [
+  { q: 'Do I need any design or tech skills?', a: 'None at all. You answer a few questions, Mumotor designs the site, and you can fine-tune anything with a visual editor — no code, ever.' },
+  { q: 'Which languages are supported?', a: 'Every site is built trilingual — Hebrew, Arabic and English — with full right-to-left support. Students read it in their language automatically.' },
+  { q: 'How do students book lessons?', a: 'They enroll with a code you share, then book straight into your real availability. You get notified and your calendar updates instantly.' },
+  { q: 'Can I change my site after publishing?', a: 'Yes. Edit text, photos, colours and layout anytime in the editor, then re-publish in one click. Your booking data is never affected.' },
+];
+
+const marqueeItems = ['Hebrew · עברית', 'Arabic · العربية', 'English', 'Nine premium templates', 'Online booking', 'Daily codes', 'Automatic reminders', 'One dashboard', 'No-code editor'];
 
 export default function Landing() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { phase, reduced, start, finish } = useIntro();
+  const { scrollYProgress } = useScroll();
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const revealed = phase === 'revealed';
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Logo size="md" />
-          <nav className="flex items-center gap-2">
-            <LanguageSwitcher className="me-1 hidden sm:inline-flex" />
+    <div className="min-h-screen overflow-x-clip bg-sand-50">
+      {/* scroll progress */}
+      <motion.div style={{ scaleX: scrollYProgress }} className="fixed inset-x-0 top-0 z-[65] h-[3px] origin-left bg-sunrise" />
+
+      {/* Nav — revealed after the intro */}
+      <header
+        className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-sand-950/40 backdrop-blur-xl transition-all duration-700"
+        style={{ opacity: revealed ? 1 : 0, transform: revealed ? 'none' : 'translateY(-12px)', pointerEvents: revealed ? 'auto' : 'none' }}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
+          <Logo size="md" invert />
+          <nav className="hidden items-center gap-8 text-sm font-semibold text-sand-200 md:flex">
+            <a href="#features" className="transition-colors hover:text-white">Features</a>
+            <a href="#how" className="transition-colors hover:text-white">How it works</a>
+            <a href="#showcase" className="transition-colors hover:text-white">Showcase</a>
+            <a href="#faq" className="transition-colors hover:text-white">FAQ</a>
+          </nav>
+          <div className="flex items-center gap-2.5">
+            <LanguageSwitcher className="me-1 hidden border-white/15 bg-white/10 text-sand-100 sm:inline-flex" />
             {user ? (
-              <Link to="/dashboard" className="btn-primary whitespace-nowrap">
+              <Link to="/dashboard" className="btn-sun shine whitespace-nowrap">
                 {t('common.dashboard')} <ArrowRight className="h-4 w-4" />
               </Link>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost hidden sm:inline-flex">
+                <Link to="/login" className="hidden text-sm font-semibold text-sand-200 transition-colors hover:text-white sm:inline-flex">
                   {t('common.signIn')}
                 </Link>
-                <Link to="/builder" className="btn-primary whitespace-nowrap">
-                  {t('common.buildSite')}
-                </Link>
+                <Magnetic>
+                  <Link to="/builder" className="btn-sun shine whitespace-nowrap">
+                    {t('common.buildSite')}
+                  </Link>
+                </Magnetic>
               </>
             )}
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative isolate overflow-hidden">
-        {/* premium ambient background */}
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-dots opacity-60" />
-        <div className="pointer-events-none absolute -top-40 right-0 -z-10 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-brand-200/50 via-brand-100/30 to-transparent blur-3xl" />
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-14 lg:grid-cols-2 lg:py-20">
-          <Reveal>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white/70 px-3 py-1 text-xs font-semibold text-brand-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" /> {t('landing.eyebrow')}
+      {/* Cinematic hero */}
+      <CinematicHero phase={phase} reduced={reduced} onStart={start} onFinish={finish} />
+
+      {/* marquee strip (ink) */}
+      <div className="relative border-y border-sand-800/60 bg-sand-950 py-4">
+        <Marquee speed={38}>
+          {marqueeItems.map((m) => (
+            <span key={m} className="flex items-center gap-3 text-sm font-medium uppercase tracking-wide text-sand-400">
+              <span className="h-1 w-1 rounded-full bg-sun-500" /> {m}
             </span>
-            <h1 className="mt-5 text-5xl font-extrabold leading-[1.04] tracking-[-0.03em] text-zinc-900 sm:text-6xl lg:text-7xl">
-              {t('landing.heroTitle')}
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-600">{t('landing.heroLead')}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to="/builder" className="btn-primary px-7 py-3.5 text-base shadow-lg shadow-zinc-900/15">
-                {t('landing.ctaButton')} <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a href={siteUrl('davids-driving')} target="_blank" rel="noreferrer" className="btn-secondary px-7 py-3.5 text-base">
-                {t('common.viewDemo')}
-              </a>
-            </div>
-            <p className="mt-6 text-sm text-zinc-500">{t('landing.heroNote')}</p>
-          </Reveal>
+          ))}
+        </Marquee>
+      </div>
 
-          {/* 3D hero */}
-          <div className="relative h-[360px] sm:h-[440px] lg:h-[520px]">
-            <div className="pointer-events-none absolute inset-6 -z-10 rounded-[40%] bg-gradient-to-tr from-brand-100/70 to-brand-50 blur-2xl" />
-            <Suspense fallback={<div className="h-full w-full animate-pulse rounded-3xl bg-zinc-100/60" />}>
-              <CarScene className="h-full w-full" />
-            </Suspense>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-zinc-200 bg-white/80 px-4 py-1.5 text-xs font-medium text-zinc-500 shadow-sm backdrop-blur">
-              Live 3D · drag-free auto-spin
-            </div>
-          </div>
-        </div>
-
-        {/* stat strip */}
-        <div className="mx-auto max-w-6xl px-5 pb-10">
-          <Reveal className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-200 shadow-card sm:grid-cols-4">
-            {[
-              ['9', 'Premium templates'],
-              ['3', 'Languages (HE/AR/EN)'],
-              ['~5 min', 'To publish'],
-              ['95%', 'Demo pass rate'],
-            ].map(([v, l]) => (
-              <div key={l} className="bg-white px-5 py-5 text-center">
-                <div className="text-2xl font-extrabold tracking-tight text-zinc-900">{v}</div>
-                <div className="mt-1 text-xs text-zinc-500">{l}</div>
+      {/* Stats */}
+      <section className="mx-auto max-w-6xl px-5 py-20">
+        <Stagger className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+          {[
+            { v: 9, suffix: '', l: 'Premium templates' },
+            { v: 3, suffix: '', l: 'Languages · HE / AR / EN' },
+            { v: 5, suffix: ' min', l: 'Average time to publish' },
+            { v: 100, suffix: '%', l: 'No-code, no headaches' },
+          ].map((s) => (
+            <Stagger.Item key={s.l}>
+              <div className="border-s-2 border-sun-300 ps-5">
+                <div className="font-display text-5xl font-semibold tracking-tight text-sand-950">
+                  <CountUp value={s.v} suffix={s.suffix} />
+                </div>
+                <div className="mt-2 text-sm text-sand-500">{s.l}</div>
               </div>
-            ))}
-          </Reveal>
-        </div>
+            </Stagger.Item>
+          ))}
+        </Stagger>
       </section>
 
       {/* Features */}
-      <section className="border-y border-zinc-200 bg-zinc-50/60">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-          <div className="max-w-2xl">
-            <p className="section-eyebrow">{t('landing.featuresEyebrow')}</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{t('landing.featuresTitle')}</h2>
-            <p className="mt-3 text-zinc-600">{t('landing.featuresLead')}</p>
-          </div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f, i) => {
+      <section id="features" className="relative border-t border-sand-200/70 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+          <FadeUp className="max-w-2xl">
+            <p className="section-eyebrow"><span className="h-px w-8 bg-sun-500" /> {t('landing.featuresEyebrow')}</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tightest text-sand-950 sm:text-5xl">{t('landing.featuresTitle')}</h2>
+            <p className="mt-4 text-lg text-sand-600">{t('landing.featuresLead')}</p>
+          </FadeUp>
+          <Stagger className="mt-16 grid gap-px overflow-hidden rounded-3xl border border-sand-200 bg-sand-200 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
+            {features.map((f) => {
               const Icon = f.icon;
               return (
-                <Reveal key={f.title} delay={i * 60} className="group rounded-2xl border border-zinc-200 bg-white p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition-colors group-hover:bg-brand-600 group-hover:text-white">
-                    <Icon className="h-5 w-5" strokeWidth={2} />
+                <Stagger.Item key={f.title}>
+                  <div className="group h-full bg-white p-8 transition-colors duration-300 hover:bg-sand-50">
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sand-950 text-sun-400 transition-colors group-hover:bg-sun-500 group-hover:text-white">
+                        <Icon className="h-5 w-5" strokeWidth={2} />
+                      </span>
+                      <span className="font-display text-2xl font-semibold text-sand-200">{f.n}</span>
+                    </div>
+                    <h3 className="mt-6 text-lg font-bold tracking-tight text-sand-950">{f.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-sand-600">{f.desc}</p>
                   </div>
-                  <h3 className="mt-4 font-semibold text-zinc-900">{f.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">{f.desc}</p>
-                </Reveal>
+                </Stagger.Item>
+              );
+            })}
+          </Stagger>
+        </div>
+      </section>
+
+      {/* Showcase */}
+      <section id="showcase" className="relative overflow-hidden bg-sand-50">
+        <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+          <FadeUp className="max-w-2xl">
+            <p className="section-eyebrow"><span className="h-px w-8 bg-sun-500" /> {t('landing.showcaseEyebrow')}</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tightest text-sand-950 sm:text-5xl">{t('landing.showcaseTitle')}</h2>
+            <p className="mt-4 text-lg text-sand-600">{t('landing.showcaseLead')}</p>
+          </FadeUp>
+          <div className="mt-16 grid items-center gap-12 lg:grid-cols-2">
+            <FadeUp>
+              <Tilt max={6}>
+                <figure className="overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-elevated">
+                  <div className="flex items-center gap-1.5 border-b border-sand-100 px-4 py-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-ember-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-sun-300" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-sand-300" />
+                    <span className="ms-3 truncate rounded-full bg-sand-100 px-3 py-1 text-xs font-medium text-sand-500">davids-driving.mumotor.com</span>
+                  </div>
+                  <div className="relative">
+                    <img src="/img/hero-drive.jpg" alt="A confident learner driver behind the wheel" className="aspect-[16/10] w-full object-cover" loading="lazy" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sand-950/40 via-transparent to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 mix-blend-soft-light" style={{ background: 'linear-gradient(120deg, rgba(249,176,33,0.3), transparent 60%)' }} />
+                  </div>
+                </figure>
+              </Tilt>
+            </FadeUp>
+            <div className="space-y-3">
+              {[
+                { t: 'Warm, human design', d: 'Soft serif headlines, golden-hour photography and gentle motion — it never looks like a template.' },
+                { t: 'Your real availability', d: 'The booking calendar shows exactly when you teach, and updates the moment a lesson is taken.' },
+                { t: 'Trilingual, out of the box', d: 'Hebrew, Arabic and English with full RTL — your students read it in their own language.' },
+              ].map((row, i) => (
+                <FadeUp key={row.t} delay={i * 0.08}>
+                  <div className="flex gap-4 border-b border-sand-200 py-5">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sun-500 text-white">
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold tracking-tight text-sand-950">{row.t}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-sand-600">{row.d}</p>
+                    </div>
+                  </div>
+                </FadeUp>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how" className="border-y border-sand-200/70 bg-white">
+        <div className="mx-auto max-w-6xl px-5 py-24 sm:py-28">
+          <FadeUp className="max-w-2xl">
+            <p className="section-eyebrow"><span className="h-px w-8 bg-sun-500" /> {t('landing.howEyebrow')}</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tightest text-sand-950 sm:text-5xl">{t('landing.howTitle')}</h2>
+          </FadeUp>
+          <Stagger className="mt-16 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map((s) => (
+              <Stagger.Item key={s.n}>
+                <div className="group">
+                  <span className="font-display text-3xl font-semibold text-sun-500">{s.n}</span>
+                  <div className="mt-4 h-px w-full bg-sand-200">
+                    <div className="h-px w-0 bg-sand-950 transition-all duration-700 group-hover:w-full" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold tracking-tight text-sand-950">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-sand-600">{s.desc}</p>
+                </div>
+              </Stagger.Item>
+            ))}
+          </Stagger>
+        </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="bg-sand-50">
+        <div className="mx-auto max-w-4xl px-5 py-24 text-center sm:py-28">
+          <FadeUp>
+            <p className="section-eyebrow justify-center">{t('landing.testimonialEyebrow')}</p>
+            <blockquote className="mx-auto mt-6 max-w-3xl font-display text-3xl font-medium leading-snug tracking-tight text-sand-900 sm:text-4xl">
+              “{t('landing.testimonialQuote')}”
+            </blockquote>
+            <figcaption className="mt-8 flex items-center justify-center gap-3.5">
+              <img src="/img/instructor.jpg" alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-sun-200" />
+              <div className="text-start">
+                <div className="font-bold text-sand-950">{t('landing.testimonialName')}</div>
+                <div className="text-sm text-sand-500">{t('landing.testimonialRole')}</div>
+              </div>
+            </figcaption>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="border-t border-sand-200/70 bg-white">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:py-28 lg:grid-cols-[0.8fr_1.2fr]">
+          <FadeUp>
+            <p className="section-eyebrow">{t('landing.faqEyebrow')}</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tightest text-sand-950 sm:text-5xl">{t('landing.faqTitle')}</h2>
+          </FadeUp>
+          <div className="divide-y divide-sand-200 border-y border-sand-200">
+            {faqs.map((f, i) => {
+              const open = openFaq === i;
+              return (
+                <div key={f.q}>
+                  <button onClick={() => setOpenFaq(open ? null : i)} className="flex w-full items-center justify-between gap-4 py-5 text-start">
+                    <span className="text-lg font-bold tracking-tight text-sand-950">{f.q}</span>
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-sand-300 text-sand-700">
+                      {open ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    </span>
+                  </button>
+                  <div className={`grid transition-all duration-300 ${open ? 'grid-rows-[1fr] pb-5 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                    <div className="overflow-hidden">
+                      <p className="max-w-xl text-sm leading-relaxed text-sand-600">{f.a}</p>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-        <div className="max-w-2xl">
-          <p className="section-eyebrow">{t('landing.howEyebrow')}</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{t('landing.howTitle')}</h2>
-        </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((s, i) => (
-            <Reveal key={s.n} delay={i * 80} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-card">
-              <span className="font-mono text-sm font-bold text-brand-600">{s.n}</span>
-              <h3 className="mt-2 font-semibold text-zinc-900">{s.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">{s.desc}</p>
-            </Reveal>
-          ))}
-        </div>
+      {/* Final CTA */}
+      <section className="bg-sand-50 px-5 py-20">
+        <FadeUp className="mx-auto max-w-6xl">
+          <div className="relative isolate overflow-hidden rounded-4xl bg-sand-950 px-8 py-20 text-center sm:px-16">
+            <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full sun-glow animate-sun-pulse blur-2xl" />
+            <div className="pointer-events-none absolute inset-0 -z-10 bg-grain opacity-[0.12]" />
+            <h2 className="mx-auto max-w-2xl font-display text-4xl font-semibold tracking-tightest text-white sm:text-5xl">{t('landing.ctaTitle')}</h2>
+            <p className="mx-auto mt-4 max-w-xl text-sand-300">{t('landing.ctaText')}</p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Magnetic>
+                <Link to="/builder" className="btn-sun shine px-8 py-4 text-base">
+                  {t('landing.ctaButton')} <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Magnetic>
+              <Link to="/login" className="btn px-7 py-4 text-base font-semibold text-sand-200 hover:text-white">
+                {t('common.signIn')} <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </FadeUp>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-6xl px-5 pb-20">
-        <Reveal className="relative isolate overflow-hidden rounded-3xl bg-zinc-900 px-8 py-16 text-center sm:px-16">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-brand-600/30 blur-3xl" />
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{t('landing.ctaTitle')}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-zinc-300">{t('landing.ctaText')}</p>
-          <Link to="/builder" className="btn mt-8 bg-white px-7 py-3.5 text-base font-semibold text-zinc-900 shadow-lg hover:bg-zinc-100">
-            {t('landing.ctaButton')} <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Reveal>
-      </section>
-
-      <footer className="border-t border-zinc-200">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 sm:flex-row">
+      {/* Footer */}
+      <footer className="border-t border-sand-200/70 bg-sand-50">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 sm:flex-row">
           <Logo size="sm" />
-          <p className="text-sm text-zinc-500">© {new Date().getFullYear()} DriveSawa. Your road to confidence.</p>
+          <p className="text-sm text-sand-500">© {new Date().getFullYear()} Mumotor · Online by sunrise.</p>
+          <LanguageSwitcher />
         </div>
       </footer>
     </div>

@@ -23,7 +23,7 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_SECURE: z.coerce.boolean().default(false),
-  EMAIL_FROM: z.string().default('DriveSawa Driving School <no-reply@otto.local>'),
+  EMAIL_FROM: z.string().default('Mumotor Driving School <no-reply@mumotor.local>'),
 
   // Stripe (billing runs in demo mode when these are unset)
   STRIPE_SECRET_KEY: z.string().optional(),

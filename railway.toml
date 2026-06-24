@@ -1,11 +1,11 @@
-# Railway deployment config for the DriveSawa backend.
+# Railway deployment config for the Mumotor backend.
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
 # Migrations run as a SEPARATE step (do not chain into the start command):
-#   railway run npm run db:deploy --workspace @otto/backend
+#   railway run npm run db:deploy --workspace @mumotor/backend
 startCommand = "node packages/backend/dist/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30

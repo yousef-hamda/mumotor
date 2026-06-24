@@ -137,97 +137,174 @@ export default function EditorPage() {
   const accent = draft.colors?.accent || currentPreset?.colors.accent || '#2563eb';
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-100">
-      {/* Top bar */}
-      <header className="flex items-center justify-between gap-4 border-b border-zinc-200 bg-white px-4 py-2.5">
+    <div className="flex h-screen flex-col overflow-hidden bg-sand-100">
+      {/* Warm top bar */}
+      <header className="flex items-center justify-between gap-4 border-b border-sand-200/70 bg-sand-50/90 px-4 py-2.5 backdrop-blur-sm">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800"
+          >
             <ArrowLeft className="h-4 w-4" /> Dashboard
           </Link>
           <Link to="/dashboard"><Logo size="xs" /></Link>
-          <span className="hidden text-sm font-medium text-zinc-700 sm:block">{name}</span>
-          <span className="flex items-center gap-1 text-xs text-zinc-400">
-            {status === 'saving' && <><Loader2 className="h-3 w-3 animate-spin" /> Saving…</>}
-            {status === 'saved' && <><Check className="h-3 w-3 text-emerald-500" /> Saved</>}
+          <span className="hidden text-sm font-semibold text-sand-800 sm:block">{name}</span>
+          {/* Save status indicator */}
+          <span className="flex items-center gap-1.5 text-xs text-sand-400">
+            {status === 'saving' && (
+              <><Loader2 className="h-3 w-3 animate-spin text-sun-500" /> <span>Saving…</span></>
+            )}
+            {status === 'saved' && (
+              <><Check className="h-3 w-3 text-emerald-500" /> <span className="text-emerald-600">Saved</span></>
+            )}
           </span>
         </div>
+
         <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 md:flex">
+          {/* Viewport switcher */}
+          <div className="hidden items-center gap-0.5 rounded-full border border-sand-200 bg-white p-0.5 shadow-ring md:flex">
             {([['desktop', Monitor], ['tablet', Tablet], ['mobile', Smartphone]] as const).map(([v, Icon]) => (
-              <button key={v} onClick={() => setViewport(v)} title={v}
-                className={viewport === v ? 'rounded-md bg-white p-1.5 text-zinc-900 shadow-sm' : 'rounded-md p-1.5 text-zinc-400 hover:text-zinc-700'}>
+              <button
+                key={v}
+                onClick={() => setViewport(v)}
+                title={v}
+                className={
+                  viewport === v
+                    ? 'rounded-full bg-sand-950 p-1.5 text-white shadow-[0_2px_8px_-2px_rgba(34,28,21,0.5)] transition-all duration-200'
+                    : 'rounded-full p-1.5 text-sand-400 transition-all duration-200 hover:text-sand-700'
+                }
+              >
                 <Icon className="h-4 w-4" />
               </button>
             ))}
           </div>
+
           {website.status === 'PUBLISHED' && (
-            <a href={siteUrl(website.slug)} target="_blank" rel="noreferrer" className="btn-secondary text-sm">
+            <a
+              href={siteUrl(website.slug)}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary text-sm"
+            >
               View live <ExternalLink className="h-4 w-4" />
             </a>
           )}
-          <Button onClick={() => publish.mutate()} loading={publish.isPending} className="text-sm">Publish</Button>
+
+          <Button
+            variant="sun"
+            onClick={() => publish.mutate()}
+            loading={publish.isPending}
+            className="text-sm shine"
+          >
+            Publish
+          </Button>
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        {/* Preview */}
-        <div className="relative flex flex-1 items-start justify-center overflow-auto bg-zinc-100 p-6">
+        {/* Preview canvas */}
+        <div className="relative flex flex-1 items-start justify-center overflow-auto bg-sand-100 p-6">
+          {/* Subtle warm dot texture on canvas */}
+          <div className="pointer-events-none absolute inset-0 bg-dots-warm opacity-40" />
+
           {rendering && (
-            <div className="absolute right-8 top-8 z-10 flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs text-zinc-500 shadow-card">
-              <Loader2 className="h-3 w-3 animate-spin" /> Updating preview
+            <div className="absolute end-6 top-6 z-10 flex items-center gap-2 rounded-full border border-sand-200 bg-white/90 px-3 py-1.5 text-xs text-sand-500 shadow-card backdrop-blur-sm">
+              <Loader2 className="h-3 w-3 animate-spin text-sun-500" /> Updating preview
             </div>
           )}
-          <div className="mx-auto overflow-hidden rounded-xl border border-zinc-300 bg-white shadow-elevated transition-all" style={{ width: widths[viewport], maxWidth: '100%' }}>
-            <iframe title="Preview" srcDoc={html} className="h-[calc(100vh-9rem)] w-full" sandbox="allow-scripts allow-same-origin allow-popups" />
+
+          <div
+            className="relative mx-auto overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-elevated transition-all duration-500"
+            style={{ width: widths[viewport], maxWidth: '100%' }}
+          >
+            <iframe
+              title="Preview"
+              srcDoc={html}
+              className="h-[calc(100vh-9rem)] w-full"
+              sandbox="allow-scripts allow-same-origin allow-popups"
+            />
           </div>
         </div>
 
-        {/* Controls */}
-        <aside className="w-80 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white p-5">
-          <Section title="Design">
+        {/* Controls sidebar */}
+        <aside className="w-80 shrink-0 overflow-y-auto border-s border-sand-200/70 bg-white/95 p-5">
+          <EditorSection title="Design">
+            {/* Preset swatches */}
             <div className="grid grid-cols-3 gap-2">
               {presets?.map((p: PresetSummary) => (
-                <button key={p.id} onClick={() => setPresetId(p.id)} title={p.label}
-                  className={presetId === p.id ? 'overflow-hidden rounded-lg ring-2 ring-zinc-900' : 'overflow-hidden rounded-lg ring-1 ring-zinc-200 hover:ring-zinc-400'}>
-                  <span className="flex h-9">
+                <button
+                  key={p.id}
+                  onClick={() => setPresetId(p.id)}
+                  title={p.label}
+                  className={
+                    presetId === p.id
+                      ? 'overflow-hidden rounded-2xl ring-2 ring-sand-900 ring-offset-1 transition-all duration-200'
+                      : 'overflow-hidden rounded-2xl ring-1 ring-sand-200 transition-all duration-200 hover:ring-sand-400 hover:-translate-y-0.5'
+                  }
+                >
+                  <span className="flex h-10">
                     <span className="flex-1" style={{ background: p.colors.primary }} />
                     <span className="w-1/3" style={{ background: p.colors.accent }} />
                   </span>
                 </button>
               ))}
             </div>
+            {/* Color overrides */}
             <div className="mt-4 grid grid-cols-2 gap-3">
               <ColorField label="Primary" value={primary} onChange={(v) => setColor('primary', v)} />
               <ColorField label="Accent" value={accent} onChange={(v) => setColor('accent', v)} />
             </div>
-          </Section>
+          </EditorSection>
 
-          <Section title="Photos">
+          <EditorSection title="Photos">
             <Field label="Cover photo" hint="Overrides the hero & about images">
               {(draft.carPhoto as { url?: string })?.url && (
-                <img src={(draft.carPhoto as { url: string }).url} alt="" className="mb-2 h-24 w-full rounded-lg object-cover" />
+                <img
+                  src={(draft.carPhoto as { url: string }).url}
+                  alt=""
+                  className="mb-2 h-24 w-full rounded-2xl object-cover ring-1 ring-sand-200"
+                />
               )}
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadCover}
-                className="block w-full text-sm text-zinc-500 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-white" />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={uploadCover}
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-full file:border-0 file:bg-sun-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-600"
+              />
               {(draft.carPhoto as { url?: string })?.url && (
-                <button type="button" onClick={() => setDraft((d) => { const n = { ...d }; delete (n as Record<string, unknown>).carPhoto; return n; })} className="mt-2 text-xs font-medium text-red-600">
+                <button
+                  type="button"
+                  onClick={() => setDraft((d) => { const n = { ...d }; delete (n as Record<string, unknown>).carPhoto; return n; })}
+                  className="mt-2 text-xs font-semibold text-ember-600 transition-colors hover:text-ember-700"
+                >
                   Remove cover
                 </button>
               )}
             </Field>
             <Field label="Gallery">
-              <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={uploadGallery}
-                className="block w-full text-sm text-zinc-500 file:me-3 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-white" />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                onChange={uploadGallery}
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-full file:border-0 file:bg-sun-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-600"
+              />
               {(((draft.galleryPhotos as string[]) || []).length > 0) && (
                 <div className="mt-2 grid grid-cols-3 gap-2">
-                  {((draft.galleryPhotos as string[]) || []).map((u, i) => <img key={i} src={u} alt="" className="h-14 w-full rounded object-cover" />)}
+                  {((draft.galleryPhotos as string[]) || []).map((u, i) => (
+                    <img key={i} src={u} alt="" className="h-14 w-full rounded-xl object-cover ring-1 ring-sand-200" />
+                  ))}
                 </div>
               )}
             </Field>
-            {uploading && <p className="text-xs text-zinc-500">Uploading…</p>}
-          </Section>
+            {uploading && (
+              <p className="flex items-center gap-1.5 text-xs text-sand-500">
+                <Loader2 className="h-3 w-3 animate-spin text-sun-500" /> Uploading…
+              </p>
+            )}
+          </EditorSection>
 
-          <Section title="Content">
+          <EditorSection title="Content">
             <Field label="Site name"><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
             <Field label="Tagline"><Input value={str('tagline')} onChange={(e) => setField('tagline', e.target.value)} /></Field>
             <Field label="Instructor name"><Input value={str('teacherName')} onChange={(e) => setField('teacherName', e.target.value)} /></Field>
@@ -242,36 +319,46 @@ export default function EditorPage() {
               <Field label="Pass rate %"><Input type="number" value={numv('passRate', 95)} onChange={(e) => setField('passRate', Number(e.target.value))} /></Field>
               <Field label="Experience"><Input value={str('experienceYears', '10+')} onChange={(e) => setField('experienceYears', e.target.value)} /></Field>
             </div>
-          </Section>
+          </EditorSection>
 
-          <Section title="Contact">
+          <EditorSection title="Contact">
             <Field label="Phone"><Input value={contactStr(draft, 'phone')} onChange={(e) => setContact(setDraft, 'phone', e.target.value)} /></Field>
             <Field label="Email"><Input value={contactStr(draft, 'email')} onChange={(e) => setContact(setDraft, 'email', e.target.value)} /></Field>
             <Field label="Area"><Input value={contactStr(draft, 'address')} onChange={(e) => setContact(setDraft, 'address', e.target.value)} /></Field>
-          </Section>
+          </EditorSection>
         </aside>
       </div>
 
+      {/* Publish success modal */}
       <Modal
         open={publishOpen}
         onClose={() => { setPublishOpen(false); navigate('/dashboard'); }}
         title="Your site is published"
-        footer={<Button onClick={() => { setPublishOpen(false); navigate('/dashboard'); }}>Done</Button>}
+        footer={
+          <Button variant="sun" onClick={() => { setPublishOpen(false); navigate('/dashboard'); }}>
+            Done
+          </Button>
+        }
       >
-        <p className="text-sm text-zinc-600">Your changes are live. Share your site:</p>
-        <a href={publishUrl} target="_blank" rel="noreferrer" className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 hover:border-zinc-300">
-          <code className="truncate text-sm text-zinc-700">{website.slug}.drivesawa.com</code>
-          <ExternalLink className="h-4 w-4 shrink-0 text-zinc-400" />
+        <p className="text-sm text-sand-600">Your changes are live. Share your site:</p>
+        <a
+          href={publishUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 flex items-center justify-between gap-2 rounded-2xl border border-sand-200 bg-sand-50 p-3 shadow-card transition-all hover:border-sand-300 hover:shadow-elevated"
+        >
+          <code className="truncate text-sm font-medium text-sand-700">{website.slug}.mumotor.com</code>
+          <ExternalLink className="h-4 w-4 shrink-0 text-sand-400" />
         </a>
       </Modal>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function EditorSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-6 border-b border-zinc-100 pb-6 last:border-0">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">{title}</h3>
+    <div className="mb-6 border-b border-sand-100 pb-6 last:border-0">
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-sand-400">{title}</h3>
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -281,9 +368,14 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
   return (
     <div>
       <label className="label">{label}</label>
-      <div className="flex items-center gap-2 rounded-lg border border-zinc-300 p-1">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-7 w-9 cursor-pointer rounded border-0 bg-transparent p-0" />
-        <span className="font-mono text-xs text-zinc-500">{value}</span>
+      <div className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-white p-1.5 shadow-[inset_0_1px_2px_rgba(58,38,16,0.04)] transition focus-within:border-sun-400 focus-within:ring-4 focus-within:ring-sun-400/15">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-7 w-9 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+        />
+        <span className="font-mono text-xs text-sand-500">{value}</span>
       </div>
     </div>
   );

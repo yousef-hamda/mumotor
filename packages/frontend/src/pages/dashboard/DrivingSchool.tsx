@@ -19,6 +19,7 @@ import {
   X,
   Send,
   ExternalLink,
+  Sun,
 } from 'lucide-react';
 import { apiError, drivingSchoolApi, websiteApi } from '../../lib/api';
 import {
@@ -33,6 +34,7 @@ import {
   StatusBadge,
   Textarea,
 } from '../../components/ui';
+import { FadeUp, Stagger } from '../../components/motion';
 import { WEEKDAYS, formatDate, formatDateLong, titleCase } from '../../lib/utils';
 import type { BusinessHours, DrivingSettings, Student, Website } from '../../lib/types';
 
@@ -71,36 +73,72 @@ function CodeTab({ website }: { website: Website }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <h3 className="text-lg font-bold">Today's enrollment code</h3>
-        <p className="mt-1 text-sm text-zinc-500">
-          Share this code with a new student so they can enroll. It rotates every day.
-        </p>
-        <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-8">
-          <span className="font-mono text-5xl font-bold tracking-[0.3em] text-zinc-900">{data?.code}</span>
-          <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
-            {copied === data?.code ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-            {copied === data?.code ? 'Copied' : 'Copy code'}
-          </Button>
+      {/* Daily code card */}
+      <Card className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -end-12 -top-12 h-40 w-40 rounded-full sun-glow opacity-50 blur-2xl" />
+        <div className="relative">
+          <p className="section-eyebrow">
+            <Sun className="h-3.5 w-3.5 text-sun-500" /> Daily
+          </p>
+          <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+            Today's enrollment code
+          </h3>
+          <p className="mt-1 text-sm text-sand-500">
+            Share this code with a new student so they can enroll. It rotates every day.
+          </p>
+          <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-sand-200 bg-sand-50/80 p-8">
+            <span className="font-mono text-5xl font-bold tracking-[0.3em] text-sand-950">{data?.code}</span>
+            <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
+              {copied === data?.code ? (
+                <Check className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+              {copied === data?.code ? 'Copied' : 'Copy code'}
+            </Button>
+          </div>
+          <p className="mt-4 text-center text-xs text-sand-400">
+            Valid for {formatDate(new Date().toISOString())}
+          </p>
         </div>
-        <p className="mt-4 text-center text-xs text-zinc-400">Valid for {formatDate(new Date().toISOString())}</p>
       </Card>
 
+      {/* Enroll link card */}
       <Card>
-        <h3 className="text-lg font-bold">Public enroll link</h3>
-        <p className="mt-1 text-sm text-zinc-500">Send this link — students enroll themselves with the code above.</p>
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-          <code className="flex-1 truncate text-sm text-zinc-700">{enrollUrl}</code>
-          <button onClick={() => copy(enrollUrl, 'link')} className="rounded-lg p-2 hover:bg-zinc-200">
-            {copied === 'link' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+        <p className="section-eyebrow">
+          <ExternalLink className="h-3.5 w-3.5 text-sun-500" /> Share
+        </p>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+          Public enroll link
+        </h3>
+        <p className="mt-1 text-sm text-sand-500">
+          Send this link — students enroll themselves with the code above.
+        </p>
+        <div className="mt-6 flex items-center gap-2 rounded-2xl border border-sand-200 bg-sand-50 px-3 py-2.5">
+          <code className="flex-1 truncate text-sm text-sand-700">{enrollUrl}</code>
+          <button
+            onClick={() => copy(enrollUrl, 'link')}
+            className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+          >
+            {copied === 'link' ? (
+              <Check className="h-4 w-4 text-emerald-600" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
           </button>
         </div>
-        <a href={enrollUrl} target="_blank" rel="noreferrer" className="btn-ghost mt-4 text-sm">
+        <a
+          href={enrollUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="btn-ghost mt-4 text-sm"
+        >
           Open enroll page <ExternalLink className="h-4 w-4" />
         </a>
-        <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
-          You can also set a permanent static code in <strong className="font-semibold text-zinc-800">Settings</strong> if you
-          prefer not to rotate codes daily.
+        <div className="mt-6 rounded-2xl border border-sand-200 bg-sand-50 p-4 text-sm text-sand-600">
+          You can also set a permanent static code in{' '}
+          <strong className="font-semibold text-sand-800">Settings</strong> if you prefer not to
+          rotate codes daily.
         </div>
       </Card>
     </div>
@@ -127,7 +165,12 @@ function StudentsTab({ website }: { website: Website }) {
   const { data, isLoading } = useQuery({
     queryKey: ['students', website.id, { debounced, status, page }],
     queryFn: () =>
-      drivingSchoolApi.listStudents(website.id, { search: debounced, status: status || undefined, page, limit: 10 }),
+      drivingSchoolApi.listStudents(website.id, {
+        search: debounced,
+        status: status || undefined,
+        page,
+        limit: 10,
+      }),
   });
 
   const invalidate = () => {
@@ -137,30 +180,41 @@ function StudentsTab({ website }: { website: Website }) {
 
   const toggle = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.toggleStudentStatus(website.id, id),
-    onSuccess: () => { toast.success('Status updated'); invalidate(); },
+    onSuccess: () => {
+      toast.success('Status updated');
+      invalidate();
+    },
     onError: (e) => toast.error(apiError(e).message),
   });
   const finish = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.finishStudent(website.id, id),
-    onSuccess: () => { toast.success('Marked as completed'); invalidate(); },
+    onSuccess: () => {
+      toast.success('Marked as completed');
+      invalidate();
+    },
     onError: (e) => toast.error(apiError(e).message),
   });
   const remove = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.removeStudent(website.id, id),
-    onSuccess: () => { toast.success('Student deleted'); setToDelete(null); invalidate(); },
+    onSuccess: () => {
+      toast.success('Student deleted');
+      setToDelete(null);
+      invalidate();
+    },
     onError: (e) => toast.error(apiError(e).message),
   });
 
   return (
     <Card className="p-0">
-      <div className="flex flex-wrap items-center gap-3 border-b border-zinc-100 p-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sand-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email…"
-            className="pl-9"
+            className="ps-9"
           />
         </div>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto">
@@ -174,46 +228,61 @@ function StudentsTab({ website }: { website: Website }) {
       {isLoading ? (
         <CenteredSpinner />
       ) : !data || data.students.length === 0 ? (
-        <EmptyState icon={<Users className="h-10 w-10" />} title="No students yet" description="Share your enrollment code to get your first student." />
+        <EmptyState
+          icon={<Users className="h-10 w-10" />}
+          title="No students yet"
+          description="Share your enrollment code to get your first student."
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-100 text-left text-xs uppercase tracking-wide text-zinc-400">
+              <tr className="border-b border-sand-100 text-start text-xs uppercase tracking-wide text-sand-400">
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Email</th>
                 <th className="px-4 py-3 font-semibold">Phone</th>
                 <th className="px-4 py-3 font-semibold">Classes</th>
                 <th className="px-4 py-3 font-semibold">Enrolled</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                <th className="px-4 py-3 text-end font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data.students.map((s) => (
-                <tr key={s.id} className="border-b border-zinc-50 hover:bg-zinc-50/60">
-                  <td className="px-4 py-3 font-medium text-zinc-900">{s.studentName}</td>
-                  <td className="px-4 py-3 text-zinc-600">{s.studentEmail}</td>
-                  <td className="px-4 py-3 text-zinc-600">{s.studentPhone || '—'}</td>
-                  <td className="px-4 py-3"><span className="font-semibold">{s.classCount}</span></td>
-                  <td className="px-4 py-3 text-zinc-600">{formatDate(s.enrolledAt)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
+                <tr
+                  key={s.id}
+                  className="border-b border-sand-50 transition-colors hover:bg-sand-50/60"
+                >
+                  <td className="px-4 py-3 font-semibold text-sand-900">{s.studentName}</td>
+                  <td className="px-4 py-3 text-sand-600">{s.studentEmail}</td>
+                  <td className="px-4 py-3 text-sand-600">{s.studentPhone || '—'}</td>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold text-sand-900">{s.classCount}</span>
+                  </td>
+                  <td className="px-4 py-3 text-sand-600">{formatDate(s.enrolledAt)}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={s.status} />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       {s.status !== 'COMPLETED' && (
                         <button
                           title={s.status === 'ACTIVE' ? 'Pause' : 'Activate'}
                           onClick={() => toggle.mutate(s.id)}
-                          className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100"
+                          className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
-                          {s.status === 'ACTIVE' ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+                          {s.status === 'ACTIVE' ? (
+                            <PauseCircle className="h-4 w-4" />
+                          ) : (
+                            <PlayCircle className="h-4 w-4" />
+                          )}
                         </button>
                       )}
                       {s.status !== 'COMPLETED' && (
                         <button
                           title="Mark completed"
                           onClick={() => finish.mutate(s.id)}
-                          className="rounded-lg p-2 text-blue-500 hover:bg-blue-50"
+                          className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
                           <GraduationCap className="h-4 w-4" />
                         </button>
@@ -221,7 +290,7 @@ function StudentsTab({ website }: { website: Website }) {
                       <button
                         title="Delete"
                         onClick={() => setToDelete(s)}
-                        className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                        className="rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50 hover:text-ember-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -234,16 +303,21 @@ function StudentsTab({ website }: { website: Website }) {
         </div>
       )}
 
+      {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-zinc-100 p-4 text-sm">
-          <span className="text-zinc-500">
+        <div className="flex items-center justify-between border-t border-sand-100 p-4 text-sm">
+          <span className="text-sand-500">
             Page {data.page} of {data.totalPages} · {data.total} students
           </span>
           <div className="flex gap-2">
             <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
               Previous
             </Button>
-            <Button variant="secondary" disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              disabled={page >= data.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next
             </Button>
           </div>
@@ -256,15 +330,22 @@ function StudentsTab({ website }: { website: Website }) {
         title="Delete student?"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setToDelete(null)}>Cancel</Button>
-            <Button variant="danger" loading={remove.isPending} onClick={() => toDelete && remove.mutate(toDelete.id)}>
+            <Button variant="secondary" onClick={() => setToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={remove.isPending}
+              onClick={() => toDelete && remove.mutate(toDelete.id)}
+            >
               Delete
             </Button>
           </>
         }
       >
-        <p className="text-sm text-zinc-600">
-          This permanently removes <strong>{toDelete?.studentName}</strong> and their enrollment. This cannot be undone.
+        <p className="text-sm text-sand-600">
+          This permanently removes <strong className="text-sand-900">{toDelete?.studentName}</strong> and
+          their enrollment. This cannot be undone.
         </p>
       </Modal>
     </Card>
@@ -284,15 +365,23 @@ function ScheduleTab({ website }: { website: Website }) {
 
   return (
     <Card>
+      {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold">{data ? formatDateLong(data.date) : 'Today'}</h3>
+          <p className="section-eyebrow">
+            <CalendarDays className="h-3.5 w-3.5 text-sun-500" /> Schedule
+          </p>
+          <h3 className="mt-1.5 font-display text-xl font-semibold tracking-tight text-sand-950">
+            {data ? formatDateLong(data.date) : 'Today'}
+          </h3>
           {data?.isOpen ? (
-            <p className="text-sm text-zinc-500">
-              Open {data.open}–{data.close} · {data.totals.booked} booked · {data.totals.empty} free
+            <p className="mt-0.5 text-sm text-sand-500">
+              Open {data.open}–{data.close} ·{' '}
+              <span className="font-semibold text-sand-700">{data.totals.booked}</span> booked ·{' '}
+              <span className="font-semibold text-sand-700">{data.totals.empty}</span> free
             </p>
           ) : (
-            <p className="text-sm text-zinc-500">Closed today</p>
+            <p className="mt-0.5 text-sm text-sand-500">Closed today</p>
           )}
         </div>
         <Button variant="secondary" onClick={() => refetch()} loading={isFetching}>
@@ -301,7 +390,11 @@ function ScheduleTab({ website }: { website: Website }) {
       </div>
 
       {!data || data.slots.length === 0 ? (
-        <EmptyState icon={<CalendarDays className="h-10 w-10" />} title={data?.isOpen ? 'No slots today' : 'Closed today'} description="Adjust your working hours in Settings." />
+        <EmptyState
+          icon={<CalendarDays className="h-10 w-10" />}
+          title={data?.isOpen ? 'No slots today' : 'Closed today'}
+          description="Adjust your working hours in Settings."
+        />
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {data.slots.map((slot) => (
@@ -309,22 +402,24 @@ function ScheduleTab({ website }: { website: Website }) {
               key={slot.time}
               className={
                 slot.booked
-                  ? 'rounded-xl border border-emerald-200 bg-emerald-50 p-4'
-                  : 'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4'
+                  ? 'rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition-shadow hover:shadow-card'
+                  : 'rounded-2xl border border-dashed border-sand-200 bg-sand-50/60 p-4'
               }
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-lg font-bold text-zinc-800">{slot.time}</span>
+                <span className="font-mono text-lg font-bold text-sand-800">{slot.time}</span>
                 {slot.booked ? (
-                  <span className="chip bg-emerald-200 text-emerald-800">Booked</span>
+                  <span className="chip bg-emerald-100 text-emerald-800">Booked</span>
                 ) : (
-                  <span className="chip bg-zinc-200 text-zinc-500">Free</span>
+                  <span className="chip bg-sand-200 text-sand-500">Free</span>
                 )}
               </div>
               {slot.booked && (
                 <div className="mt-2">
-                  <p className="font-semibold text-zinc-900">{slot.studentName}</p>
-                  {slot.studentPhone && <p className="text-sm text-zinc-500">{slot.studentPhone}</p>}
+                  <p className="font-semibold text-sand-900">{slot.studentName}</p>
+                  {slot.studentPhone && (
+                    <p className="text-sm text-sand-500">{slot.studentPhone}</p>
+                  )}
                   {typeof slot.classCount === 'number' && (
                     <p className="mt-1 text-xs text-emerald-700">Lesson #{slot.classCount}</p>
                   )}
@@ -349,7 +444,9 @@ function EmailTab({ website }: { website: Website }) {
   const send = useMutation({
     mutationFn: () => drivingSchoolApi.sendBulkEmail(website.id, { subject, body, targetGroup }),
     onSuccess: (res) => {
-      toast.success(`Sent to ${res.sentCount} student(s)${res.failedCount ? `, ${res.failedCount} failed` : ''}`);
+      toast.success(
+        `Sent to ${res.sentCount} student(s)${res.failedCount ? `, ${res.failedCount} failed` : ''}`
+      );
       setSubject('');
       setBody('');
     },
@@ -358,8 +455,14 @@ function EmailTab({ website }: { website: Website }) {
 
   return (
     <Card className="mx-auto max-w-2xl">
-      <h3 className="text-lg font-bold">Email your students</h3>
-      <p className="mt-1 text-sm text-zinc-500">Send an announcement to a group of students.</p>
+      <p className="section-eyebrow">
+        <Mail className="h-3.5 w-3.5 text-sun-500" /> Broadcast
+      </p>
+      <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        Email your students
+      </h3>
+      <p className="mt-1 text-sm text-sand-500">Send an announcement to a group of students.</p>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -369,19 +472,33 @@ function EmailTab({ website }: { website: Website }) {
         className="mt-6 space-y-4"
       >
         <Field label="Send to">
-          <Select value={targetGroup} onChange={(e) => setTargetGroup(e.target.value as typeof targetGroup)}>
+          <Select
+            value={targetGroup}
+            onChange={(e) => setTargetGroup(e.target.value as typeof targetGroup)}
+          >
             <option value="all">All students</option>
             <option value="active">Active students</option>
             <option value="inactive">Inactive students</option>
           </Select>
         </Field>
         <Field label="Subject">
-          <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Holiday schedule update" maxLength={200} />
+          <Input
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Holiday schedule update"
+            maxLength={200}
+          />
         </Field>
         <Field label="Message">
-          <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} placeholder="Hi everyone, …" maxLength={5000} />
+          <Textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={8}
+            placeholder="Hi everyone, …"
+            maxLength={5000}
+          />
         </Field>
-        <Button type="submit" loading={send.isPending}>
+        <Button type="submit" variant="sun" loading={send.isPending}>
           <Send className="h-4 w-4" /> Send email
         </Button>
       </form>
@@ -403,10 +520,13 @@ function SettingsTab({ website }: { website: Website }) {
   });
 
   const [form, setForm] = useState<DrivingSettings | null>(null);
-  useEffect(() => { if (data) setForm(data); }, [data]);
+  useEffect(() => {
+    if (data) setForm(data);
+  }, [data]);
 
   const save = useMutation({
-    mutationFn: (payload: Partial<DrivingSettings>) => drivingSchoolApi.updateSettings(website.id, payload),
+    mutationFn: (payload: Partial<DrivingSettings>) =>
+      drivingSchoolApi.updateSettings(website.id, payload),
     onSuccess: (res) => {
       toast.success('Settings saved');
       setForm(res);
@@ -421,7 +541,10 @@ function SettingsTab({ website }: { website: Website }) {
   const hours: BusinessHours = form.workingHours ?? {};
   const enrollUrl = `${window.location.origin}/p/${website.slug}/enroll`;
 
-  const setDay = (day: string, patch: Partial<{ isOpen: boolean; open: string; close: string }>) => {
+  const setDay = (
+    day: string,
+    patch: Partial<{ isOpen: boolean; open: string; close: string }>
+  ) => {
     const current = hours[day] ?? { isOpen: true, open: '08:00', close: '18:00' };
     setForm({ ...form, workingHours: { ...hours, [day]: { ...current, ...patch } } });
   };
@@ -455,8 +578,13 @@ function SettingsTab({ website }: { website: Website }) {
     <form onSubmit={submit} className="space-y-6">
       {/* Enrollment code */}
       <Card>
-        <h3 className="text-lg font-bold">Enrollment code</h3>
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="section-eyebrow">
+          <KeyRound className="h-3.5 w-3.5 text-sun-500" /> Access
+        </p>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+          Enrollment code
+        </h3>
+        <p className="mt-1 text-sm text-sand-500">
           Optional permanent code. Leave blank to rely only on the rotating daily code.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -464,7 +592,9 @@ function SettingsTab({ website }: { website: Website }) {
             <div className="flex gap-2">
               <Input
                 value={form.enrollmentCode}
-                onChange={(e) => setForm({ ...form, enrollmentCode: e.target.value.toUpperCase() })}
+                onChange={(e) =>
+                  setForm({ ...form, enrollmentCode: e.target.value.toUpperCase() })
+                }
                 placeholder="e.g. DRIVE2026"
               />
               <Button type="button" variant="secondary" onClick={randomCode} title="Generate">
@@ -473,28 +603,41 @@ function SettingsTab({ website }: { website: Website }) {
             </div>
           </Field>
           <Field label="Public enroll link">
-            <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
-              <code className="flex-1 truncate text-sm text-zinc-600">{enrollUrl}</code>
-              <button type="button" onClick={() => copy(enrollUrl, 'enroll')} className="rounded p-1 hover:bg-zinc-200">
-                {copied === 'enroll' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+            <div className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-sand-50 px-3 py-2.5">
+              <code className="flex-1 truncate text-sm text-sand-600">{enrollUrl}</code>
+              <button
+                type="button"
+                onClick={() => copy(enrollUrl, 'enroll')}
+                className="rounded-xl p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+              >
+                {copied === 'enroll' ? (
+                  <Check className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
           </Field>
         </div>
-        <label className="mt-4 flex items-center gap-3">
+        <label className="mt-4 flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={form.dailyCodeEnabled}
             onChange={(e) => setForm({ ...form, dailyCodeEnabled: e.target.checked })}
-            className="h-4 w-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
           />
-          <span className="text-sm text-zinc-700">Enable rotating daily code</span>
+          <span className="text-sm text-sand-700">Enable rotating daily code</span>
         </label>
       </Card>
 
       {/* Lesson settings */}
       <Card>
-        <h3 className="text-lg font-bold">Lesson settings</h3>
+        <p className="section-eyebrow">
+          <CalendarDays className="h-3.5 w-3.5 text-sun-500" /> Lessons
+        </p>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+          Lesson settings
+        </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Lesson duration">
             <Select
@@ -502,7 +645,9 @@ function SettingsTab({ website }: { website: Website }) {
               onChange={(e) => setForm({ ...form, classDuration: Number(e.target.value) })}
             >
               {DURATIONS.map((d) => (
-                <option key={d} value={d}>{d} min</option>
+                <option key={d} value={d}>
+                  {d} min
+                </option>
               ))}
             </Select>
           </Field>
@@ -538,29 +683,47 @@ function SettingsTab({ website }: { website: Website }) {
 
       {/* Working hours */}
       <Card>
-        <h3 className="text-lg font-bold">Working hours</h3>
+        <p className="section-eyebrow">
+          <Sun className="h-3.5 w-3.5 text-sun-500" /> Availability
+        </p>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+          Working hours
+        </h3>
         <div className="mt-4 space-y-2">
           {WEEKDAYS.map((day) => {
             const d = hours[day] ?? { isOpen: false, open: '08:00', close: '18:00' };
             return (
-              <div key={day} className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-100 p-3">
-                <label className="flex w-32 items-center gap-2">
+              <div
+                key={day}
+                className="flex flex-wrap items-center gap-3 rounded-2xl border border-sand-100 bg-sand-50/40 p-3 transition-colors hover:border-sand-200"
+              >
+                <label className="flex w-32 cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
                     checked={d.isOpen}
                     onChange={(e) => setDay(day, { isOpen: e.target.checked })}
-                    className="h-4 w-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+                    className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
                   />
-                  <span className="font-medium">{titleCase(day)}</span>
+                  <span className="font-medium text-sand-800">{titleCase(day)}</span>
                 </label>
                 {d.isOpen ? (
                   <div className="flex items-center gap-2">
-                    <Input type="time" value={d.open} onChange={(e) => setDay(day, { open: e.target.value })} className="w-32" />
-                    <span className="text-zinc-400">to</span>
-                    <Input type="time" value={d.close} onChange={(e) => setDay(day, { close: e.target.value })} className="w-32" />
+                    <Input
+                      type="time"
+                      value={d.open}
+                      onChange={(e) => setDay(day, { open: e.target.value })}
+                      className="w-32"
+                    />
+                    <span className="text-sand-400">to</span>
+                    <Input
+                      type="time"
+                      value={d.close}
+                      onChange={(e) => setDay(day, { close: e.target.value })}
+                      className="w-32"
+                    />
                   </div>
                 ) : (
-                  <span className="text-sm text-zinc-400">Closed</span>
+                  <span className="text-sm text-sand-400">Closed</span>
                 )}
               </div>
             );
@@ -571,11 +734,23 @@ function SettingsTab({ website }: { website: Website }) {
       {/* Break times */}
       <Card>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Break times</h3>
+          <div>
+            <p className="section-eyebrow">
+              <RefreshCw className="h-3.5 w-3.5 text-sun-500" /> Breaks
+            </p>
+            <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+              Break times
+            </h3>
+          </div>
           <Button
             type="button"
             variant="secondary"
-            onClick={() => setForm({ ...form, breakTimes: [...(form.breakTimes ?? []), { start: '12:00', end: '13:00' }] })}
+            onClick={() =>
+              setForm({
+                ...form,
+                breakTimes: [...(form.breakTimes ?? []), { start: '12:00', end: '13:00' }],
+              })
+            }
           >
             <Plus className="h-4 w-4" /> Add break
           </Button>
@@ -583,7 +758,10 @@ function SettingsTab({ website }: { website: Website }) {
         {form.breakTimes && form.breakTimes.length > 0 ? (
           <div className="mt-4 space-y-2">
             {form.breakTimes.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-xl border border-zinc-100 p-3">
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-2xl border border-sand-100 bg-sand-50/40 p-3"
+              >
                 <Input
                   type="time"
                   value={b.start}
@@ -594,7 +772,7 @@ function SettingsTab({ website }: { website: Website }) {
                   }}
                   className="w-32"
                 />
-                <span className="text-zinc-400">to</span>
+                <span className="text-sand-400">to</span>
                 <Input
                   type="time"
                   value={b.end}
@@ -607,8 +785,10 @@ function SettingsTab({ website }: { website: Website }) {
                 />
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, breakTimes: form.breakTimes.filter((_, j) => j !== i) })}
-                  className="ml-auto rounded-lg p-2 text-red-500 hover:bg-red-50"
+                  onClick={() =>
+                    setForm({ ...form, breakTimes: form.breakTimes.filter((_, j) => j !== i) })
+                  }
+                  className="ms-auto rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50 hover:text-ember-700"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -616,30 +796,42 @@ function SettingsTab({ website }: { website: Website }) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-zinc-400">No breaks configured.</p>
+          <p className="mt-4 text-sm text-sand-400">No breaks configured.</p>
         )}
       </Card>
 
       {/* Public profile */}
       <Card>
-        <h3 className="text-lg font-bold">Public profile</h3>
-        <p className="mt-1 text-sm text-zinc-500">Shown on your public booking site.</p>
+        <p className="section-eyebrow">
+          <Users className="h-3.5 w-3.5 text-sun-500" /> Profile
+        </p>
+        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+          Public profile
+        </h3>
+        <p className="mt-1 text-sm text-sand-500">Shown on your public booking site.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Teacher name">
-            <Input value={form.teacherName} onChange={(e) => setForm({ ...form, teacherName: e.target.value })} />
+            <Input
+              value={form.teacherName}
+              onChange={(e) => setForm({ ...form, teacherName: e.target.value })}
+            />
           </Field>
           <Field label="Price per lesson">
             <Input
               type="number"
               min={0}
               value={form.pricePerClass ?? ''}
-              onChange={(e) => setForm({ ...form, pricePerClass: e.target.value ? Number(e.target.value) : null })}
+              onChange={(e) =>
+                setForm({ ...form, pricePerClass: e.target.value ? Number(e.target.value) : null })
+              }
             />
           </Field>
           <Field label="Years of experience" hint='e.g. "10+"'>
             <Input
               value={form.experienceYears ?? ''}
-              onChange={(e) => setForm({ ...form, experienceYears: e.target.value || null })}
+              onChange={(e) =>
+                setForm({ ...form, experienceYears: e.target.value || null })
+              }
             />
           </Field>
           <Field label="Pass rate (%)">
@@ -648,14 +840,17 @@ function SettingsTab({ website }: { website: Website }) {
               min={0}
               max={100}
               value={form.passRate ?? ''}
-              onChange={(e) => setForm({ ...form, passRate: e.target.value ? Number(e.target.value) : null })}
+              onChange={(e) =>
+                setForm({ ...form, passRate: e.target.value ? Number(e.target.value) : null })
+              }
             />
           </Field>
         </div>
       </Card>
 
+      {/* Sticky save bar */}
       <div className="sticky bottom-4 flex justify-end">
-        <Button type="submit" loading={save.isPending} className="shadow-elevated">
+        <Button type="submit" variant="sun" loading={save.isPending} className="shadow-elevated">
           Save settings
         </Button>
       </div>
@@ -670,13 +865,19 @@ export default function DrivingSchool() {
   const [tab, setTab] = useState<TabKey>('code');
   const [websiteId, setWebsiteId] = useState<string>('');
 
-  const { data: websites, isLoading } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
+  const { data: websites, isLoading } = useQuery({
+    queryKey: ['websites'],
+    queryFn: websiteApi.list,
+  });
 
   useEffect(() => {
     if (websites && websites.length > 0 && !websiteId) setWebsiteId(websites[0].id);
   }, [websites, websiteId]);
 
-  const website = useMemo(() => websites?.find((w) => w.id === websiteId), [websites, websiteId]);
+  const website = useMemo(
+    () => websites?.find((w) => w.id === websiteId),
+    [websites, websiteId]
+  );
 
   if (isLoading) return <CenteredSpinner label="Loading…" />;
 
@@ -692,22 +893,36 @@ export default function DrivingSchool() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Driving Teacher</h1>
-          <p className="text-zinc-500">Manage your students, schedule, codes, and settings.</p>
+      {/* Page header */}
+      <FadeUp>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="section-eyebrow">
+              <GraduationCap className="h-3.5 w-3.5 text-sun-500" /> Driving Teacher
+            </p>
+            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+              Manage your school
+            </h1>
+            <p className="mt-1 text-sand-500">Students, schedule, codes, and settings — all in one place.</p>
+          </div>
+          {websites.length > 1 && (
+            <Select
+              value={websiteId}
+              onChange={(e) => setWebsiteId(e.target.value)}
+              className="w-auto"
+            >
+              {websites.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </Select>
+          )}
         </div>
-        {websites.length > 1 && (
-          <Select value={websiteId} onChange={(e) => setWebsiteId(e.target.value)} className="w-auto">
-            {websites.map((w) => (
-              <option key={w.id} value={w.id}>{w.name}</option>
-            ))}
-          </Select>
-        )}
-      </div>
+      </FadeUp>
 
-      {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-100 p-1">
+      {/* Tab bar */}
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-sand-200/70 bg-sand-100/60 p-1">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -717,25 +932,28 @@ export default function DrivingSchool() {
               onClick={() => setTab(t.key)}
               className={
                 active
-                  ? 'flex shrink-0 items-center gap-2 rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-zinc-900 shadow-sm'
-                  : 'flex shrink-0 items-center gap-2 rounded-md px-4 py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900'
+                  ? 'flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-sand-950 shadow-card transition-all duration-200'
+                  : 'flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-sand-400 transition-all duration-200 hover:bg-white/50 hover:text-sand-700'
               }
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={`h-4 w-4 ${active ? 'text-sun-500' : 'text-sand-400'}`} />
               {t.label}
             </button>
           );
         })}
       </div>
 
+      {/* Tab content */}
       {website && (
-        <div className="animate-fade-in">
-          {tab === 'code' && <CodeTab website={website} />}
-          {tab === 'students' && <StudentsTab website={website} />}
-          {tab === 'schedule' && <ScheduleTab website={website} />}
-          {tab === 'email' && <EmailTab website={website} />}
-          {tab === 'settings' && <SettingsTab website={website} />}
-        </div>
+        <Stagger className="animate-fade-in">
+          <Stagger.Item>
+            {tab === 'code' && <CodeTab website={website} />}
+            {tab === 'students' && <StudentsTab website={website} />}
+            {tab === 'schedule' && <ScheduleTab website={website} />}
+            {tab === 'email' && <EmailTab website={website} />}
+            {tab === 'settings' && <SettingsTab website={website} />}
+          </Stagger.Item>
+        </Stagger>
       )}
     </div>
   );

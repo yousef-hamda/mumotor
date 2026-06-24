@@ -9,7 +9,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 const router = Router();
 
 export const PLANS = [
-  { id: 'FREE', name: 'Free', price: 0, features: ['1 published site (DriveSawa badge)', 'Up to 25 students', 'Online booking', 'Daily codes'] },
+  { id: 'FREE', name: 'Free', price: 0, features: ['1 published site (Mumotor badge)', 'Up to 25 students', 'Online booking', 'Daily codes'] },
   { id: 'PRO', name: 'Pro', price: 29, features: ['Badge removed', 'Unlimited students', 'Custom domain', 'Bulk email', 'Daily schedule reports'] },
   { id: 'STUDIO', name: 'Studio', price: 79, features: ['Everything in Pro', 'Multiple sites / locations', 'Priority generation', 'Early features'] },
 ];

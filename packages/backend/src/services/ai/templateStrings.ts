@@ -50,7 +50,7 @@ const en: SiteStrings = {
   ] },
   contact: { eyebrow: 'Contact', title: 'Ready to start?', lead: 'Enroll with the code from {teacher} and book your first lesson today. Questions? Reach out anytime.', enrollNow: 'Enroll now', phone: 'Phone', email: 'Email', area: 'Area', booking: 'Booking', online7: 'Online, 7 days a week', lessonsLabel: 'Lessons', minEach: '{n} min each' },
   cta: { title: 'Begin your road to freedom', text: 'Get behind the wheel with confidence — enroll now and book your first lesson.', enrollNow: 'Enroll now' },
-  footer: { builtWith: 'Built with DriveSawa' },
+  footer: { builtWith: 'Built with Mumotor' },
   servicesDefault: [
     { name: 'Driving Lesson', description: 'A standard one-on-one lesson tailored to your level.', price: 50, duration: 45 },
     { name: 'First Lesson', description: 'A gentle introduction for brand-new drivers.', price: 40, duration: 45 },
@@ -86,7 +86,7 @@ const he: SiteStrings = {
   ] },
   contact: { eyebrow: 'צור קשר', title: 'מוכנים להתחיל?', lead: 'נרשמים עם הקוד מ{teacher} ומזמינים את השיעור הראשון עוד היום. שאלות? אנחנו כאן.', enrollNow: 'להרשמה', phone: 'טלפון', email: 'אימייל', area: 'אזור', booking: 'הזמנות', online7: 'אונליין, 7 ימים בשבוע', lessonsLabel: 'שיעורים', minEach: '{n} דקות לשיעור' },
   cta: { title: 'הדרך לחופש מתחילה כאן', text: 'שבו מאחורי ההגה בביטחון — הירשמו והזמינו את השיעור הראשון.', enrollNow: 'להרשמה' },
-  footer: { builtWith: 'נבנה עם DriveSawa' },
+  footer: { builtWith: 'נבנה עם Mumotor' },
   servicesDefault: [
     { name: 'שיעור נהיגה', description: 'שיעור פרטני סטנדרטי המותאם לרמה שלכם.', price: 50, duration: 45 },
     { name: 'שיעור ראשון', description: 'מבוא עדין לנהגים מתחילים לגמרי.', price: 40, duration: 45 },
@@ -122,7 +122,7 @@ const ar: SiteStrings = {
   ] },
   contact: { eyebrow: 'تواصل', title: 'جاهز للبدء؟', lead: 'سجّل بالرمز من {teacher} واحجز درسك الأول اليوم. أسئلة؟ تواصل معنا في أي وقت.', enrollNow: 'سجّل الآن', phone: 'الهاتف', email: 'البريد', area: 'المنطقة', booking: 'الحجز', online7: 'عبر الإنترنت، 7 أيام في الأسبوع', lessonsLabel: 'الدروس', minEach: '{n} دقيقة لكل درس' },
   cta: { title: 'ابدأ طريقك نحو الحرية', text: 'اجلس خلف المقود بثقة — سجّل الآن واحجز درسك الأول.', enrollNow: 'سجّل الآن' },
-  footer: { builtWith: 'صُنع بواسطة DriveSawa' },
+  footer: { builtWith: 'صُنع بواسطة Mumotor' },
   servicesDefault: [
     { name: 'درس قيادة', description: 'درس فردي قياسي مصمّم حسب مستواك.', price: 50, duration: 45 },
     { name: 'الدرس الأول', description: 'مقدمة لطيفة للسائقين الجدد تماماً.', price: 40, duration: 45 },

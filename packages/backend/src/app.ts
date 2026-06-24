@@ -29,9 +29,9 @@ export function createApp() {
   app.set('trust proxy', 1);
 
   // Flexible CORS: localhost, the configured frontend, and the platform's
-  // production domains (drivesawa.com + per-teacher subdomains, Vercel, Railway).
+  // production domains (mumotor.com + per-teacher subdomains, Vercel, Railway).
   const allowed = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/];
-  const prodHosts = [/\.drivesawa\.com$/, /drivesawa\.com$/, /\.vercel\.app$/, /\.up\.railway\.app$/];
+  const prodHosts = [/\.mumotor\.com$/, /mumotor\.com$/, /\.vercel\.app$/, /\.up\.railway\.app$/];
   app.use(
     cors({
       origin(origin, cb) {
@@ -63,7 +63,7 @@ export function createApp() {
     app.use(express.static(frontendDist, { index: false, maxAge: '1h' }));
     app.get('*', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
   } else {
-    app.get('/', (_req, res) => res.json({ name: 'DriveSawa API', docs: '/api/health' }));
+    app.get('/', (_req, res) => res.json({ name: 'Mumotor API', docs: '/api/health' }));
     app.use(notFoundHandler);
   }
 

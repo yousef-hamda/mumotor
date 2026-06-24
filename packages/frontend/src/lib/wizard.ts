@@ -50,7 +50,7 @@ export const defaultWizardConfig: WizardConfig = {
   presetId: 'clear-horizon',
 };
 
-const STORAGE_KEY = 'drivesawa_wizard';
+const STORAGE_KEY = 'mumotor_wizard';
 
 export function loadWizard(): WizardConfig {
   try {

@@ -70,13 +70,13 @@ function layout(title: string, bodyHtml: string): string {
 <body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b">
   <div style="max-width:560px;margin:0 auto;padding:24px">
     <div style="background:#18181b;border-radius:12px 12px 0 0;padding:22px 32px">
-      <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px">DriveSawa</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px">Mumotor</div>
     </div>
     <div style="background:#fff;border:1px solid #e4e4e7;border-top:0;border-radius:0 0 12px 12px;padding:32px">
       ${bodyHtml}
     </div>
     <p style="text-align:center;color:#a1a1aa;font-size:12px;margin-top:20px">
-      DriveSawa — driving lessons made simple.
+      Mumotor — driving lessons made simple.
     </p>
   </div>
 </body></html>`;

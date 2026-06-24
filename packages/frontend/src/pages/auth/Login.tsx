@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { apiError } from '../../lib/api';
 import { Button, Field, Input } from '../../components/ui';
-import { Logo } from '../../components/Logo';
+import { AuthShell } from '../../components/AuthShell';
+import { FadeUp } from '../../components/motion';
 
 export default function Login() {
   const { login } = useAuth();
@@ -12,7 +14,7 @@ export default function Login() {
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/dashboard';
 
-  const [email, setEmail] = useState('teacher@otto.local');
+  const [email, setEmail] = useState('teacher@mumotor.local');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
 
@@ -31,40 +33,43 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-      <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex justify-center">
-          <Logo size="lg" />
-        </Link>
-        <div className="card p-8">
-          <h1 className="mb-1 text-2xl font-bold tracking-tight">Sign in to your account</h1>
-          <p className="mb-6 text-sm text-zinc-500">Manage your students, schedule, and codes.</p>
-          <form onSubmit={submit} className="space-y-4">
-            <Field label="Email">
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-            </Field>
-            <Field label="Password">
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </Field>
-            <Button type="submit" loading={loading} className="w-full">
-              Sign in
-            </Button>
-          </form>
-          <p className="mt-6 text-center text-sm text-zinc-500">
-            New here?{' '}
-            <Link to="/register" className="font-semibold text-brand-700 hover:underline">
-              Create an account
-            </Link>
-          </p>
-        </div>
-        <p className="mt-4 text-center text-xs text-zinc-400">Demo: teacher@otto.local / password123</p>
-      </div>
-    </div>
+    <AuthShell
+      points={[
+        'Beautiful trilingual website, generated for you',
+        'Students enroll with a code and book themselves',
+        'Reminders and daily codes run on autopilot',
+      ]}
+    >
+      <FadeUp>
+        <h1 className="font-display text-[2rem] font-semibold tracking-tightest text-sand-950">Welcome back</h1>
+        <p className="mt-2 text-sm text-sand-500">Manage your students, schedule and codes.</p>
+        <form onSubmit={submit} className="mt-8 space-y-4">
+          <Field label="Email">
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          </Field>
+          <Field label="Password">
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </Field>
+          <Button type="submit" variant="sun" loading={loading} className="w-full">
+            Sign in <ArrowRight className="h-4 w-4" />
+          </Button>
+        </form>
+        <p className="mt-6 text-center text-sm text-sand-500">
+          New here?{' '}
+          <Link to="/register" className="link-underline text-sun-700">
+            Create an account
+          </Link>
+        </p>
+        <p className="mt-5 rounded-2xl border border-sand-200/70 bg-sand-50 px-4 py-2.5 text-center text-xs text-sand-400">
+          Demo credentials pre-filled above
+        </p>
+      </FadeUp>
+    </AuthShell>
   );
 }

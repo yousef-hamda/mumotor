@@ -15,20 +15,23 @@ export function PublicShell({
   children: ReactNode;
   width?: 'narrow' | 'wide';
 }) {
+  const Brand = (
+    <span className="flex items-center gap-2.5">
+      <LogoMark size="sm" />
+      <span className="font-display font-semibold tracking-tight text-sand-950">{schoolName || 'Driving School'}</span>
+    </span>
+  );
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
+    <div className="flex min-h-screen flex-col bg-sand-50">
+      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-72 bg-sunrise-soft opacity-40 blur-2xl" />
+      <header className="border-b border-sand-200/70 bg-sand-50/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
           {slug ? (
-            <Link to={`/p/${slug}`} className="flex items-center gap-2.5">
-              <LogoMark size="sm" />
-              <span className="font-bold tracking-tight text-zinc-900">{schoolName || 'Driving School'}</span>
+            <Link to={`/p/${slug}`} className="transition-opacity hover:opacity-80">
+              {Brand}
             </Link>
           ) : (
-            <span className="flex items-center gap-2.5">
-              <LogoMark size="sm" />
-              <span className="font-bold tracking-tight text-zinc-900">{schoolName || 'Driving School'}</span>
-            </span>
+            Brand
           )}
           <LanguageSwitcher />
         </div>
@@ -38,8 +41,11 @@ export function PublicShell({
         <div className={width === 'narrow' ? 'w-full max-w-md' : 'w-full max-w-3xl'}>{children}</div>
       </main>
 
-      <footer className="border-t border-zinc-200 bg-white py-5 text-center text-xs text-zinc-400">
-        Powered by <span className="font-semibold text-zinc-600">DriveSawa</span>
+      <footer className="border-t border-sand-200/60 py-6 text-center text-xs text-sand-400 tracking-wide">
+        Powered by{' '}
+        <Link to="/" className="font-semibold text-sand-600 transition-colors hover:text-sand-900">
+          Mumotor
+        </Link>
       </footer>
     </div>
   );

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, Copy, ExternalLink, Globe, Pencil } from 'lucide-react';
+import { Check, Copy, ExternalLink, Globe, Pencil, Rss } from 'lucide-react';
 import { apiError, siteUrl, websiteApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, EmptyState, StatusBadge } from '../../components/ui';
+import { FadeUp, Stagger } from '../../components/motion';
 import type { Website } from '../../lib/types';
 
 function SiteRow({ website }: { website: Website }) {
@@ -25,53 +26,99 @@ function SiteRow({ website }: { website: Website }) {
   });
 
   return (
-    <Card className="p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold tracking-tight">{website.name}</h3>
-            <StatusBadge status={website.status} />
+    <div className="group relative overflow-hidden rounded-3xl border border-sand-200/80 bg-white shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated">
+      {/* live indicator strip */}
+      {live && (
+        <div className="h-[3px] w-full bg-gradient-to-r from-sun-400 to-sun-500" />
+      )}
+      <div className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-display text-lg font-semibold tracking-tight text-sand-950">{website.name}</h3>
+              <StatusBadge status={website.status} />
+            </div>
+            <div className="mt-2.5 inline-flex items-center gap-2 rounded-full border border-sand-200/80 bg-sand-50 px-3 py-1">
+              <Globe className="h-3 w-3 shrink-0 text-sand-400" />
+              <code className="text-[12px] text-sand-500">{website.slug}.mumotor.com</code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                className="rounded-lg p-1 text-sand-400 transition-colors hover:bg-sand-200 hover:text-sand-700"
+                title="Copy URL"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
-          <div className="mt-2 flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5">
-            <Globe className="h-4 w-4 text-zinc-400" />
-            <code className="text-sm text-zinc-600">{website.slug}.drivesawa.com</code>
-            <button onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="rounded p-1 hover:bg-zinc-200">
-              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-zinc-400" />}
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to={`/editor/${website.id}`} className="btn-secondary">
+              <Pencil className="h-4 w-4" /> Edit
+            </Link>
+            {live && (
+              <a href={url} target="_blank" rel="noreferrer" className="btn-secondary">
+                Visit <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+            {live ? (
+              <Button variant="secondary" onClick={() => unpublish.mutate()} loading={unpublish.isPending}>
+                Unpublish
+              </Button>
+            ) : (
+              <Button variant="sun" onClick={() => publish.mutate()} loading={publish.isPending}>
+                Publish
+              </Button>
+            )}
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link to={`/editor/${website.id}`} className="btn-secondary"><Pencil className="h-4 w-4" /> Edit</Link>
-          {live && <a href={url} target="_blank" rel="noreferrer" className="btn-secondary">Visit <ExternalLink className="h-4 w-4" /></a>}
-          {live ? (
-            <Button variant="secondary" onClick={() => unpublish.mutate()} loading={unpublish.isPending}>Unpublish</Button>
-          ) : (
-            <Button onClick={() => publish.mutate()} loading={publish.isPending}>Publish</Button>
-          )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
 export default function Publishing() {
   const { data: websites, isLoading } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
   if (isLoading) return <CenteredSpinner />;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Publishing</h1>
-          <p className="text-zinc-500">Manage where your sites are live.</p>
+    <div className="mx-auto max-w-3xl space-y-7">
+      <FadeUp>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="section-eyebrow">
+              <Rss className="h-3.5 w-3.5 text-sun-500" /> Publishing
+            </p>
+            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+              Your sites
+            </h1>
+            <p className="mt-1 text-sand-500">Manage where your sites are live.</p>
+          </div>
+          <Link to="/builder" className="btn-secondary">
+            New site
+          </Link>
         </div>
-        <Link to="/builder" className="btn-secondary">New site</Link>
-      </div>
+      </FadeUp>
+
       {!websites || websites.length === 0 ? (
-        <Card><EmptyState title="No sites yet" description="Create your first site from the builder." /></Card>
+        <Card>
+          <EmptyState
+            icon={<Globe className="h-10 w-10 text-sand-300" />}
+            title="No sites yet"
+            description="Create your first site from the builder."
+          />
+        </Card>
       ) : (
-        <div className="space-y-4">{websites.map((w) => <SiteRow key={w.id} website={w} />)}</div>
+        <Stagger className="space-y-4">
+          {websites.map((w) => (
+            <Stagger.Item key={w.id}>
+              <SiteRow website={w} />
+            </Stagger.Item>
+          ))}
+        </Stagger>
       )}
-      <p className="text-center text-xs text-zinc-400">Custom domains and per-teacher subdomains are configured at deploy time (wildcard DNS).</p>
+
+      <p className="text-center text-xs text-sand-400">
+        Custom domains and per-teacher subdomains are configured at deploy time (wildcard DNS).
+      </p>
     </div>
   );
 }

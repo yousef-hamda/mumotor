@@ -19,14 +19,14 @@ function utcMidnight(offsetDays = 0): Date {
 }
 
 async function main() {
-  console.log('🌱 Seeding DriveSawa...');
+  console.log('🌱 Seeding Mumotor...');
 
   const passwordHash = await bcrypt.hash('password123', 10);
   const teacher = await prisma.user.upsert({
-    where: { email: 'teacher@otto.local' },
+    where: { email: 'teacher@mumotor.local' },
     update: {},
     create: {
-      email: 'teacher@otto.local',
+      email: 'teacher@mumotor.local',
       passwordHash,
       name: 'David Cohen',
       phone: '+972-50-123-4567',
@@ -38,9 +38,9 @@ async function main() {
   console.log(`  ✓ Teacher: ${teacher.email} (password: password123)`);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@otto.local' },
+    where: { email: 'admin@mumotor.local' },
     update: { role: 'ADMIN' },
-    create: { email: 'admin@otto.local', passwordHash, name: 'Platform Admin', role: 'ADMIN', emailVerified: true },
+    create: { email: 'admin@mumotor.local', passwordHash, name: 'Platform Admin', role: 'ADMIN', emailVerified: true },
   });
   console.log(`  ✓ Admin: ${admin.email} (password: password123)`);
 
@@ -66,7 +66,7 @@ async function main() {
       { name: 'Test Preparation', description: 'Mock test on real routes to get you exam-ready.', price: 55, duration: 60 },
       { name: 'Highway Lesson', description: 'Build confidence at speed on the open road.', price: 55, duration: 60 },
     ],
-    contact: { phone: '+972-50-123-4567', email: 'teacher@otto.local', address: 'Netanya, Israel' },
+    contact: { phone: '+972-50-123-4567', email: 'teacher@mumotor.local', address: 'Netanya, Israel' },
   };
 
   const slug = 'davids-driving';
@@ -173,7 +173,7 @@ async function main() {
   }
 
   console.log('✅ Seed complete.\n');
-  console.log('   Teacher login : teacher@otto.local / password123');
+  console.log('   Teacher login : teacher@mumotor.local / password123');
   console.log('   Published site: /site/davids-driving');
   console.log('   Enroll        : /p/davids-driving/enroll  (code: DRIVE2026)');
 }

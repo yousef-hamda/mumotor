@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, Sun } from 'lucide-react';
 import { apiError, drivingSchoolApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, Field, Input, Modal } from '../../components/ui';
 import { PublicShell } from '../../components/PublicShell';
 import { formatDateLong, formatDateShort, upcomingDates } from '../../lib/utils';
 import type { BusinessHours, PublicSettings } from '../../lib/types';
+import { FadeUp } from '../../components/motion';
 
 type Step = 'email' | 'date' | 'details' | 'time' | 'done';
 
@@ -29,14 +30,14 @@ function Stepper({ step }: { step: Step }) {
           <span
             className={
               i <= activeIdx
-                ? 'flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white'
-                : 'flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-500'
+                ? 'flex h-7 w-7 items-center justify-center rounded-full bg-sand-950 text-xs font-bold text-white shadow-[0_2px_8px_-2px_rgba(34,28,21,0.4)]'
+                : 'flex h-7 w-7 items-center justify-center rounded-full border border-sand-200 bg-white text-xs font-semibold text-sand-400'
             }
           >
             {i + 1}
           </span>
-          <span className={i <= activeIdx ? 'font-medium text-zinc-900' : 'text-zinc-400'}>{labels[s]}</span>
-          {i < order.length - 1 && <span className="mx-1 h-px w-6 bg-zinc-200" />}
+          <span className={i <= activeIdx ? 'font-semibold text-sand-950' : 'text-sand-400'}>{labels[s]}</span>
+          {i < order.length - 1 && <span className="mx-1 h-px w-8 bg-sand-200" />}
         </div>
       ))}
     </div>
@@ -159,8 +160,8 @@ export default function BookLesson() {
     return (
       <PublicShell>
         <Card className="text-center">
-          <h1 className="text-lg font-bold">School not found</h1>
-          <p className="mt-1 text-sm text-zinc-500">This booking link may be incorrect or no longer active.</p>
+          <h1 className="font-display text-lg font-semibold text-sand-950">School not found</h1>
+          <p className="mt-1 text-sm text-sand-500">This booking link may be incorrect or no longer active.</p>
         </Card>
       </PublicShell>
     );
@@ -173,41 +174,53 @@ export default function BookLesson() {
 
       {/* STEP: email */}
       {step === 'email' && (
-        <Card>
-          <h1 className="text-xl font-bold tracking-tight">Book a driving lesson</h1>
-          <p className="mt-1 text-sm text-zinc-500">Enter the email you enrolled with to get started.</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error('Please enter a valid email');
-              checkEnrollment.mutate(email.trim());
-            }}
-            className="mt-6 space-y-4"
-          >
-            <Field label="Email">
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
-            </Field>
-            <Button type="submit" loading={checkEnrollment.isPending} className="w-full">
-              Continue <ArrowRight className="h-4 w-4" />
-            </Button>
-          </form>
-          <p className="mt-5 text-center text-sm text-zinc-500">
-            Not enrolled yet?{' '}
-            <Link to={`/p/${websiteSlug}/enroll`} className="font-semibold text-brand-700 hover:underline">
-              Enroll here
-            </Link>
-          </p>
-        </Card>
+        <FadeUp>
+          <Card>
+            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-2xl border border-sand-200 bg-white shadow-card">
+              <CalendarDays className="h-4 w-4 text-sun-500" strokeWidth={1.75} />
+            </div>
+            <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">
+              Book a driving lesson
+            </h1>
+            <p className="mt-1 text-sm text-sand-500">Enter the email you enrolled with to get started.</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error('Please enter a valid email');
+                checkEnrollment.mutate(email.trim());
+              }}
+              className="mt-6 space-y-4"
+            >
+              <Field label="Email">
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
+              </Field>
+              <Button variant="sun" type="submit" loading={checkEnrollment.isPending} className="w-full shine">
+                Continue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </form>
+            <p className="mt-5 text-center text-sm text-sand-500">
+              Not enrolled yet?{' '}
+              <Link to={`/p/${websiteSlug}/enroll`} className="link-underline">
+                Enroll here
+              </Link>
+            </p>
+          </Card>
+        </FadeUp>
       )}
 
       {/* STEP: date */}
       {step === 'date' && (
         <Card>
-          <button onClick={() => setStep('email')} className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800">
+          <button
+            onClick={() => setStep('email')}
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-900"
+          >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
-          <h1 className="text-xl font-bold tracking-tight">Choose a date</h1>
-          <p className="mt-1 text-sm text-zinc-500">Book up to {advanceDays} day{advanceDays > 1 ? 's' : ''} ahead.</p>
+          <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Choose a date</h1>
+          <p className="mt-1 text-sm text-sand-500">
+            Book up to {advanceDays} day{advanceDays > 1 ? 's' : ''} ahead.
+          </p>
           <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
             {dates.map((d) => {
               const open = isDayOpen(d, hours);
@@ -223,14 +236,14 @@ export default function BookLesson() {
                   }}
                   className={
                     selected
-                      ? 'rounded-lg border border-zinc-900 bg-zinc-900 px-3 py-3 text-sm font-semibold text-white'
+                      ? 'rounded-2xl border border-sand-900 bg-sand-950 px-3 py-3 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(34,28,21,0.5)] transition-all duration-150'
                       : open
-                        ? 'rounded-lg border border-zinc-200 px-3 py-3 text-sm font-medium text-zinc-800 hover:border-zinc-400'
-                        : 'cursor-not-allowed rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-sm text-zinc-300'
+                        ? 'rounded-2xl border border-sand-200 bg-white px-3 py-3 text-sm font-medium text-sand-800 shadow-ring transition-all duration-150 hover:border-sand-300 hover:bg-sand-50 hover:-translate-y-0.5'
+                        : 'cursor-not-allowed rounded-2xl border border-dashed border-sand-200 px-3 py-3 text-sm text-sand-300'
                   }
                 >
                   {formatDateShort(d)}
-                  {!open && <span className="mt-0.5 block text-[10px]">Closed</span>}
+                  {!open && <span className="mt-0.5 block text-[10px] text-sand-400">Closed</span>}
                 </button>
               );
             })}
@@ -240,33 +253,40 @@ export default function BookLesson() {
 
       {/* STEP: details (enroll inline) */}
       {step === 'details' && (
-        <Card>
-          <button onClick={() => setStep('date')} className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-          <h1 className="text-xl font-bold tracking-tight">Quick enrollment</h1>
-          <p className="mt-1 text-sm text-zinc-500">We don't recognize this email yet. Enter your name and code to continue.</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const code = (new FormData(e.currentTarget).get('code') as string) ?? '';
-              if (studentName.trim().length < 2) return toast.error('Please enter your name');
-              if (code.trim().length < 4) return toast.error('Enter the code from your instructor');
-              enroll.mutate(code);
-            }}
-            className="mt-6 space-y-4"
-          >
-            <Field label="Full name">
-              <Input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Jane Doe" required />
-            </Field>
-            <Field label="Enrollment code">
-              <Input name="code" placeholder="e.g. DRIVE2026" className="font-mono tracking-widest uppercase" required />
-            </Field>
-            <Button type="submit" loading={enroll.isPending} className="w-full">
-              Continue <ArrowRight className="h-4 w-4" />
-            </Button>
-          </form>
-        </Card>
+        <FadeUp>
+          <Card>
+            <button
+              onClick={() => setStep('date')}
+              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-900"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+            <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Quick enrollment</h1>
+            <p className="mt-1 text-sm text-sand-500">
+              We don't recognize this email yet. Enter your name and code to continue.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const code = (new FormData(e.currentTarget).get('code') as string) ?? '';
+                if (studentName.trim().length < 2) return toast.error('Please enter your name');
+                if (code.trim().length < 4) return toast.error('Enter the code from your instructor');
+                enroll.mutate(code);
+              }}
+              className="mt-6 space-y-4"
+            >
+              <Field label="Full name">
+                <Input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Jane Doe" required />
+              </Field>
+              <Field label="Enrollment code">
+                <Input name="code" placeholder="e.g. DRIVE2026" className="font-mono tracking-widest uppercase" required />
+              </Field>
+              <Button variant="sun" type="submit" loading={enroll.isPending} className="w-full shine">
+                Continue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </form>
+          </Card>
+        </FadeUp>
       )}
 
       {/* STEP: time */}
@@ -274,19 +294,19 @@ export default function BookLesson() {
         <Card>
           <button
             onClick={() => setStep('date')}
-            className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800"
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-900"
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
-          <h1 className="text-xl font-bold tracking-tight">Choose a time</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-zinc-500">
-            <CalendarDays className="h-4 w-4" /> {formatDateLong(selectedDate)}
+          <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Choose a time</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-sand-500">
+            <CalendarDays className="h-4 w-4 text-sun-500" /> {formatDateLong(selectedDate)}
           </p>
 
           {availability.isLoading ? (
             <CenteredSpinner label="Checking availability…" />
           ) : !availability.data || availability.data.slots.length === 0 ? (
-            <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
+            <div className="mt-6 rounded-2xl border border-sand-200 bg-sand-50 p-6 text-center text-sm text-sand-500">
               {availability.data?.closed
                 ? 'The school is closed on this day.'
                 : 'No available times for this date. Try another day.'}
@@ -300,7 +320,7 @@ export default function BookLesson() {
                     setSelectedTime(t);
                     setConfirmOpen(true);
                   }}
-                  className="rounded-lg border border-zinc-200 px-2 py-2.5 font-mono text-sm font-medium text-zinc-800 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+                  className="rounded-2xl border border-sand-200 bg-white px-2 py-2.5 font-mono text-sm font-medium text-sand-800 shadow-ring transition-all duration-150 hover:border-sand-900 hover:bg-sand-950 hover:text-white hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   {t}
                 </button>
@@ -312,39 +332,50 @@ export default function BookLesson() {
 
       {/* STEP: done */}
       {step === 'done' && (
-        <Card className="text-center">
-          <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" strokeWidth={1.5} />
-          <h1 className="mt-4 text-xl font-bold tracking-tight">Lesson booked</h1>
-          <p className="mt-2 text-sm text-zinc-600">
-            See you on <strong>{formatDateLong(selectedDate)}</strong> at <strong>{selectedTime}</strong>.
-          </p>
-          <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left text-sm text-zinc-600">
-            <p className="flex items-center gap-2"><Clock className="h-4 w-4" /> We'll remind you ~2 hours before.</p>
-            <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Please arrive 5 minutes early.</p>
-          </div>
-          <Button
-            className="mt-6 w-full"
-            onClick={() => {
-              setSelectedTime('');
-              setSelectedDate('');
-              setStep('date');
-            }}
-          >
-            Book another lesson
-          </Button>
-        </Card>
+        <FadeUp>
+          <Card className="text-center">
+            <div className="relative mx-auto flex h-16 w-16 items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-sun-100 opacity-70" />
+              <CheckCircle2 className="relative h-10 w-10 text-sun-500" strokeWidth={1.5} />
+            </div>
+            <h1 className="mt-4 font-display text-xl font-semibold tracking-tightest text-sand-950">Lesson booked</h1>
+            <p className="mt-2 text-sm text-sand-600">
+              See you on <strong className="text-sand-950">{formatDateLong(selectedDate)}</strong> at{' '}
+              <strong className="text-sand-950">{selectedTime}</strong>.
+            </p>
+            <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-2xl border border-sand-200 bg-sand-50 p-4 text-start text-sm text-sand-600">
+              <p className="flex items-center gap-2">
+                <Clock className="h-4 w-4 shrink-0 text-sun-500" /> We'll remind you ~2 hours before.
+              </p>
+              <p className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 shrink-0 text-sun-500" /> Please arrive 5 minutes early.
+              </p>
+            </div>
+            <Button
+              variant="sun"
+              className="mt-6 w-full shine"
+              onClick={() => {
+                setSelectedTime('');
+                setSelectedDate('');
+                setStep('date');
+              }}
+            >
+              Book another lesson
+            </Button>
+          </Card>
+        </FadeUp>
       )}
 
       {/* Footer: pause */}
       {step !== 'done' && (
-        <p className="mt-6 text-center text-xs text-zinc-400">
+        <p className="mt-6 text-center text-xs text-sand-400">
           Need a break?{' '}
           <button
             onClick={() => {
               if (!email) return toast('Enter your email first');
               setPauseOpen(true);
             }}
-            className="font-medium text-zinc-500 underline hover:text-zinc-700"
+            className="font-medium text-sand-500 underline transition-colors hover:text-sand-700"
           >
             Pause my lessons
           </button>
@@ -359,15 +390,15 @@ export default function BookLesson() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-            <Button loading={book.isPending} onClick={() => book.mutate()}>Confirm booking</Button>
+            <Button variant="sun" loading={book.isPending} onClick={() => book.mutate()}>Confirm booking</Button>
           </>
         }
       >
-        <div className="space-y-2 text-sm text-zinc-600">
+        <div className="space-y-3 text-sm text-sand-600">
           <p>You're booking a driving lesson:</p>
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-            <p><strong className="text-zinc-900">{formatDateLong(selectedDate)}</strong></p>
-            <p className="mt-1 font-mono text-lg font-bold text-zinc-900">{selectedTime}</p>
+          <div className="rounded-2xl border border-sand-200 bg-sand-50 p-4">
+            <p className="font-semibold text-sand-950">{formatDateLong(selectedDate)}</p>
+            <p className="mt-1 font-mono text-2xl font-bold text-sand-950">{selectedTime}</p>
           </div>
         </div>
       </Modal>
@@ -412,8 +443,8 @@ function PauseModal({
         </>
       }
     >
-      <p className="text-sm text-zinc-600">
-        This pauses booking for <strong>{email}</strong>. Enter your enrollment code to confirm it's you. Your
+      <p className="text-sm text-sand-600">
+        This pauses booking for <strong className="text-sand-950">{email}</strong>. Enter your enrollment code to confirm it's you. Your
         instructor can reactivate you anytime.
       </p>
       <div className="mt-4">

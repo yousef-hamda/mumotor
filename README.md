@@ -1,6 +1,6 @@
-# DriveSawa
+# Mumotor
 
-**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of 9 premium templates, and DriveSawa **generates and hosts** a complete, trilingual (Hebrew / Arabic / English) website at `your-name.drivesawa.com`. They edit it visually, publish it, then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, and bulk email — from one dashboard.
+**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of 9 premium templates, and Mumotor **generates and hosts** a complete, trilingual (Hebrew / Arabic / English) website at `your-name.mumotor.com`. They edit it visually, publish it, then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, and bulk email — from one dashboard.
 
 One teacher = one website. Booking-first. Built for bilingual Israel (Arabic + Jewish communities).
 
@@ -49,7 +49,7 @@ Browser ──► React SPA (Vite, :5173)  ── /api ─►  Express API (:400
                                                    ├─► Redis (magic tokens, rate limits, site cache) — optional
                                                    ├─► Email (SMTP, console fallback)
                                                    └─► node-cron (reminders / daily emails)
-Published teacher sites:  GET /site/{slug}  (Redis-cached HTML)  →  {slug}.drivesawa.com in prod
+Published teacher sites:  GET /site/{slug}  (Redis-cached HTML)  →  {slug}.mumotor.com in prod
 ```
 
 Redis and SMTP are optional locally (in-memory KV + console-email fallbacks), so the app runs with just PostgreSQL.
@@ -88,7 +88,7 @@ npm run dev                                     # API :4000 + web :5173
 Open **http://localhost:5173**.
 
 - **Build a site:** http://localhost:5173/builder
-- **Teacher dashboard:** teacher@otto.local / password123
+- **Teacher dashboard:** teacher@mumotor.local / password123
 - **Published demo site:** http://localhost:4000/site/davids-driving
 - **Enroll (code `DRIVE2026`):** http://localhost:5173/p/davids-driving/enroll
 
@@ -98,7 +98,7 @@ Open **http://localhost:5173**.
 
 1. **`/builder`** — the teacher fills the wizard and picks a preset; `POST /api/ai/v2/generate-website` returns a live HTML preview.
 2. **Publish** — creates a `Website` (status `DRAFT`), syncs booking settings, then `POST /api/websites/:id/publish` regenerates the HTML with the real slug, snapshots a version, caches it in Redis, and flips status to `PUBLISHED`.
-3. **Serve** — `GET /site/:slug` returns the published HTML (→ `{slug}.drivesawa.com` via wildcard DNS in prod).
+3. **Serve** — `GET /site/:slug` returns the published HTML (→ `{slug}.mumotor.com` via wildcard DNS in prod).
 4. **Edit** — `/editor/:id` re-generates a live preview as the teacher tweaks content/colors/preset, autosaves, and republishes.
 5. **Operate** — students enroll + book on the live site; the teacher manages everything from `/dashboard`.
 
@@ -122,10 +122,10 @@ One Railway service runs **everything**: the API, the published teacher sites (`
   #   DATABASE_URL / REDIS_URL  → from the Railway Postgres/Redis plugins
   #   JWT_SECRET=<long random string>
   railway up --detach
-  railway run npm run db:deploy --workspace @otto/backend   # migrations (separate step)
+  railway run npm run db:deploy --workspace @mumotor/backend   # migrations (separate step)
   ```
 - Everything is served from `https://<your-app>.up.railway.app` (or your custom domain): the app at `/`, the API at `/api`, published sites at `/site/{slug}`.
-- *Per-teacher subdomains* (`{slug}.drivesawa.com`) are optional and need wildcard DNS + host-based routing; the path form `…/site/{slug}` works out of the box.
+- *Per-teacher subdomains* (`{slug}.mumotor.com`) are optional and need wildcard DNS + host-based routing; the path form `…/site/{slug}` works out of the box.
 
 ### Option B — Railway + Vercel (split, optional)
 

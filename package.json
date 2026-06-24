@@ -1,22 +1,22 @@
 {
-  "name": "otto-driving-teacher",
+  "name": "mumotor",
   "version": "1.0.0",
   "private": true,
-  "description": "Otto — a complete platform for individual driving instructors: students enroll with a code, book lessons, and the teacher runs everything from one dashboard.",
+  "description": "Mumotor — a warm, all-in-one platform for independent driving instructors: build a beautiful website, let students enroll with a code and book lessons, and run everything from one dashboard.",
   "workspaces": [
     "packages/backend",
     "packages/frontend"
   ],
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "npm run dev --workspace @otto/backend",
-    "dev:frontend": "npm run dev --workspace @otto/frontend",
-    "build": "npm run build --workspace @otto/backend && npm run build --workspace @otto/frontend",
+    "dev:backend": "npm run dev --workspace @mumotor/backend",
+    "dev:frontend": "npm run dev --workspace @mumotor/frontend",
+    "build": "npm run build --workspace @mumotor/backend && npm run build --workspace @mumotor/frontend",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:migrate": "npm run db:migrate --workspace @otto/backend",
-    "db:seed": "npm run db:seed --workspace @otto/backend",
-    "db:studio": "npm run db:studio --workspace @otto/backend",
+    "db:migrate": "npm run db:migrate --workspace @mumotor/backend",
+    "db:seed": "npm run db:seed --workspace @mumotor/backend",
+    "db:studio": "npm run db:studio --workspace @mumotor/backend",
     "setup": "npm install && npm run db:migrate && npm run db:seed"
   },
   "devDependencies": {

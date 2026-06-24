@@ -181,7 +181,7 @@ router.post(
       slug: website.slug,
       path: `/site/${website.slug}`,
       url: `${env.APP_URL}/site/${website.slug}`,
-      subdomain: `${website.slug}.drivesawa.com`,
+      subdomain: `${website.slug}.mumotor.com`,
       version,
     });
   })
