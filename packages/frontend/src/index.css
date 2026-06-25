@@ -25,8 +25,8 @@ body {
 }
 
 ::selection {
-  background: #fbc74a;
-  color: #221c15;
+  background: #c9907f;
+  color: #1c1210;
 }
 
 /* ---------------------------------------------------------------------------
@@ -106,21 +106,27 @@ body {
   .text-sunrise {
     @apply bg-sunrise bg-clip-text text-transparent;
   }
-  /* animated gradient text */
-  .text-sunrise-anim {
-    background: linear-gradient(120deg, #f9b021, #e54e26, #e8736b, #f2940b);
-    background-size: 220% 220%;
+  /* static clay accent for headline words (restrained, professional).
+     -accent = for LIGHT backgrounds (leans dark, legible on white);
+     -accent-light = for DARK backgrounds (warm light clay, pops on near-black). */
+  .text-clay-accent {
+    background: linear-gradient(120deg, #a8604f, #7e3b32 50%, #561f1a);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    @apply animate-gradient-pan;
+  }
+  .text-clay-accent-light {
+    background: linear-gradient(120deg, #e8bea8, #d89c80 50%, #c9805f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   /* gradient hairline ring (for cards / CTAs) */
   .ring-sunrise {
     border: 1px solid transparent;
     background:
       linear-gradient(#fff, #fff) padding-box,
-      linear-gradient(120deg, #fbc74a, #e54e26) border-box;
+      linear-gradient(120deg, #c9907f, #561f1a) border-box;
   }
 }
 
@@ -129,22 +135,22 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
 }
 .bg-grid-warm {
-  background-image: linear-gradient(to right, rgba(120, 76, 24, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(120, 76, 24, 0.05) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(58, 23, 19, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(58, 23, 19, 0.05) 1px, transparent 1px);
   background-size: 46px 46px;
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
 }
 .bg-dots-warm {
-  background-image: radial-gradient(rgba(120, 76, 24, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(58, 23, 19, 0.1) 1px, transparent 1px);
   background-size: 22px 22px;
 }
-/* soft sun glow blob */
+/* soft clay glow blob */
 .sun-glow {
-  background: radial-gradient(circle at center, rgba(249, 176, 33, 0.55) 0%, rgba(229, 78, 38, 0.25) 38%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(168, 96, 79, 0.5) 0%, rgba(86, 31, 26, 0.28) 38%, transparent 70%);
 }
 /* dashed lane-line accent */
 .lane-line {
-  background-image: repeating-linear-gradient(90deg, #f2940b 0 28px, transparent 28px 52px);
+  background-image: repeating-linear-gradient(90deg, #7e3b32 0 28px, transparent 28px 52px);
   background-size: 80px 100%;
 }
 

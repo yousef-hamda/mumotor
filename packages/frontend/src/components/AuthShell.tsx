@@ -22,7 +22,7 @@ export function AuthShell({ children, points }: { children: ReactNode; points: s
         <div className="relative">
           <FadeUp>
             <h2 className="font-display text-4xl font-semibold leading-tight tracking-tightest text-white">
-              Run your driving school <span className="text-sunrise-anim">from sunrise.</span>
+              Run your driving school <span className="text-clay-accent-light">from sunrise.</span>
             </h2>
           </FadeUp>
           <ul className="mt-8 space-y-4">

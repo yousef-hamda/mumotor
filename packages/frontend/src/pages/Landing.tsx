@@ -7,7 +7,7 @@ import { useAuth } from '../lib/auth';
 import { siteUrl } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { FadeUp, Stagger, Tilt, Magnetic, Marquee, CountUp } from '../components/motion';
+import { FadeUp, Stagger, Tilt, Magnetic, CountUp } from '../components/motion';
 import { CinematicHero } from '../components/hero/CinematicHero';
 import { useIntro } from '../lib/useIntro';
 
@@ -33,8 +33,6 @@ const faqs = [
   { q: 'How do students book lessons?', a: 'They enroll with a code you share, then book straight into your real availability. You get notified and your calendar updates instantly.' },
   { q: 'Can I change my site after publishing?', a: 'Yes. Edit text, photos, colours and layout anytime in the editor, then re-publish in one click. Your booking data is never affected.' },
 ];
-
-const marqueeItems = ['Hebrew · עברית', 'Arabic · العربية', 'English', 'Nine premium templates', 'Online booking', 'Daily codes', 'Automatic reminders', 'One dashboard', 'No-code editor'];
 
 export default function Landing() {
   const { user } = useAuth();
@@ -65,7 +63,7 @@ export default function Landing() {
           <div className="flex items-center gap-2.5">
             <LanguageSwitcher className="me-1 hidden border-white/15 bg-white/10 text-sand-100 sm:inline-flex" />
             {user ? (
-              <Link to="/dashboard" className="btn-sun shine whitespace-nowrap">
+              <Link to="/dashboard" className="btn-sun whitespace-nowrap">
                 {t('common.dashboard')} <ArrowRight className="h-4 w-4" />
               </Link>
             ) : (
@@ -74,7 +72,7 @@ export default function Landing() {
                   {t('common.signIn')}
                 </Link>
                 <Magnetic>
-                  <Link to="/builder" className="btn-sun shine whitespace-nowrap">
+                  <Link to="/builder" className="btn-sun whitespace-nowrap">
                     {t('common.buildSite')}
                   </Link>
                 </Magnetic>
@@ -86,17 +84,6 @@ export default function Landing() {
 
       {/* Cinematic hero */}
       <CinematicHero phase={phase} reduced={reduced} onStart={start} onFinish={finish} />
-
-      {/* marquee strip (ink) */}
-      <div className="relative border-y border-sand-800/60 bg-sand-950 py-4">
-        <Marquee speed={38}>
-          {marqueeItems.map((m) => (
-            <span key={m} className="flex items-center gap-3 text-sm font-medium uppercase tracking-wide text-sand-400">
-              <span className="h-1 w-1 rounded-full bg-sun-500" /> {m}
-            </span>
-          ))}
-        </Marquee>
-      </div>
 
       {/* Stats */}
       <section className="mx-auto max-w-6xl px-5 py-20">
@@ -170,7 +157,7 @@ export default function Landing() {
                   <div className="relative">
                     <img src="/img/hero-drive.jpg" alt="A confident learner driver behind the wheel" className="aspect-[16/10] w-full object-cover" loading="lazy" />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sand-950/40 via-transparent to-transparent" />
-                    <div className="pointer-events-none absolute inset-0 mix-blend-soft-light" style={{ background: 'linear-gradient(120deg, rgba(249,176,33,0.3), transparent 60%)' }} />
+                    <div className="pointer-events-none absolute inset-0 mix-blend-soft-light" style={{ background: 'linear-gradient(120deg, rgba(168,96,79,0.32), transparent 60%)' }} />
                   </div>
                 </figure>
               </Tilt>
@@ -275,13 +262,13 @@ export default function Landing() {
       <section className="bg-sand-50 px-5 py-20">
         <FadeUp className="mx-auto max-w-6xl">
           <div className="relative isolate overflow-hidden rounded-4xl bg-sand-950 px-8 py-20 text-center sm:px-16">
-            <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full sun-glow animate-sun-pulse blur-2xl" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full sun-glow opacity-70 blur-2xl" />
             <div className="pointer-events-none absolute inset-0 -z-10 bg-grain opacity-[0.12]" />
             <h2 className="mx-auto max-w-2xl font-display text-4xl font-semibold tracking-tightest text-white sm:text-5xl">{t('landing.ctaTitle')}</h2>
             <p className="mx-auto mt-4 max-w-xl text-sand-300">{t('landing.ctaText')}</p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Magnetic>
-                <Link to="/builder" className="btn-sun shine px-8 py-4 text-base">
+                <Link to="/builder" className="btn-sun px-8 py-4 text-base">
                   {t('landing.ctaButton')} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Magnetic>

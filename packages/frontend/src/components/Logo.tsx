@@ -1,10 +1,11 @@
 import { cn } from '../lib/utils';
 
 /**
- * Mumotor brand mark — a rising sun over a road that converges at the horizon,
- * set in a warm "sunrise" squircle tile. Rendered as inline SVG so it stays
- * crisp at any size and can sit on light or dark surfaces. Paired with the
- * lowercase "mu·motor" wordmark.
+ * Mumotor brand mark — a minimal steering wheel (ring + hub + three spokes) set
+ * in a dark oxblood-clay squircle tile. The wheel reads instantly as "driving
+ * instruction"; the clay tile ties it to the brand palette. Rendered as inline
+ * SVG so it stays crisp at any size and sits on light or dark surfaces. Paired
+ * with the lowercase "mu·motor" wordmark.
  */
 
 const sizes = {
@@ -18,28 +19,33 @@ export function LogoMark({ size = 'md', className }: { size?: keyof typeof sizes
   const s = sizes[size];
   return (
     <span className={cn('inline-flex shrink-0', s.tile, className)}>
-      <svg viewBox="0 0 48 48" fill="none" className="h-full w-full drop-shadow-[0_6px_14px_rgba(214,115,10,0.35)]" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none" className="h-full w-full drop-shadow-[0_6px_14px_rgba(86,31,26,0.4)]" aria-hidden="true">
         <defs>
-          <linearGradient id="mmTile" x1="4" y1="2" x2="44" y2="46" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#FBC74A" />
-            <stop offset="0.5" stopColor="#F2940B" />
-            <stop offset="1" stopColor="#E54E26" />
+          <linearGradient id="mmTile" x1="6" y1="3" x2="42" y2="45" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#8A4338" />
+            <stop offset="0.55" stopColor="#6E3328" />
+            <stop offset="1" stopColor="#3A1713" />
           </linearGradient>
-          <linearGradient id="mmSun" x1="24" y1="11" x2="24" y2="25" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#FFFDF6" />
-            <stop offset="1" stopColor="#FFE9B8" />
+          <linearGradient id="mmWheel" x1="24" y1="9" x2="24" y2="41" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#FBF3EC" />
+            <stop offset="1" stopColor="#E3D3C5" />
           </linearGradient>
-          <clipPath id="mmClip">
-            <rect width="48" height="48" rx="13" />
-          </clipPath>
         </defs>
+        {/* clay tile */}
         <rect width="48" height="48" rx="13" fill="url(#mmTile)" />
-        <g clipPath="url(#mmClip)">
-          <rect width="48" height="22" fill="#FFFFFF" opacity="0.16" />
-          <circle cx="24" cy="19.5" r="6.6" fill="url(#mmSun)" />
-          <path d="M14.5 44 L22.4 24.5 H25.6 L33.5 44 Z" fill="#221C15" opacity="0.92" />
-          <path d="M24 27 L24 42" stroke="#FBC74A" strokeWidth="1.7" strokeLinecap="round" strokeDasharray="0.2 3.4" />
+        {/* top sheen for depth */}
+        <rect width="48" height="22" rx="13" fill="#FFFFFF" opacity="0.07" />
+        {/* steering wheel */}
+        <g stroke="url(#mmWheel)" strokeWidth="2.9" strokeLinecap="round" fill="none">
+          <circle cx="24" cy="25" r="12.4" />
+          {/* three spokes from the hub: down, upper-left, upper-right */}
+          <path d="M24 25 L24 36.2" />
+          <path d="M24 25 L14.7 20.0" />
+          <path d="M24 25 L33.3 20.0" />
         </g>
+        {/* hub */}
+        <circle cx="24" cy="25" r="4.2" fill="url(#mmWheel)" />
+        <circle cx="24" cy="25" r="1.7" fill="#6E3328" />
       </svg>
     </span>
   );
@@ -63,7 +69,8 @@ export function Logo({
       {!markOnly && (
         <span className={cn('font-sans font-extrabold tracking-tightest lowercase', s.text)}>
           <span className={invert ? 'text-white' : 'text-sand-900'}>mu</span>
-          <span className="text-sun-600">motor</span>
+          {/* clay accent — lighter on dark, deeper on light, so it always reads */}
+          <span className={invert ? 'text-sun-300' : 'text-sun-700'}>motor</span>
         </span>
       )}
     </span>

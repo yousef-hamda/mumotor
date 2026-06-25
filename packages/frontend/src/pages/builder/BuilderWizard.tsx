@@ -233,7 +233,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
       </div>
       <span className="section-eyebrow justify-center">Mumotor builder</span>
       <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tightest text-sand-950 sm:text-5xl">
-        Let's build your <span className="text-sunrise-anim">driving website</span>
+        Let's build your <span className="text-clay-accent">driving website</span>
       </h1>
       <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">
         Answer a few quick questions, pick a design, and we'll generate a complete, bookable website for you — in minutes.
