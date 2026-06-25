@@ -61,15 +61,15 @@ async function main() {
   section('Auth');
   let token, token2, websiteId, slug;
   {
-    const r = await req('POST', '/auth/login', { body: { email: 'teacher@otto.local', password: 'password123' } });
+    const r = await req('POST', '/auth/login', { body: { email: 'teacher@mumotor.local', password: 'password123' } });
     ok('login seeded teacher', r.status === 200 && !!r.json?.token, r.json);
     token = r.json?.token;
 
-    const bad = await req('POST', '/auth/login', { body: { email: 'teacher@otto.local', password: 'wrong' } });
+    const bad = await req('POST', '/auth/login', { body: { email: 'teacher@mumotor.local', password: 'wrong' } });
     ok('login wrong password → 401', bad.status === 401, bad.status);
 
     const me = await req('GET', '/auth/me', { token });
-    ok('GET /auth/me with token', me.status === 200 && me.json?.user?.email === 'teacher@otto.local', me.json);
+    ok('GET /auth/me with token', me.status === 200 && me.json?.user?.email === 'teacher@mumotor.local', me.json);
 
     const noTok = await req('GET', '/auth/me');
     ok('GET /auth/me without token → 401', noTok.status === 401, noTok.status);
@@ -81,7 +81,7 @@ async function main() {
     token2 = reg.json?.token;
 
     const dup = await req('POST', '/auth/register', {
-      body: { email: 'teacher@otto.local', password: 'password123', name: 'Dup' },
+      body: { email: 'teacher@mumotor.local', password: 'password123', name: 'Dup' },
     });
     ok('register duplicate email → 409', dup.status === 409, dup.status);
 
