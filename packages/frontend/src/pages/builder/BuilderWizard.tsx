@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Sparkles, Sun } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { aiApi, apiError, drivingSchoolApi, websiteApi, type PresetSummary, type PublishResult } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, Select, Textarea } from '../../components/ui';
-import { FadeUp, Stagger, Tilt, Magnetic } from '../../components/motion';
+import { FadeUp, Stagger } from '../../components/motion';
 import {
   WEEKDAYS,
   buildBusinessHours,
@@ -18,10 +18,11 @@ import {
   toBusinessConfig,
   type WizardConfig,
 } from '../../lib/wizard';
-import { titleCase } from '../../lib/utils';
+import { cn, titleCase } from '../../lib/utils';
 
 type Step = 'welcome' | 'about' | 'lessons' | 'contact' | 'design' | 'generating' | 'preview' | 'account' | 'done';
 const MAIN: Step[] = ['about', 'lessons', 'contact', 'design', 'preview'];
+const STEP_LABELS = ['About', 'Lessons', 'Contact', 'Design', 'Preview'];
 
 export default function BuilderWizard() {
   const { user } = useAuth();
@@ -35,32 +36,30 @@ export default function BuilderWizard() {
   useEffect(() => saveWizard(config), [config]);
   const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
 
-  const progress = Math.max(0, MAIN.indexOf(step === 'generating' ? 'design' : step === 'account' ? 'preview' : step));
-  const pct = step === 'welcome' ? 0 : step === 'done' ? 100 : ((progress + 1) / MAIN.length) * 100;
+  const current = Math.max(0, MAIN.indexOf(step === 'generating' ? 'design' : step === 'account' ? 'preview' : step));
+  const showStepper = step !== 'welcome' && step !== 'done';
 
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-sand-200/60 bg-sand-50/80 backdrop-blur-xl">
+      <header className="glass sticky top-0 z-30 border-b border-white/50">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-          <Link to="/"><Logo size="sm" /></Link>
-          <div className="text-sm text-sand-500">
+          <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
+          <div className="text-sm text-sand-600">
             {user ? (
               <span className="font-medium text-sand-700">{user.name}</span>
             ) : (
-              <Link to="/login" className="font-semibold text-sand-700 transition-colors hover:text-sand-950 hover:underline">
+              <Link to="/login" className="font-semibold text-sand-700 transition-colors hover:text-sand-900 hover:underline">
                 Sign in
               </Link>
             )}
           </div>
         </div>
-        {/* Warm progress bar */}
-        <div className="h-0.5 w-full bg-sand-200/60">
-          <div
-            className="h-full bg-sunrise transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+        {showStepper && (
+          <div className="border-t border-white/40">
+            <Stepper current={current} />
+          </div>
+        )}
       </header>
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 py-12">
@@ -95,11 +94,12 @@ export default function BuilderWizard() {
                   const on = config.workingDays.includes(d);
                   return (
                     <button key={d} type="button"
+                      aria-pressed={on}
                       onClick={() => set('workingDays', on ? config.workingDays.filter((x) => x !== d) : [...config.workingDays, d])}
                       className={
                         on
-                          ? 'rounded-full border border-sand-900 bg-sand-950 px-4 py-1.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(34,28,21,0.45)] transition-all duration-200 hover:-translate-y-0.5'
-                          : 'rounded-full border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-500 transition-all duration-200 hover:border-sand-300 hover:bg-sand-50 hover:text-sand-800 hover:-translate-y-0.5'
+                          ? 'rounded-lg border border-sun-600 bg-sun-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors'
+                          : 'rounded-lg border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:border-sand-300 hover:bg-sand-50 hover:text-sand-800'
                       }
                     >
                       {titleCase(d).slice(0, 3)}
@@ -117,7 +117,7 @@ export default function BuilderWizard() {
                 type="checkbox"
                 checked={config.hasBreak}
                 onChange={(e) => set('hasBreak', e.target.checked)}
-                className="h-4 w-4 rounded border-sand-300 text-sun-500 focus:ring-sun-400"
+                className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
               />
               Add a daily break
             </label>
@@ -200,6 +200,41 @@ export default function BuilderWizard() {
   }
 }
 
+function Stepper({ current }: { current: number }) {
+  return (
+    <nav aria-label="Progress" className="mx-auto max-w-3xl px-5 py-3">
+      <ol className="flex items-center">
+        {STEP_LABELS.map((label, i) => {
+          const state = i < current ? 'complete' : i === current ? 'current' : 'upcoming';
+          return (
+            <li key={label} className={cn('flex items-center', i < STEP_LABELS.length - 1 && 'flex-1')}>
+              <div className="flex items-center gap-2">
+                <span
+                  aria-current={state === 'current' ? 'step' : undefined}
+                  className={cn(
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors',
+                    state === 'complete' && 'border-sun-600 bg-sun-600 text-white',
+                    state === 'current' && 'border-sun-600 bg-white text-sun-700 ring-2 ring-sun-500/20',
+                    state === 'upcoming' && 'border-sand-300 bg-white text-sand-400'
+                  )}
+                >
+                  {state === 'complete' ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : i + 1}
+                </span>
+                <span className={cn('hidden text-xs font-medium sm:block', state === 'upcoming' ? 'text-sand-400' : 'text-sand-700')}>
+                  {label}
+                </span>
+              </div>
+              {i < STEP_LABELS.length - 1 && (
+                <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sun-500' : 'bg-sand-200')} />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 function StepShell({ title, subtitle, children, onBack, onNext }: { title: string; subtitle: string; children: React.ReactNode; onBack: () => void; onNext: () => void }) {
   return (
     <FadeUp className="mx-auto w-full max-w-xl">
@@ -209,15 +244,15 @@ function StepShell({ title, subtitle, children, onBack, onNext }: { title: strin
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <h1 className="font-display text-3xl font-semibold tracking-tightest text-sand-950">{title}</h1>
-      <p className="mt-2 text-sand-500">{subtitle}</p>
-      <div className="mt-8 space-y-4">{children}</div>
-      <div className="mt-9 flex justify-end">
-        <Magnetic>
-          <Button variant="sun" onClick={onNext} className="px-7 shine">
+      <div className="glass rounded-2xl p-6 sm:p-8">
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{title}</h1>
+        <p className="mt-2 text-sand-600">{subtitle}</p>
+        <div className="mt-8 space-y-4">{children}</div>
+        <div className="mt-9 flex justify-end">
+          <Button variant="primary" onClick={onNext} className="px-7">
             Continue <ArrowRight className="h-4 w-4" />
           </Button>
-        </Magnetic>
+        </div>
       </div>
     </FadeUp>
   );
@@ -226,25 +261,21 @@ function StepShell({ title, subtitle, children, onBack, onNext }: { title: strin
 function Welcome({ onStart }: { onStart: () => void }) {
   return (
     <FadeUp className="mx-auto max-w-xl py-12 text-center">
-      {/* Ambient glow behind logo */}
-      <div className="relative mb-8 flex justify-center">
-        <div className="pointer-events-none absolute inset-0 -z-10 mx-auto h-32 w-32 rounded-full sun-glow blur-2xl opacity-70" />
+      <div className="mb-8 flex justify-center">
         <LogoMark size="lg" />
       </div>
       <span className="section-eyebrow justify-center">Mumotor builder</span>
-      <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tightest text-sand-950 sm:text-5xl">
-        Let's build your <span className="text-clay-accent">driving website</span>
+      <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">
+        Let's build your <span className="text-sun-600">driving website</span>
       </h1>
       <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">
-        Answer a few quick questions, pick a design, and we'll generate a complete, bookable website for you — in minutes.
+        Answer a few quick questions, pick a design, and we'll generate a complete, bookable website for you in minutes.
       </p>
       <div className="mt-10 flex flex-col items-center gap-3">
-        <Magnetic>
-          <Button variant="sun" onClick={onStart} className="px-8 py-3.5 text-base shine">
-            Start building <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Magnetic>
-        <p className="text-sm text-sand-400">No design skills needed · Free to start</p>
+        <Button variant="primary" onClick={onStart} className="px-8 py-3.5 text-base">
+          Start building <ArrowRight className="h-4 w-4" />
+        </Button>
+        <p className="text-sm text-sand-500">No design skills needed · Free to start</p>
       </div>
 
       {/* Three-step mini preview */}
@@ -255,8 +286,8 @@ function Welcome({ onStart }: { onStart: () => void }) {
           { n: '03', label: 'Publish & go live' },
         ].map((s) => (
           <Stagger.Item key={s.n}>
-            <div className="rounded-2xl border border-sand-200/80 bg-white p-4 shadow-card">
-              <span className="font-display text-2xl font-semibold tracking-tightest text-sand-300">{s.n}</span>
+            <div className="card p-4">
+              <span className="text-2xl font-semibold tracking-tight text-sand-300">{s.n}</span>
               <p className="mt-1 text-xs font-medium text-sand-600">{s.label}</p>
             </div>
           </Stagger.Item>
@@ -276,53 +307,52 @@ function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; 
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <h1 className="font-display text-3xl font-semibold tracking-tightest text-sand-950">Choose a design</h1>
-      <p className="mt-2 text-sand-500">Pick a template — you can fine-tune colors and content later.</p>
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Choose a design</h1>
+      <p className="mt-2 text-sand-600">Pick a template — you can fine-tune colors and content later.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="skeleton h-48 rounded-3xl" />
+          <div key={i} className="skeleton h-48 rounded-xl" />
         ))}
         {presets?.map((p: PresetSummary) => {
           const sel = config.presetId === p.id;
           return (
-            <Tilt key={p.id} max={6} glare>
-              <button
-                onClick={() => onPick(p.id)}
-                className={
-                  sel
-                    ? 'group w-full overflow-hidden rounded-3xl border-2 border-transparent bg-white p-4 text-start shadow-elevated ring-sunrise transition-all duration-300'
-                    : 'group w-full overflow-hidden rounded-3xl border border-sand-200 bg-white p-4 text-start shadow-card transition-all duration-300 hover:border-sand-300 hover:shadow-elevated hover:-translate-y-1'
-                }
-              >
-                {/* Color swatch */}
-                <div className="mb-3 flex h-20 overflow-hidden rounded-2xl">
-                  <div className="flex-1 transition-transform duration-300 group-hover:scale-105" style={{ background: p.colors.primary }} />
-                  <div className="w-1/4 transition-transform duration-300 group-hover:scale-105" style={{ background: p.colors.accent }} />
-                  <div className="w-1/4 transition-transform duration-300 group-hover:scale-105" style={{ background: p.colors.surface }} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold tracking-tight text-sand-900">{p.label}</span>
-                  {sel && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sand-950 text-white shadow-[0_2px_8px_-2px_rgba(34,28,21,0.5)]">
-                      <Check className="h-3 w-3" />
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-xs text-sand-500">{p.description}</p>
-                <p className="mt-2 text-[11px] uppercase tracking-widest text-sand-400">{p.fonts?.heading}</p>
-              </button>
-            </Tilt>
+            <button
+              key={p.id}
+              onClick={() => onPick(p.id)}
+              aria-pressed={sel}
+              className={cn(
+                'card group w-full overflow-hidden p-4 text-start transition-all duration-200',
+                sel
+                  ? 'border-sun-500 ring-2 ring-sun-500/20'
+                  : 'hover:border-sand-300 hover:shadow-elevated'
+              )}
+            >
+              {/* Color swatch */}
+              <div className="mb-3 flex h-20 overflow-hidden rounded-lg">
+                <div className="flex-1" style={{ background: p.colors.primary }} />
+                <div className="w-1/4" style={{ background: p.colors.accent }} />
+                <div className="w-1/4" style={{ background: p.colors.surface }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold tracking-tight text-sand-900">{p.label}</span>
+                {sel && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sun-600 text-white">
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-sand-500">{p.description}</p>
+              <p className="mt-2 text-[11px] uppercase tracking-widest text-sand-400">{p.fonts?.heading}</p>
+            </button>
           );
         })}
       </div>
 
       <div className="mt-9 flex justify-end">
-        <Magnetic>
-          <Button variant="sun" onClick={onNext} className="px-7 shine">
-            <Sparkles className="h-4 w-4" /> Generate my site
-          </Button>
-        </Magnetic>
+        <Button variant="primary" onClick={onNext} className="px-7">
+          Generate my site <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
     </FadeUp>
   );
@@ -330,14 +360,14 @@ function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; 
 
 function GeneratingStep({ config, onDone, onError }: { config: WizardConfig; onDone: (html: string) => void; onError: () => void }) {
   const [phase, setPhase] = useState(0);
-  const phases = ['Designing your layout…', 'Adding your details…', 'Placing photography…', 'Polishing the finish…'];
+  const phases = ['Designing your layout…', 'Adding your details…', 'Placing photography…', 'Finalizing your site…'];
   useEffect(() => {
     const t = setInterval(() => setPhase((p) => (p + 1) % phases.length), 900);
     let cancelled = false;
     (async () => {
       try {
         const res = await aiApi.generateWebsite({ name: config.businessName, presetId: config.presetId, businessConfig: toBusinessConfig(config) });
-        // small delay so the animation is felt
+        // small delay so the progress is felt
         setTimeout(() => { if (!cancelled) onDone(res.html); }, 1400);
       } catch (e) {
         toast.error(apiError(e).message);
@@ -348,21 +378,11 @@ function GeneratingStep({ config, onDone, onError }: { config: WizardConfig; onD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className="flex flex-1 flex-col items-center justify-center py-24 text-center">
-      {/* Pulsing glow behind logo */}
-      <div className="relative mb-8 flex items-center justify-center">
-        <div className="pointer-events-none absolute h-40 w-40 rounded-full sun-glow animate-sun-pulse blur-2xl" />
-        <div className="relative animate-pulse">
-          <LogoMark size="lg" />
-        </div>
-      </div>
-      <h2 className="font-display text-2xl font-semibold tracking-tight text-sand-950">Building your website</h2>
-      <p className="mt-2 h-6 text-sand-500 transition-all duration-300">{phases[phase]}</p>
-      {/* Warm shimmer progress bar */}
-      <div className="relative mt-7 h-1.5 w-64 overflow-hidden rounded-full bg-sand-200">
-        <div className="absolute inset-y-0 start-0 w-1/2 animate-[shimmer_1.6s_ease-in-out_infinite] rounded-full bg-sunrise" />
-      </div>
-      <p className="mt-5 text-xs text-sand-400">This usually takes 10–20 seconds</p>
+    <div className="flex flex-1 flex-col items-center justify-center py-24 text-center" role="status" aria-live="polite">
+      <Loader2 className="h-10 w-10 animate-spin text-sun-600" />
+      <h2 className="mt-6 text-2xl font-semibold tracking-tight text-sand-900">Building your website</h2>
+      <p className="mt-2 h-6 text-sand-600 transition-all duration-300">{phases[phase]}</p>
+      <p className="mt-5 text-xs text-sand-500">This usually takes 10–20 seconds</p>
     </div>
   );
 }
@@ -377,19 +397,17 @@ function PreviewStep({ html, onBack, onPublish, publishing }: { html: string; on
         >
           <ArrowLeft className="h-4 w-4" /> Change design
         </button>
-        <Magnetic>
-          <Button variant="sun" onClick={onPublish} loading={publishing} className="px-7 shine">
-            Publish my site <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Magnetic>
+        <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">
+          Publish my site <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
       {/* Browser chrome mockup */}
-      <div className="overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-elevated">
-        <div className="flex items-center gap-1.5 border-b border-sand-100 bg-sand-50/80 px-4 py-2.5">
-          <span className="h-3 w-3 rounded-full bg-ember-400" />
-          <span className="h-3 w-3 rounded-full bg-sun-300" />
+      <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
+        <div className="flex items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
           <span className="h-3 w-3 rounded-full bg-sand-300" />
-          <span className="ms-3 truncate rounded-full bg-white px-3 py-0.5 text-xs text-sand-400 ring-1 ring-sand-200">Preview</span>
+          <span className="h-3 w-3 rounded-full bg-sand-300" />
+          <span className="h-3 w-3 rounded-full bg-sand-300" />
+          <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">Preview</span>
         </div>
         <iframe title="Site preview" srcDoc={html} className="h-[70vh] w-full" sandbox="allow-scripts allow-same-origin allow-popups" />
       </div>
@@ -401,6 +419,7 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
   const { login, register } = useAuth();
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -423,33 +442,50 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
       >
         <ArrowLeft className="h-4 w-4" /> Back to preview
       </button>
-      <h1 className="font-display text-3xl font-semibold tracking-tightest text-sand-950">
+      <div className="glass rounded-2xl p-6 sm:p-8">
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
         {mode === 'register' ? 'Create your account' : 'Sign in'}
       </h1>
-      <p className="mt-2 text-sand-500">One account to publish and manage your site.</p>
-      <form onSubmit={submit} className="mt-8 space-y-4">
+      <p className="mt-2 text-sand-600">One account to publish and manage your site.</p>
+      <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
         {mode === 'register' && (
-          <Field label="Full name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></Field>
+          <Field label="Full name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>
         )}
-        <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></Field>
+        <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
         <Field label="Password" hint={mode === 'register' ? 'At least 8 characters' : undefined}>
-          <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          <div className="relative">
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+              className="pe-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </Field>
-        <Magnetic className="w-full">
-          <Button type="submit" variant="sun" loading={busy || publishing} className="w-full shine">
-            {mode === 'register' ? 'Create account & publish' : 'Sign in & publish'}
-          </Button>
-        </Magnetic>
+        <Button type="submit" variant="primary" loading={busy || publishing} className="w-full">
+          {mode === 'register' ? 'Create account & publish' : 'Sign in & publish'}
+        </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-sand-500">
+      <p className="mt-6 text-center text-sm text-sand-600">
         {mode === 'register' ? 'Already have an account?' : 'New here?'}{' '}
         <button
           onClick={() => setMode(mode === 'register' ? 'login' : 'register')}
-          className="font-semibold text-sun-700 transition-colors hover:text-sun-600 hover:underline"
+          className="font-medium text-sun-600 transition-colors hover:text-sun-700 hover:underline"
         >
           {mode === 'register' ? 'Sign in' : 'Create one'}
         </button>
       </p>
+      </div>
     </FadeUp>
   );
 }
@@ -459,16 +495,15 @@ function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard:
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       {/* Success icon */}
-      <div className="relative mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-sand-200 bg-white shadow-elevated">
-        <div className="pointer-events-none absolute inset-0 rounded-full bg-sun-50 opacity-60" />
-        <Check className="relative h-9 w-9 text-sun-500" strokeWidth={2} />
+      <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+        <Check className="h-8 w-8 text-emerald-600" strokeWidth={2} />
       </div>
-      <h1 className="font-display text-3xl font-semibold tracking-tightest text-sand-950">Your site is live</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Your site is live</h1>
       <p className="mt-3 text-sand-600">
-        Congratulations — your driving website is published and ready to take bookings.
+        Your driving website is published and ready to take bookings.
       </p>
       {/* URL display */}
-      <div className="mt-7 flex items-center justify-between gap-2 rounded-2xl border border-sand-200 bg-sand-50 p-4 shadow-card">
+      <div className="mt-7 flex items-center justify-between gap-2 rounded-xl border border-sand-200 bg-sand-50 p-4">
         <code className="truncate text-sm font-medium text-sand-700">{result.subdomain}</code>
         <a
           href={liveUrl}
@@ -480,11 +515,9 @@ function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard:
         </a>
       </div>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Magnetic>
-          <Button variant="sun" onClick={onDashboard} className="px-7 shine">
-            Go to dashboard <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Magnetic>
+        <Button variant="primary" onClick={onDashboard} className="px-7">
+          Go to dashboard <ArrowRight className="h-4 w-4" />
+        </Button>
         <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">
           View live site
         </a>

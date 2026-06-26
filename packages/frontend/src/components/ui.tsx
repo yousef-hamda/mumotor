@@ -110,9 +110,9 @@ const statusStyles: Record<string, string> = {
   PUBLISHED: 'bg-emerald-100 text-emerald-700',
   INACTIVE: 'bg-sand-200 text-sand-600',
   DRAFT: 'bg-sand-200 text-sand-700',
-  COMPLETED: 'bg-sun-100 text-sun-800',
+  COMPLETED: 'bg-sun-100 text-sun-700',
   SUSPENDED: 'bg-ember-100 text-ember-700',
-  PENDING: 'bg-sun-100 text-sun-800',
+  PENDING: 'bg-accent-100 text-accent-700',
   APPROVED: 'bg-emerald-100 text-emerald-700',
   REJECTED: 'bg-ember-100 text-ember-700',
 };
@@ -139,10 +139,10 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-sand-950/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md animate-fade-in rounded-3xl border border-sand-200 bg-white p-6 shadow-elevated">
+      <div className="absolute inset-0 bg-sand-950/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md animate-fade-in rounded-2xl border border-white/60 bg-white/85 p-6 shadow-elevated backdrop-blur-xl backdrop-saturate-150">
         <div className="mb-4 flex items-start justify-between">
-          <h3 className="text-lg font-bold tracking-tight text-sand-950">{title}</h3>
+          <h3 className="text-lg font-bold tracking-tight text-sand-900">{title}</h3>
           <button onClick={onClose} className="rounded-full p-1.5 text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-700">
             <X className="h-5 w-5" />
           </button>

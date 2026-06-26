@@ -45,8 +45,8 @@ export default function Enroll() {
     return (
       <PublicShell>
         <Card className="text-center">
-          <h1 className="font-display text-lg font-semibold text-sand-950">School not found</h1>
-          <p className="mt-1 text-sm text-sand-500">This enrollment link may be incorrect or no longer active.</p>
+          <h1 className="text-lg font-semibold text-sand-900">School not found</h1>
+          <p className="mt-1 text-sm text-sand-600">This enrollment link may be incorrect or no longer active.</p>
         </Card>
       </PublicShell>
     );
@@ -58,20 +58,18 @@ export default function Enroll() {
       <PublicShell schoolName={settings.name} slug={websiteSlug}>
         <FadeUp>
           <Card className="text-center">
-            {/* Success icon with warm glow */}
-            <div className="relative mx-auto mb-1 flex h-16 w-16 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-sun-100 opacity-60" />
-              <CheckCircle2 className="relative h-10 w-10 text-sun-500" strokeWidth={1.5} />
+            <div className="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+              <CheckCircle2 className="h-9 w-9 text-emerald-600" strokeWidth={1.75} />
             </div>
-            <h1 className="mt-4 font-display text-xl font-semibold tracking-tightest text-sand-950">
+            <h1 className="mt-4 text-xl font-semibold tracking-tight text-sand-900">
               {alreadyEnrolled ? "You're already enrolled" : "You're enrolled"}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-sand-600">
               {alreadyEnrolled
                 ? 'This email is already registered. You can go straight to booking your next lesson.'
-                : `Welcome to ${settings.name}. You'll get an email each morning when booking opens, and you can book a lesson anytime.`}
+                : `Welcome to ${settings.name}. You can book a lesson online whenever it suits you.`}
             </p>
-            <Link to={bookHref} className="btn-sun shine mt-6 w-full">
+            <Link to={bookHref} className="btn-primary mt-6 w-full">
               Book a lesson <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
@@ -83,15 +81,11 @@ export default function Enroll() {
     <PublicShell schoolName={settings.name} slug={websiteSlug}>
       <FadeUp>
         <Card>
-          {/* Eyebrow accent */}
-          <div className="mb-5">
-            <p className="section-eyebrow">Student enrollment</p>
-          </div>
-
-          <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">
+          <p className="section-eyebrow">Student enrollment</p>
+          <h1 className="mt-3 text-xl font-semibold tracking-tight text-sand-900">
             Enroll at {settings.name}
           </h1>
-          <p className="mt-1 text-sm text-sand-500">
+          <p className="mt-1 text-sm text-sand-600">
             Enter your details and the code your instructor gave you to get started.
           </p>
 
@@ -122,12 +116,12 @@ export default function Enroll() {
                 required
               />
             </Field>
-            <Button variant="sun" type="submit" loading={enroll.isPending} className="w-full shine">
+            <Button variant="primary" type="submit" loading={enroll.isPending} className="w-full">
               Enroll
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-sand-500">
+          <p className="mt-5 text-center text-sm text-sand-600">
             Already enrolled?{' '}
             <Link to={bookHref} className="link-underline">
               Book a lesson

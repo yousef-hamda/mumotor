@@ -138,8 +138,8 @@ export default function EditorPage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-sand-100">
-      {/* Warm top bar */}
-      <header className="flex items-center justify-between gap-4 border-b border-sand-200/70 bg-sand-50/90 px-4 py-2.5 backdrop-blur-sm">
+      {/* Top bar */}
+      <header className="glass z-20 flex items-center justify-between gap-4 border-b border-white/50 px-4 py-2.5">
         <div className="flex items-center gap-4">
           <Link
             to="/dashboard"
@@ -147,7 +147,7 @@ export default function EditorPage() {
           >
             <ArrowLeft className="h-4 w-4" /> Dashboard
           </Link>
-          <Link to="/dashboard"><Logo size="xs" /></Link>
+          <Link to="/dashboard" aria-label="Mumotor dashboard"><Logo size="xs" /></Link>
           <span className="hidden text-sm font-semibold text-sand-800 sm:block">{name}</span>
           {/* Save status indicator */}
           <span className="flex items-center gap-1.5 text-xs text-sand-400">
@@ -162,16 +162,18 @@ export default function EditorPage() {
 
         <div className="flex items-center gap-3">
           {/* Viewport switcher */}
-          <div className="hidden items-center gap-0.5 rounded-full border border-sand-200 bg-white p-0.5 shadow-ring md:flex">
+          <div className="hidden items-center gap-0.5 rounded-lg border border-sand-200 bg-white p-0.5 md:flex">
             {([['desktop', Monitor], ['tablet', Tablet], ['mobile', Smartphone]] as const).map(([v, Icon]) => (
               <button
                 key={v}
                 onClick={() => setViewport(v)}
                 title={v}
+                aria-label={`${v} preview`}
+                aria-pressed={viewport === v}
                 className={
                   viewport === v
-                    ? 'rounded-full bg-sand-950 p-1.5 text-white shadow-[0_2px_8px_-2px_rgba(34,28,21,0.5)] transition-all duration-200'
-                    : 'rounded-full p-1.5 text-sand-400 transition-all duration-200 hover:text-sand-700'
+                    ? 'rounded-md bg-sun-600 p-1.5 text-white transition-colors duration-200'
+                    : 'rounded-md p-1.5 text-sand-400 transition-colors duration-200 hover:text-sand-700'
                 }
               >
                 <Icon className="h-4 w-4" />
@@ -191,10 +193,10 @@ export default function EditorPage() {
           )}
 
           <Button
-            variant="sun"
+            variant="primary"
             onClick={() => publish.mutate()}
             loading={publish.isPending}
-            className="text-sm shine"
+            className="text-sm"
           >
             Publish
           </Button>
@@ -204,17 +206,14 @@ export default function EditorPage() {
       <div className="flex min-h-0 flex-1">
         {/* Preview canvas */}
         <div className="relative flex flex-1 items-start justify-center overflow-auto bg-sand-100 p-6">
-          {/* Subtle warm dot texture on canvas */}
-          <div className="pointer-events-none absolute inset-0 bg-dots-warm opacity-40" />
-
           {rendering && (
-            <div className="absolute end-6 top-6 z-10 flex items-center gap-2 rounded-full border border-sand-200 bg-white/90 px-3 py-1.5 text-xs text-sand-500 shadow-card backdrop-blur-sm">
-              <Loader2 className="h-3 w-3 animate-spin text-sun-500" /> Updating preview
+            <div className="absolute end-6 top-6 z-10 flex items-center gap-2 rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-xs text-sand-500 shadow-card">
+              <Loader2 className="h-3 w-3 animate-spin text-sun-600" /> Updating preview
             </div>
           )}
 
           <div
-            className="relative mx-auto overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-elevated transition-all duration-500"
+            className="relative mx-auto overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card transition-all duration-300"
             style={{ width: widths[viewport], maxWidth: '100%' }}
           >
             <iframe
@@ -227,7 +226,7 @@ export default function EditorPage() {
         </div>
 
         {/* Controls sidebar */}
-        <aside className="w-80 shrink-0 overflow-y-auto border-s border-sand-200/70 bg-white/95 p-5">
+        <aside className="glass w-80 shrink-0 overflow-y-auto border-s border-white/50 p-5">
           <EditorSection title="Design">
             {/* Preset swatches */}
             <div className="grid grid-cols-3 gap-2">
@@ -236,10 +235,12 @@ export default function EditorPage() {
                   key={p.id}
                   onClick={() => setPresetId(p.id)}
                   title={p.label}
+                  aria-label={p.label}
+                  aria-pressed={presetId === p.id}
                   className={
                     presetId === p.id
-                      ? 'overflow-hidden rounded-2xl ring-2 ring-sand-900 ring-offset-1 transition-all duration-200'
-                      : 'overflow-hidden rounded-2xl ring-1 ring-sand-200 transition-all duration-200 hover:ring-sand-400 hover:-translate-y-0.5'
+                      ? 'overflow-hidden rounded-lg ring-2 ring-sun-500 ring-offset-1 transition-all duration-200'
+                      : 'overflow-hidden rounded-lg ring-1 ring-sand-200 transition-all duration-200 hover:ring-sand-400'
                   }
                 >
                   <span className="flex h-10">
@@ -269,7 +270,7 @@ export default function EditorPage() {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={uploadCover}
-                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-full file:border-0 file:bg-sun-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-600"
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sun-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-700"
               />
               {(draft.carPhoto as { url?: string })?.url && (
                 <button
@@ -287,7 +288,7 @@ export default function EditorPage() {
                 accept="image/png,image/jpeg,image/webp"
                 multiple
                 onChange={uploadGallery}
-                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-full file:border-0 file:bg-sun-500 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-600"
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sun-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-700"
               />
               {(((draft.galleryPhotos as string[]) || []).length > 0) && (
                 <div className="mt-2 grid grid-cols-3 gap-2">
@@ -335,7 +336,7 @@ export default function EditorPage() {
         onClose={() => { setPublishOpen(false); navigate('/dashboard'); }}
         title="Your site is published"
         footer={
-          <Button variant="sun" onClick={() => { setPublishOpen(false); navigate('/dashboard'); }}>
+          <Button variant="primary" onClick={() => { setPublishOpen(false); navigate('/dashboard'); }}>
             Done
           </Button>
         }

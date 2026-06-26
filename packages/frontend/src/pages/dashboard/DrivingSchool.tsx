@@ -19,7 +19,6 @@ import {
   X,
   Send,
   ExternalLink,
-  Sun,
 } from 'lucide-react';
 import { apiError, drivingSchoolApi, websiteApi } from '../../lib/api';
 import {
@@ -74,51 +73,43 @@ function CodeTab({ website }: { website: Website }) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Daily code card */}
-      <Card className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -end-12 -top-12 h-40 w-40 rounded-full sun-glow opacity-50 blur-2xl" />
-        <div className="relative">
-          <p className="section-eyebrow">
-            <Sun className="h-3.5 w-3.5 text-sun-500" /> Daily
-          </p>
-          <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
-            Today's enrollment code
-          </h3>
-          <p className="mt-1 text-sm text-sand-500">
-            Share this code with a new student so they can enroll. It rotates every day.
-          </p>
-          <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-sand-200 bg-sand-50/80 p-8">
-            <span className="font-mono text-5xl font-bold tracking-[0.3em] text-sand-950">{data?.code}</span>
-            <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
-              {copied === data?.code ? (
-                <Check className="h-4 w-4 text-emerald-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-              {copied === data?.code ? 'Copied' : 'Copy code'}
-            </Button>
-          </div>
-          <p className="mt-4 text-center text-xs text-sand-400">
-            Valid for {formatDate(new Date().toISOString())}
-          </p>
+      <Card>
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
+          Today's enrollment code
+        </h3>
+        <p className="mt-1 text-sm text-sand-600">
+          Share this code with a new student so they can enroll. It rotates every day.
+        </p>
+        <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-sand-200 bg-sand-50 p-8">
+          <span className="font-mono text-5xl font-bold tracking-[0.3em] tabular-nums text-sand-900">{data?.code}</span>
+          <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
+            {copied === data?.code ? (
+              <Check className="h-4 w-4 text-emerald-600" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+            {copied === data?.code ? 'Copied' : 'Copy code'}
+          </Button>
         </div>
+        <p className="mt-4 text-center text-xs text-sand-500">
+          Valid for {formatDate(new Date().toISOString())}
+        </p>
       </Card>
 
       {/* Enroll link card */}
       <Card>
-        <p className="section-eyebrow">
-          <ExternalLink className="h-3.5 w-3.5 text-sun-500" /> Share
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
           Public enroll link
         </h3>
-        <p className="mt-1 text-sm text-sand-500">
+        <p className="mt-1 text-sm text-sand-600">
           Send this link — students enroll themselves with the code above.
         </p>
-        <div className="mt-6 flex items-center gap-2 rounded-2xl border border-sand-200 bg-sand-50 px-3 py-2.5">
+        <div className="mt-6 flex items-center gap-2 rounded-xl border border-sand-200 bg-sand-50 px-3 py-2.5">
           <code className="flex-1 truncate text-sm text-sand-700">{enrollUrl}</code>
           <button
             onClick={() => copy(enrollUrl, 'link')}
-            className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+            className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+            aria-label="Copy enroll link"
           >
             {copied === 'link' ? (
               <Check className="h-4 w-4 text-emerald-600" />
@@ -135,9 +126,9 @@ function CodeTab({ website }: { website: Website }) {
         >
           Open enroll page <ExternalLink className="h-4 w-4" />
         </a>
-        <div className="mt-6 rounded-2xl border border-sand-200 bg-sand-50 p-4 text-sm text-sand-600">
+        <div className="mt-6 rounded-xl border border-sand-200 bg-sand-50 p-4 text-sm text-sand-600">
           You can also set a permanent static code in{' '}
-          <strong className="font-semibold text-sand-800">Settings</strong> if you prefer not to
+          <strong className="font-semibold text-sand-900">Settings</strong> if you prefer not to
           rotate codes daily.
         </div>
       </Card>
@@ -205,9 +196,9 @@ function StudentsTab({ website }: { website: Website }) {
   });
 
   return (
-    <Card className="p-0">
+    <Card className="bg-white/85 p-0">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-sand-100 p-4">
+      <div className="flex flex-wrap items-center gap-3 border-b border-sand-200 p-4">
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sand-400" />
           <Input
@@ -237,7 +228,7 @@ function StudentsTab({ website }: { website: Website }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-sand-100 text-start text-xs uppercase tracking-wide text-sand-400">
+              <tr className="border-b border-sand-200 bg-sand-50 text-start text-xs uppercase tracking-wide text-sand-500">
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Email</th>
                 <th className="px-4 py-3 font-semibold">Phone</th>
@@ -251,15 +242,15 @@ function StudentsTab({ website }: { website: Website }) {
               {data.students.map((s) => (
                 <tr
                   key={s.id}
-                  className="border-b border-sand-50 transition-colors hover:bg-sand-50/60"
+                  className="border-b border-sand-200 transition-colors last:border-b-0 hover:bg-sand-50"
                 >
                   <td className="px-4 py-3 font-semibold text-sand-900">{s.studentName}</td>
                   <td className="px-4 py-3 text-sand-600">{s.studentEmail}</td>
                   <td className="px-4 py-3 text-sand-600">{s.studentPhone || '—'}</td>
                   <td className="px-4 py-3">
-                    <span className="font-semibold text-sand-900">{s.classCount}</span>
+                    <span className="font-semibold tabular-nums text-sand-900">{s.classCount}</span>
                   </td>
-                  <td className="px-4 py-3 text-sand-600">{formatDate(s.enrolledAt)}</td>
+                  <td className="px-4 py-3 tabular-nums text-sand-600">{formatDate(s.enrolledAt)}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={s.status} />
                   </td>
@@ -267,9 +258,10 @@ function StudentsTab({ website }: { website: Website }) {
                     <div className="flex items-center justify-end gap-1">
                       {s.status !== 'COMPLETED' && (
                         <button
+                          aria-label={s.status === 'ACTIVE' ? 'Pause student' : 'Activate student'}
                           title={s.status === 'ACTIVE' ? 'Pause' : 'Activate'}
                           onClick={() => toggle.mutate(s.id)}
-                          className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
+                          className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
                           {s.status === 'ACTIVE' ? (
                             <PauseCircle className="h-4 w-4" />
@@ -280,17 +272,19 @@ function StudentsTab({ website }: { website: Website }) {
                       )}
                       {s.status !== 'COMPLETED' && (
                         <button
+                          aria-label="Mark student completed"
                           title="Mark completed"
                           onClick={() => finish.mutate(s.id)}
-                          className="rounded-xl p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
+                          className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
                           <GraduationCap className="h-4 w-4" />
                         </button>
                       )}
                       <button
+                        aria-label="Delete student"
                         title="Delete"
                         onClick={() => setToDelete(s)}
-                        className="rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50 hover:text-ember-700"
+                        className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -305,8 +299,8 @@ function StudentsTab({ website }: { website: Website }) {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-sand-100 p-4 text-sm">
-          <span className="text-sand-500">
+        <div className="flex items-center justify-between border-t border-sand-200 p-4 text-sm">
+          <span className="tabular-nums text-sand-600">
             Page {data.page} of {data.totalPages} · {data.total} students
           </span>
           <div className="flex gap-2">
@@ -368,20 +362,17 @@ function ScheduleTab({ website }: { website: Website }) {
       {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="section-eyebrow">
-            <CalendarDays className="h-3.5 w-3.5 text-sun-500" /> Schedule
-          </p>
-          <h3 className="mt-1.5 font-display text-xl font-semibold tracking-tight text-sand-950">
+          <h3 className="text-xl font-semibold tracking-tight text-sand-900">
             {data ? formatDateLong(data.date) : 'Today'}
           </h3>
           {data?.isOpen ? (
-            <p className="mt-0.5 text-sm text-sand-500">
+            <p className="mt-0.5 text-sm text-sand-600">
               Open {data.open}–{data.close} ·{' '}
-              <span className="font-semibold text-sand-700">{data.totals.booked}</span> booked ·{' '}
-              <span className="font-semibold text-sand-700">{data.totals.empty}</span> free
+              <span className="font-semibold tabular-nums text-sand-900">{data.totals.booked}</span> booked ·{' '}
+              <span className="font-semibold tabular-nums text-sand-900">{data.totals.empty}</span> free
             </p>
           ) : (
-            <p className="mt-0.5 text-sm text-sand-500">Closed today</p>
+            <p className="mt-0.5 text-sm text-sand-600">Closed today</p>
           )}
         </div>
         <Button variant="secondary" onClick={() => refetch()} loading={isFetching}>
@@ -402,16 +393,16 @@ function ScheduleTab({ website }: { website: Website }) {
               key={slot.time}
               className={
                 slot.booked
-                  ? 'rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition-shadow hover:shadow-card'
-                  : 'rounded-2xl border border-dashed border-sand-200 bg-sand-50/60 p-4'
+                  ? 'rounded-xl border border-emerald-200 bg-emerald-50 p-4'
+                  : 'rounded-xl border border-dashed border-sand-300 bg-sand-50 p-4'
               }
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-lg font-bold text-sand-800">{slot.time}</span>
+                <span className="font-mono text-lg font-bold tabular-nums text-sand-900">{slot.time}</span>
                 {slot.booked ? (
                   <span className="chip bg-emerald-100 text-emerald-800">Booked</span>
                 ) : (
-                  <span className="chip bg-sand-200 text-sand-500">Free</span>
+                  <span className="chip bg-sand-200 text-sand-600">Free</span>
                 )}
               </div>
               {slot.booked && (
@@ -455,13 +446,10 @@ function EmailTab({ website }: { website: Website }) {
 
   return (
     <Card className="mx-auto max-w-2xl">
-      <p className="section-eyebrow">
-        <Mail className="h-3.5 w-3.5 text-sun-500" /> Broadcast
-      </p>
-      <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+      <h3 className="text-xl font-semibold tracking-tight text-sand-900">
         Email your students
       </h3>
-      <p className="mt-1 text-sm text-sand-500">Send an announcement to a group of students.</p>
+      <p className="mt-1 text-sm text-sand-600">Send an announcement to a group of students.</p>
 
       <form
         onSubmit={(e) => {
@@ -498,7 +486,7 @@ function EmailTab({ website }: { website: Website }) {
             maxLength={5000}
           />
         </Field>
-        <Button type="submit" variant="sun" loading={send.isPending}>
+        <Button type="submit" loading={send.isPending}>
           <Send className="h-4 w-4" /> Send email
         </Button>
       </form>
@@ -578,13 +566,10 @@ function SettingsTab({ website }: { website: Website }) {
     <form onSubmit={submit} className="space-y-6">
       {/* Enrollment code */}
       <Card>
-        <p className="section-eyebrow">
-          <KeyRound className="h-3.5 w-3.5 text-sun-500" /> Access
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
           Enrollment code
         </h3>
-        <p className="mt-1 text-sm text-sand-500">
+        <p className="mt-1 text-sm text-sand-600">
           Optional permanent code. Leave blank to rely only on the rotating daily code.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -603,12 +588,13 @@ function SettingsTab({ website }: { website: Website }) {
             </div>
           </Field>
           <Field label="Public enroll link">
-            <div className="flex items-center gap-2 rounded-2xl border border-sand-200 bg-sand-50 px-3 py-2.5">
+            <div className="flex items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-3 py-2.5">
               <code className="flex-1 truncate text-sm text-sand-600">{enrollUrl}</code>
               <button
                 type="button"
                 onClick={() => copy(enrollUrl, 'enroll')}
-                className="rounded-xl p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+                className="rounded-md p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+                aria-label="Copy enroll link"
               >
                 {copied === 'enroll' ? (
                   <Check className="h-4 w-4 text-emerald-600" />
@@ -632,10 +618,7 @@ function SettingsTab({ website }: { website: Website }) {
 
       {/* Lesson settings */}
       <Card>
-        <p className="section-eyebrow">
-          <CalendarDays className="h-3.5 w-3.5 text-sun-500" /> Lessons
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
           Lesson settings
         </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -683,10 +666,7 @@ function SettingsTab({ website }: { website: Website }) {
 
       {/* Working hours */}
       <Card>
-        <p className="section-eyebrow">
-          <Sun className="h-3.5 w-3.5 text-sun-500" /> Availability
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
           Working hours
         </h3>
         <div className="mt-4 space-y-2">
@@ -695,7 +675,7 @@ function SettingsTab({ website }: { website: Website }) {
             return (
               <div
                 key={day}
-                className="flex flex-wrap items-center gap-3 rounded-2xl border border-sand-100 bg-sand-50/40 p-3 transition-colors hover:border-sand-200"
+                className="flex flex-wrap items-center gap-3 rounded-lg border border-sand-200 bg-sand-50 p-3 transition-colors hover:border-sand-300"
               >
                 <label className="flex w-32 cursor-pointer items-center gap-2">
                   <input
@@ -714,7 +694,7 @@ function SettingsTab({ website }: { website: Website }) {
                       onChange={(e) => setDay(day, { open: e.target.value })}
                       className="w-32"
                     />
-                    <span className="text-sand-400">to</span>
+                    <span className="text-sand-500">to</span>
                     <Input
                       type="time"
                       value={d.close}
@@ -723,7 +703,7 @@ function SettingsTab({ website }: { website: Website }) {
                     />
                   </div>
                 ) : (
-                  <span className="text-sm text-sand-400">Closed</span>
+                  <span className="text-sm text-sand-500">Closed</span>
                 )}
               </div>
             );
@@ -735,10 +715,7 @@ function SettingsTab({ website }: { website: Website }) {
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <p className="section-eyebrow">
-              <RefreshCw className="h-3.5 w-3.5 text-sun-500" /> Breaks
-            </p>
-            <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+            <h3 className="text-xl font-semibold tracking-tight text-sand-900">
               Break times
             </h3>
           </div>
@@ -760,7 +737,7 @@ function SettingsTab({ website }: { website: Website }) {
             {form.breakTimes.map((b, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 rounded-2xl border border-sand-100 bg-sand-50/40 p-3"
+                className="flex items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 p-3"
               >
                 <Input
                   type="time"
@@ -772,7 +749,7 @@ function SettingsTab({ website }: { website: Website }) {
                   }}
                   className="w-32"
                 />
-                <span className="text-sand-400">to</span>
+                <span className="text-sand-500">to</span>
                 <Input
                   type="time"
                   value={b.end}
@@ -785,10 +762,11 @@ function SettingsTab({ website }: { website: Website }) {
                 />
                 <button
                   type="button"
+                  aria-label="Remove break"
                   onClick={() =>
                     setForm({ ...form, breakTimes: form.breakTimes.filter((_, j) => j !== i) })
                   }
-                  className="ms-auto rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50 hover:text-ember-700"
+                  className="ms-auto rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -796,19 +774,16 @@ function SettingsTab({ website }: { website: Website }) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-sand-400">No breaks configured.</p>
+          <p className="mt-4 text-sm text-sand-500">No breaks configured.</p>
         )}
       </Card>
 
       {/* Public profile */}
       <Card>
-        <p className="section-eyebrow">
-          <Users className="h-3.5 w-3.5 text-sun-500" /> Profile
-        </p>
-        <h3 className="mt-2 font-display text-xl font-semibold tracking-tight text-sand-950">
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
           Public profile
         </h3>
-        <p className="mt-1 text-sm text-sand-500">Shown on your public booking site.</p>
+        <p className="mt-1 text-sm text-sand-600">Shown on your public booking site.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Teacher name">
             <Input
@@ -850,7 +825,7 @@ function SettingsTab({ website }: { website: Website }) {
 
       {/* Sticky save bar */}
       <div className="sticky bottom-4 flex justify-end">
-        <Button type="submit" variant="sun" loading={save.isPending} className="shadow-elevated">
+        <Button type="submit" loading={save.isPending} className="shadow-elevated">
           Save settings
         </Button>
       </div>
@@ -897,13 +872,10 @@ export default function DrivingSchool() {
       <FadeUp>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="section-eyebrow">
-              <GraduationCap className="h-3.5 w-3.5 text-sun-500" /> Driving Teacher
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+            <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
               Manage your school
             </h1>
-            <p className="mt-1 text-sand-500">Students, schedule, codes, and settings — all in one place.</p>
+            <p className="mt-1 text-sand-600">Students, schedule, codes, and settings — all in one place.</p>
           </div>
           {websites.length > 1 && (
             <Select
@@ -922,7 +894,7 @@ export default function DrivingSchool() {
       </FadeUp>
 
       {/* Tab bar */}
-      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-sand-200/70 bg-sand-100/60 p-1">
+      <div className="glass flex gap-1 overflow-x-auto rounded-lg p-1">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -930,13 +902,14 @@ export default function DrivingSchool() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
+              aria-current={active ? 'page' : undefined}
               className={
                 active
-                  ? 'flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-sand-950 shadow-card transition-all duration-200'
-                  : 'flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-sand-400 transition-all duration-200 hover:bg-white/50 hover:text-sand-700'
+                  ? 'flex shrink-0 items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-sand-900 shadow-card transition-colors'
+                  : 'flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-sand-600 transition-colors hover:bg-white/60 hover:text-sand-900'
               }
             >
-              <Icon className={`h-4 w-4 ${active ? 'text-sun-500' : 'text-sand-400'}`} />
+              <Icon className={`h-4 w-4 ${active ? 'text-sun-600' : 'text-sand-400'}`} />
               {t.label}
             </button>
           );

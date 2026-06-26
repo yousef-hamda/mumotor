@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, Sun } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
 import { apiError, drivingSchoolApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, Field, Input, Modal } from '../../components/ui';
 import { PublicShell } from '../../components/PublicShell';
@@ -24,22 +24,24 @@ function Stepper({ step }: { step: Step }) {
   const labels: Record<string, string> = { email: 'Identify', date: 'Choose date', time: 'Choose time' };
   const activeIdx = step === 'details' ? 1 : order.indexOf(step === 'done' ? 'time' : step);
   return (
-    <div className="mb-6 flex items-center justify-center gap-2 text-sm">
-      {order.map((s, i) => (
-        <div key={s} className="flex items-center gap-2">
-          <span
-            className={
-              i <= activeIdx
-                ? 'flex h-7 w-7 items-center justify-center rounded-full bg-sand-950 text-xs font-bold text-white shadow-[0_2px_8px_-2px_rgba(34,28,21,0.4)]'
-                : 'flex h-7 w-7 items-center justify-center rounded-full border border-sand-200 bg-white text-xs font-semibold text-sand-400'
-            }
-          >
-            {i + 1}
-          </span>
-          <span className={i <= activeIdx ? 'font-semibold text-sand-950' : 'text-sand-400'}>{labels[s]}</span>
-          {i < order.length - 1 && <span className="mx-1 h-px w-8 bg-sand-200" />}
-        </div>
-      ))}
+    <div className="mb-6 flex justify-center">
+      <div className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
+        {order.map((s, i) => (
+          <div key={s} className="flex items-center gap-2">
+            <span
+              className={
+                i <= activeIdx
+                  ? 'flex h-7 w-7 items-center justify-center rounded-full bg-sun-600 text-xs font-bold text-white'
+                  : 'flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-white/60 text-xs font-semibold text-sand-500'
+              }
+            >
+              {i + 1}
+            </span>
+            <span className={i <= activeIdx ? 'font-semibold text-sand-900' : 'text-sand-500'}>{labels[s]}</span>
+            {i < order.length - 1 && <span className="mx-1 h-px w-8 bg-sand-300/70" />}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -160,8 +162,8 @@ export default function BookLesson() {
     return (
       <PublicShell>
         <Card className="text-center">
-          <h1 className="font-display text-lg font-semibold text-sand-950">School not found</h1>
-          <p className="mt-1 text-sm text-sand-500">This booking link may be incorrect or no longer active.</p>
+          <h1 className="text-lg font-semibold text-sand-900">School not found</h1>
+          <p className="mt-1 text-sm text-sand-600">This booking link may be incorrect or no longer active.</p>
         </Card>
       </PublicShell>
     );
@@ -176,13 +178,13 @@ export default function BookLesson() {
       {step === 'email' && (
         <FadeUp>
           <Card>
-            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-2xl border border-sand-200 bg-white shadow-card">
-              <CalendarDays className="h-4 w-4 text-sun-500" strokeWidth={1.75} />
+            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg border border-sand-200 bg-sand-50">
+              <CalendarDays className="h-5 w-5 text-sun-600" strokeWidth={1.75} />
             </div>
-            <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">
+            <h1 className="text-xl font-semibold tracking-tight text-sand-900">
               Book a driving lesson
             </h1>
-            <p className="mt-1 text-sm text-sand-500">Enter the email you enrolled with to get started.</p>
+            <p className="mt-1 text-sm text-sand-600">Enter the email you enrolled with to get started.</p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -194,11 +196,11 @@ export default function BookLesson() {
               <Field label="Email">
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
               </Field>
-              <Button variant="sun" type="submit" loading={checkEnrollment.isPending} className="w-full shine">
+              <Button variant="primary" type="submit" loading={checkEnrollment.isPending} className="w-full">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
-            <p className="mt-5 text-center text-sm text-sand-500">
+            <p className="mt-5 text-center text-sm text-sand-600">
               Not enrolled yet?{' '}
               <Link to={`/p/${websiteSlug}/enroll`} className="link-underline">
                 Enroll here
@@ -217,8 +219,8 @@ export default function BookLesson() {
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
-          <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Choose a date</h1>
-          <p className="mt-1 text-sm text-sand-500">
+          <h1 className="text-xl font-semibold tracking-tight text-sand-900">Choose a date</h1>
+          <p className="mt-1 text-sm text-sand-600">
             Book up to {advanceDays} day{advanceDays > 1 ? 's' : ''} ahead.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
@@ -229,6 +231,7 @@ export default function BookLesson() {
                 <button
                   key={d}
                   disabled={!open}
+                  aria-pressed={selected}
                   onClick={() => {
                     setSelectedDate(d);
                     setSelectedTime('');
@@ -236,10 +239,10 @@ export default function BookLesson() {
                   }}
                   className={
                     selected
-                      ? 'rounded-2xl border border-sand-900 bg-sand-950 px-3 py-3 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(34,28,21,0.5)] transition-all duration-150'
+                      ? 'rounded-lg border border-sun-600 bg-sun-600 px-3 py-3 text-sm font-semibold text-white transition-colors duration-150'
                       : open
-                        ? 'rounded-2xl border border-sand-200 bg-white px-3 py-3 text-sm font-medium text-sand-800 shadow-ring transition-all duration-150 hover:border-sand-300 hover:bg-sand-50 hover:-translate-y-0.5'
-                        : 'cursor-not-allowed rounded-2xl border border-dashed border-sand-200 px-3 py-3 text-sm text-sand-300'
+                        ? 'rounded-lg border border-white/60 bg-white/60 px-3 py-3 text-sm font-medium text-sand-800 backdrop-blur-md transition-colors duration-150 hover:border-sun-500 hover:bg-white/85'
+                        : 'cursor-not-allowed rounded-lg border border-dashed border-sand-200 px-3 py-3 text-sm text-sand-400'
                   }
                 >
                   {formatDateShort(d)}
@@ -261,8 +264,8 @@ export default function BookLesson() {
             >
               <ArrowLeft className="h-4 w-4" /> Back
             </button>
-            <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Quick enrollment</h1>
-            <p className="mt-1 text-sm text-sand-500">
+            <h1 className="text-xl font-semibold tracking-tight text-sand-900">Quick enrollment</h1>
+            <p className="mt-1 text-sm text-sand-600">
               We don't recognize this email yet. Enter your name and code to continue.
             </p>
             <form
@@ -281,7 +284,7 @@ export default function BookLesson() {
               <Field label="Enrollment code">
                 <Input name="code" placeholder="e.g. DRIVE2026" className="font-mono tracking-widest uppercase" required />
               </Field>
-              <Button variant="sun" type="submit" loading={enroll.isPending} className="w-full shine">
+              <Button variant="primary" type="submit" loading={enroll.isPending} className="w-full">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
@@ -298,15 +301,15 @@ export default function BookLesson() {
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
-          <h1 className="font-display text-xl font-semibold tracking-tightest text-sand-950">Choose a time</h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-sand-500">
-            <CalendarDays className="h-4 w-4 text-sun-500" /> {formatDateLong(selectedDate)}
+          <h1 className="text-xl font-semibold tracking-tight text-sand-900">Choose a time</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-sand-600">
+            <CalendarDays className="h-4 w-4 text-sun-600" /> {formatDateLong(selectedDate)}
           </p>
 
           {availability.isLoading ? (
             <CenteredSpinner label="Checking availability…" />
           ) : !availability.data || availability.data.slots.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-sand-200 bg-sand-50 p-6 text-center text-sm text-sand-500">
+            <div className="mt-6 rounded-lg border border-sand-200 bg-sand-50 p-6 text-center text-sm text-sand-600">
               {availability.data?.closed
                 ? 'The school is closed on this day.'
                 : 'No available times for this date. Try another day.'}
@@ -320,7 +323,7 @@ export default function BookLesson() {
                     setSelectedTime(t);
                     setConfirmOpen(true);
                   }}
-                  className="rounded-2xl border border-sand-200 bg-white px-2 py-2.5 font-mono text-sm font-medium text-sand-800 shadow-ring transition-all duration-150 hover:border-sand-900 hover:bg-sand-950 hover:text-white hover:-translate-y-0.5 active:scale-[0.97]"
+                  className="rounded-lg border border-white/60 bg-white/60 px-2 py-2.5 font-mono text-sm font-medium text-sand-800 backdrop-blur-md transition-colors duration-150 hover:border-sun-600 hover:bg-sun-600 hover:text-white"
                 >
                   {t}
                 </button>
@@ -334,26 +337,25 @@ export default function BookLesson() {
       {step === 'done' && (
         <FadeUp>
           <Card className="text-center">
-            <div className="relative mx-auto flex h-16 w-16 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-sun-100 opacity-70" />
-              <CheckCircle2 className="relative h-10 w-10 text-sun-500" strokeWidth={1.5} />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+              <CheckCircle2 className="h-9 w-9 text-emerald-600" strokeWidth={1.75} />
             </div>
-            <h1 className="mt-4 font-display text-xl font-semibold tracking-tightest text-sand-950">Lesson booked</h1>
+            <h1 className="mt-4 text-xl font-semibold tracking-tight text-sand-900">Lesson booked</h1>
             <p className="mt-2 text-sm text-sand-600">
-              See you on <strong className="text-sand-950">{formatDateLong(selectedDate)}</strong> at{' '}
-              <strong className="text-sand-950">{selectedTime}</strong>.
+              See you on <strong className="text-sand-900">{formatDateLong(selectedDate)}</strong> at{' '}
+              <strong className="text-sand-900">{selectedTime}</strong>.
             </p>
-            <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-2xl border border-sand-200 bg-sand-50 p-4 text-start text-sm text-sand-600">
+            <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-lg border border-sand-200 bg-sand-50 p-4 text-start text-sm text-sand-600">
               <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0 text-sun-500" /> We'll remind you ~2 hours before.
+                <Clock className="h-4 w-4 shrink-0 text-sun-600" /> We'll remind you ~2 hours before.
               </p>
               <p className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 shrink-0 text-sun-500" /> Please arrive 5 minutes early.
+                <CalendarDays className="h-4 w-4 shrink-0 text-sun-600" /> Please arrive 5 minutes early.
               </p>
             </div>
             <Button
-              variant="sun"
-              className="mt-6 w-full shine"
+              variant="primary"
+              className="mt-6 w-full"
               onClick={() => {
                 setSelectedTime('');
                 setSelectedDate('');
@@ -368,14 +370,14 @@ export default function BookLesson() {
 
       {/* Footer: pause */}
       {step !== 'done' && (
-        <p className="mt-6 text-center text-xs text-sand-400">
+        <p className="mt-6 text-center text-xs text-sand-500">
           Need a break?{' '}
           <button
             onClick={() => {
               if (!email) return toast('Enter your email first');
               setPauseOpen(true);
             }}
-            className="font-medium text-sand-500 underline transition-colors hover:text-sand-700"
+            className="font-medium text-sand-600 underline transition-colors hover:text-sand-900"
           >
             Pause my lessons
           </button>
@@ -390,15 +392,15 @@ export default function BookLesson() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-            <Button variant="sun" loading={book.isPending} onClick={() => book.mutate()}>Confirm booking</Button>
+            <Button variant="primary" loading={book.isPending} onClick={() => book.mutate()}>Confirm booking</Button>
           </>
         }
       >
         <div className="space-y-3 text-sm text-sand-600">
           <p>You're booking a driving lesson:</p>
-          <div className="rounded-2xl border border-sand-200 bg-sand-50 p-4">
-            <p className="font-semibold text-sand-950">{formatDateLong(selectedDate)}</p>
-            <p className="mt-1 font-mono text-2xl font-bold text-sand-950">{selectedTime}</p>
+          <div className="rounded-lg border border-sand-200 bg-sand-50 p-4">
+            <p className="font-semibold text-sand-900">{formatDateLong(selectedDate)}</p>
+            <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-sand-900">{selectedTime}</p>
           </div>
         </div>
       </Modal>
@@ -444,7 +446,7 @@ function PauseModal({
       }
     >
       <p className="text-sm text-sand-600">
-        This pauses booking for <strong className="text-sand-950">{email}</strong>. Enter your enrollment code to confirm it's you. Your
+        This pauses booking for <strong className="text-sand-900">{email}</strong>. Enter your enrollment code to confirm it's you. Your
         instructor can reactivate you anytime.
       </p>
       <div className="mt-4">

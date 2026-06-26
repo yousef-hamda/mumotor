@@ -14,7 +14,7 @@ function Stars({ n }: { n: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${i < n ? 'fill-sun-400 text-sun-400' : 'fill-sand-200 text-sand-200'}`}
+          className={`h-3.5 w-3.5 ${i < n ? 'fill-accent-500 text-accent-500' : 'fill-sand-200 text-sand-300'}`}
         />
       ))}
     </span>
@@ -52,13 +52,10 @@ export default function Reviews() {
       <FadeUp>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="section-eyebrow">
-              <Star className="h-3.5 w-3.5 text-sun-500" /> Reviews
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+            <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
               Student reviews
             </h1>
-            <p className="mt-1 text-sand-500">Approve reviews to show them on your public site.</p>
+            <p className="mt-1 text-sand-600">Approve reviews to show them on your public site.</p>
           </div>
           {websites && websites.length > 1 && (
             <Select value={wid} onChange={(e) => setWid(e.target.value)} className="w-auto">
@@ -82,7 +79,7 @@ export default function Reviews() {
         <Stagger className="space-y-4">
           {reviews.map((r) => (
             <Stagger.Item key={r.id}>
-              <div className="group relative overflow-hidden rounded-3xl border border-sand-200/80 bg-white p-6 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated">
+              <div className="card rounded-xl p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -91,49 +88,49 @@ export default function Reviews() {
                     </div>
                     <div className="mt-1.5 flex items-center gap-2.5">
                       <Stars n={r.rating} />
-                      <span className="text-xs text-sand-400">{formatDate(r.createdAt)}</span>
+                      <span className="text-xs text-sand-500">{formatDate(r.createdAt)}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-0.5">
                     {r.status !== 'APPROVED' && (
                       <button
-                        title="Approve"
+                        aria-label="Approve review"
                         onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })}
-                        className="rounded-xl p-2 text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="rounded-lg p-2 text-emerald-600 transition-colors hover:bg-emerald-50"
                       >
                         <Check className="h-4 w-4" />
                       </button>
                     )}
                     {r.status !== 'REJECTED' && (
                       <button
-                        title="Reject"
+                        aria-label="Reject review"
                         onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })}
-                        className="rounded-xl p-2 text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-700"
+                        className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                       >
                         <X className="h-4 w-4" />
                       </button>
                     )}
                     <button
-                      title="Reply"
+                      aria-label="Reply to review"
                       onClick={() => { setReplyFor(r.id); setReplyText(r.reply || ''); }}
-                      className="rounded-xl p-2 text-sun-600 transition-colors hover:bg-sun-50"
+                      className="rounded-lg p-2 text-sun-600 transition-colors hover:bg-sun-50"
                     >
                       <Reply className="h-4 w-4" />
                     </button>
                     <button
-                      title="Delete"
+                      aria-label="Delete review"
                       onClick={() => remove.mutate(r.id)}
-                      className="rounded-xl p-2 text-ember-500 transition-colors hover:bg-ember-50"
+                      className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
 
-                <p className="mt-4 border-s-2 border-sun-200 ps-3.5 text-[15px] leading-relaxed text-sand-700">{r.comment}</p>
+                <p className="mt-4 border-s-2 border-sand-200 ps-3.5 text-[15px] leading-relaxed text-sand-700">{r.comment}</p>
 
                 {r.reply && replyFor !== r.id && (
-                  <div className="mt-3.5 rounded-2xl border border-sand-200/70 bg-sand-50/80 p-3.5 text-sm text-sand-600">
+                  <div className="mt-3.5 rounded-lg border border-sand-200 bg-sand-50 p-3.5 text-sm text-sand-600">
                     <span className="font-semibold text-sand-800">Your reply: </span>
                     {r.reply}
                   </div>

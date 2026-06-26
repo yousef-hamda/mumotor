@@ -18,13 +18,12 @@ export function PublicShell({
   const Brand = (
     <span className="flex items-center gap-2.5">
       <LogoMark size="sm" />
-      <span className="font-display font-semibold tracking-tight text-sand-950">{schoolName || 'Driving School'}</span>
+      <span className="font-semibold tracking-tight text-sand-900">{schoolName || 'Driving School'}</span>
     </span>
   );
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
-      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-72 bg-sunrise-soft opacity-40 blur-2xl" />
-      <header className="border-b border-sand-200/70 bg-sand-50/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/50 glass">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
           {slug ? (
             <Link to={`/p/${slug}`} className="transition-opacity hover:opacity-80">
@@ -41,9 +40,9 @@ export function PublicShell({
         <div className={width === 'narrow' ? 'w-full max-w-md' : 'w-full max-w-3xl'}>{children}</div>
       </main>
 
-      <footer className="border-t border-sand-200/60 py-6 text-center text-xs text-sand-400 tracking-wide">
+      <footer className="border-t border-white/50 glass py-6 text-center text-xs tracking-wide text-sand-500">
         Powered by{' '}
-        <Link to="/" className="font-semibold text-sand-600 transition-colors hover:text-sand-900">
+        <Link to="/" className="font-semibold text-sand-700 transition-colors hover:text-sun-600">
           Mumotor
         </Link>
       </footer>

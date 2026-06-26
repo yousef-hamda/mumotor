@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, Copy, ExternalLink, Globe, Pencil, Rss } from 'lucide-react';
+import { Check, Copy, ExternalLink, Globe, Pencil } from 'lucide-react';
 import { apiError, siteUrl, websiteApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, EmptyState, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -26,25 +26,21 @@ function SiteRow({ website }: { website: Website }) {
   });
 
   return (
-    <div className="group relative overflow-hidden rounded-3xl border border-sand-200/80 bg-white shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated">
-      {/* live indicator strip */}
-      {live && (
-        <div className="h-[3px] w-full bg-gradient-to-r from-sun-400 to-sun-500" />
-      )}
+    <div className="card rounded-xl">
       <div className="p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-display text-lg font-semibold tracking-tight text-sand-950">{website.name}</h3>
+              <h3 className="text-lg font-semibold tracking-tight text-sand-900">{website.name}</h3>
               <StatusBadge status={website.status} />
             </div>
-            <div className="mt-2.5 inline-flex items-center gap-2 rounded-full border border-sand-200/80 bg-sand-50 px-3 py-1">
-              <Globe className="h-3 w-3 shrink-0 text-sand-400" />
-              <code className="text-[12px] text-sand-500">{website.slug}.mumotor.com</code>
+            <div className="mt-2.5 inline-flex items-center gap-2 rounded-md border border-sand-200 bg-sand-50 px-3 py-1">
+              <Globe className="h-3 w-3 shrink-0 text-sand-500" />
+              <code className="text-[12px] text-sand-600">{website.slug}.mumotor.com</code>
               <button
                 onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                className="rounded-lg p-1 text-sand-400 transition-colors hover:bg-sand-200 hover:text-sand-700"
-                title="Copy URL"
+                className="rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+                aria-label="Copy site URL"
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
@@ -84,13 +80,10 @@ export default function Publishing() {
       <FadeUp>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="section-eyebrow">
-              <Rss className="h-3.5 w-3.5 text-sun-500" /> Publishing
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tightest text-sand-950">
+            <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
               Your sites
             </h1>
-            <p className="mt-1 text-sand-500">Manage where your sites are live.</p>
+            <p className="mt-1 text-sand-600">Manage where your sites are live.</p>
           </div>
           <Link to="/builder" className="btn-secondary">
             New site
@@ -116,7 +109,7 @@ export default function Publishing() {
         </Stagger>
       )}
 
-      <p className="text-center text-xs text-sand-400">
+      <p className="text-center text-xs text-sand-500">
         Custom domains and per-teacher subdomains are configured at deploy time (wildcard DNS).
       </p>
     </div>

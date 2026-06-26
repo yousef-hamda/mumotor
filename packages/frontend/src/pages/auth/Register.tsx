@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowRight } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { apiError } from '../../lib/api';
 import { Button, Field, Input } from '../../components/ui';
@@ -13,6 +13,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -42,33 +43,57 @@ export default function Register() {
     <AuthShell
       points={[
         'Free to start — no card required',
-        'Your own address, live in about five minutes',
-        'Everything in one calm dashboard',
+        'Your own web address, live in minutes',
+        'Manage everything from one dashboard',
       ]}
     >
       <FadeUp>
-        <h1 className="font-display text-[2rem] font-semibold tracking-tightest text-sand-950">Create your account</h1>
-        <p className="mt-2 text-sm text-sand-500">Set up your driving school in minutes.</p>
-        <form onSubmit={submit} className="mt-8 space-y-4">
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Create your account</h1>
+        <p className="mt-2 text-sm text-sand-600">Set up your driving school in a few minutes.</p>
+        <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
           <Field label="Full name">
-            <Input value={form.name} onChange={set('name')} required placeholder="David Cohen" />
+            <Input value={form.name} onChange={set('name')} required placeholder="David Cohen" autoComplete="name" />
           </Field>
           <Field label="Email">
-            <Input type="email" value={form.email} onChange={set('email')} required placeholder="you@example.com" />
+            <Input
+              type="email"
+              value={form.email}
+              onChange={set('email')}
+              required
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
           </Field>
-          <Field label="Phone (optional)">
-            <Input value={form.phone} onChange={set('phone')} placeholder="+972 50 123 4567" />
+          <Field label="Phone" hint="Optional">
+            <Input value={form.phone} onChange={set('phone')} placeholder="+972 50 123 4567" autoComplete="tel" />
           </Field>
           <Field label="Password" hint="At least 8 characters">
-            <Input type="password" value={form.password} onChange={set('password')} required autoComplete="new-password" />
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={set('password')}
+                required
+                autoComplete="new-password"
+                className="pe-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </Field>
-          <Button type="submit" variant="sun" loading={loading} className="w-full">
-            Create account <ArrowRight className="h-4 w-4" />
+          <Button type="submit" variant="primary" loading={loading} className="w-full">
+            Create account
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-sand-500">
+        <p className="mt-6 text-center text-sm text-sand-600">
           Already have an account?{' '}
-          <Link to="/login" className="link-underline text-sun-700">
+          <Link to="/login" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">
             Sign in
           </Link>
         </p>
