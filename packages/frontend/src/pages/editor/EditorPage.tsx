@@ -150,12 +150,12 @@ export default function EditorPage() {
           <Link to="/dashboard" aria-label="Mumotor dashboard"><Logo size="xs" /></Link>
           <span className="hidden text-sm font-semibold text-sand-800 sm:block">{name}</span>
           {/* Save status indicator */}
-          <span className="flex items-center gap-1.5 text-xs text-sand-400">
+          <span className="flex items-center gap-1.5 text-xs text-sand-500">
             {status === 'saving' && (
-              <><Loader2 className="h-3 w-3 animate-spin text-sun-500" /> <span>Saving…</span></>
+              <><Loader2 className="h-3 w-3 animate-spin text-sand-500" /> <span>Saving…</span></>
             )}
             {status === 'saved' && (
-              <><Check className="h-3 w-3 text-emerald-500" /> <span className="text-emerald-600">Saved</span></>
+              <><Check className="h-3 w-3 text-sand-900" /> <span className="text-sand-600">Saved</span></>
             )}
           </span>
         </div>
@@ -172,7 +172,7 @@ export default function EditorPage() {
                 aria-pressed={viewport === v}
                 className={
                   viewport === v
-                    ? 'rounded-md bg-sun-600 p-1.5 text-white transition-colors duration-200'
+                    ? 'rounded-md bg-sand-900 p-1.5 text-white transition-colors duration-200'
                     : 'rounded-md p-1.5 text-sand-400 transition-colors duration-200 hover:text-sand-700'
                 }
               >
@@ -208,7 +208,7 @@ export default function EditorPage() {
         <div className="relative flex flex-1 items-start justify-center overflow-auto bg-sand-100 p-6">
           {rendering && (
             <div className="absolute end-6 top-6 z-10 flex items-center gap-2 rounded-lg border border-sand-200 bg-white px-3 py-1.5 text-xs text-sand-500 shadow-card">
-              <Loader2 className="h-3 w-3 animate-spin text-sun-600" /> Updating preview
+              <Loader2 className="h-3 w-3 animate-spin text-sand-500" /> Updating preview
             </div>
           )}
 
@@ -226,7 +226,7 @@ export default function EditorPage() {
         </div>
 
         {/* Controls sidebar */}
-        <aside className="glass w-80 shrink-0 overflow-y-auto border-s border-white/50 p-5">
+        <aside className="w-80 shrink-0 overflow-y-auto border-s border-sand-200 bg-white p-5">
           <EditorSection title="Design">
             {/* Preset swatches */}
             <div className="grid grid-cols-3 gap-2">
@@ -239,7 +239,7 @@ export default function EditorPage() {
                   aria-pressed={presetId === p.id}
                   className={
                     presetId === p.id
-                      ? 'overflow-hidden rounded-lg ring-2 ring-sun-500 ring-offset-1 transition-all duration-200'
+                      ? 'overflow-hidden rounded-lg ring-2 ring-sand-900 ring-offset-1 transition-all duration-200'
                       : 'overflow-hidden rounded-lg ring-1 ring-sand-200 transition-all duration-200 hover:ring-sand-400'
                   }
                 >
@@ -270,7 +270,7 @@ export default function EditorPage() {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 onChange={uploadCover}
-                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sun-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-700"
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sand-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-sand-700 file:transition-colors file:hover:bg-sand-200"
               />
               {(draft.carPhoto as { url?: string })?.url && (
                 <button
@@ -288,7 +288,7 @@ export default function EditorPage() {
                 accept="image/png,image/jpeg,image/webp"
                 multiple
                 onChange={uploadGallery}
-                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sun-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-colors file:hover:bg-sun-700"
+                className="block w-full text-sm text-sand-500 file:me-3 file:rounded-lg file:border-0 file:bg-sand-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-sand-700 file:transition-colors file:hover:bg-sand-200"
               />
               {(((draft.galleryPhotos as string[]) || []).length > 0) && (
                 <div className="mt-2 grid grid-cols-3 gap-2">
@@ -300,7 +300,7 @@ export default function EditorPage() {
             </Field>
             {uploading && (
               <p className="flex items-center gap-1.5 text-xs text-sand-500">
-                <Loader2 className="h-3 w-3 animate-spin text-sun-500" /> Uploading…
+                <Loader2 className="h-3 w-3 animate-spin text-sand-500" /> Uploading…
               </p>
             )}
           </EditorSection>

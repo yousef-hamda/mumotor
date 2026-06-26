@@ -23,7 +23,7 @@ export function PublicShell({
   );
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
-      <header className="sticky top-0 z-40 border-b border-white/50 glass">
+      <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
           {slug ? (
             <Link to={`/p/${slug}`} className="transition-opacity hover:opacity-80">
@@ -40,7 +40,7 @@ export function PublicShell({
         <div className={width === 'narrow' ? 'w-full max-w-md' : 'w-full max-w-3xl'}>{children}</div>
       </main>
 
-      <footer className="border-t border-white/50 glass py-6 text-center text-xs tracking-wide text-sand-500">
+      <footer className="border-t border-sand-200 py-6 text-center text-xs tracking-wide text-sand-500">
         Powered by{' '}
         <Link to="/" className="font-semibold text-sand-700 transition-colors hover:text-sun-600">
           Mumotor

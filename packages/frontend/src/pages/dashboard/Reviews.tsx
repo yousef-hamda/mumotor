@@ -14,7 +14,7 @@ function Stars({ n }: { n: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${i < n ? 'fill-accent-500 text-accent-500' : 'fill-sand-200 text-sand-300'}`}
+          className={`h-3.5 w-3.5 ${i < n ? 'fill-sand-900 text-sand-900' : 'fill-sand-200 text-sand-200'}`}
         />
       ))}
     </span>
@@ -96,9 +96,9 @@ export default function Reviews() {
                       <button
                         aria-label="Approve review"
                         onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })}
-                        className="rounded-lg p-2 text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="rounded-lg p-2 text-sand-900 transition-colors hover:bg-sand-100"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check strokeWidth={1.75} className="h-4 w-4" />
                       </button>
                     )}
                     {r.status !== 'REJECTED' && (
@@ -107,15 +107,15 @@ export default function Reviews() {
                         onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })}
                         className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                       >
-                        <X className="h-4 w-4" />
+                        <X strokeWidth={1.75} className="h-4 w-4" />
                       </button>
                     )}
                     <button
                       aria-label="Reply to review"
                       onClick={() => { setReplyFor(r.id); setReplyText(r.reply || ''); }}
-                      className="rounded-lg p-2 text-sun-600 transition-colors hover:bg-sun-50"
+                      className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                     >
-                      <Reply className="h-4 w-4" />
+                      <Reply strokeWidth={1.75} className="h-4 w-4" />
                     </button>
                     <button
                       aria-label="Delete review"

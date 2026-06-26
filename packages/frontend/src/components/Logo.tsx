@@ -26,8 +26,8 @@ export function LogoMark({
 }) {
   const s = sizes[size];
   // normal: ink tile + white M · invert (on dark surfaces): white tile + ink M
-  const tile = invert ? '#FFFFFF' : '#0F172A';
-  const stroke = invert ? '#0F172A' : '#FFFFFF';
+  const tile = invert ? '#FFFFFF' : '#1D1D1F';
+  const stroke = invert ? '#1D1D1F' : '#FFFFFF';
   return (
     <span className={cn('inline-flex shrink-0', s.tile, className)}>
       <svg viewBox="0 0 48 48" fill="none" className="h-full w-full" aria-hidden="true">

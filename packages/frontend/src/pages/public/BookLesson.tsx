@@ -24,24 +24,22 @@ function Stepper({ step }: { step: Step }) {
   const labels: Record<string, string> = { email: 'Identify', date: 'Choose date', time: 'Choose time' };
   const activeIdx = step === 'details' ? 1 : order.indexOf(step === 'done' ? 'time' : step);
   return (
-    <div className="mb-6 flex justify-center">
-      <div className="glass inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
-        {order.map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <span
-              className={
-                i <= activeIdx
-                  ? 'flex h-7 w-7 items-center justify-center rounded-full bg-sun-600 text-xs font-bold text-white'
-                  : 'flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-white/60 text-xs font-semibold text-sand-500'
-              }
-            >
-              {i + 1}
-            </span>
-            <span className={i <= activeIdx ? 'font-semibold text-sand-900' : 'text-sand-500'}>{labels[s]}</span>
-            {i < order.length - 1 && <span className="mx-1 h-px w-8 bg-sand-300/70" />}
-          </div>
-        ))}
-      </div>
+    <div className="mb-6 flex items-center justify-center gap-2 text-sm">
+      {order.map((s, i) => (
+        <div key={s} className="flex items-center gap-2">
+          <span
+            className={
+              i <= activeIdx
+                ? 'flex h-7 w-7 items-center justify-center rounded-full bg-sand-900 text-xs font-semibold text-white'
+                : 'flex h-7 w-7 items-center justify-center rounded-full border border-sand-300 bg-white text-xs font-medium text-sand-500'
+            }
+          >
+            {i + 1}
+          </span>
+          <span className={i <= activeIdx ? 'font-medium text-sand-900' : 'text-sand-500'}>{labels[s]}</span>
+          {i < order.length - 1 && <span className="mx-1 h-px w-8 bg-sand-300" />}
+        </div>
+      ))}
     </div>
   );
 }
@@ -178,8 +176,8 @@ export default function BookLesson() {
       {step === 'email' && (
         <FadeUp>
           <Card>
-            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg border border-sand-200 bg-sand-50">
-              <CalendarDays className="h-5 w-5 text-sun-600" strokeWidth={1.75} />
+            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-sand-100">
+              <CalendarDays className="h-5 w-5 text-sand-700" strokeWidth={1.75} />
             </div>
             <h1 className="text-xl font-semibold tracking-tight text-sand-900">
               Book a driving lesson
@@ -239,10 +237,10 @@ export default function BookLesson() {
                   }}
                   className={
                     selected
-                      ? 'rounded-lg border border-sun-600 bg-sun-600 px-3 py-3 text-sm font-semibold text-white transition-colors duration-150'
+                      ? 'rounded-xl border border-sand-900 bg-sand-900 px-3 py-3 text-sm font-medium text-white transition-colors duration-150'
                       : open
-                        ? 'rounded-lg border border-white/60 bg-white/60 px-3 py-3 text-sm font-medium text-sand-800 backdrop-blur-md transition-colors duration-150 hover:border-sun-500 hover:bg-white/85'
-                        : 'cursor-not-allowed rounded-lg border border-dashed border-sand-200 px-3 py-3 text-sm text-sand-400'
+                        ? 'rounded-xl border border-sand-300 bg-white px-3 py-3 text-sm font-medium text-sand-800 transition-colors duration-150 hover:border-sand-400 hover:bg-sand-50'
+                        : 'cursor-not-allowed rounded-xl border border-dashed border-sand-200 px-3 py-3 text-sm text-sand-400'
                   }
                 >
                   {formatDateShort(d)}
@@ -303,13 +301,13 @@ export default function BookLesson() {
           </button>
           <h1 className="text-xl font-semibold tracking-tight text-sand-900">Choose a time</h1>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-sand-600">
-            <CalendarDays className="h-4 w-4 text-sun-600" /> {formatDateLong(selectedDate)}
+            <CalendarDays className="h-4 w-4 text-sand-500" /> {formatDateLong(selectedDate)}
           </p>
 
           {availability.isLoading ? (
             <CenteredSpinner label="Checking availability…" />
           ) : !availability.data || availability.data.slots.length === 0 ? (
-            <div className="mt-6 rounded-lg border border-sand-200 bg-sand-50 p-6 text-center text-sm text-sand-600">
+            <div className="mt-6 rounded-2xl border border-sand-200 bg-sand-50 p-6 text-center text-sm text-sand-600">
               {availability.data?.closed
                 ? 'The school is closed on this day.'
                 : 'No available times for this date. Try another day.'}
@@ -323,7 +321,7 @@ export default function BookLesson() {
                     setSelectedTime(t);
                     setConfirmOpen(true);
                   }}
-                  className="rounded-lg border border-white/60 bg-white/60 px-2 py-2.5 font-mono text-sm font-medium text-sand-800 backdrop-blur-md transition-colors duration-150 hover:border-sun-600 hover:bg-sun-600 hover:text-white"
+                  className="rounded-xl border border-sand-300 bg-white px-2 py-2.5 font-mono text-sm font-medium text-sand-800 transition-colors duration-150 hover:border-sand-900 hover:bg-sand-900 hover:text-white"
                 >
                   {t}
                 </button>
@@ -345,12 +343,12 @@ export default function BookLesson() {
               See you on <strong className="text-sand-900">{formatDateLong(selectedDate)}</strong> at{' '}
               <strong className="text-sand-900">{selectedTime}</strong>.
             </p>
-            <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-lg border border-sand-200 bg-sand-50 p-4 text-start text-sm text-sand-600">
+            <div className="mx-auto mt-5 max-w-xs space-y-2 rounded-2xl border border-sand-200 bg-sand-50 p-4 text-start text-sm text-sand-600">
               <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0 text-sun-600" /> We'll remind you ~2 hours before.
+                <Clock className="h-4 w-4 shrink-0 text-sand-500" /> We'll remind you ~2 hours before.
               </p>
               <p className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 shrink-0 text-sun-600" /> Please arrive 5 minutes early.
+                <CalendarDays className="h-4 w-4 shrink-0 text-sand-500" /> Please arrive 5 minutes early.
               </p>
             </div>
             <Button

@@ -10,15 +10,15 @@ import { cn } from '../../lib/utils';
 /** Map plan id → icon + accent color for the icon tile */
 const planMeta: Record<string, { icon: ReactNode; accent: string }> = {
   FREE: {
-    icon: <Zap className="h-5 w-5" />,
-    accent: 'bg-sand-100 text-sand-600',
+    icon: <Zap strokeWidth={1.75} className="h-5 w-5" />,
+    accent: 'bg-sand-100 text-sand-700',
   },
   PRO: {
-    icon: <Rocket className="h-5 w-5" />,
-    accent: 'bg-sun-50 text-sun-600',
+    icon: <Rocket strokeWidth={1.75} className="h-5 w-5" />,
+    accent: 'bg-sand-100 text-sand-700',
   },
   STUDIO: {
-    icon: <CreditCard className="h-5 w-5" />,
+    icon: <CreditCard strokeWidth={1.75} className="h-5 w-5" />,
     accent: 'bg-sand-900 text-white',
   },
 };
@@ -68,16 +68,14 @@ export default function Billing() {
             <Stagger.Item key={p.id}>
               <div
                 className={cn(
-                  'relative flex h-full flex-col rounded-xl bg-white/70 p-6 shadow-card backdrop-blur-xl backdrop-saturate-150',
-                  isRecommended
-                    ? 'border-2 border-sun-600'
-                    : active
-                      ? 'border-2 border-sand-900'
-                      : 'border border-white/60'
+                  'relative flex h-full flex-col rounded-xl bg-white p-6 shadow-card',
+                  isRecommended || active
+                    ? 'border-2 border-sand-900'
+                    : 'border border-sand-200'
                 )}
               >
                 {isRecommended && (
-                  <span className="absolute -top-3 start-1/2 -translate-x-1/2 chip border border-sun-200 bg-sun-50 text-sun-700 text-[10px] uppercase tracking-widest px-3 py-1">
+                  <span className="absolute -top-3 start-1/2 -translate-x-1/2 chip bg-sand-900 text-white text-[10px] uppercase tracking-widest px-3 py-1">
                     Recommended
                   </span>
                 )}
@@ -105,9 +103,7 @@ export default function Billing() {
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm text-sand-600">
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                        <Check className="h-2.5 w-2.5 text-emerald-700" />
-                      </span>
+                      <Check strokeWidth={2} className="mt-0.5 h-4 w-4 shrink-0 text-sand-900" />
                       {f}
                     </li>
                   ))}

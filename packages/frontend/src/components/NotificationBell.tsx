@@ -49,7 +49,7 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="glass absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-xl shadow-elevated" role="menu">
+        <div className="absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-sand-200 bg-white shadow-elevated" role="menu">
           <div className="flex items-center justify-between border-b border-sand-200 px-4 py-3">
             <span className="text-sm font-semibold tracking-tight text-sand-900">Notifications</span>
             <span className="text-xs tabular-nums text-sand-500">{items.length}</span>
@@ -61,8 +61,8 @@ export function NotificationBell() {
               items.map((n) => {
                 const Icon = ICON[n.type] ?? Info;
                 return (
-                  <div key={n.id} className={cn('flex gap-3 border-b border-sand-100 px-4 py-3 last:border-b-0', !n.read && 'bg-sun-50')}>
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-sun-600" />
+                  <div key={n.id} className={cn('flex gap-3 border-b border-sand-100 px-4 py-3 last:border-b-0', !n.read && 'bg-sand-50')}>
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-sand-900" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-sand-900">{n.title}</p>
                       {n.body && <p className="truncate text-xs text-sand-600">{n.body}</p>}

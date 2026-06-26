@@ -26,8 +26,8 @@ function CreateWebsite() {
   return (
     <div className="mx-auto max-w-lg">
       <Card className="p-8">
-        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-sun-50 text-sun-600">
-          <GraduationCap className="h-5 w-5" />
+        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
+          <GraduationCap strokeWidth={1.75} className="h-5 w-5" />
         </span>
         <h2 className="mt-5 text-2xl font-semibold tracking-tight text-sand-900">Set up your driving school</h2>
         <p className="mb-6 mt-2 text-sm text-sand-600">
@@ -58,9 +58,9 @@ function CreateWebsite() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-white/60 bg-white/60 p-6 shadow-card backdrop-blur-md">
+    <div className="rounded-xl border border-sand-200 bg-white p-6">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sun-50 text-sun-600">{icon}</span>
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sand-100 text-sand-700">{icon}</span>
         <span className="text-sm font-medium text-sand-600">{label}</span>
       </div>
       <p className="mt-4 text-4xl font-semibold tracking-tight tabular-nums text-sand-900">{value}</p>
@@ -80,7 +80,7 @@ function SiteOverview({ website }: { website: Website }) {
               <StatusBadge status={website.status} />
             </div>
             {website.tagline && <p className="mt-0.5 text-sm text-sand-600">{website.tagline}</p>}
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-white/60 bg-white/60 px-2.5 py-1 font-mono text-[11px] text-sand-600 backdrop-blur-md">
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
               {website.slug}.mumotor.com
             </p>
           </div>
@@ -93,8 +93,8 @@ function SiteOverview({ website }: { website: Website }) {
       </div>
       <div className="p-6">
         <div className="grid gap-4 sm:grid-cols-2">
-          <StatCard icon={<Users className="h-5 w-5" />} label="Students enrolled" value={website._count?.enrollments ?? 0} />
-          <StatCard icon={<CalendarCheck className="h-5 w-5" />} label="Lessons booked" value={website._count?.bookings ?? 0} />
+          <StatCard icon={<Users strokeWidth={1.75} className="h-5 w-5" />} label="Students enrolled" value={website._count?.enrollments ?? 0} />
+          <StatCard icon={<CalendarCheck strokeWidth={1.75} className="h-5 w-5" />} label="Lessons booked" value={website._count?.bookings ?? 0} />
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to="/dashboard/driving-school" className="btn-primary">

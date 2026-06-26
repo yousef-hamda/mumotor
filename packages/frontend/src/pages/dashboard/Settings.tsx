@@ -50,8 +50,8 @@ export default function Settings() {
       <FadeUp delay={0.06}>
         <Card>
           <div className="mb-6 flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sun-50 text-sun-600">
-              <User className="h-5 w-5" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
+              <User strokeWidth={1.75} className="h-5 w-5" />
             </span>
             <h3 className="text-lg font-semibold tracking-tight text-sand-900">Profile</h3>
           </div>
@@ -95,8 +95,8 @@ export default function Settings() {
       <FadeUp delay={0.12}>
         <Card>
           <div className="mb-6 flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-sand-600">
-              <KeyRound className="h-4 w-4" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
+              <KeyRound strokeWidth={1.75} className="h-4 w-4" />
             </span>
             <h3 className="text-lg font-semibold tracking-tight text-sand-900">Change password</h3>
           </div>

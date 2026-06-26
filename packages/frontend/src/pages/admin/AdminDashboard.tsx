@@ -12,8 +12,8 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   return (
     <div className="card p-6">
       <div className="flex items-center gap-2 text-sand-500">
-        <span className="text-sun-600">{icon}</span>
-        <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
+        <span className="text-sand-900">{icon}</span>
+        <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
       <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-sand-900">{value}</p>
     </div>
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-sand-50">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/50 glass">
+      <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <Logo size="sm" />

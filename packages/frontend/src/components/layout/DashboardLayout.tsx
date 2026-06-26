@@ -48,14 +48,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               className={cn(
                 'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 active
-                  ? 'bg-sun-50 font-semibold text-sun-700'
+                  ? 'bg-sand-100 font-semibold text-sand-900'
                   : 'font-medium text-sand-600 hover:bg-sand-100 hover:text-sand-900'
               )}
             >
               {active && (
                 <span className="absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-sun-600" aria-hidden="true" />
               )}
-              <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-sun-600' : 'text-sand-400 group-hover:text-sand-600')} />
+              <Icon strokeWidth={1.75} className={cn('h-5 w-5 shrink-0', active ? 'text-sand-900' : 'text-sand-400 group-hover:text-sand-600')} />
               {t(item.labelKey)}
             </Link>
           );
@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <LanguageSwitcher className="w-full justify-start" />
         </div>
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sun-600 text-sm font-semibold text-white">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand-900 text-sm font-semibold text-white">
             {user?.name?.charAt(0) ?? 'M'}
           </span>
           <div className="min-w-0">
@@ -88,13 +88,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="glass hidden w-64 shrink-0 border-e border-sand-200 lg:block">{SidebarContent}</aside>
+      <aside className="hidden w-64 shrink-0 border-e border-sand-200 bg-white lg:block">{SidebarContent}</aside>
 
       {/* Mobile sidebar */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-sand-950/40" onClick={() => setOpen(false)} />
-          <aside className="glass absolute inset-y-0 start-0 w-64 shadow-elevated">{SidebarContent}</aside>
+          <aside className="absolute inset-y-0 start-0 w-64 bg-white shadow-elevated">{SidebarContent}</aside>
         </div>
       )}
 

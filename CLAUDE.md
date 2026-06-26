@@ -27,26 +27,30 @@ npm run dev            # API :4000 + web :5173
 - Published demo: `http://localhost:4000/site/davids-driving` · enroll code `DRIVE2026`
 - DB: `postgresql://otto:otto@localhost:5432/otto_driving` (role/db name unchanged from the old codename).
 
-## Design system (June 2026 — trust-blue corporate + glass)
-Redesigned from the old "oxblood clay / AI-template" look to a calm, professional, big-tech feel:
-flat trust-blue palette + tasteful glassmorphism. The **token names were kept and only their values
-changed**, so the thousands of `*-sun-*` / `*-sand-*` classes never needed renaming.
+## Design system (June 2026 — Apple-style minimal)
+Redesigned to a premium, **near-monochrome, Apple-style minimal** look (lots of whitespace, almost no
+colour, oversized type). Replaced the earlier "oxblood clay" and the rejected "trust-blue + glass" passes.
+The **token names were kept and only their values changed**, so the thousands of `*-sun-*` / `*-sand-*`
+classes never needed renaming.
 - Tokens live in `packages/frontend/tailwind.config.js`; global CSS in `src/index.css`. Palette meanings now:
-  **`sand` = neutral slate** (navy ink `#0F172A` + light surfaces/borders), **`sun` = blue** (`#2563EB`,
-  the PRIMARY brand colour / main CTA), **`ember` = red** (danger only), **`accent` = orange** (`#F97316`,
-  one restrained highlight — never a competing CTA), `dawn`/`brand` are back-compat aliases.
-- Buttons: `btn-primary` = solid blue (main CTA), `btn-sun` = solid navy (dark alternate), `btn-secondary`
-  = frosted glass, `btn-danger` = red. One primary CTA per screen; radius is `rounded-lg` (not pills).
-- **Glassmorphism**: `body` has a faint blue ambient wash so frost refracts. Shared primitives are frosted
-  by default — `.card`, `.input`, `.pill`, `.btn-secondary`, the Modal. Use `.glass` for light sticky
-  chrome (navs, sidebars, dropdowns, floating panels) and `.glass-dark` for navy/overlay surfaces. Keep
-  primary CTAs and dense body text solid for legibility — glass goes on chrome, not on text blocks.
-- Typography: one clean sans (**Plus Jakarta Sans**, loaded in `index.html`). No serif display. Headings are
-  `font-semibold tracking-tight text-sand-900`. The old `.font-display`, gradient-text (`.text-sunrise`,
-  `.text-clay-accent*`), glow (`.sun-glow`), grain (`.bg-grain`), shimmer (`.shine`) and `ring-sunrise`
-  are flattened to no-ops/solids in `index.css` — kept only so stray references still resolve; don't use them.
-- Logo: flat monogram "M" lettermark in an ink squircle + lowercase `mumotor` wordmark
-  (`components/Logo.tsx`, `invert` for dark surfaces); favicon `public/favicon.svg` matches. No icon/illustration.
+  **`sand` = the monochrome greyscale** — `sand-50` `#F5F5F7` (Apple light grey, section bands), `sand-500/600`
+  muted text, `sand-900` `#1D1D1F` near-black ink, `sand-950` `#000`. **`sun` = the ONE accent, Apple blue
+  `#0071E3`** — use sparingly (primary CTA, links, active state, focus). **`ember` = red** (danger only).
+  `accent`/`dawn`/`brand` = neutral/blue back-compat aliases (no loud colour).
+- Buttons are **Apple pills** (`rounded-full`): `btn-primary` = blue pill (main CTA), `btn-sun` = near-black
+  pill (dark alt), `btn-secondary` = soft grey pill, `btn-ghost` = blue "Learn more ›" text link, `btn-danger`
+  = red. One primary CTA per screen.
+- **Mostly flat, solid surfaces.** Body is pure white (no colour wash). `.card`/`.input`/`.pill` are clean
+  solid (white / `border-sand-200`). Glassmorphism is reserved for the **translucent sticky nav/topbar only**
+  via `.glass` (`bg-white/80 backdrop-blur-xl`); `.glass-dark` exists for the rare dark overlay. Dark sections
+  use SOLID `bg-black`/`bg-sand-900` with white text + `text-sand-400` secondary — not translucent glass.
+- Typography: **system-first stack** (`-apple-system`/SF Pro on Macs, **Inter** fallback loaded in `index.html`).
+  No serif. Headings big & tight: `font-semibold tracking-tight text-sand-900` (hero/section titles run
+  `text-4xl`→`text-6xl`). The legacy `.font-display`, gradient-text (`.text-sunrise`, `.text-clay-accent*`),
+  glow (`.sun-glow`), grain (`.bg-grain`), shimmer (`.shine`), `ring-sunrise` are flattened to no-ops/solids
+  in `index.css` — kept only so stray references resolve; don't use them.
+- Logo: flat monogram "M" lettermark in a near-black (`#1D1D1F`) squircle + lowercase `mumotor` wordmark
+  (`components/Logo.tsx`, `invert` for dark surfaces); favicon `public/favicon.svg` matches. No illustration/icon.
 - The old cinematic video intro gate is **removed**: `CinematicHero.tsx` is now a calm static hero and
   `lib/useIntro.ts` is a no-op (no `mm_intro_seen`, no phases, nav always visible). `lib/audio.ts` and the
   `public/media/hero-car.*` clips are unused/left in place.

@@ -42,7 +42,7 @@ function SiteRow({ website }: { website: Website }) {
                 className="rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
                 aria-label="Copy site URL"
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-sand-900" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>

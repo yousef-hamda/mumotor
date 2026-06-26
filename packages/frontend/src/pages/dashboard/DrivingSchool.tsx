@@ -84,7 +84,7 @@ function CodeTab({ website }: { website: Website }) {
           <span className="font-mono text-5xl font-bold tracking-[0.3em] tabular-nums text-sand-900">{data?.code}</span>
           <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
             {copied === data?.code ? (
-              <Check className="h-4 w-4 text-emerald-600" />
+              <Check className="h-4 w-4 text-sand-900" />
             ) : (
               <Copy className="h-4 w-4" />
             )}
@@ -112,7 +112,7 @@ function CodeTab({ website }: { website: Website }) {
             aria-label="Copy enroll link"
           >
             {copied === 'link' ? (
-              <Check className="h-4 w-4 text-emerald-600" />
+              <Check className="h-4 w-4 text-sand-900" />
             ) : (
               <Copy className="h-4 w-4" />
             )}
@@ -196,7 +196,7 @@ function StudentsTab({ website }: { website: Website }) {
   });
 
   return (
-    <Card className="bg-white/85 p-0">
+    <Card className="p-0">
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3 border-b border-sand-200 p-4">
         <div className="relative min-w-[200px] flex-1">
@@ -393,14 +393,14 @@ function ScheduleTab({ website }: { website: Website }) {
               key={slot.time}
               className={
                 slot.booked
-                  ? 'rounded-xl border border-emerald-200 bg-emerald-50 p-4'
-                  : 'rounded-xl border border-dashed border-sand-300 bg-sand-50 p-4'
+                  ? 'rounded-xl border border-sand-200 bg-sand-50 p-4'
+                  : 'rounded-xl border border-dashed border-sand-300 bg-white p-4'
               }
             >
               <div className="flex items-center justify-between">
                 <span className="font-mono text-lg font-bold tabular-nums text-sand-900">{slot.time}</span>
                 {slot.booked ? (
-                  <span className="chip bg-emerald-100 text-emerald-800">Booked</span>
+                  <span className="chip bg-sand-900 text-white">Booked</span>
                 ) : (
                   <span className="chip bg-sand-200 text-sand-600">Free</span>
                 )}
@@ -412,7 +412,7 @@ function ScheduleTab({ website }: { website: Website }) {
                     <p className="text-sm text-sand-500">{slot.studentPhone}</p>
                   )}
                   {typeof slot.classCount === 'number' && (
-                    <p className="mt-1 text-xs text-emerald-700">Lesson #{slot.classCount}</p>
+                    <p className="mt-1 text-xs text-sand-500">Lesson #{slot.classCount}</p>
                   )}
                 </div>
               )}
@@ -597,7 +597,7 @@ function SettingsTab({ website }: { website: Website }) {
                 aria-label="Copy enroll link"
               >
                 {copied === 'enroll' ? (
-                  <Check className="h-4 w-4 text-emerald-600" />
+                  <Check className="h-4 w-4 text-sand-900" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -894,7 +894,7 @@ export default function DrivingSchool() {
       </FadeUp>
 
       {/* Tab bar */}
-      <div className="glass flex gap-1 overflow-x-auto rounded-lg p-1">
+      <div className="flex gap-1 overflow-x-auto rounded-lg border border-sand-200 bg-sand-100 p-1">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -905,11 +905,11 @@ export default function DrivingSchool() {
               aria-current={active ? 'page' : undefined}
               className={
                 active
-                  ? 'flex shrink-0 items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-sand-900 shadow-card transition-colors'
-                  : 'flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-sand-600 transition-colors hover:bg-white/60 hover:text-sand-900'
+                  ? 'flex shrink-0 items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-sand-900 shadow-sm transition-colors'
+                  : 'flex shrink-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-sand-600 transition-colors hover:text-sand-900'
               }
             >
-              <Icon className={`h-4 w-4 ${active ? 'text-sun-600' : 'text-sand-400'}`} />
+              <Icon strokeWidth={1.75} className={`h-4 w-4 ${active ? 'text-sand-900' : 'text-sand-400'}`} />
               {t.label}
             </button>
           );

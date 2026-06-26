@@ -98,7 +98,7 @@ export default function BuilderWizard() {
                       onClick={() => set('workingDays', on ? config.workingDays.filter((x) => x !== d) : [...config.workingDays, d])}
                       className={
                         on
-                          ? 'rounded-lg border border-sun-600 bg-sun-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors'
+                          ? 'rounded-lg border border-sand-900 bg-sand-900 px-4 py-1.5 text-sm font-semibold text-white transition-colors'
                           : 'rounded-lg border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:border-sand-300 hover:bg-sand-50 hover:text-sand-800'
                       }
                     >
@@ -117,7 +117,7 @@ export default function BuilderWizard() {
                 type="checkbox"
                 checked={config.hasBreak}
                 onChange={(e) => set('hasBreak', e.target.checked)}
-                className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
+                className="h-4 w-4 rounded border-sand-300 text-sand-900 focus:ring-sand-400"
               />
               Add a daily break
             </label>
@@ -213,19 +213,19 @@ function Stepper({ current }: { current: number }) {
                   aria-current={state === 'current' ? 'step' : undefined}
                   className={cn(
                     'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors',
-                    state === 'complete' && 'border-sun-600 bg-sun-600 text-white',
-                    state === 'current' && 'border-sun-600 bg-white text-sun-700 ring-2 ring-sun-500/20',
+                    state === 'complete' && 'border-sun-600 bg-white text-sun-600',
+                    state === 'current' && 'border-sand-900 bg-white text-sand-900',
                     state === 'upcoming' && 'border-sand-300 bg-white text-sand-400'
                   )}
                 >
-                  {state === 'complete' ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : i + 1}
+                  {state === 'complete' ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} /> : i + 1}
                 </span>
-                <span className={cn('hidden text-xs font-medium sm:block', state === 'upcoming' ? 'text-sand-400' : 'text-sand-700')}>
+                <span className={cn('hidden text-xs font-medium sm:block', state === 'current' ? 'text-sand-900' : state === 'complete' ? 'text-sand-700' : 'text-sand-400')}>
                   {label}
                 </span>
               </div>
               {i < STEP_LABELS.length - 1 && (
-                <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sun-500' : 'bg-sand-200')} />
+                <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sand-400' : 'bg-sand-200')} />
               )}
             </li>
           );
@@ -244,7 +244,7 @@ function StepShell({ title, subtitle, children, onBack, onNext }: { title: strin
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <div className="glass rounded-2xl p-6 sm:p-8">
+      <div className="card p-6 sm:p-8">
         <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{title}</h1>
         <p className="mt-2 text-sand-600">{subtitle}</p>
         <div className="mt-8 space-y-4">{children}</div>
@@ -266,7 +266,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
       </div>
       <span className="section-eyebrow justify-center">Mumotor builder</span>
       <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">
-        Let's build your <span className="text-sun-600">driving website</span>
+        Let's build your driving website
       </h1>
       <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">
         Answer a few quick questions, pick a design, and we'll generate a complete, bookable website for you in minutes.
@@ -322,10 +322,10 @@ function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; 
               onClick={() => onPick(p.id)}
               aria-pressed={sel}
               className={cn(
-                'card group w-full overflow-hidden p-4 text-start transition-all duration-200',
+                'card group w-full overflow-hidden p-4 text-start transition-colors duration-200',
                 sel
-                  ? 'border-sun-500 ring-2 ring-sun-500/20'
-                  : 'hover:border-sand-300 hover:shadow-elevated'
+                  ? 'border-sand-900 ring-2 ring-sand-900/10'
+                  : 'hover:border-sand-300'
               )}
             >
               {/* Color swatch */}
@@ -337,8 +337,8 @@ function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; 
               <div className="flex items-center justify-between">
                 <span className="font-semibold tracking-tight text-sand-900">{p.label}</span>
                 {sel && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sun-600 text-white">
-                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white">
+                    <Check className="h-3 w-3" strokeWidth={2.25} />
                   </span>
                 )}
               </div>
@@ -379,7 +379,7 @@ function GeneratingStep({ config, onDone, onError }: { config: WizardConfig; onD
   }, []);
   return (
     <div className="flex flex-1 flex-col items-center justify-center py-24 text-center" role="status" aria-live="polite">
-      <Loader2 className="h-10 w-10 animate-spin text-sun-600" />
+      <Loader2 className="h-10 w-10 animate-spin text-sand-900" />
       <h2 className="mt-6 text-2xl font-semibold tracking-tight text-sand-900">Building your website</h2>
       <p className="mt-2 h-6 text-sand-600 transition-all duration-300">{phases[phase]}</p>
       <p className="mt-5 text-xs text-sand-500">This usually takes 10–20 seconds</p>
@@ -442,7 +442,7 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
       >
         <ArrowLeft className="h-4 w-4" /> Back to preview
       </button>
-      <div className="glass rounded-2xl p-6 sm:p-8">
+      <div className="card p-6 sm:p-8">
       <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
         {mode === 'register' ? 'Create your account' : 'Sign in'}
       </h1>
@@ -495,8 +495,8 @@ function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard:
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       {/* Success icon */}
-      <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-        <Check className="h-8 w-8 text-emerald-600" strokeWidth={2} />
+      <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900">
+        <Check className="h-8 w-8 text-white" strokeWidth={1.75} />
       </div>
       <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Your site is live</h1>
       <p className="mt-3 text-sand-600">

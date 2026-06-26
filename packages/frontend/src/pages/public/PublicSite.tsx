@@ -27,8 +27,8 @@ export default function PublicSite() {
 
   if (isError || !data)
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-sand-50 px-4 text-center">
-        <div className="glass flex h-14 w-14 items-center justify-center rounded-xl">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white px-4 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-sand-200 bg-sand-50">
           <LogoMark size="sm" />
         </div>
         <h1 className="text-xl font-semibold text-sand-900">School not found</h1>
@@ -55,9 +55,9 @@ export default function PublicSite() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-white/50 glass">
+      <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <LogoMark size="sm" />
@@ -123,9 +123,7 @@ export default function PublicSite() {
             <ul className="mt-6 space-y-3">
               {included.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sand-700">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sun-600 text-white">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
+                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-sand-900" strokeWidth={1.75} />
                   <span>{item}</span>
                 </li>
               ))}
@@ -186,11 +184,11 @@ export default function PublicSite() {
       {/* CTA */}
       <section className="mx-auto max-w-5xl px-5 pb-20">
         <FadeUp>
-          <div className="glass-dark rounded-2xl px-8 py-16 text-center sm:px-16 sm:py-20">
+          <div className="rounded-3xl bg-sand-900 px-8 py-16 text-center sm:px-16 sm:py-20">
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Ready to get behind the wheel?
             </h2>
-            <p className="mx-auto mt-3 max-w-lg text-sand-300">
+            <p className="mx-auto mt-3 max-w-lg text-sand-400">
               Enroll with the code from your instructor and book your first lesson today.
             </p>
             <Link to={enrollHref} className="btn-primary mt-9 inline-flex px-8 py-4 text-base">
