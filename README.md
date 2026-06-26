@@ -30,6 +30,7 @@ wizard   visual editor   /site/{slug}   dashboard
 
 ## Highlights
 
+- **Brand & landing** — a **dark oxblood-clay** design system (Tailwind tokens `sand`/`sun`/`ember` in `tailwind.config.js` + `index.css`; Fraunces + Plus Jakarta Sans). The marketing page opens on a **silent cinematic intro**: a real driving-lesson cabin clip sits paused on its poster until the visitor presses **Start**, the clip plays, then it cross-fades to reveal the nav + home page (`components/hero/CinematicHero.tsx`, `lib/useIntro.ts`). Steering-wheel brand mark in `components/Logo.tsx`.
 - **Website generator** — 9 distinct, light-themed premium presets + a deterministic builder that assembles a complete, self-contained, responsive site (hero · stats · how-it-works · about · lessons · gallery · reviews · FAQ · contact · CTA) with photographic imagery and working **Enroll / Book** CTAs.
 - **Builder wizard** — welcome → about → lessons & hours → contact → pick design → generate → live preview → publish.
 - **Visual editor** — live preview with viewport switching, preset + color theming, inline content fields, autosave, and one-click publish.
@@ -198,8 +199,9 @@ packages/
   frontend/
     src/
       pages/  builder/ editor/ dashboard/ public/ auth/ Landing
-      components/  Logo, LanguageSwitcher, motion, ui, layout, PublicShell
-      lib/  api, auth, i18n, wizard, types, utils
+      components/  Logo, LanguageSwitcher, motion, ui, layout, PublicShell, hero/CinematicHero
+      lib/  api, auth, i18n, wizard, types, utils, useIntro
+      public/media/                 # hero-car.mp4|webm + poster (driving-lesson clip)
     e2e/                          # Playwright harness
 Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.yml
 ```
