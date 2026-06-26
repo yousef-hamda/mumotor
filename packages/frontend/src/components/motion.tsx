@@ -226,6 +226,35 @@ export function Marquee({ children, className, speed = 32, reverse = false }: { 
   );
 }
 
+/** Scroll-driven 3D tilt: the element starts tilted back + slightly small and
+ *  settles flat as it scrolls into view (Apple-style reveal). Reduced-motion safe. */
+export function ScrollTilt({
+  children,
+  className,
+  maxTilt = 18,
+}: {
+  children: ReactNode;
+  className?: string;
+  maxTilt?: number;
+}) {
+  const reduced = usePrefersReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.95', 'center 0.55'] });
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 1], [maxTilt, 0]), { stiffness: 90, damping: 22 });
+  const scale = useSpring(useTransform(scrollYProgress, [0, 1], [0.92, 1]), { stiffness: 90, damping: 22 });
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [0.4, 1]);
+
+  if (reduced) return <div className={className}>{children}</div>;
+
+  return (
+    <div ref={ref} className={cn('perspective-1000', className)}>
+      <motion.div style={{ rotateX, scale, opacity, transformStyle: 'preserve-3d' } as MotionStyle}>
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
 /** Scroll-linked parallax. Wrap any decorative element. */
 export function Parallax({ children, className, distance = 80 }: { children: ReactNode; className?: string; distance?: number }) {
   const reduced = usePrefersReducedMotion();

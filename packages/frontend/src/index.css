@@ -64,9 +64,17 @@ body {
   .btn-sun {
     @apply btn bg-sand-900 px-6 py-2.5 text-white hover:bg-black;
   }
-  /* secondary = soft grey pill */
+  /* secondary = frosted glass pill */
   .btn-secondary {
-    @apply btn bg-sand-100 px-6 py-2.5 text-sand-900 hover:bg-sand-200;
+    @apply btn border border-white/60 bg-white/50 px-6 py-2.5 text-sand-900 shadow-sm backdrop-blur-md backdrop-saturate-150 hover:bg-white/70;
+  }
+  /* explicit glass button (light) */
+  .btn-glass {
+    @apply btn border border-white/60 bg-white/40 px-6 py-2.5 text-sand-900 shadow-sm backdrop-blur-xl backdrop-saturate-150 hover:bg-white/60;
+  }
+  /* glass button on dark surfaces */
+  .btn-glass-dark {
+    @apply btn border border-white/20 bg-white/10 px-6 py-2.5 text-white backdrop-blur-xl backdrop-saturate-150 hover:bg-white/20;
   }
   /* ghost = Apple "Learn more ›" blue text link */
   .btn-ghost {
@@ -145,6 +153,44 @@ body {
 }
 .lane-line {
   background-image: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Creative background — subtle, premium (fine grid + soft blue aurora)
+--------------------------------------------------------------------------- */
+.bg-grid-fine {
+  background-image: linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 20%, transparent 75%);
+}
+.aurora-orb {
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.5;
+  will-change: transform;
+}
+@keyframes aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(2.5rem, -1.75rem, 0) scale(1.12); }
+}
+.aurora-animate {
+  animation: aurora-drift 16s ease-in-out infinite;
+}
+
+/* 3D scroll helpers */
+.perspective-1000 {
+  perspective: 1200px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-animate {
+    animation: none;
+  }
 }
 
 ::-webkit-scrollbar {

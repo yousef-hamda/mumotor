@@ -25,18 +25,26 @@ export function LogoMark({
   invert?: boolean;
 }) {
   const s = sizes[size];
-  // normal: ink tile + white M · invert (on dark surfaces): white tile + ink M
-  const tile = invert ? '#FFFFFF' : '#1D1D1F';
-  const stroke = invert ? '#1D1D1F' : '#FFFFFF';
+  // white tile (works on light & dark) + a brand-blue monogram that runs from a
+  // lighter blue at the top to a darker blue at the bottom.
+  const gid = invert ? 'mmM-inv' : 'mmM';
   return (
     <span className={cn('inline-flex shrink-0', s.tile, className)}>
       <svg viewBox="0 0 48 48" fill="none" className="h-full w-full" aria-hidden="true">
-        <rect width="48" height="48" rx="12" fill={tile} />
-        {/* geometric monogram M */}
+        <defs>
+          <linearGradient id={gid} x1="24" y1="14" x2="24" y2="36" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#5EA8F2" />
+            <stop offset="0.5" stopColor="#0071E3" />
+            <stop offset="1" stopColor="#0047AB" />
+          </linearGradient>
+        </defs>
+        {/* tile: white with a hairline so it reads on any surface */}
+        <rect width="48" height="48" rx="12" fill="#FFFFFF" stroke="#E2E2E6" strokeWidth="1" />
+        {/* geometric monogram M — blue, light → dark */}
         <path
-          d="M14 34 V16 L24 27 L34 16 V34"
-          stroke={stroke}
-          strokeWidth="3.4"
+          d={`M14 34 V16 L24 27 L34 16 V34`}
+          stroke={`url(#${gid})`}
+          strokeWidth="3.6"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"

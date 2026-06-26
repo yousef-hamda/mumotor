@@ -49,8 +49,14 @@ classes never needed renaming.
   `text-4xl`→`text-6xl`). The legacy `.font-display`, gradient-text (`.text-sunrise`, `.text-clay-accent*`),
   glow (`.sun-glow`), grain (`.bg-grain`), shimmer (`.shine`), `ring-sunrise` are flattened to no-ops/solids
   in `index.css` — kept only so stray references resolve; don't use them.
-- Logo: flat monogram "M" lettermark in a near-black (`#1D1D1F`) squircle + lowercase `mumotor` wordmark
+- Logo: monogram "M" lettermark in a white squircle, the **M a blue gradient (light→dark, `#5EA8F2`→`#0047AB`)**
   (`components/Logo.tsx`, `invert` for dark surfaces); favicon `public/favicon.svg` matches. No illustration/icon.
+- Landing extras (`pages/Landing.tsx`): a fixed creative background (`components/Background.tsx` — soft blue
+  aurora orbs + faint `.bg-grid-fine`, scroll-parallax, reduced-motion safe); a real driving-lesson **video**
+  hero (`public/media/hero-car.*`) + photos (`public/img/hero-drive.jpg`, `instructor.jpg`); **scroll-driven 3D**
+  via `ScrollTilt` in `components/motion.tsx`; **glass buttons** (`.btn-glass`/`.btn-glass-dark`, and `.btn-secondary`
+  is glass) + glass nav. A dark "Everything a driving instructor's site needs" section lists driving-specific
+  essentials (packages/pricing, manual & automatic, areas covered, reviews, booking, WhatsApp).
 - The old cinematic video intro gate is **removed**: `CinematicHero.tsx` is now a calm static hero and
   `lib/useIntro.ts` is a no-op (no `mm_intro_seen`, no phases, nav always visible). `lib/audio.ts` and the
   `public/media/hero-car.*` clips are unused/left in place.

@@ -11,11 +11,17 @@ import {
   Plus,
   Minus,
   Check,
+  Car,
+  MapPin,
+  Star,
+  Wallet,
+  Phone,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { Logo } from '../components/Logo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { FadeUp, Stagger } from '../components/motion';
+import { FadeUp, Stagger, ScrollTilt } from '../components/motion';
+import { Background } from '../components/Background';
 import { CinematicHero } from '../components/hero/CinematicHero';
 
 const features = [
@@ -32,6 +38,15 @@ const steps = [
   { n: '2', title: 'Pick a template', desc: 'Choose one of nine designs and customise it in the editor.' },
   { n: '3', title: 'Publish', desc: 'Go live at your own address in minutes — trilingual by default.' },
   { n: '4', title: 'Take bookings', desc: 'Students enroll and book; you manage it all from one dashboard.' },
+];
+
+const included = [
+  { icon: Wallet, title: 'Lesson packages & pricing', desc: 'Show your single-lesson and package prices clearly, in the local currency.' },
+  { icon: Car, title: 'Manual & automatic', desc: 'List the gearbox types, vehicles and licence categories you teach.' },
+  { icon: MapPin, title: 'Areas you cover', desc: 'The towns and pickup points you serve, so students know you reach them.' },
+  { icon: Star, title: 'Student reviews', desc: 'Real reviews and pass stories build trust before a student ever calls.' },
+  { icon: CalendarCheck, title: 'Online booking', desc: 'Students book lessons into your real availability — no phone tag.' },
+  { icon: Phone, title: 'WhatsApp & contact', desc: 'One tap to message you, call, or get directions to your meeting point.' },
 ];
 
 const benefits = [
@@ -53,9 +68,11 @@ export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-white">
-      {/* Header — Apple-style translucent frosted nav */}
-      <header className="sticky top-0 z-40 border-b border-sand-200/70 glass">
+    <div className="relative min-h-screen overflow-x-clip">
+      <Background />
+
+      {/* Header — translucent frosted glass nav */}
+      <header className="sticky top-0 z-40 border-b border-white/40 glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Logo size="sm" />
           <nav className="hidden items-center gap-9 text-sm text-sand-600 md:flex">
@@ -86,8 +103,8 @@ export default function Landing() {
       {/* Hero */}
       <CinematicHero />
 
-      {/* Features */}
-      <section id="features" className="bg-white">
+      {/* Features — transparent so the aurora shows through behind the cards */}
+      <section id="features" className="relative">
         <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
           <FadeUp className="mx-auto max-w-3xl text-center">
             <p className="section-eyebrow justify-center">{t('landing.featuresEyebrow')}</p>
@@ -99,8 +116,10 @@ export default function Landing() {
               const Icon = f.icon;
               return (
                 <Stagger.Item key={f.title}>
-                  <div className="h-full">
-                    <Icon className="h-8 w-8 text-sand-900" strokeWidth={1.75} aria-hidden />
+                  <div className="glass h-full rounded-3xl p-7 shadow-card transition-transform duration-300 hover:-translate-y-1">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 shadow-sm ring-1 ring-black/5">
+                      <Icon className="h-6 w-6 text-sand-900" strokeWidth={1.75} aria-hidden />
+                    </span>
                     <h3 className="mt-5 text-xl font-semibold tracking-tight text-sand-900">{f.title}</h3>
                     <p className="mt-2.5 text-[15px] leading-relaxed text-sand-600">{f.desc}</p>
                   </div>
@@ -111,17 +130,31 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Dramatic dark statement */}
+      {/* What's on every instructor's site — driving-specific, on a dark band */}
       <section className="bg-black">
-        <div className="mx-auto max-w-5xl px-6 py-28 text-center sm:py-36">
-          <FadeUp>
-            <h2 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-6xl">
-              Everything your driving school needs. Nothing it doesn&apos;t.
+        <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+          <FadeUp className="mx-auto max-w-3xl text-center">
+            <h2 className="text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl">
+              Everything a driving instructor&apos;s site needs.
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-sand-400">
-              A website, online booking, enrollment, reminders and a student roster — built to work together, run from one place.
+            <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-sand-400">
+              Each generated site is built for how driving lessons actually work — not a generic business template.
             </p>
           </FadeUp>
+          <Stagger className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {included.map((f) => {
+              const Icon = f.icon;
+              return (
+                <Stagger.Item key={f.title}>
+                  <div className="h-full">
+                    <Icon className="h-7 w-7 text-white" strokeWidth={1.75} aria-hidden />
+                    <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">{f.title}</h3>
+                    <p className="mt-2 text-[15px] leading-relaxed text-sand-400">{f.desc}</p>
+                  </div>
+                </Stagger.Item>
+              );
+            })}
+          </Stagger>
         </div>
       </section>
 
@@ -170,33 +203,44 @@ export default function Landing() {
             </ul>
           </FadeUp>
 
-          <FadeUp delay={0.1}>
-            <div className="overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-card">
-              <div className="flex items-center justify-between border-b border-sand-200 bg-sand-50 px-6 py-4">
-                <span className="text-sm font-semibold text-sand-900">Today&apos;s schedule</span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-sand-500">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden /> Live
-                </span>
+          <ScrollTilt maxTilt={12}>
+            <div className="relative">
+              {/* real driving-lesson photo */}
+              <div className="overflow-hidden rounded-3xl border border-white/60 shadow-elevated ring-1 ring-black/5">
+                <img
+                  src="/img/hero-drive.jpg"
+                  alt="A learner driving during a lesson"
+                  loading="lazy"
+                  className="aspect-[4/3] w-full object-cover"
+                />
               </div>
-              <div className="divide-y divide-sand-100">
-                {[
-                  { time: '08:00', name: 'Maya G.', tag: 'Lesson 6' },
-                  { time: '10:30', name: 'Omar H.', tag: 'Lesson 2' },
-                  { time: '13:00', name: 'Noa L.', tag: 'Test prep' },
-                  { time: '15:30', name: 'Yara S.', tag: 'Lesson 9' },
-                ].map((r) => (
-                  <div key={r.time} className="flex items-center gap-4 px-6 py-4">
-                    <span className="w-12 text-sm font-semibold tabular-nums text-sand-900">{r.time}</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sand-100 text-xs font-semibold text-sand-600">
-                      {r.name.charAt(0)}
-                    </span>
-                    <span className="flex-1 text-sm font-medium text-sand-700">{r.name}</span>
-                    <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-medium text-sand-600">{r.tag}</span>
-                  </div>
-                ))}
+              {/* floating glass schedule card */}
+              <div className="glass absolute -bottom-6 end-4 w-60 rounded-2xl p-4 shadow-elevated sm:end-[-1.5rem]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-sand-900">Today&apos;s schedule</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-sand-500">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden /> Live
+                  </span>
+                </div>
+                <div className="mt-3 space-y-2.5">
+                  {[
+                    { time: '08:00', name: 'Maya G.', tag: 'Lesson 6' },
+                    { time: '10:30', name: 'Omar H.', tag: 'Lesson 2' },
+                    { time: '13:00', name: 'Noa L.', tag: 'Test prep' },
+                  ].map((r) => (
+                    <div key={r.time} className="flex items-center gap-2.5">
+                      <span className="w-10 text-xs font-semibold tabular-nums text-sand-900">{r.time}</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sand-100 text-[10px] font-semibold text-sand-600">
+                        {r.name.charAt(0)}
+                      </span>
+                      <span className="flex-1 truncate text-xs font-medium text-sand-700">{r.name}</span>
+                      <span className="text-[10px] font-medium text-sand-500">{r.tag}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </FadeUp>
+          </ScrollTilt>
         </div>
       </section>
 
@@ -208,9 +252,12 @@ export default function Landing() {
               “{t('landing.testimonialQuote')}”
             </blockquote>
             <figcaption className="mt-10 flex items-center justify-center gap-3.5">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-900 text-base font-semibold text-white">
-                {t('landing.testimonialName').charAt(0)}
-              </span>
+              <img
+                src="/img/instructor.jpg"
+                alt={t('landing.testimonialName')}
+                loading="lazy"
+                className="h-12 w-12 rounded-full object-cover ring-1 ring-black/5"
+              />
               <div className="text-start">
                 <div className="font-semibold text-sand-900">{t('landing.testimonialName')}</div>
                 <div className="text-sm text-sand-500">{t('landing.testimonialRole')}</div>
@@ -265,7 +312,7 @@ export default function Landing() {
               <Link to="/builder" className="btn-primary px-7 py-3 text-base">
                 {t('landing.ctaButton')}
               </Link>
-              <Link to="/login" className="text-base font-medium text-sun-600 transition-colors hover:text-sun-500">
+              <Link to="/login" className="btn-glass px-6 py-3 text-base">
                 {t('common.signIn')}
               </Link>
             </div>
