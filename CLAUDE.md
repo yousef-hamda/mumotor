@@ -7,9 +7,9 @@ Guidance for working in this repo.
 Flow: wizard `/builder` → pick 1 of 9 presets → generate → live preview → publish → hosted at
 `GET /site/{slug}` (prod `{slug}.mumotor.com`). Then operate from `/dashboard`. Trilingual HE/AR/EN + RTL.
 
-> The on-disk folder is still named `otto-il` (the original DriveSawa/Otto codename). It's only the
-> local directory name — the package, branding, domain, and GitHub repo are all **mumotor**. Renaming
-> the folder is optional and breaks absolute paths / running dev servers, so it's left as-is.
+> The folder, packages, branding, domain, and GitHub repo are all **mumotor**. (Renamed from the old
+> `otto-il` codename in June 2026.) The Postgres role/db are still `otto` / `otto_driving` — internal
+> only, left unchanged to avoid touching the local database.
 
 ## Monorepo layout
 - `packages/backend` — Express 4 + Prisma 5 + PostgreSQL, Redis (optional), node-cron. `@mumotor/backend`.
