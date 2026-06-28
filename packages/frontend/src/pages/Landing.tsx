@@ -76,6 +76,7 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Logo size="sm" />
           <nav className="hidden items-center gap-9 text-sm text-sand-600 md:flex">
+            <Link to="/templates" className="transition-colors hover:text-sand-900">Templates</Link>
             <a href="#features" className="transition-colors hover:text-sand-900">Features</a>
             <a href="#how" className="transition-colors hover:text-sand-900">How it works</a>
             <a href="#faq" className="transition-colors hover:text-sand-900">FAQ</a>

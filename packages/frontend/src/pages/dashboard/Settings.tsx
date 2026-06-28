@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { KeyRound, User } from 'lucide-react';
-import { apiError, authApi } from '../../lib/api';
+import { KeyRound, Trash2, User } from 'lucide-react';
+import { apiError, authApi, websiteApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
-import { Button, Card, Field, Input, Select } from '../../components/ui';
+import { Button, Card, Field, Input, Modal, Select } from '../../components/ui';
 import { FadeUp } from '../../components/motion';
+import type { Website } from '../../lib/types';
 
 export default function Settings() {
   const { user, updateUser } = useAuth();
@@ -32,6 +33,21 @@ export default function Settings() {
   const changePw = useMutation({
     mutationFn: () => authApi.changePassword(pw),
     onSuccess: () => { toast.success('Password changed'); setPw({ currentPassword: '', newPassword: '' }); },
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
+  const qc = useQueryClient();
+  const { data: sites = [] } = useQuery({ queryKey: ['my-websites'], queryFn: websiteApi.list });
+  const [toDelete, setToDelete] = useState<Website | null>(null);
+  const [confirmText, setConfirmText] = useState('');
+  const del = useMutation({
+    mutationFn: () => websiteApi.remove(toDelete!.id, confirmText),
+    onSuccess: () => {
+      toast.success('Website permanently deleted');
+      qc.invalidateQueries({ queryKey: ['my-websites'] });
+      setToDelete(null);
+      setConfirmText('');
+    },
     onError: (e) => toast.error(apiError(e).message),
   });
 
@@ -130,6 +146,61 @@ export default function Settings() {
           </form>
         </Card>
       </FadeUp>
+
+      {/* Danger zone — delete websites */}
+      <FadeUp delay={0.18}>
+        <Card className="border-ember-200">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ember-50 text-ember-600">
+              <Trash2 strokeWidth={1.75} className="h-4 w-4" />
+            </span>
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight text-sand-900">Delete a website</h3>
+              <p className="text-sm text-sand-500">Permanently removes the site and all of its data — students, bookings, schedule and settings. This cannot be undone.</p>
+            </div>
+          </div>
+          {sites.length === 0 ? (
+            <p className="text-sm text-sand-500">You haven't created any websites yet.</p>
+          ) : (
+            <ul className="divide-y divide-sand-100">
+              {sites.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-sand-900">{s.name}</p>
+                    <p className="truncate text-xs text-sand-500">/{s.slug} · {s.status}</p>
+                  </div>
+                  <Button variant="danger" onClick={() => { setToDelete(s); setConfirmText(''); }} className="shrink-0">
+                    <Trash2 className="h-4 w-4" /> Delete
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </FadeUp>
+
+      <Modal
+        open={!!toDelete}
+        onClose={() => setToDelete(null)}
+        title="Delete this website?"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setToDelete(null)}>Cancel</Button>
+            <Button variant="danger" disabled={confirmText.trim().toUpperCase() !== 'DELETE'} loading={del.isPending} onClick={() => del.mutate()}>
+              Delete permanently
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sand-600">
+          This will permanently delete <strong className="text-sand-900">{toDelete?.name}</strong> and everything it contains — students, bookings, schedule, reviews and settings. This <strong>cannot be undone</strong>.
+        </p>
+        <div className="mt-4">
+          <Field label='Type DELETE to confirm'>
+            <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" autoFocus />
+          </Field>
+        </div>
+      </Modal>
     </div>
   );
 }

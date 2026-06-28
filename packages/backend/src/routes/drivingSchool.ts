@@ -224,6 +224,7 @@ router.get(
     if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
     const cfg = normalizeConfig(website);
+    const raw = (website.configuration ?? {}) as Record<string, unknown>;
     res.json({
       id: website.id,
       name: website.name,
@@ -242,6 +243,21 @@ router.get(
       experienceYears: cfg.experienceYears ?? null,
       passRate: cfg.passRate ?? null,
       services: website.services.map((s) => ({ name: s.name, duration: s.duration, price: s.price })),
+      // template + branding tokens so the public site renders the chosen design with the teacher's data
+      template: website.selectedPreset ?? (raw.templateChoice as string | undefined) ?? null,
+      locale: website.locale ?? null,
+      bio: (raw.bio as string | undefined) ?? null,
+      experienceLevel: (raw.experienceLevel as string | undefined) ?? null,
+      transmission: (raw.transmission as string | undefined) ?? null,
+      plans: (raw.plans as unknown[] | undefined) ?? null,
+      city: (raw.city as string | undefined) ?? null,
+      logoSrc: (raw.logoSrc as string | undefined) ?? null,
+      carPhoto: (raw.carPhoto as string | undefined) ?? null,
+      instructorPhoto: (raw.instructorPhoto as string | undefined) ?? null,
+      gallery: (raw.gallery as string[] | undefined) ?? null,
+      contact: (raw.contact as Record<string, string> | undefined) ?? null,
+      socialLinks: (raw.socialLinks as Record<string, string> | undefined) ?? null,
+      customization: (raw.customization as Record<string, unknown> | undefined) ?? null,
     });
   })
 );

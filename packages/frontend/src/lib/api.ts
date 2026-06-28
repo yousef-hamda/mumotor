@@ -160,6 +160,8 @@ export const websiteApi = {
   ) => api.patch<{ website: Website }>(`/websites/${id}`, data).then((r) => r.data.website),
   publish: (id: string) => api.post<PublishResult>(`/websites/${id}/publish`).then((r) => r.data),
   unpublish: (id: string) => api.post<{ status: string }>(`/websites/${id}/unpublish`).then((r) => r.data),
+  remove: (id: string, confirm: string) =>
+    api.delete<{ deleted: boolean }>(`/websites/${id}`, { data: { confirm } }).then((r) => r.data),
 };
 
 // ---------------------------------------------------------------------------
@@ -174,6 +176,24 @@ export interface PresetSummary {
   hero: string;
   bookingLayout: string;
 }
+
+export interface StockPhoto {
+  id: string;
+  alt: string;
+  thumb: string;
+  small: string;
+  regular: string;
+  author: string;
+  authorUrl: string;
+  downloadLocation: string | null;
+}
+
+export const photosApi = {
+  search: (q: string, opts?: { page?: number; per_page?: number; orientation?: 'landscape' | 'portrait' | 'squarish' }) =>
+    api
+      .get<{ results: StockPhoto[]; total: number }>('/photos/search', { params: { q, ...opts } })
+      .then((r) => r.data),
+};
 
 export const aiApi = {
   quickTemplates: () => api.get<{ presets: PresetSummary[] }>('/ai/v2/quick-templates').then((r) => r.data.presets),

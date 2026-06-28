@@ -31,7 +31,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const SidebarContent = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b border-sand-200 px-6">
-        <Link to="/dashboard" aria-label="Mumotor dashboard home">
+        <Link to="/" aria-label="Mumotor home">
           <Logo size="md" />
         </Link>
       </div>
@@ -107,9 +107,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <div className="lg:hidden">
+          <Link to="/" aria-label="Mumotor home" className="lg:hidden">
             <Logo size="sm" />
-          </div>
+          </Link>
           {current && (
             <h1 className="hidden text-sm font-semibold tracking-tight text-sand-900 lg:block">
               {t(current.labelKey)}

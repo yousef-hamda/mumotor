@@ -1,0 +1,976 @@
+/* ============================================================
+   Open Road — Retro 70s Automotive Template
+   All selectors namespaced under .tmpl-open-road
+   Palette as CSS vars; no app design tokens (sand-*, sun-*)
+   ============================================================ */
+
+/* ── 1. TOKENS & ROOT ───────────────────────────────────── */
+.tmpl-open-road {
+  --cream:      #F4E9D8;
+  --orange:     #D2691E;
+  --rust:       #A23E0C;
+  --mustard:    #E0A526;
+  --teal:       #2A6F6B;
+  --teal-dark:  #1E5249;
+  --brown:      #3A2A1E;
+  --cream-80:   rgba(244,233,216,0.80);
+  --cream-40:   rgba(244,233,216,0.40);
+  --brown-60:   rgba(58,42,30,0.60);
+  --brown-20:   rgba(58,42,30,0.20);
+
+  background: var(--cream);
+  color: var(--brown);
+  font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ── 2. FILM GRAIN OVERLAY ─────────────────────────────── */
+.tmpl-open-road::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.038;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: or-grain 0.38s steps(1) infinite;
+}
+@keyframes or-grain {
+  0%   { transform: translate(0,0); }
+  20%  { transform: translate(-2%,-1%); }
+  40%  { transform: translate(1%,-2%); }
+  60%  { transform: translate(-1%,2%); }
+  80%  { transform: translate(2%,0%); }
+  100% { transform: translate(0,1%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-open-road::before { animation: none; }
+}
+
+/* ── 3. SECTION UTILITIES ───────────────────────────────── */
+.tmpl-open-road .or-section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+.tmpl-open-road .or-section-inner--narrow { max-width: 800px; }
+
+.tmpl-open-road .or-bg-orange  { background: var(--orange); }
+.tmpl-open-road .or-bg-teal    { background: var(--teal); }
+.tmpl-open-road .or-bg-mustard { background: var(--mustard); }
+.tmpl-open-road .or-bg-brown   { background: var(--brown); }
+
+.tmpl-open-road .or-section-title {
+  font-family: 'Abril Fatface', cursive;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.08;
+  color: var(--brown);
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+.tmpl-open-road .or-title-cream { color: var(--cream); }
+
+.tmpl-open-road .or-section-sub {
+  font-size: 1rem;
+  color: var(--brown-60);
+  margin-bottom: 2.75rem;
+  font-style: italic;
+  max-width: 600px;
+}
+.tmpl-open-road .or-text-cream-muted { color: var(--cream-80); }
+.tmpl-open-road .or-text-muted       { color: var(--brown-60); }
+
+.tmpl-open-road .or-body-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--brown-60);
+  margin-bottom: 1rem;
+}
+
+/* ── 4. ROAD DIVIDER ────────────────────────────────────── */
+.tmpl-open-road .or-road-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+  background: var(--cream);
+  overflow: hidden;
+}
+.tmpl-open-road .or-road-dash {
+  display: inline-block;
+  width: 2.75rem;
+  height: 5px;
+  background: var(--mustard);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+.tmpl-open-road .or-road-car { color: var(--orange); flex-shrink: 0; }
+
+/* ── 5. BUTTONS ─────────────────────────────────────────── */
+.tmpl-open-road .or-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  cursor: pointer;
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  transition:
+    transform  0.2s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color      0.2s ease;
+}
+.tmpl-open-road .or-btn:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 3px;
+}
+.tmpl-open-road .or-btn-lg { padding: 0.9rem 2.25rem; font-size: 1rem; }
+
+.tmpl-open-road .or-btn-primary {
+  background: var(--rust);
+  color: var(--cream);
+  box-shadow: 3px 3px 0 var(--brown);
+}
+.tmpl-open-road .or-btn-primary:not(:disabled):not([aria-disabled='true']):hover {
+  background: var(--orange);
+  transform: translate(-2px,-2px);
+  box-shadow: 5px 5px 0 var(--brown);
+}
+.tmpl-open-road .or-btn-primary:not(:disabled):not([aria-disabled='true']):active {
+  transform: translate(1px,1px);
+  box-shadow: 1px 1px 0 var(--brown);
+}
+.tmpl-open-road .or-btn-primary:disabled,
+.tmpl-open-road .or-btn-primary[aria-disabled='true'] {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.tmpl-open-road .or-btn-selected { background: var(--teal); }
+
+.tmpl-open-road .or-btn-ghost {
+  background: transparent;
+  color: var(--rust);
+  border: 2px solid var(--rust);
+}
+.tmpl-open-road .or-btn-ghost:hover {
+  background: var(--rust);
+  color: var(--cream);
+  transform: translate(-2px,-2px);
+  box-shadow: 4px 4px 0 var(--brown);
+}
+.tmpl-open-road .or-btn-ghost-cream {
+  background: transparent;
+  color: var(--cream);
+  border: 2px solid var(--cream-80);
+}
+.tmpl-open-road .or-btn-ghost-cream:hover {
+  background: var(--cream);
+  color: var(--brown);
+}
+
+/* ── 6. NAV ─────────────────────────────────────────────── */
+.tmpl-open-road .or-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244,233,216,0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 2px solid var(--mustard);
+}
+.tmpl-open-road .or-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.tmpl-open-road .or-logo {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 1.45rem;
+  color: var(--rust);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+  transition: color 0.2s;
+}
+.tmpl-open-road .or-logo:hover { color: var(--orange); }
+
+.tmpl-open-road .or-nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.1rem;
+  flex: 1;
+}
+.tmpl-open-road .or-nav-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Merriweather', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--brown-60);
+  padding: 0.45rem 0.8rem;
+  border-radius: 3px;
+  transition: color 0.2s, background 0.2s;
+}
+.tmpl-open-road .or-nav-link:hover        { color: var(--rust); background: rgba(210,105,30,0.08); }
+.tmpl-open-road .or-nav-link--active      { color: var(--rust); background: rgba(210,105,30,0.12); }
+
+.tmpl-open-road .or-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+}
+.tmpl-open-road .or-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--brown);
+  border-radius: 1px;
+}
+.tmpl-open-road .or-nav-mobile {
+  overflow: hidden;
+  background: rgba(244,233,216,0.97);
+  border-top: 1px solid rgba(210,105,30,0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem 1.5rem;
+  gap: 0.25rem;
+}
+.tmpl-open-road .or-nav-mobile-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  font-family: 'Merriweather', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brown);
+  padding: 0.8rem 0;
+  border-bottom: 1px dashed var(--brown-20);
+  transition: color 0.2s;
+}
+.tmpl-open-road .or-nav-mobile-link:hover { color: var(--rust); }
+
+@media (max-width: 767px) {
+  .tmpl-open-road .or-nav-links                  { display: none; }
+  .tmpl-open-road .or-nav-inner > .or-btn        { display: none; }
+  .tmpl-open-road .or-hamburger                  { display: flex; }
+}
+
+/* ── 7. HERO ────────────────────────────────────────────── */
+.tmpl-open-road .or-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--cream);
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+}
+.tmpl-open-road .or-sunburst {
+  position: absolute;
+  width: min(140vw, 1100px);
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(224,165,38,0.20) 0deg 8deg,
+    transparent         8deg 18deg
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+.tmpl-open-road .or-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  width: 100%;
+}
+.tmpl-open-road .or-eyebrow {
+  display: inline-block;
+  font-family: 'Merriweather', serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: rgba(210,105,30,0.08);
+  border: 1.5px solid var(--orange);
+  border-radius: 3px;
+  padding: 0.28rem 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.tmpl-open-road .or-hero-title {
+  font-family: 'Abril Fatface', cursive;
+  font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+  line-height: 1.06;
+  color: var(--brown);
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.tmpl-open-road .or-hero-sub {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--brown-60);
+  max-width: 480px;
+  font-style: italic;
+}
+.tmpl-open-road .or-hero-img-frame {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 4px solid var(--brown);
+  box-shadow: 10px 10px 0 var(--orange), 15px 15px 0 var(--rust);
+  aspect-ratio: 4 / 3;
+}
+.tmpl-open-road .or-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s ease;
+}
+.tmpl-open-road .or-hero-img-frame:hover .or-hero-img { transform: scale(1.05); }
+
+@media (max-width: 1023px) {
+  .tmpl-open-road .or-hero-inner { grid-template-columns: 1fr; text-align: center; }
+  .tmpl-open-road .or-hero-img-frame { max-width: 480px; margin: 0 auto; }
+  .tmpl-open-road .or-hero-sub { margin: 0 auto; }
+}
+@media (max-width: 480px) {
+  .tmpl-open-road .or-hero-inner { padding: 5rem 1rem 4rem; }
+}
+
+/* ── 8. STATS / ENAMEL BADGES ───────────────────────────── */
+.tmpl-open-road .or-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+  align-items: center;
+}
+.tmpl-open-road .or-badge {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, var(--mustard), var(--orange) 80%);
+  border: 4px solid var(--rust);
+  box-shadow:
+    0 0 0 5px var(--cream),
+    0 0 0 9px var(--rust),
+    0 0 0 13px rgba(244,233,216,0.6),
+    0 14px 36px rgba(58,42,30,0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.1rem;
+  cursor: default;
+  flex-shrink: 0;
+}
+.tmpl-open-road .or-badge-number {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 2.5rem;
+  color: var(--brown);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.tmpl-open-road .or-badge-label {
+  font-family: 'Merriweather', serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--rust);
+  margin-top: 0.45rem;
+  line-height: 1.35;
+}
+
+/* ── 9. PACKAGES ────────────────────────────────────────── */
+.tmpl-open-road .or-packages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+  gap: 1.75rem;
+  align-items: stretch;
+}
+.tmpl-open-road .or-package-card {
+  background: var(--cream);
+  border: 3px solid var(--brown);
+  border-radius: 6px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(58,42,30,0.25);
+}
+.tmpl-open-road .or-package-card--popular  { border-color: var(--rust);  box-shadow: 4px 4px 0 var(--rust); }
+.tmpl-open-road .or-package-card--selected { border-color: var(--teal);  box-shadow: 4px 4px 0 var(--teal); }
+
+.tmpl-open-road .or-package-badge {
+  position: absolute;
+  top: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--rust);
+  color: var(--cream);
+  font-family: 'Merriweather', serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 1rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.tmpl-open-road .or-package-name {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 1.5rem;
+  color: var(--brown);
+  line-height: 1.1;
+  margin-top: 0.5rem;
+}
+.tmpl-open-road .or-package-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0.3rem;
+}
+.tmpl-open-road .or-package-amount {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 2.75rem;
+  color: var(--rust);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tmpl-open-road .or-package-unit {
+  font-size: 0.82rem;
+  color: var(--brown-60);
+  font-style: italic;
+}
+.tmpl-open-road .or-package-detail {
+  font-size: 0.8rem;
+  color: var(--teal);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.tmpl-open-road .or-package-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+}
+.tmpl-open-road .or-package-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(58,42,30,0.78);
+}
+.tmpl-open-road .or-check-icon {
+  color: var(--teal);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+/* ── 10. ABOUT ──────────────────────────────────────────── */
+.tmpl-open-road .or-about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4.5rem;
+  align-items: start;
+}
+.tmpl-open-road .or-about-img-col { position: relative; }
+.tmpl-open-road .or-about-img-frame {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 3px solid var(--brown);
+  box-shadow: 8px 8px 0 var(--mustard), 13px 13px 0 var(--orange);
+  aspect-ratio: 3 / 4;
+}
+.tmpl-open-road .or-about-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tmpl-open-road .or-instructor-card {
+  position: absolute;
+  bottom: -1.75rem;
+  right: -1.25rem;
+  background: var(--cream);
+  border: 3px solid var(--rust);
+  border-radius: 6px;
+  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  box-shadow: 4px 4px 0 var(--brown);
+  max-width: 230px;
+}
+.tmpl-open-road .or-instructor-photo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--mustard);
+  flex-shrink: 0;
+}
+.tmpl-open-road .or-instructor-info strong {
+  display: block;
+  font-family: 'Merriweather', serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--brown);
+  line-height: 1.2;
+}
+.tmpl-open-road .or-instructor-info span {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--brown-60);
+  line-height: 1.35;
+  margin-top: 0.15rem;
+}
+.tmpl-open-road .or-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.tmpl-open-road .or-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--brown);
+}
+.tmpl-open-road .or-credentials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.tmpl-open-road .or-credential-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(42,111,107,0.08);
+  color: var(--teal);
+  border: 1.5px solid var(--teal);
+  border-radius: 3px;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 767px) {
+  .tmpl-open-road .or-about-grid    { grid-template-columns: 1fr; gap: 3rem; }
+  .tmpl-open-road .or-instructor-card { position: static; margin-top: 1rem; max-width: 100%; }
+}
+
+/* ── 11. AREAS — LICENSE PLATE CHIPS ────────────────────── */
+.tmpl-open-road .or-areas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+.tmpl-open-road .or-plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--mustard);
+  color: var(--brown);
+  border: 2.5px solid var(--brown);
+  border-radius: 4px;
+  padding: 0.4rem 1.1rem;
+  font-family: 'Merriweather', serif;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.38), 3px 3px 0 var(--rust);
+  white-space: nowrap;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+}
+.tmpl-open-road .or-plate:hover {
+  transform: translate(-2px,-2px);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.38), 5px 5px 0 var(--rust);
+}
+.tmpl-open-road .or-plate-note {
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.65;
+  letter-spacing: 0.06em;
+}
+
+/* ── 12. REVIEWS — STICKER CARDS ────────────────────────── */
+.tmpl-open-road .or-reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.25rem;
+  align-items: start;
+}
+.tmpl-open-road .or-review-card {
+  background: #fff;
+  border: 2.5px solid var(--brown);
+  border-radius: 6px;
+  padding: 1.75rem;
+  box-shadow: 5px 5px 0 var(--orange);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transform-origin: center;
+  cursor: default;
+}
+.tmpl-open-road .or-stars       { display: flex; gap: 3px; }
+.tmpl-open-road .or-star-filled { color: var(--mustard); fill: var(--mustard); }
+.tmpl-open-road .or-star-empty  { color: var(--brown-20); }
+
+.tmpl-open-road .or-review-text {
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: rgba(58,42,30,0.78);
+  font-style: italic;
+  flex: 1;
+}
+.tmpl-open-road .or-review-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.tmpl-open-road .or-review-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--mustard);
+  flex-shrink: 0;
+}
+.tmpl-open-road .or-review-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--brown);
+}
+.tmpl-open-road .or-review-meta {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--brown-60);
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+
+/* ── 12b. GALLERY — FRAMED PHOTO STICKERS ───────────────── */
+.tmpl-open-road .or-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem 1.75rem;
+  margin-top: 1rem;
+}
+.tmpl-open-road .or-gallery-frame {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  border: 3px solid var(--brown);
+  box-shadow: 6px 6px 0 var(--mustard);
+  aspect-ratio: 4 / 3;
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+}
+.tmpl-open-road .or-gallery-frame:hover {
+  transform: translate(-2px,-3px) rotate(0deg) !important;
+  box-shadow: 9px 9px 0 var(--orange);
+}
+.tmpl-open-road .or-gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 767px) {
+  .tmpl-open-road .or-gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem 1.25rem; }
+}
+@media (max-width: 480px) {
+  .tmpl-open-road .or-gallery-grid { grid-template-columns: 1fr; }
+}
+
+/* ── 13. FAQ ACCORDION ──────────────────────────────────── */
+.tmpl-open-road .or-faq-list {
+  display: flex;
+  flex-direction: column;
+  border: 2.5px solid var(--brown);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 4px 4px 0 rgba(58,42,30,0.20);
+}
+.tmpl-open-road .or-faq-item {
+  border-bottom: 2px solid var(--brown);
+  background: var(--cream);
+  transition: background 0.2s;
+}
+.tmpl-open-road .or-faq-item:last-child  { border-bottom: none; }
+.tmpl-open-road .or-faq-item--open       { background: #fff; }
+
+.tmpl-open-road .or-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  padding: 1.25rem 1.5rem;
+  font-family: 'Merriweather', serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--brown);
+  transition: background 0.2s;
+}
+.tmpl-open-road .or-faq-q:hover           { background: rgba(224,165,38,0.1); }
+.tmpl-open-road .or-faq-q:focus-visible   { outline: 3px solid var(--mustard); outline-offset: -3px; }
+.tmpl-open-road .or-faq-chevron           { display: flex; flex-shrink: 0; color: var(--orange); }
+.tmpl-open-road .or-faq-a                 { overflow: hidden; }
+.tmpl-open-road .or-faq-a p {
+  padding: 0 1.5rem 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--brown-60);
+}
+
+/* ── 14. BOOKING WIDGET ─────────────────────────────────── */
+.tmpl-open-road .or-book-widget {
+  background: rgba(255,255,255,0.10);
+  border: 2px solid rgba(244,233,216,0.35);
+  border-radius: 8px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.tmpl-open-road .or-book-step { display: flex; flex-direction: column; gap: 0.75rem; }
+.tmpl-open-road .or-book-label {
+  font-family: 'Merriweather', serif;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tmpl-open-road .or-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--mustard);
+  color: var(--brown);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.tmpl-open-road .or-book-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.tmpl-open-road .or-book-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(244,233,216,0.28);
+  border-radius: 4px;
+  padding: 0.8rem 1.1rem;
+  cursor: pointer;
+  color: var(--cream);
+  font-family: 'Merriweather', serif;
+  font-size: 0.85rem;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: start;
+}
+.tmpl-open-road .or-book-option:hover          { background: rgba(255,255,255,0.16); }
+.tmpl-open-road .or-book-option--active        { background: rgba(244,233,216,0.18); border-color: var(--mustard); }
+.tmpl-open-road .or-book-opt-name             { font-weight: 700; }
+.tmpl-open-road .or-book-opt-price {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 1.15rem;
+  color: var(--mustard);
+  font-variant-numeric: tabular-nums;
+}
+.tmpl-open-road .or-book-dates,
+.tmpl-open-road .or-book-times { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.tmpl-open-road .or-date-chip,
+.tmpl-open-road .or-time-chip {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(244,233,216,0.28);
+  border-radius: 4px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-family: 'Merriweather', serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cream);
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.tmpl-open-road .or-date-chip:hover,
+.tmpl-open-road .or-time-chip:hover            { background: rgba(255,255,255,0.16); }
+.tmpl-open-road .or-date-chip--active,
+.tmpl-open-road .or-time-chip--active          { background: var(--mustard); border-color: var(--mustard); color: var(--brown); }
+
+.tmpl-open-road .or-book-success {
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.tmpl-open-road .or-success-seal {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--mustard), var(--orange) 80%);
+  border: 4px solid var(--cream-80);
+  box-shadow: 0 0 0 4px var(--rust);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream);
+  margin-bottom: 0.75rem;
+}
+
+/* ── 15. CONTACT / FOOTER ───────────────────────────────── */
+.tmpl-open-road .or-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+}
+.tmpl-open-road .or-contact .or-section-title { color: var(--cream); margin-bottom: 0.5rem; }
+.tmpl-open-road .or-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+.tmpl-open-road .or-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--cream-80);
+  text-decoration: none;
+  transition: color 0.2s;
+  line-height: 1.5;
+}
+.tmpl-open-road .or-contact-item svg { flex-shrink: 0; margin-top: 2px; }
+.tmpl-open-road a.or-contact-item:hover { color: var(--mustard); }
+.tmpl-open-road .or-social-row { display: flex; gap: 0.7rem; margin-top: 1.5rem; }
+.tmpl-open-road .or-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background: rgba(244,233,216,0.08);
+  border: 1.5px solid rgba(244,233,216,0.22);
+  color: var(--cream);
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.tmpl-open-road .or-social-btn:hover { background: var(--mustard); border-color: var(--mustard); color: var(--brown); }
+.tmpl-open-road .or-social-btn--text {
+  width: auto;
+  padding: 0 0.85rem;
+  font-family: 'Merriweather', serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+}
+
+.tmpl-open-road .or-hours-heading {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 1.4rem;
+  color: var(--cream);
+  margin-bottom: 1.25rem;
+}
+.tmpl-open-road .or-hours-table   { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.tmpl-open-road .or-hours-table td {
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed rgba(244,233,216,0.14);
+  color: var(--cream-80);
+}
+.tmpl-open-road .or-hours-day     { font-weight: 700; padding-right: 1.5rem; }
+.tmpl-open-road .or-hours-closed td { color: rgba(244,233,216,0.28); }
+
+.tmpl-open-road .or-footer-bar {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(244,233,216,0.18);
+  font-size: 0.75rem;
+  color: rgba(244,233,216,0.35);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .tmpl-open-road .or-contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+
+/* ── 16. RESPONSIVE HELPERS ─────────────────────────────── */
+@media (max-width: 480px) {
+  .tmpl-open-road .or-section-inner { padding: 3.5rem 1rem; }
+  .tmpl-open-road .or-badge { width: 130px; height: 130px; }
+  .tmpl-open-road .or-badge-number { font-size: 2rem; }
+  .tmpl-open-road .or-book-widget { padding: 1.5rem; }
+}

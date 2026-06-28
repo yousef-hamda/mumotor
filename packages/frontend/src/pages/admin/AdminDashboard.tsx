@@ -44,7 +44,7 @@ export default function AdminDashboard() {
       <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <Logo size="sm" />
+            <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
             <span className="chip bg-sand-900 text-white">Admin</span>
           </div>
           <button

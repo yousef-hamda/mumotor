@@ -16,6 +16,17 @@ Flow: wizard `/builder` → pick 1 of 9 presets → generate → live preview �
 - `packages/frontend` — React 18 + Vite 5 + TanStack Query + React Router + Tailwind. `@mumotor/frontend`.
 - Published teacher sites are served by the backend at `GET /site/:slug` (Redis-cached HTML).
 
+## Multi-tenant data isolation (Railway-ready)
+Each site is an isolated tenant. `Website` belongs to a `User` (`onDelete: Cascade`); **every** domain table
+— `SiteSettings, Page, Service, ClientEnrollment, DailyCode, BulkEmail, Booking, Review, Media, Domain,
+WebsiteVersion` — carries a `websiteId` FK with `onDelete: Cascade` + `@@index([websiteId])`. So a site's
+students/bookings/reviews/etc. grow under its own `websiteId` and never bleed into another site. Teacher
+routes are ownership-gated (`requireOwnedWebsite` → `website.userId !== req.user.id` ⇒ 403; even
+`loadEnrollment(websiteId, …)` is site-scoped), and `DELETE /websites/:id` (typed `DELETE` confirm) cascades
+away **all** of that site's rows. **Railway:** the Prisma datasource is `url = env("DATABASE_URL")` (validated
+in `config/env.ts`), so going live = point `DATABASE_URL` at the Railway Postgres and run
+`npm run db:deploy --workspace @mumotor/backend` (`prisma migrate deploy`) — no code change.
+
 ## Run locally
 ```bash
 npm install
@@ -61,13 +72,38 @@ classes never needed renaming.
   `lib/useIntro.ts` is a no-op (no `mm_intro_seen`, no phases, nav always visible). `lib/audio.ts` and the
   `public/media/hero-car.*` clips are unused/left in place.
 
+## Templates & Customize (the user-facing site)
+- Published teacher sites are the **React** route `GET /p/:slug` (`pages/public/PublicSite.tsx`), rendering 1 of
+  **6 self-contained templates** in `src/templates/<slug>/` (grid-ink, open-road, night-shift, easy-lane, prestige,
+  full-throttle) from a shared `TemplateData` via `TemplateRender.tsx`. The deterministic backend HTML at
+  `GET /site/:slug` still generates on publish but is no longer the user-facing site. Gallery at `/templates`.
+- **Customize mode** (`components/customize/CustomizeMode.tsx`, route `/customize/:id`, also from the builder
+  preview): full-screen live site, **no side panel**, persists only on **Save**. Overrides =
+  `Customization {fields, theme, styles, copy, icons}` applied by `applyOverrides` (in `templates/customize/overrides.ts`).
+  Click any `[data-edit]` element: **text** → contentEditable + popover with **Text** and **Fill** colour
+  (`styles[path].{color,background}`, injected as scoped CSS by `TemplateRender`); **background** → palette; **image**
+  → upload/Find (Unsplash); **icon** → searchable **full lucide icon-library** picker (`templates/DynamicIcon.tsx`,
+  `data.icons` overrides). ALL hardcoded headings/subtitles are editable via free-form `data.copy` (`{copy.key ?? 'literal'}`).
+  Toolbar has a **"Colours"** button (theme panel for background/colours) so it's discoverable; hovering shows a dashed
+  outline on every editable region. In Customize NOTHING navigates — any `<a>/<button>` click is intercepted to select-to-edit.
+  Lists (packages/faqs/areas/stats) have `data-edit-item` + hover +/trash. Add new editable text/icons by tagging with
+  `data-edit="copy.X"|"icons.X"` + the matching `data-edit-type`.
+- **Delete a website**: `DELETE /api/websites/:id` requires body `{confirm:"DELETE"}` (else 400 `CONFIRM_REQUIRED`);
+  cascades all the site's rows + clears the `site:<slug>` cache. UI = danger-zone in `pages/dashboard/Settings.tsx`
+  (type-DELETE modal). The mumotor logo links to `/` everywhere.
+
 ## Conventions
 - Generation is **deterministic** (presets + builder in `backend/src/services/ai/`), not a freeform AI call.
 - After editing `tailwind.config.js`, the Vite dev server can serve **stale CSS** — restart it (and clear
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
 
-## Testing
-- Backend: `cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`, then `npm test`.
-- Frontend E2E: Playwright lives in `packages/frontend/node_modules` (not browser-installed globally);
-  run scripts from the repo root so the local `playwright` package resolves.
+## Testing (all green: unit 26/26 · integration 70/70 · E2E 61/61, 0 console errors)
+- Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
+- Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
+  then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.
+- Frontend E2E: `WEB=http://localhost:<port> node packages/frontend/e2e/features.e2e.mjs`. Playwright/chromium live in
+  `packages/frontend/node_modules` (not global) — run from the repo root so the local package resolves.
+- GOTCHAS: the integration "tomorrow excludes booked 09:00/10:00" check needs a **fresh** `npm run db:seed` (the seed
+  books *its* tomorrow, which drifts day-to-day). Don't run the integration suite twice within 60s — enroll/book
+  **rate-limit** and you'll see a transient `RATE_LIMITED` → bad-UUID cascade (not a regression).

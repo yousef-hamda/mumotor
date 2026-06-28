@@ -1,47 +1,90 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { aiApi, apiError, drivingSchoolApi, websiteApi, type PresetSummary, type PublishResult } from '../../lib/api';
+import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
+import { apiError, drivingSchoolApi, websiteApi, type PublishResult } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
+import { TEMPLATES, getTemplate } from '../../templates/registry';
+import { wizardToTemplateData } from '../../templates/fromWizard';
+import { TemplateRender } from '../../templates/TemplateRender';
+import CustomizeMode from '../../components/customize/CustomizeMode';
 import {
+  EXPERIENCE_LEVELS,
+  SOCIAL_PLATFORMS,
+  TRANSMISSIONS,
   WEEKDAYS,
   buildBusinessHours,
   clearWizard,
-  defaultWizardConfig,
   loadWizard,
+  sampleWizardConfig,
   saveWizard,
   toBusinessConfig,
+  type PlanInput,
+  type SocialPlatform,
   type WizardConfig,
 } from '../../lib/wizard';
+import type { Customization } from '../../templates/customize/overrides';
 import { cn, titleCase } from '../../lib/utils';
 
-type Step = 'welcome' | 'about' | 'lessons' | 'contact' | 'design' | 'generating' | 'preview' | 'account' | 'done';
-const MAIN: Step[] = ['about', 'lessons', 'contact', 'design', 'preview'];
-const STEP_LABELS = ['About', 'Lessons', 'Contact', 'Design', 'Preview'];
+type Step = 'welcome' | 'business' | 'setup' | 'design' | 'preview' | 'customize' | 'account' | 'done';
+const MAIN: Step[] = ['business', 'setup', 'design', 'preview'];
+const STEP_LABELS = ['Business', 'Setup', 'Design', 'Preview'];
+
+/** Minutes from time `a` ("HH:MM") to time `b`; negative if b is earlier. */
+function minutesAfter(a: string, b: string): number {
+  const toMin = (t: string) => { const [h, m] = (t || '0:0').split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+  return toMin(b) - toMin(a);
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
 
 export default function BuilderWizard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('welcome');
   const [config, setConfig] = useState<WizardConfig>(loadWizard());
-  const [html, setHtml] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [result, setResult] = useState<PublishResult | null>(null);
+  const [searchParams] = useSearchParams();
+
+  // Carry a design chosen from the /templates gallery (?template=<slug>) into the wizard.
+  useEffect(() => {
+    const choice = searchParams.get('template');
+    if (choice) setConfig((c) => (c.templateChoice === choice ? c : { ...c, templateChoice: choice }));
+  }, [searchParams]);
 
   useEffect(() => saveWizard(config), [config]);
   const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
 
-  const current = Math.max(0, MAIN.indexOf(step === 'generating' ? 'design' : step === 'account' ? 'preview' : step));
-  const showStepper = step !== 'welcome' && step !== 'done';
+  const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'preview' : step) as Step));
+  const showStepper = step !== 'welcome' && step !== 'done' && step !== 'customize';
+  const wide = step === 'preview';
+
+  // Customize is a full-screen mode of its own.
+  if (step === 'customize') {
+    return (
+      <CustomizeMode
+        baseData={wizardToTemplateData({ ...config, customization: undefined })}
+        templateSlug={config.templateChoice || TEMPLATES[0].slug}
+        value={config.customization}
+        onSave={(c: Customization) => { set('customization', c); toast.success('Changes saved'); }}
+        onDone={() => setStep('preview')}
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
-      {/* Header */}
       <header className="glass sticky top-0 z-30 border-b border-white/50">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
@@ -62,99 +105,25 @@ export default function BuilderWizard() {
         )}
       </header>
 
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 py-12">
-        {step === 'welcome' && <Welcome onStart={() => setStep('about')} />}
-        {step === 'about' && (
-          <StepShell title="Tell us about you" subtitle="This becomes your site's headline and about section." onBack={() => setStep('welcome')} onNext={() => (config.businessName.trim() ? setStep('lessons') : toast.error('Please enter your business name'))}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Business / school name"><Input value={config.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder="David's Driving School" /></Field>
-              <Field label="Your name (instructor)"><Input value={config.teacherName} onChange={(e) => set('teacherName', e.target.value)} placeholder="David Cohen" /></Field>
-            </div>
-            <Field label="Tagline"><Input value={config.tagline} onChange={(e) => set('tagline', e.target.value)} placeholder="Your road to confidence" /></Field>
-            <Field label="Short bio (optional)"><Textarea rows={3} value={config.bio} onChange={(e) => set('bio', e.target.value)} placeholder="A few sentences about your teaching style and experience." /></Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Years of experience"><Input value={config.experienceYears} onChange={(e) => set('experienceYears', e.target.value)} placeholder="10+" /></Field>
-              <Field label="First-attempt pass rate (%)"><Input type="number" min={0} max={100} value={config.passRate} onChange={(e) => set('passRate', Number(e.target.value))} /></Field>
-            </div>
-          </StepShell>
+      <main className={cn('mx-auto flex w-full flex-1 flex-col py-10', wide ? 'max-w-[1320px] px-4' : 'max-w-3xl px-5')}>
+        {step === 'welcome' && <Welcome onStart={() => setStep('business')} />}
+        {step === 'business' && (
+          <BusinessStep
+            config={config}
+            set={set}
+            onAuto={() => { setConfig((c) => sampleWizardConfig(c)); toast.success('Sample details filled in — edit anything you like'); }}
+            onBack={() => setStep('welcome')}
+            onNext={() => (config.businessName.trim() ? setStep('setup') : toast.error('Please enter your business name'))}
+          />
         )}
-        {step === 'lessons' && (
-          <StepShell title="Lessons & availability" subtitle="Set your pricing, lesson length, and working hours." onBack={() => setStep('about')} onNext={() => setStep('contact')}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Price per lesson (₪)"><Input type="number" min={0} value={config.pricePerClass} onChange={(e) => set('pricePerClass', Number(e.target.value))} /></Field>
-              <Field label="Lesson duration (min)">
-                <Select value={config.classDuration} onChange={(e) => set('classDuration', Number(e.target.value))}>
-                  {[30, 45, 60, 90, 120].map((d) => <option key={d} value={d}>{d} min</option>)}
-                </Select>
-              </Field>
-            </div>
-            <Field label="Working days">
-              <div className="flex flex-wrap gap-2">
-                {WEEKDAYS.map((d) => {
-                  const on = config.workingDays.includes(d);
-                  return (
-                    <button key={d} type="button"
-                      aria-pressed={on}
-                      onClick={() => set('workingDays', on ? config.workingDays.filter((x) => x !== d) : [...config.workingDays, d])}
-                      className={
-                        on
-                          ? 'rounded-lg border border-sand-900 bg-sand-900 px-4 py-1.5 text-sm font-semibold text-white transition-colors'
-                          : 'rounded-lg border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:border-sand-300 hover:bg-sand-50 hover:text-sand-800'
-                      }
-                    >
-                      {titleCase(d).slice(0, 3)}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Shift start"><Input type="time" value={config.shiftStart} onChange={(e) => set('shiftStart', e.target.value)} /></Field>
-              <Field label="Shift end"><Input type="time" value={config.shiftEnd} onChange={(e) => set('shiftEnd', e.target.value)} /></Field>
-            </div>
-            <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-sand-700 select-none">
-              <input
-                type="checkbox"
-                checked={config.hasBreak}
-                onChange={(e) => set('hasBreak', e.target.checked)}
-                className="h-4 w-4 rounded border-sand-300 text-sand-900 focus:ring-sand-400"
-              />
-              Add a daily break
-            </label>
-            {config.hasBreak && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Break start"><Input type="time" value={config.breakStart} onChange={(e) => set('breakStart', e.target.value)} /></Field>
-                <Field label="Break end"><Input type="time" value={config.breakEnd} onChange={(e) => set('breakEnd', e.target.value)} /></Field>
-              </div>
-            )}
-          </StepShell>
-        )}
-        {step === 'contact' && (
-          <StepShell title="Contact & language" subtitle="How students reach you, and your site's language." onBack={() => setStep('lessons')} onNext={() => setStep('design')}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Phone"><Input value={config.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+972 50 123 4567" /></Field>
-              <Field label="Email"><Input type="email" value={config.email} onChange={(e) => set('email', e.target.value)} placeholder="you@example.com" /></Field>
-            </div>
-            <Field label="Area / city"><Input value={config.address} onChange={(e) => set('address', e.target.value)} placeholder="Netanya, Israel" /></Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Instagram (optional)"><Input value={config.instagram} onChange={(e) => set('instagram', e.target.value)} placeholder="https://instagram.com/…" /></Field>
-              <Field label="Facebook (optional)"><Input value={config.facebook} onChange={(e) => set('facebook', e.target.value)} placeholder="https://facebook.com/…" /></Field>
-            </div>
-            <Field label="Site language">
-              <Select value={config.locale} onChange={(e) => set('locale', e.target.value as WizardConfig['locale'])}>
-                <option value="EN">English</option>
-                <option value="HE">עברית (Hebrew)</option>
-                <option value="AR">العربية (Arabic)</option>
-              </Select>
-            </Field>
-          </StepShell>
-        )}
-        {step === 'design' && <DesignStep config={config} onPick={(id) => set('presetId', id)} onBack={() => setStep('contact')} onNext={() => setStep('generating')} />}
-        {step === 'generating' && <GeneratingStep config={config} onDone={(h) => { setHtml(h); setStep('preview'); }} onError={() => setStep('design')} />}
+        {step === 'setup' && <SetupStep config={config} set={set} onBack={() => setStep('business')} onNext={() => setStep('design')} />}
+        {step === 'design' && <DesignStep config={config} onPick={(id) => set('templateChoice', id)} onBack={() => setStep('setup')} onNext={() => setStep('preview')} />}
         {step === 'preview' && (
           <PreviewStep
-            html={html}
+            config={config}
+            onPick={(id) => set('templateChoice', id)}
             onBack={() => setStep('design')}
+            onCustomize={() => setStep('customize')}
             onPublish={() => (user ? doPublish() : setStep('account'))}
             publishing={publishing}
           />
@@ -171,21 +140,20 @@ export default function BuilderWizard() {
       const website = await websiteApi.create({
         name: config.businessName.trim() || 'My Driving School',
         tagline: config.tagline,
-        selectedPreset: config.presetId,
+        selectedPreset: config.templateChoice || TEMPLATES[0].slug,
         locale: config.locale,
         configuration: toBusinessConfig(config),
       });
-      // sync booking-engine settings (hours, duration, breaks)
       await drivingSchoolApi.updateSettings(website.id, {
         classDuration: config.classDuration,
         advanceBookingDays: 14,
-        bookingCutoffHour: 18,
+        bookingCutoffHour: Number((config.reportTime || '18:00').split(':')[0]) || 18,
         dailyCodeEnabled: true,
-        breakTimes: config.hasBreak ? [{ start: config.breakStart, end: config.breakEnd }] : [],
+        restMinutes: config.restEnabled ? config.restMinutes : 0,
+        breakTimes: config.breakTimes,
         workingHours: buildBusinessHours(config),
         teacherName: config.teacherName || config.businessName,
         pricePerClass: config.pricePerClass,
-        passRate: config.passRate,
       } as never);
       const res = await websiteApi.publish(website.id);
       clearWizard();
@@ -199,6 +167,8 @@ export default function BuilderWizard() {
     }
   }
 }
+
+// ── Shared chrome ────────────────────────────────────────────────────────────
 
 function Stepper({ current }: { current: number }) {
   return (
@@ -224,9 +194,7 @@ function Stepper({ current }: { current: number }) {
                   {label}
                 </span>
               </div>
-              {i < STEP_LABELS.length - 1 && (
-                <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sand-400' : 'bg-sand-200')} />
-              )}
+              {i < STEP_LABELS.length - 1 && <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sand-400' : 'bg-sand-200')} />}
             </li>
           );
         })}
@@ -235,185 +203,478 @@ function Stepper({ current }: { current: number }) {
   );
 }
 
-function StepShell({ title, subtitle, children, onBack, onNext }: { title: string; subtitle: string; children: React.ReactNode; onBack: () => void; onNext: () => void }) {
+function BackLink({ onClick }: { onClick: () => void }) {
   return (
-    <FadeUp className="mx-auto w-full max-w-xl">
-      <button
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
-      <div className="card p-6 sm:p-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{title}</h1>
-        <p className="mt-2 text-sand-600">{subtitle}</p>
-        <div className="mt-8 space-y-4">{children}</div>
-        <div className="mt-9 flex justify-end">
-          <Button variant="primary" onClick={onNext} className="px-7">
-            Continue <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </FadeUp>
+    <button onClick={onClick} className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
+      <ArrowLeft className="h-4 w-4" /> Back
+    </button>
   );
 }
+
+function SectionCard({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div className="card p-6 sm:p-7">
+      <h3 className="text-lg font-semibold tracking-tight text-sand-900">{title}</h3>
+      {hint && <p className="mt-1 text-sm text-sand-500">{hint}</p>}
+      <div className="mt-5 space-y-4">{children}</div>
+    </div>
+  );
+}
+
+// ── Image uploads (data URLs — used directly in the templates) ───────────────
+
+function ImageDrop({ value, onChange, label, hint, max = 2, className }: { value?: string; onChange: (v: string) => void; label: string; hint?: string; max?: number; className?: string }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [drag, setDrag] = useState(false);
+  const take = async (f?: File) => {
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { toast.error('Please choose an image'); return; }
+    if (f.size > max * 1_000_000) { toast.error(`Image must be under ${max} MB`); return; }
+    onChange(await readFileAsDataUrl(f));
+  };
+  return (
+    <div className={className}>
+      <p className="label mb-1.5">{label}</p>
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); take(e.dataTransfer.files?.[0]); }}
+        className={cn('flex items-center gap-4 rounded-2xl border border-dashed p-4 transition-colors', drag ? 'border-sun-500 bg-sun-50' : 'border-sand-300 bg-sand-50')}
+      >
+        {value ? (
+          <img src={value} alt="" className="h-16 w-16 rounded-xl object-cover ring-1 ring-sand-200" />
+        ) : (
+          <div className="grid h-16 w-16 place-items-center rounded-xl bg-white text-sand-400 ring-1 ring-sand-200"><Upload className="h-5 w-5" /></div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-sand-600">{hint || 'Drag & drop, or'} <button onClick={() => ref.current?.click()} className="font-semibold text-sun-600 hover:underline">browse</button></p>
+          {value && <button onClick={() => onChange('')} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-sand-400 hover:text-ember-600"><Trash2 className="h-3 w-3" /> Remove</button>}
+        </div>
+        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => take(e.target.files?.[0])} />
+      </div>
+    </div>
+  );
+}
+
+function GalleryUpload({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const add = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: string[] = [];
+    for (const f of Array.from(files)) {
+      if (!/^image\//.test(f.type) || f.size > 5_000_000) continue;
+      next.push(await readFileAsDataUrl(f));
+    }
+    onChange([...value, ...next]);
+  };
+  return (
+    <div>
+      <p className="label mb-1.5">Gallery photos (optional)</p>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        {value.map((u, i) => (
+          <div key={i} className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-sand-200">
+            <img src={u} alt="" className="h-full w-full object-cover" />
+            <button onClick={() => onChange(value.filter((_, j) => j !== i))} aria-label="Remove photo" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+          </div>
+        ))}
+        <button onClick={() => ref.current?.click()} className="grid aspect-square place-items-center rounded-xl border border-dashed border-sand-300 bg-sand-50 text-sand-400 transition-colors hover:border-sun-400 hover:text-sun-600">
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+      <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={(e) => add(e.target.files)} />
+    </div>
+  );
+}
+
+const TimeInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => <Input type="time" step={300} {...props} />;
+
+function PlansEditor({ plans, onChange }: { plans: PlanInput[]; onChange: (v: PlanInput[]) => void }) {
+  const upd = (i: number, patch: Partial<PlanInput>) => onChange(plans.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const add = () => onChange([...plans, { id: `plan-${Date.now()}`, name: 'New plan', price: 0, unit: 'package', features: [] }]);
+  return (
+    <div className="space-y-3">
+      {plans.map((p, i) => (
+        <div key={p.id} className="rounded-xl border border-sand-200 p-3">
+          <div className="flex items-center gap-2">
+            <Input value={p.name} onChange={(e) => upd(i, { name: e.target.value })} placeholder="Plan name (e.g. Single lesson)" />
+            {plans.length > 1 && (
+              <button onClick={() => onChange(plans.filter((_, j) => j !== i))} aria-label="Remove plan" className="shrink-0 text-sand-400 transition-colors hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
+            )}
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Input type="number" min={0} value={p.price} onChange={(e) => upd(i, { price: Number(e.target.value) })} placeholder="Price (₪)" />
+            <Input value={p.unit} onChange={(e) => upd(i, { unit: e.target.value })} placeholder="/ lesson · 10 lessons · package" />
+          </div>
+          <Textarea rows={2} className="mt-2" value={(p.features ?? []).join('\n')} onChange={(e) => upd(i, { features: e.target.value.split('\n') })} placeholder="What's included — one per line" />
+          <label className="mt-2 flex items-center gap-1.5 text-xs text-sand-600"><input type="checkbox" checked={!!p.popular} onChange={(e) => upd(i, { popular: e.target.checked })} /> Mark as most popular</label>
+        </div>
+      ))}
+      <button onClick={add} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> Add plan</button>
+    </div>
+  );
+}
+
+// ── Welcome ──────────────────────────────────────────────────────────────────
 
 function Welcome({ onStart }: { onStart: () => void }) {
   return (
     <FadeUp className="mx-auto max-w-xl py-12 text-center">
-      <div className="mb-8 flex justify-center">
-        <LogoMark size="lg" />
-      </div>
+      <div className="mb-8 flex justify-center"><LogoMark size="lg" /></div>
       <span className="section-eyebrow justify-center">Mumotor builder</span>
-      <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">
-        Let's build your driving website
-      </h1>
-      <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">
-        Answer a few quick questions, pick a design, and we'll generate a complete, bookable website for you in minutes.
-      </p>
+      <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">Let's build your driving website</h1>
+      <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">Tell us about your school, pick a design, customise it, and publish a complete bookable website in minutes.</p>
       <div className="mt-10 flex flex-col items-center gap-3">
-        <Button variant="primary" onClick={onStart} className="px-8 py-3.5 text-base">
-          Start building <ArrowRight className="h-4 w-4" />
-        </Button>
+        <Button variant="primary" onClick={onStart} className="px-8 py-3.5 text-base">Start building <ArrowRight className="h-4 w-4" /></Button>
         <p className="text-sm text-sand-500">No design skills needed · Free to start</p>
       </div>
-
-      {/* Three-step mini preview */}
-      <Stagger className="mt-12 grid grid-cols-3 gap-3 text-center" gap={0.07}>
-        {[
-          { n: '01', label: 'Describe yourself' },
-          { n: '02', label: 'Pick a design' },
-          { n: '03', label: 'Publish & go live' },
-        ].map((s) => (
-          <Stagger.Item key={s.n}>
-            <div className="card p-4">
-              <span className="text-2xl font-semibold tracking-tight text-sand-300">{s.n}</span>
-              <p className="mt-1 text-xs font-medium text-sand-600">{s.label}</p>
-            </div>
-          </Stagger.Item>
-        ))}
-      </Stagger>
     </FadeUp>
   );
 }
 
+// ── Step 2: Business Info (Part 1) ───────────────────────────────────────────
+
+function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardConfig; set: <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => void; onAuto: () => void; onBack: () => void; onNext: () => void }) {
+  return (
+    <FadeUp className="mx-auto w-full max-w-2xl">
+      <BackLink onClick={onBack} />
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Tell us about you</h1>
+          <p className="mt-2 text-sand-600">This builds the top of your site — name, story, contact and logo.</p>
+        </div>
+        <Button variant="secondary" onClick={onAuto} className="shrink-0"><Wand2 className="h-4 w-4" /> Auto-fill sample</Button>
+      </div>
+
+      <div className="space-y-5">
+        <SectionCard title="Business">
+          <Field label="Business name" hint="Required">
+            <Input value={config.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder="Northgate Driving School" />
+          </Field>
+          <Field label="Business description" hint="Required — what makes you special, your teaching style, pass rate">
+            <Textarea rows={4} value={config.businessDescription} onChange={(e) => set('businessDescription', e.target.value)} placeholder="Calm, patient one-to-one lessons with a 96% first-time pass rate…" />
+          </Field>
+          <Field label="Tagline / slogan">
+            <Input value={config.tagline} onChange={(e) => set('tagline', e.target.value)} placeholder="Your road to confidence" />
+          </Field>
+        </SectionCard>
+
+        <SectionCard title="Contact">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Phone"><Input value={config.phone} onChange={(e) => set('phone', e.target.value)} placeholder="054-321-0987" inputMode="tel" /></Field>
+            <Field label="Email"><Input type="email" value={config.email} onChange={(e) => set('email', e.target.value)} placeholder="you@example.com" /></Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Address"><Input value={config.address} onChange={(e) => set('address', e.target.value)} placeholder="22 Jabotinsky Street" /></Field>
+            <Field label="City"><Input value={config.city} onChange={(e) => set('city', e.target.value)} placeholder="Netanya" /></Field>
+          </div>
+          <Field label="Site language">
+            <Select value={config.locale} onChange={(e) => set('locale', e.target.value as WizardConfig['locale'])}>
+              <option value="EN">English</option>
+              <option value="HE">עברית (Hebrew)</option>
+              <option value="AR">العربية (Arabic)</option>
+            </Select>
+          </Field>
+        </SectionCard>
+
+        <SectionCard title="Logo" hint="Optional — PNG/JPG/SVG, max 2 MB. We'll use a monogram of your name if you skip it.">
+          <ImageDrop value={config.logoSrc} onChange={(v) => set('logoSrc', v)} label="Your logo" max={2} />
+        </SectionCard>
+      </div>
+
+      <div className="mt-8 flex justify-end">
+        <Button variant="primary" onClick={onNext} className="px-7">Continue <ArrowRight className="h-4 w-4" /></Button>
+      </div>
+    </FadeUp>
+  );
+}
+
+// ── Step 3: Driving Setup (Part 2) ───────────────────────────────────────────
+
+function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set: <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => void; onBack: () => void; onNext: () => void }) {
+  const addBreak = () => set('breakTimes', [...config.breakTimes, { start: '12:00', end: '13:00' }]);
+  const setBreak = (i: number, key: 'start' | 'end', v: string) => set('breakTimes', config.breakTimes.map((b, j) => (j === i ? { ...b, [key]: v } : b)));
+  const toggleSocial = (p: SocialPlatform) => {
+    const next = { ...config.socialLinks };
+    if (p in next) delete next[p]; else next[p] = '';
+    set('socialLinks', next);
+  };
+  return (
+    <FadeUp className="mx-auto w-full max-w-2xl">
+      <BackLink onClick={onBack} />
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Set up your lessons</h1>
+      <p className="mt-2 text-sand-600">Your schedule, pricing and booking rules — this powers your booking system too.</p>
+
+      <div className="mt-6 space-y-5">
+        {/* A — Schedule */}
+        <SectionCard title="Schedule & availability">
+          <Field label="Working days">
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAYS.map((d) => {
+                const on = config.workingDays.includes(d);
+                return (
+                  <button key={d} type="button" aria-pressed={on}
+                    onClick={() => set('workingDays', on ? config.workingDays.filter((x) => x !== d) : [...config.workingDays, d])}
+                    className={on ? 'rounded-lg border border-sand-900 bg-sand-900 px-4 py-1.5 text-sm font-semibold text-white' : 'rounded-lg border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-600 hover:border-sand-300 hover:bg-sand-50'}>
+                    {titleCase(d).slice(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Shift start"><TimeInput value={config.shiftStart} onChange={(e) => set('shiftStart', e.target.value)} /></Field>
+            <Field label="Shift end"><TimeInput value={config.shiftEnd} onChange={(e) => set('shiftEnd', e.target.value)} /></Field>
+          </div>
+          <Toggle label="Customise hours per day" checked={config.customHoursPerDay} onChange={(v) => set('customHoursPerDay', v)} />
+          {config.customHoursPerDay && (
+            <div className="space-y-2 rounded-xl border border-sand-200 p-3">
+              {WEEKDAYS.map((d) => {
+                const ph = config.perDayHours[d];
+                return (
+                  <div key={d} className="flex items-center gap-3">
+                    <span className="w-10 text-sm font-medium text-sand-700">{titleCase(d).slice(0, 3)}</span>
+                    <label className="flex items-center gap-1.5 text-xs text-sand-500">
+                      <input type="checkbox" checked={!ph.closed} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, closed: !e.target.checked } })} /> Open
+                    </label>
+                    {!ph.closed && (
+                      <>
+                        <TimeInput value={ph.open} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, open: e.target.value } })} className="!py-1.5" />
+                        <span className="text-sand-400">–</span>
+                        <TimeInput value={ph.close} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, close: e.target.value } })} className="!py-1.5" />
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <Field label="Break times">
+            <div className="space-y-2">
+              {config.breakTimes.map((b, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <TimeInput value={b.start} onChange={(e) => setBreak(i, 'start', e.target.value)} />
+                  <span className="text-sand-400">–</span>
+                  <TimeInput value={b.end} onChange={(e) => setBreak(i, 'end', e.target.value)} />
+                  <button onClick={() => set('breakTimes', config.breakTimes.filter((_, j) => j !== i))} aria-label="Remove break" className="text-sand-400 hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+              <button onClick={addBreak} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> Add a break</button>
+            </div>
+          </Field>
+          <Toggle label="Rest between lessons" checked={config.restEnabled} onChange={(v) => set('restEnabled', v)} />
+          {config.restEnabled && (
+            <Field label="Rest minutes (5–30)"><Input type="number" min={5} max={30} step={5} value={config.restMinutes} onChange={(e) => set('restMinutes', Number(e.target.value))} /></Field>
+          )}
+        </SectionCard>
+
+        {/* B — Lessons & pricing */}
+        <SectionCard title="Lessons & pricing">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Class duration">
+              <Select value={config.classDuration} onChange={(e) => set('classDuration', Number(e.target.value))}>
+                {[20, 30, 40, 45, 60, 75, 90].map((d) => <option key={d} value={d}>{d} min</option>)}
+              </Select>
+            </Field>
+            <Field label="Price per class (₪)"><Input type="number" min={0} value={config.pricePerClass} onChange={(e) => set('pricePerClass', Number(e.target.value))} /></Field>
+          </div>
+          <Field label="Transmission" hint="What you teach — your site copy and FAQ adapt to this.">
+            <div className="flex gap-2">
+              {TRANSMISSIONS.map((t) => {
+                const on = config.transmission === t.value;
+                return (
+                  <button key={t.value} type="button" aria-pressed={on} onClick={() => set('transmission', t.value)}
+                    className={cn('flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors', on ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300')}>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+          <Field label="Plans / packages" hint="Your single lesson is here — add more plans (e.g. a 10-lesson block) with the + button. You set the name, price and what's included.">
+            <PlansEditor plans={config.plans} onChange={(v) => set('plans', v)} />
+          </Field>
+        </SectionCard>
+
+        {/* C — Teacher profile */}
+        <SectionCard title="Teacher profile">
+          <Field label="Full name"><Input value={config.teacherName} onChange={(e) => set('teacherName', e.target.value)} placeholder="David Cohen" /></Field>
+          <Field label="Experience">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {EXPERIENCE_LEVELS.map((lvl) => {
+                const on = config.experienceLevel === lvl.value;
+                return (
+                  <button key={lvl.value} type="button" aria-pressed={on} onClick={() => set('experienceLevel', lvl.value)}
+                    className={cn('rounded-xl border px-3 py-3 text-sm font-semibold transition-colors', on ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300')}>
+                    {lvl.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ImageDrop value={config.instructorPhoto} onChange={(v) => set('instructorPhoto', v)} label="Your photo" hint="A photo of you (shown on the site) — drag & drop, or" max={5} />
+            <ImageDrop value={config.carPhoto} onChange={(v) => set('carPhoto', v)} label="Car photo" hint="A photo of your car — drag & drop, or" max={5} />
+          </div>
+        </SectionCard>
+
+        {/* D — Booking rules */}
+        <SectionCard title="Booking rules" hint="When students can book tomorrow's lessons, and when you finalise the schedule.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Booking window start"><TimeInput value={config.bookingWindowStart} onChange={(e) => set('bookingWindowStart', e.target.value)} /></Field>
+            <Field label="Booking window end"><TimeInput value={config.bookingWindowEnd} onChange={(e) => set('bookingWindowEnd', e.target.value)} /></Field>
+          </div>
+          <Field label="Report time" hint="When you finalise tomorrow's schedule — must be at least 30 min after the booking window ends">
+            <TimeInput value={config.reportTime} onChange={(e) => set('reportTime', e.target.value)} />
+            {minutesAfter(config.bookingWindowEnd, config.reportTime) < 30 && (
+              <p className="mt-1.5 text-xs font-medium text-ember-600">Report time should be at least 30 minutes after the booking window ends ({config.bookingWindowEnd}).</p>
+            )}
+          </Field>
+        </SectionCard>
+
+        {/* E — Extras */}
+        <SectionCard title="Social media & gallery" hint="Optional — add the platforms you use and a few photos.">
+          <div>
+            <p className="label mb-1.5">Social media</p>
+            <div className="flex flex-wrap gap-2">
+              {SOCIAL_PLATFORMS.map((p) => {
+                const on = p in config.socialLinks;
+                return (
+                  <button key={p} type="button" aria-pressed={on} onClick={() => toggleSocial(p)}
+                    className={cn('rounded-full border px-3 py-1.5 text-sm font-medium transition-colors', on ? 'border-sun-500 bg-sun-50 text-sun-700' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300')}>
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 space-y-2">
+              {SOCIAL_PLATFORMS.filter((p) => p in config.socialLinks).map((p) => (
+                <div key={p} className="flex items-center gap-2">
+                  <span className="w-20 shrink-0 text-sm font-medium text-sand-600">{p}</span>
+                  <Input value={config.socialLinks[p] || ''} onChange={(e) => set('socialLinks', { ...config.socialLinks, [p]: e.target.value })} placeholder={`https://…`} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <GalleryUpload value={config.gallery} onChange={(v) => set('gallery', v)} />
+        </SectionCard>
+      </div>
+
+      <div className="mt-8 flex justify-end">
+        <Button variant="primary" onClick={onNext} className="px-7">Choose a design <ArrowRight className="h-4 w-4" /></Button>
+      </div>
+    </FadeUp>
+  );
+}
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium text-sand-700 select-none">
+      {label}
+      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
+        className={cn('relative h-6 w-11 rounded-full transition-colors', checked ? 'bg-sun-500' : 'bg-sand-300')}>
+        <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
+      </button>
+    </label>
+  );
+}
+
+// ── Step 4: Design ───────────────────────────────────────────────────────────
+
 function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onNext: () => void }) {
-  const { data: presets, isLoading } = useQuery({ queryKey: ['presets'], queryFn: aiApi.quickTemplates });
+  const selected = config.templateChoice || TEMPLATES[0].slug;
   return (
     <FadeUp className="w-full">
-      <button
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
+      <BackLink onClick={onBack} />
       <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Choose a design</h1>
-      <p className="mt-2 text-sand-600">Pick a template — you can fine-tune colors and content later.</p>
+      <p className="mt-2 text-sand-600">Your details are already inside every template — pick a look, then preview it live.</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="skeleton h-48 rounded-xl" />
-        ))}
-        {presets?.map((p: PresetSummary) => {
-          const sel = config.presetId === p.id;
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {TEMPLATES.map((t) => {
+          const sel = selected === t.slug;
           return (
-            <button
-              key={p.id}
-              onClick={() => onPick(p.id)}
-              aria-pressed={sel}
-              className={cn(
-                'card group w-full overflow-hidden p-4 text-start transition-colors duration-200',
-                sel
-                  ? 'border-sand-900 ring-2 ring-sand-900/10'
-                  : 'hover:border-sand-300'
-              )}
-            >
-              {/* Color swatch */}
-              <div className="mb-3 flex h-20 overflow-hidden rounded-lg">
-                <div className="flex-1" style={{ background: p.colors.primary }} />
-                <div className="w-1/4" style={{ background: p.colors.accent }} />
-                <div className="w-1/4" style={{ background: p.colors.surface }} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold tracking-tight text-sand-900">{p.label}</span>
-                {sel && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white">
-                    <Check className="h-3 w-3" strokeWidth={2.25} />
-                  </span>
+            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel}
+              className={cn('card group w-full overflow-hidden p-0 text-start transition-all duration-200', sel ? 'border-sand-900 ring-2 ring-sand-900/10' : 'hover:border-sand-300')}>
+              <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
+                {t.thumb ? (
+                  <img src={t.thumb} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="flex h-full w-full">{t.swatch.map((c) => <div key={c} className="flex-1" style={{ background: c }} />)}</div>
                 )}
+                <span className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.accent }}>{t.style}</span>
               </div>
-              <p className="mt-1 text-xs text-sand-500">{p.description}</p>
-              <p className="mt-2 text-[11px] uppercase tracking-widest text-sand-400">{p.fonts?.heading}</p>
+              <div className="flex items-center justify-between p-4">
+                <span className="font-semibold tracking-tight text-sand-900">{t.name}</span>
+                {sel && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white"><Check className="h-3 w-3" strokeWidth={2.25} /></span>}
+              </div>
             </button>
           );
         })}
       </div>
 
-      <div className="mt-9 flex justify-end">
-        <Button variant="primary" onClick={onNext} className="px-7">
-          Generate my site <ArrowRight className="h-4 w-4" />
-        </Button>
+      <div className="mt-8 flex justify-end">
+        <Button variant="primary" onClick={onNext} className="px-7">Preview my site <ArrowRight className="h-4 w-4" /></Button>
       </div>
     </FadeUp>
   );
 }
 
-function GeneratingStep({ config, onDone, onError }: { config: WizardConfig; onDone: (html: string) => void; onError: () => void }) {
-  const [phase, setPhase] = useState(0);
-  const phases = ['Designing your layout…', 'Adding your details…', 'Placing photography…', 'Finalizing your site…'];
-  useEffect(() => {
-    const t = setInterval(() => setPhase((p) => (p + 1) % phases.length), 900);
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await aiApi.generateWebsite({ name: config.businessName, presetId: config.presetId, businessConfig: toBusinessConfig(config) });
-        // small delay so the progress is felt
-        setTimeout(() => { if (!cancelled) onDone(res.html); }, 1400);
-      } catch (e) {
-        toast.error(apiError(e).message);
-        if (!cancelled) onError();
-      }
-    })();
-    return () => { cancelled = true; clearInterval(t); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center py-24 text-center" role="status" aria-live="polite">
-      <Loader2 className="h-10 w-10 animate-spin text-sand-900" />
-      <h2 className="mt-6 text-2xl font-semibold tracking-tight text-sand-900">Building your website</h2>
-      <p className="mt-2 h-6 text-sand-600 transition-all duration-300">{phases[phase]}</p>
-      <p className="mt-5 text-xs text-sand-500">This usually takes 10–20 seconds</p>
-    </div>
-  );
-}
+// ── Step 5: Preview (wide, live, switchable) ─────────────────────────────────
 
-function PreviewStep({ html, onBack, onPublish, publishing }: { html: string; onBack: () => void; onPublish: () => void; publishing: boolean }) {
+function PreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
+  const data = useMemo(() => wizardToTemplateData(config), [config]);
+  const selected = config.templateChoice || TEMPLATES[0].slug;
+  const meta = getTemplate(selected) ?? TEMPLATES[0];
   return (
     <FadeUp className="w-full">
-      <div className="mb-5 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800"
-        >
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
           <ArrowLeft className="h-4 w-4" /> Change design
         </button>
-        <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">
-          Publish my site <ArrowRight className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> Customize</Button>
+          <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">Publish my site <ArrowRight className="h-4 w-4" /></Button>
+        </div>
       </div>
-      {/* Browser chrome mockup */}
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="me-1 text-sm font-medium text-sand-500">Your site in:</span>
+        {TEMPLATES.map((t) => {
+          const sel = selected === t.slug;
+          return (
+            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel}
+              className={cn('inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors', sel ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300 hover:text-sand-800')}>
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: t.accent }} />{t.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Template banner — photo + name above the live site */}
+      <div className="mb-3 flex items-center gap-4 overflow-hidden rounded-2xl border border-sand-200 bg-white p-3 shadow-card">
+        <div className="h-16 w-28 shrink-0 overflow-hidden rounded-xl" style={{ background: meta.bg }}>
+          {meta.thumb && <img src={meta.thumb} alt={meta.name} className="h-full w-full object-cover" />}
+        </div>
+        <div className="min-w-0">
+          <p className="text-base font-semibold tracking-tight text-sand-900">{meta.name}</p>
+          <p className="truncate text-sm text-sand-500"><span className="font-medium" style={{ color: meta.accent }}>{meta.style}</span> · {meta.blurb}</p>
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
         <div className="flex items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
-          <span className="h-3 w-3 rounded-full bg-sand-300" />
-          <span className="h-3 w-3 rounded-full bg-sand-300" />
-          <span className="h-3 w-3 rounded-full bg-sand-300" />
-          <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">Preview</span>
+          <span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" />
+          <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">{data.business.name} · live preview</span>
         </div>
-        <iframe title="Site preview" srcDoc={html} className="h-[70vh] w-full" sandbox="allow-scripts allow-same-origin allow-popups" />
+        <div className="relative h-[78vh] overflow-y-auto overflow-x-hidden">
+          <TemplateRender slug={selected} data={data} />
+        </div>
       </div>
+      <p className="mt-3 text-center text-xs text-sand-500">Scroll inside the frame — every button works. Use <strong>Customize</strong> to change colours, text and photos.</p>
     </FadeUp>
   );
 }
+
+// ── Account + Done ───────────────────────────────────────────────────────────
 
 function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; onBack: () => void; publishing: boolean }) {
   const { login, register } = useAuth();
@@ -436,91 +697,46 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
   };
   return (
     <FadeUp className="mx-auto w-full max-w-md">
-      <button
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to preview
-      </button>
+      <BackLink onClick={onBack} />
       <div className="card p-6 sm:p-8">
-      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-        {mode === 'register' ? 'Create your account' : 'Sign in'}
-      </h1>
-      <p className="mt-2 text-sand-600">One account to publish and manage your site.</p>
-      <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
-        {mode === 'register' && (
-          <Field label="Full name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>
-        )}
-        <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
-        <Field label="Password" hint={mode === 'register' ? 'At least 8 characters' : undefined}>
-          <div className="relative">
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              className="pe-11"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </Field>
-        <Button type="submit" variant="primary" loading={busy || publishing} className="w-full">
-          {mode === 'register' ? 'Create account & publish' : 'Sign in & publish'}
-        </Button>
-      </form>
-      <p className="mt-6 text-center text-sm text-sand-600">
-        {mode === 'register' ? 'Already have an account?' : 'New here?'}{' '}
-        <button
-          onClick={() => setMode(mode === 'register' ? 'login' : 'register')}
-          className="font-medium text-sun-600 transition-colors hover:text-sun-700 hover:underline"
-        >
-          {mode === 'register' ? 'Sign in' : 'Create one'}
-        </button>
-      </p>
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{mode === 'register' ? 'Create your account' : 'Sign in'}</h1>
+        <p className="mt-2 text-sand-600">One account to publish and manage your site.</p>
+        <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
+          {mode === 'register' && <Field label="Full name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>}
+          <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
+          <Field label="Password" hint={mode === 'register' ? 'At least 8 characters' : undefined}>
+            <div className="relative">
+              <Input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className="pe-11" />
+              <button type="button" onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </Field>
+          <Button type="submit" variant="primary" loading={busy || publishing} className="w-full">{mode === 'register' ? 'Create account & publish' : 'Sign in & publish'}</Button>
+        </form>
+        <p className="mt-6 text-center text-sm text-sand-600">
+          {mode === 'register' ? 'Already have an account?' : 'New here?'}{' '}
+          <button onClick={() => setMode(mode === 'register' ? 'login' : 'register')} className="font-medium text-sun-600 transition-colors hover:text-sun-700 hover:underline">{mode === 'register' ? 'Sign in' : 'Create one'}</button>
+        </p>
       </div>
     </FadeUp>
   );
 }
 
 function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard: () => void }) {
-  const liveUrl = `${window.location.origin}${result.path}`;
+  const liveUrl = `${window.location.origin}/p/${result.slug}`;
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
-      {/* Success icon */}
-      <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900">
-        <Check className="h-8 w-8 text-white" strokeWidth={1.75} />
-      </div>
+      <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900"><Check className="h-8 w-8 text-white" strokeWidth={1.75} /></div>
       <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Your site is live</h1>
-      <p className="mt-3 text-sand-600">
-        Your driving website is published and ready to take bookings.
-      </p>
-      {/* URL display */}
+      <p className="mt-3 text-sand-600">Your driving website is published and ready to take bookings.</p>
       <div className="mt-7 flex items-center justify-between gap-2 rounded-xl border border-sand-200 bg-sand-50 p-4">
         <code className="truncate text-sm font-medium text-sand-700">{result.subdomain}</code>
-        <a
-          href={liveUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="btn-secondary shrink-0 text-sm"
-        >
-          Visit <ExternalLink className="h-4 w-4" />
-        </a>
+        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary shrink-0 text-sm">Visit <ExternalLink className="h-4 w-4" /></a>
       </div>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Button variant="primary" onClick={onDashboard} className="px-7">
-          Go to dashboard <ArrowRight className="h-4 w-4" />
-        </Button>
-        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">
-          View live site
-        </a>
+        <Button variant="primary" onClick={onDashboard} className="px-7">Go to dashboard <ArrowRight className="h-4 w-4" /></Button>
+        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">View live site</a>
       </div>
     </FadeUp>
   );

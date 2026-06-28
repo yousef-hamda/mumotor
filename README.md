@@ -1,12 +1,12 @@
 # Mumotor
 
-**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of 9 premium templates, and Mumotor **generates and hosts** a complete, trilingual (Hebrew / Arabic / English) website at `your-name.mumotor.com`. They edit it visually, publish it, then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, and bulk email — from one dashboard.
+**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of **6 premium, distinct templates**, and Mumotor **generates, lets them visually customize, and hosts** a complete, trilingual (Hebrew / Arabic / English) website. They then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, bulk email, reviews — from one dashboard.
 
 One teacher = one website. Booking-first. Built for bilingual Israel (Arabic + Jewish communities).
 
 ```
-Build → Edit → Publish → Operate
-wizard   visual editor   /site/{slug}   dashboard
+Build  →  Customize  →  Publish  →  Operate
+wizard    inline editor   /p/{slug}    dashboard
 ```
 
 ---
@@ -17,7 +17,9 @@ wizard   visual editor   /site/{slug}   dashboard
 - [Tech stack](#tech-stack)
 - [Quick start (local)](#quick-start-local)
 - [The core flow](#the-core-flow)
-- [Deployment (Railway + Vercel)](#deployment-railway--vercel)
+- [Templates & the Customize editor](#templates--the-customize-editor)
+- [Multi-tenant data isolation](#multi-tenant-data-isolation)
+- [Deployment (Railway)](#deployment-railway)
 - [Environment variables](#environment-variables)
 - [Scripts](#scripts)
 - [API surface](#api-surface)
@@ -30,15 +32,15 @@ wizard   visual editor   /site/{slug}   dashboard
 
 ## Highlights
 
-- **Brand & landing** — a **dark oxblood-clay** design system (Tailwind tokens `sand`/`sun`/`ember` in `tailwind.config.js` + `index.css`; Fraunces + Plus Jakarta Sans). The marketing page opens on a **silent cinematic intro**: a real driving-lesson cabin clip sits paused on its poster until the visitor presses **Start**, the clip plays, then it cross-fades to reveal the nav + home page (`components/hero/CinematicHero.tsx`, `lib/useIntro.ts`). Steering-wheel brand mark in `components/Logo.tsx`.
-- **Website generator** — 9 distinct, light-themed premium presets + a deterministic builder that assembles a complete, self-contained, responsive site (hero · stats · how-it-works · about · lessons · gallery · reviews · FAQ · contact · CTA) with photographic imagery and working **Enroll / Book** CTAs.
-- **Builder wizard** — welcome → about → lessons & hours → contact → pick design → generate → live preview → publish.
-- **Visual editor** — live preview with viewport switching, preset + color theming, inline content fields, autosave, and one-click publish.
-- **Operational dashboard** — students (search/filter/paginate, pause/finish/delete), today's schedule, daily enrollment codes, bulk email, reviews, publishing, billing, settings.
+- **Brand & landing** — a premium, near-monochrome **Apple-style minimal** design system (Tailwind tokens `sand` = greyscale, `sun` = the one accent Apple-blue `#0071E3`, `ember` = danger; `tailwind.config.js` + `index.css`; system/SF-Pro font with an Inter fallback). The marketing page (`pages/Landing.tsx`) has a fixed aurora background, a real driving-lesson video hero, scroll-driven 3D tilt, glass nav, and a dark "everything a driving instructor's site needs" section. Gradient-`M` monogram logo (`components/Logo.tsx`).
+- **6 distinct website templates** — `grid-ink` (Swiss editorial), `open-road` (retro 70s), `night-shift` (dark neon), `easy-lane` (soft friendly), `prestige` (luxury black-gold), `full-throttle` (neo-brutalist). Each is a self-contained, responsive, animated long-scroll site (hero · stats · packages · about · areas · reviews · gallery · FAQ · booking · contact) rendered from a shared `TemplateData` contract.
+- **Builder wizard** — welcome → business info → driving setup (lesson **plans**, **manual/automatic/both**, per-day hours, breaks, booking window, instructor photo) → contact & socials → **pick template + logo** → live preview (with a switcher across all 6) → publish. An **Auto-fill sample** button populates demo data.
+- **Inline visual Customize editor** — full-screen live site, no side panel. Click anything to edit: **text** (type inline + Text/Fill colour), **icons** (swap from the full lucide icon library), **images** (upload or find on Unsplash), **background & colours** (a "Colours" panel), and **lists** (add/remove packages/FAQs/areas/stats inline). Undo / Redo / Reset; persists only on **Save**.
+- **Operational dashboard** — overview (live student/booking counts per site), Driving Teacher (rotating + static enrollment code, students with search/filter/pause/finish/delete, today's schedule, bulk email, full booking/hours/profile settings), reviews (approve/delete), publishing (customize/edit/visit/unpublish), billing, account (profile, password, **delete a website**).
 - **Public student flow** — code enrollment, self-service lesson booking (advance window, same-day cutoff, breaks, no double-booking), magic-link login, self-pause.
-- **Automated jobs** — 09:00 "booking open" emails, 20:00 teacher schedule report, ~2h lesson reminders.
+- **Automated jobs** — "booking open" emails, teacher schedule report, lesson reminders (node-cron).
 - **Trilingual + RTL** — HE / AR / EN with a language switcher; generated sites are fully translated and RTL-aware.
-- **Secure** — JWT auth + ownership checks, salted+hashed codes, timing-safe comparisons, rate limiting, transactional booking, one-time website-scoped magic links.
+- **Multi-tenant & secure** — every site's data is isolated by `websiteId` (cascade deletes); JWT auth + ownership checks, salted/hashed codes, timing-safe comparisons, rate limiting, transactional booking, one-time website-scoped magic links.
 
 ---
 
@@ -46,11 +48,12 @@ wizard   visual editor   /site/{slug}   dashboard
 
 ```
 Browser ──► React SPA (Vite, :5173)  ── /api ─►  Express API (:4000)
-                                                   ├─► PostgreSQL (Prisma)
+                                                   ├─► PostgreSQL (Prisma, ~16 models)
                                                    ├─► Redis (magic tokens, rate limits, site cache) — optional
                                                    ├─► Email (SMTP, console fallback)
                                                    └─► node-cron (reminders / daily emails)
-Published teacher sites:  GET /site/{slug}  (Redis-cached HTML)  →  {slug}.mumotor.com in prod
+Published teacher sites:  GET /p/{slug}   (React, applies the teacher's customization)
+                          GET /site/{slug} (deterministic cached HTML — still generated on publish, not user-facing)
 ```
 
 Redis and SMTP are optional locally (in-memory KV + console-email fallbacks), so the app runs with just PostgreSQL.
@@ -67,84 +70,122 @@ Redis and SMTP are optional locally (in-memory KV + console-email fallbacks), so
 | Cache | Redis (ioredis) + in-memory fallback |
 | Email | Nodemailer (console fallback) |
 | Jobs | node-cron |
-| Frontend | React 18, Vite 5, TanStack Query, React Router, Tailwind CSS |
+| Frontend | React 18, Vite 5, TanStack Query, React Router, Tailwind CSS, Framer Motion, lucide-react |
 | i18n | i18next + react-i18next (HE/AR/EN, RTL) |
-| Deploy | Railway (API + Postgres + Redis), Vercel (SPA), Docker |
+| Deploy | Railway (API + Postgres + Redis, Docker); optional Vercel for the SPA |
 
 ---
 
 ## Quick start (local)
 
-**Prerequisites:** Node ≥ 20, PostgreSQL ≥ 14 (running), Redis (optional).
+**Prerequisites:** Node ≥ 20, PostgreSQL ≥ 14 (running on :5432), Redis (optional).
 
 ```bash
 npm install
-cp .env.example packages/backend/.env          # adjust DATABASE_URL if needed
-createdb otto_driving                           # or: docker compose up -d
-npm run db:migrate                              # apply migrations
-npm run db:seed                                 # demo teacher, site, students, codes
-npm run dev                                     # API :4000 + web :5173
+# Postgres must be running. Default local URL: postgresql://otto:otto@localhost:5432/otto_driving
+# (role/db are still named `otto`/`otto_driving` from the old codename — internal only.)
+npm run db:migrate              # apply migrations
+npm run db:seed                 # demo teacher, site, students, codes, sample bookings
+npm run dev                     # API :4000 + web :5173
 ```
 
 Open **http://localhost:5173**.
 
 - **Build a site:** http://localhost:5173/builder
-- **Teacher dashboard:** teacher@mumotor.local / password123
-- **Published demo site:** http://localhost:4000/site/davids-driving
+- **Browse templates:** http://localhost:5173/templates
+- **Teacher dashboard:** `teacher@mumotor.local` / `password123` · **Admin:** `admin@mumotor.local`
+- **Published demo site (React):** http://localhost:5173/p/davids-driving
 - **Enroll (code `DRIVE2026`):** http://localhost:5173/p/davids-driving/enroll
+
+> Re-run `npm run db:seed` any time to refresh demo data (the seed creates sample bookings for *tomorrow*, which the integration tests rely on).
 
 ---
 
 ## The core flow
 
-1. **`/builder`** — the teacher fills the wizard and picks a preset; `POST /api/ai/v2/generate-website` returns a live HTML preview.
-2. **Publish** — creates a `Website` (status `DRAFT`), syncs booking settings, then `POST /api/websites/:id/publish` regenerates the HTML with the real slug, snapshots a version, caches it in Redis, and flips status to `PUBLISHED`.
-3. **Serve** — `GET /site/:slug` returns the published HTML (→ `{slug}.mumotor.com` via wildcard DNS in prod).
-4. **Edit** — `/editor/:id` re-generates a live preview as the teacher tweaks content/colors/preset, autosaves, and republishes.
+1. **`/builder`** — the teacher fills the wizard and picks a template + logo; the preview renders the selected template **live with their real data**.
+2. **Customize** *(optional)* — `/customize/:id` opens the inline editor over the live site to tweak text, icons, colours, images, and lists.
+3. **Publish** — creates/updates a `Website`, syncs booking settings, snapshots a version, regenerates the cached HTML, and flips status to `PUBLISHED`.
+4. **Serve** — `GET /p/:slug` renders the chosen template (applying the saved customization). The path form works out of the box; per-teacher subdomains (`{slug}.mumotor.com`) are optional via wildcard DNS.
 5. **Operate** — students enroll + book on the live site; the teacher manages everything from `/dashboard`.
 
 ---
 
-## Deployment
+## Templates & the Customize editor
 
-> Real deploys require **your** accounts. Everything below is wired and ready; run the commands from the monorepo root.
+**Templates** live in `packages/frontend/src/templates/<slug>/` (`index.tsx` + `<slug>.css`, every selector namespaced under `.tmpl-<slug>`, own palette/fonts). All 6 render from one `TemplateData` shape via `TemplateRender.tsx`; `fromWizard.ts` maps the teacher's wizard answers and the public settings onto that shape. The `/templates` gallery shows concept photos; the builder Design step shows the same 6 as choosable cards.
 
-### Option A — Railway only (recommended, single service)
+**Customize mode** (`components/customize/CustomizeMode.tsx`, opened from the builder preview or the dashboard route `/customize/:id`) is a full-screen live editor with **no side panel**. It writes a small, serializable overrides layer and persists **only on Save**:
 
-One Railway service runs **everything**: the API, the published teacher sites (`/site/:slug`), uploads (`/uploads`), **and the built React SPA** (the `Dockerfile` builds the frontend and the Express server serves it). No Vercel needed.
+```ts
+Customization {
+  fields?:  Record<path, value>                 // text / image url / list arrays / icon names
+  theme?:   Record<cssVar, value>               // template colour slots (background, accent, …)
+  styles?:  Record<path, {color?, background?}> // per-element text colour + button fill
+  copy?:    Record<key, string>                 // overrides for otherwise-hardcoded headings/subtitles
+  icons?:   Record<key, lucideName>             // swapped icons
+}
+```
 
-- Provision on Railway: this service (Docker) + **PostgreSQL** + **Redis** plugins.
-- The included root `Dockerfile` + `railway.toml` handle it. `NODE_ENV=staging`; Railway assigns `PORT` (read from env).
-- Set env vars (below), pointing the public-URL vars at the **same** Railway domain:
+What you can edit by clicking the live site (every editable element carries `data-edit` + `data-edit-type`):
+
+- **Text** — element becomes `contentEditable`; a popover offers **Text** and **Fill** colour. *Every* heading/subtitle is editable (hardcoded strings are wired through `data.copy`).
+- **Icons** — a searchable, categorized **full lucide icon library** picker (`templates/DynamicIcon.tsx`); the chosen icon name is stored in `data.icons`.
+- **Images** — upload or find a photo on Unsplash (backend proxy), or paste a URL.
+- **Background & colours** — a **"Colours"** toolbar panel maps to each template's CSS colour slots (so it's discoverable without hunting for the exact pixel); you can also click any empty background area.
+- **Lists** — packages / FAQs / areas / stats show inline **add (+) / remove (🗑)** controls on hover; list text edits write the whole-array override.
+- **Buttons never navigate in edit mode** — any link/button click is intercepted so you edit its text + colour instead of triggering it.
+
+Undo / Redo / Reset are in the toolbar; hovering shows a dashed outline on every editable region. On **Save** the customization is written to the wizard config (pre-publish) or `website.configuration.customization` (post-publish), and the public `/p/:slug` site reflects it.
+
+---
+
+## Multi-tenant data isolation
+
+Each site is an isolated tenant and its data grows independently:
+
+- `Website` belongs to a `User` (`onDelete: Cascade`). **Every** domain table — `SiteSettings, Page, Service, ClientEnrollment, DailyCode, BulkEmail, Booking, Review, Media, Domain, WebsiteVersion` — carries a `websiteId` FK with `onDelete: Cascade` + `@@index([websiteId])`. One site's students/bookings/reviews never bleed into another.
+- Teacher routes are **ownership-gated** (`website.userId !== req.user.id` ⇒ 403; even enrollment lookups are scoped by `websiteId`).
+- **Delete a website**: `DELETE /api/websites/:id` requires body `{ "confirm": "DELETE" }` (else `400 CONFIRM_REQUIRED`); it cascades away **all** of that site's rows and clears the `site:<slug>` cache. The dashboard exposes this as a danger-zone that makes you type `DELETE`.
+
+---
+
+## Deployment (Railway)
+
+> Real deploys require **your** accounts. Everything below is wired and ready; run from the monorepo root.
+
+One Railway service runs **everything**: the API, the published sites, uploads (`/uploads`), **and the built React SPA** (the root `Dockerfile` builds the frontend and Express serves it). No Vercel required.
+
+- Provision on Railway: this service (Docker) + **PostgreSQL** + **Redis** plugins (`railway.toml` included).
+- Set service variables (point public-URL vars at the **same** Railway domain):
   ```bash
-  # in the Railway service variables:
-  #   APP_URL=https://<your-app>.up.railway.app
-  #   FRONTEND_URL=https://<your-app>.up.railway.app   (same origin)
-  #   DATABASE_URL / REDIS_URL  → from the Railway Postgres/Redis plugins
-  #   JWT_SECRET=<long random string>
-  railway up --detach
-  railway run npm run db:deploy --workspace @mumotor/backend   # migrations (separate step)
+  APP_URL=https://<your-app>.up.railway.app
+  FRONTEND_URL=https://<your-app>.up.railway.app    # same origin
+  DATABASE_URL / REDIS_URL   → from the Railway Postgres/Redis plugins
+  JWT_SECRET=<long random string>
   ```
-- Everything is served from `https://<your-app>.up.railway.app` (or your custom domain): the app at `/`, the API at `/api`, published sites at `/site/{slug}`.
-- *Per-teacher subdomains* (`{slug}.mumotor.com`) are optional and need wildcard DNS + host-based routing; the path form `…/site/{slug}` works out of the box.
+- Deploy + migrate:
+  ```bash
+  railway up --detach
+  railway run npm run db:deploy --workspace @mumotor/backend    # prisma migrate deploy
+  ```
+- Going live is **just** pointing `DATABASE_URL` at Railway Postgres — the Prisma datasource is `url = env("DATABASE_URL")`, no code change.
 
-### Option B — Railway + Vercel (split, optional)
-
-If you prefer the SPA on Vercel's CDN: deploy the backend to Railway (as above) and the frontend to Vercel — root directory `packages/frontend` (SPA rewrite in `vercel.json`), with `VITE_API_URL=https://<backend>/api` and `VITE_SITE_BASE=https://<backend>`, then `npx vercel --prod --yes`. (The backend still serves the SPA too, so this is purely for CDN/edge.)
+*Optional split:* host the SPA on Vercel (`packages/frontend`, `vercel.json` SPA rewrite, `VITE_API_URL` / `VITE_SITE_BASE` pointing at the Railway backend). The backend serves the SPA too, so this is purely for CDN/edge.
 
 ---
 
 ## Environment variables
 
-See `.env.example` (root). Required: `DATABASE_URL`, `JWT_SECRET`. Optional integrations (the app runs without them): `REDIS_URL`, `SMTP_*`, `STRIPE_*`, `GROQ/OPENAI/...` AI keys, `S3_*`, `PEXELS_API_KEY`. Locale: `BUSINESS_TIMEZONE` (default `Asia/Jerusalem`), `DEFAULT_LOCALE` (`he`).
+See `.env.example` (root). Required: `DATABASE_URL`, `JWT_SECRET`. Optional (the app runs without them): `REDIS_URL`, `SMTP_*`, `STRIPE_*`, AI keys, `S3_*`, `UNSPLASH_ACCESS_KEY` (powers the in-editor "find photo"). Locale: `BUSINESS_TIMEZONE` (default `Asia/Jerusalem`), `DEFAULT_LOCALE` (`he`).
 
 ---
 
 ## Scripts
 
-Root: `npm run dev` · `npm run build` · `npm run db:migrate` · `npm run db:seed` · `docker compose up -d`
-Backend: `npm test` (integration suite) · `npm run db:reset` · `npm run db:deploy` (migrate deploy) · `npm run test:cron`
-Frontend: `npm run dev` · `npm run build` · `node e2e/capture.mjs <tag>` (screenshot sweep) · `node e2e/wizard.mjs` (builder E2E)
+- **Root:** `npm run dev` · `npm run build` · `npm run db:migrate` · `npm run db:seed` · `docker compose up -d`
+- **Backend:** `npm test` (integration suite, needs a running API) · `npm run db:reset` · `npm run db:deploy` (migrate deploy) · `npm run test:cron`
+- **Frontend:** `npm run dev` · `npm run build` · `npm run typecheck` · `npm test` (vitest unit) · `node e2e/features.e2e.mjs` (full E2E)
 
 ---
 
@@ -154,31 +195,40 @@ Frontend: `npm run dev` · `npm run build` · `node e2e/capture.mjs <tag>` (scre
 
 - **Auth** — `POST /auth/register|login`, `GET/PATCH /auth/me`, `POST /auth/change-password`
 - **Generation** — `GET /ai/v2/quick-templates`, `POST /ai/v2/generate-website`
-- **Websites** — CRUD `/websites`, `POST /websites/:id/publish|unpublish`
-- **Driving school (17 endpoints)** — teacher: settings, students, daily-report, daily-code, bulk-email; public: enroll, check-enrollment, public-availability, book-lesson, daily-code/validate, validate-magic-link, self-deactivate, public-settings
+- **Websites** — CRUD `/websites`, `POST /websites/:id/publish|unpublish`, **`DELETE /websites/:id`** (typed-`DELETE` confirm, cascades)
+- **Driving school** — teacher: settings, students (list/search/toggle/finish/delete), daily-report, daily-code, bulk-email; public: enroll, check-enrollment, public-availability, book-lesson, daily-code/validate, validate-magic-link, self-deactivate, public-settings (returns the template, locale, bio, logo, contact, socials)
 - **Reviews / Subscriptions** — `/reviews`, `/subscriptions` (real Stripe Checkout + webhook when keys set; demo otherwise)
-- **Media** — `POST /websites/:id/media` (image upload → `/uploads`, S3-ready), notifications `/notifications`, admin `/admin/*` (role-gated)
-- **Site serving** — `GET /site/:slug` (root)
+- **Media / Photos** — `POST /websites/:id/media` (upload → `/uploads`, S3-ready), `GET /photos/search` (Unsplash proxy for the editor)
+- **Notifications / Admin** — `/notifications`, `/admin/*` (role-gated)
+- **Site serving** — React `GET /p/:slug` (frontend) · deterministic `GET /site/:slug` (backend, cached)
 
 ---
 
 ## Internationalization
 
-i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language switcher appears in the marketing site, dashboard, and student pages. **Generated sites are fully translated** (nav, sections, default services/FAQs/reviews) and render RTL for Hebrew/Arabic. Fallback chain: requested → English.
+i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language switcher appears in the marketing site, dashboard, and student pages. **Generated sites are fully translated** and render RTL for Hebrew/Arabic. Fallback chain: requested → English.
 
 ---
 
 ## Testing
 
-- **Backend integration suite (70 assertions)** — auth, ownership, settings, codes, enrollment, availability, booking (double-book / breaks / advance / cutoff / past), student management, daily report, bulk email, self-deactivate, magic links.
-  ```bash
-  # server in test mode (rate limiting bypassed for the suite)
-  cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts
-  # then, in another terminal:
-  cd packages/backend && npm test
-  ```
-- **Builder E2E (Playwright)** — `node packages/frontend/e2e/wizard.mjs` drives wizard → generate → publish and verifies the live site.
-- **Visual sweep** — `node packages/frontend/e2e/capture.mjs <tag>` screenshots every page (desktop + mobile).
+All green: **unit 26/26 · integration 70/70 · E2E 61/61 (0 console errors)**, both packages typecheck-clean.
+
+```bash
+# Frontend unit (vitest)
+npm test --workspace @mumotor/frontend
+
+# Backend integration (needs a running API on :4000)
+cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts   # terminal 1
+npm test --workspace @mumotor/backend                                                # terminal 2
+
+# Frontend E2E (Playwright/chromium are vendored in node_modules — run from repo root)
+WEB=http://localhost:5173 node packages/frontend/e2e/features.e2e.mjs
+```
+
+The integration suite covers auth, ownership, settings, codes, enrollment, availability, booking (double-book / breaks / advance / cutoff / past), student management, daily report, bulk email, self-deactivate, magic links. The E2E covers the template gallery, builder wizard, live preview, the full inline Customize flow (text, **icon library swap**, **button fill**, **copy text**, background/**Colours** panel, list add/remove, Save → persistence), and the published site.
+
+> **Gotchas:** the integration "tomorrow excludes booked 09:00/10:00" check needs a **fresh** `npm run db:seed` (the seed books *its* tomorrow, which drifts day-to-day). Don't run the integration suite twice within 60s — enroll/book are rate-limited (you'd see a transient `RATE_LIMITED` cascade, not a regression).
 
 ---
 
@@ -187,22 +237,24 @@ i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language 
 ```
 packages/
   backend/
-    prisma/schema.prisma          # ~16 models
+    prisma/schema.prisma          # ~16 models; every domain table keyed by websiteId (cascade)
     prisma/migrations/            # SQL migrations (railway migrate deploy)
     src/
-      routes/                     # auth, websites, drivingSchool (17), aiGeneration, reviews, subscriptions, siteServing
-      services/
-        ai/                       # templatePresets (9), templateBuilder, templateStrings (HE/AR/EN), generator
-        auth, email, jobs, scheduling
+      routes/                     # auth, websites (incl. DELETE), drivingSchool, aiGeneration,
+                                  #   reviews, subscriptions, media, photos (Unsplash), siteServing, admin
+      services/  ai/ (presets, builder, strings HE/AR/EN, generator), auth, email, jobs, scheduling
       middleware, utils, lib, config
-    test/                         # integration + cron checks
+    test/                         # integration.mjs + feature.integration.mjs + cron checks
   frontend/
     src/
-      pages/  builder/ editor/ dashboard/ public/ auth/ Landing
-      components/  Logo, LanguageSwitcher, motion, ui, layout, PublicShell, hero/CinematicHero
-      lib/  api, auth, i18n, wizard, types, utils, useIntro
-      public/media/                 # hero-car.mp4|webm + poster (driving-lesson clip)
-    e2e/                          # Playwright harness
+      pages/  builder/ customize/ dashboard/ public/ templates/ auth/ admin/ Landing
+      templates/                  # 6 templates + types, sampleData, registry, shared,
+                                  #   TemplateRender, fromWizard, DynamicIcon, SocialIcon, BrandMark,
+                                  #   customize/overrides.ts
+      components/  Logo, Background, LanguageSwitcher, motion, ui, layout,
+                   customize/ (CustomizeMode, useHistory, PhotoPicker)
+      lib/  api, auth, i18n, wizard, types, utils
+    e2e/                          # Playwright harness (features.e2e.mjs is the suite)
 Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.yml
 ```
 
@@ -210,9 +262,10 @@ Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.ym
 
 ## Notes & deviations
 
-- **Express (not Fastify)** + React Query — the original reference lists Fastify/BullMQ/Zustand; this build keeps a battle-tested Express/Prisma/React-Query core (node-cron for jobs, local state for the wizard) for the same behavior without a rewrite.
+- **Express (not Fastify)** + React Query + node-cron — a battle-tested core for the same behavior without a rewrite.
 - **Billing is demo-mode** (plans switch without payment) until `STRIPE_SECRET_KEY` is set.
 - **Generation is deterministic** (presets + builder), not a freeform AI call — predictable, fast, on-brand. AI keys only power optional bio enhancement.
 - **Scheduling math is timezone-aware** (UTC internally; set `BUSINESS_TIMEZONE`).
-- **App-shell i18n** covers the public-facing surfaces (landing, generated sites, student shells) fully; deeper internal dashboard strings fall back to English and are extensible via `src/lib/i18n.ts`.
+- **The published user-facing site is the React `/p/:slug`** (applies customization); the older deterministic `GET /site/:slug` HTML still generates on publish but isn't the site teachers/students see.
+- The folder/packages/branding/domain/GitHub repo are all **mumotor** (renamed from the old `otto-il` codename); the Postgres role/db stay `otto` / `otto_driving` internally.
 ```

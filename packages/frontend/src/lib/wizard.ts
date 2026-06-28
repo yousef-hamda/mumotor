@@ -1,54 +1,193 @@
 import type { BusinessHours } from './types';
+import type { Customization } from '../templates/customize/overrides';
+
+export const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+
+export interface DayHours {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+export type ExperienceLevel = '1-3' | '3-5' | '5-10' | '10+';
+
+export const EXPERIENCE_LEVELS: { value: ExperienceLevel; label: string; min: number }[] = [
+  { value: '1-3', label: '1–3 years', min: 1 },
+  { value: '3-5', label: '3–5 years', min: 3 },
+  { value: '5-10', label: '5–10 years', min: 5 },
+  { value: '10+', label: '10+ years', min: 10 },
+];
+
+/** Social platforms the owner can add (Part 2 — Extras). 10 buttons. */
+export const SOCIAL_PLATFORMS = [
+  'Facebook',
+  'Instagram',
+  'TikTok',
+  'YouTube',
+  'X',
+  'LinkedIn',
+  'WhatsApp',
+  'Pinterest',
+  'Telegram',
+  'Snapchat',
+] as const;
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
+
+/** A lesson plan the teacher defines (name + price + unit/text + features). */
+export interface PlanInput {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+  features: string[];
+  popular?: boolean;
+}
+
+export type Transmission = 'manual' | 'automatic' | 'both';
+export const TRANSMISSIONS: { value: Transmission; label: string }[] = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'automatic', label: 'Automatic' },
+  { value: 'both', label: 'Both' },
+];
+
+export function transmissionFeature(t: Transmission): string {
+  return t === 'both' ? 'Manual or automatic' : t === 'manual' ? 'Manual transmission' : 'Automatic transmission';
+}
+
+/** Seed the first plan from the per-lesson price + transmission choice. */
+export function defaultPlan(price: number, transmission: Transmission): PlanInput {
+  return {
+    id: 'single',
+    name: 'Single lesson',
+    price: price || 0,
+    unit: '/ lesson',
+    features: [transmissionFeature(transmission), 'Door-to-door pickup', 'No commitment'],
+  };
+}
 
 export interface WizardConfig {
+  // ── Part 1: Business Info ──────────────────────────────────────────────
   businessName: string;
-  teacherName: string;
+  businessDescription: string;
   tagline: string;
-  bio: string;
-  experienceYears: string;
-  passRate: number;
-  pricePerClass: number;
-  classDuration: number;
-  workingDays: string[]; // monday..sunday
-  shiftStart: string;
-  shiftEnd: string;
-  breakStart: string;
-  breakEnd: string;
-  hasBreak: boolean;
   phone: string;
   email: string;
   address: string;
-  instagram: string;
-  facebook: string;
+  city: string;
+  logoSrc?: string;
+
+  // ── Part 2A: Schedule & availability ───────────────────────────────────
+  workingDays: string[];
+  shiftStart: string;
+  shiftEnd: string;
+  customHoursPerDay: boolean;
+  perDayHours: Record<string, DayHours>;
+  breakTimes: { start: string; end: string }[];
+  restEnabled: boolean;
+  restMinutes: number;
+
+  // ── Part 2B: Lessons & pricing ─────────────────────────────────────────
+  classDuration: number;
+  pricePerClass: number;
+  transmission: Transmission;
+  /** Teacher-defined plans (the first is the single lesson, seeded from price). */
+  plans: PlanInput[];
+
+  // ── Part 2C: Teacher profile ───────────────────────────────────────────
+  teacherName: string;
+  experienceLevel: ExperienceLevel;
+  carPhoto?: string;
+  instructorPhoto?: string;
+
+  // ── Part 2D: Booking rules ─────────────────────────────────────────────
+  bookingWindowStart: string;
+  bookingWindowEnd: string;
+  reportTime: string;
+
+  // ── Part 2E: Extras ────────────────────────────────────────────────────
+  socialLinks: Partial<Record<SocialPlatform, string>>;
+  gallery: string[];
+
+  // ── Design ─────────────────────────────────────────────────────────────
   locale: 'HE' | 'AR' | 'EN';
+  templateChoice?: string;
+  /** Customize-mode overrides (colours, text, photos). */
+  customization?: Customization;
+  /** @deprecated legacy preset id — kept for back-compat, unused by templates. */
   presetId: string;
 }
 
-export const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+function emptyPerDay(): Record<string, DayHours> {
+  const out: Record<string, DayHours> = {};
+  for (const d of WEEKDAYS) out[d] = { open: '08:00', close: '18:00', closed: d === 'saturday' || d === 'sunday' };
+  return out;
+}
 
 export const defaultWizardConfig: WizardConfig = {
   businessName: '',
-  teacherName: '',
+  businessDescription: '',
   tagline: 'Your road to confidence',
-  bio: '',
-  experienceYears: '10+',
-  passRate: 95,
-  pricePerClass: 50,
-  classDuration: 45,
-  workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-  shiftStart: '08:00',
-  shiftEnd: '18:00',
-  breakStart: '12:00',
-  breakEnd: '13:00',
-  hasBreak: true,
   phone: '',
   email: '',
   address: '',
-  instagram: '',
-  facebook: '',
+  city: '',
+  workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+  shiftStart: '08:00',
+  shiftEnd: '18:00',
+  customHoursPerDay: false,
+  perDayHours: emptyPerDay(),
+  breakTimes: [],
+  restEnabled: false,
+  restMinutes: 10,
+  classDuration: 45,
+  pricePerClass: 100,
+  transmission: 'both',
+  plans: [defaultPlan(100, 'both')],
+  teacherName: '',
+  experienceLevel: '5-10',
+  bookingWindowStart: '09:00',
+  bookingWindowEnd: '17:00',
+  reportTime: '18:00',
+  socialLinks: {},
+  gallery: [],
   locale: 'EN',
   presetId: 'clear-horizon',
 };
+
+/** Realistic sample data so the owner can preview before editing ("Auto-generate"). */
+export function sampleWizardConfig(prev: WizardConfig): WizardConfig {
+  return {
+    ...prev,
+    businessName: 'Northgate Driving School',
+    businessDescription:
+      'Calm, patient, one-to-one driving lessons with a 96% first-time pass rate. I help nervous beginners feel in control from the very first lesson — manual or automatic, fully insured dual-control car.',
+    tagline: 'Pass first time, drive for life.',
+    phone: '054-321-0987',
+    email: 'hello@northgate.driving',
+    address: '22 Jabotinsky Street',
+    city: 'Netanya',
+    workingDays: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'],
+    shiftStart: '08:00',
+    shiftEnd: '19:00',
+    breakTimes: [{ start: '13:00', end: '14:00' }],
+    restEnabled: true,
+    restMinutes: 10,
+    classDuration: 45,
+    pricePerClass: 120,
+    transmission: 'both',
+    plans: [
+      { id: 'single', name: 'Single lesson', price: 120, unit: '/ lesson', features: ['Manual or automatic', 'Door-to-door pickup', 'No commitment'] },
+      { id: 'block10', name: '10-lesson block', price: 1100, unit: '10 lessons', popular: true, features: ['Save vs single lessons', 'Mock test included', 'Flexible rescheduling'] },
+    ],
+    teacherName: 'David Cohen',
+    experienceLevel: '10+',
+    bookingWindowStart: '09:00',
+    bookingWindowEnd: '17:00',
+    reportTime: '18:00',
+    socialLinks: { Instagram: 'https://instagram.com/northgate.driving', Facebook: 'https://facebook.com/northgate.driving' },
+  };
+}
 
 const STORAGE_KEY = 'mumotor_wizard';
 
@@ -78,34 +217,56 @@ export function clearWizard() {
   }
 }
 
-/** Build the businessHours object the booking engine uses from wizard fields. */
+/** Working-hours object the booking engine uses (per-day or uniform shift). */
 export function buildBusinessHours(c: WizardConfig): BusinessHours {
   const hours: BusinessHours = {};
   for (const d of WEEKDAYS) {
-    hours[d] = { isOpen: c.workingDays.includes(d), open: c.shiftStart, close: c.shiftEnd };
+    if (c.customHoursPerDay) {
+      const ph = c.perDayHours[d] ?? { open: c.shiftStart, close: c.shiftEnd, closed: true };
+      hours[d] = { isOpen: !ph.closed, open: ph.open, close: ph.close };
+    } else {
+      hours[d] = { isOpen: c.workingDays.includes(d), open: c.shiftStart, close: c.shiftEnd };
+    }
   }
   return hours;
 }
 
-/** Map wizard fields → the generator's businessConfig (stored on Website.configuration). */
+/** Map wizard fields → the generator/config blob stored on Website.configuration. */
 export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
   return {
     teacherName: c.teacherName || c.businessName,
     tagline: c.tagline,
-    bio: c.bio || undefined,
+    bio: c.businessDescription || undefined,
     pricePerClass: c.pricePerClass,
     classDuration: c.classDuration,
-    experienceYears: c.experienceYears,
-    passRate: c.passRate,
+    transmission: c.transmission,
+    plans: c.plans,
+    experienceLevel: c.experienceLevel,
     advanceBookingDays: 14,
-    bookingCutoffHour: 18,
+    bookingCutoffHour: Number((c.reportTime || '18:00').split(':')[0]) || 18,
     dailyCodeEnabled: true,
-    restMinutes: 0,
-    breakTimes: c.hasBreak ? [{ start: c.breakStart, end: c.breakEnd }] : [],
+    restMinutes: c.restEnabled ? c.restMinutes : 0,
+    breakTimes: c.breakTimes,
     shiftStart: c.shiftStart,
     shiftEnd: c.shiftEnd,
-    contact: { phone: c.phone || undefined, email: c.email || undefined, address: c.address || undefined },
-    socialLinks: { Instagram: c.instagram || undefined, Facebook: c.facebook || undefined },
+    customHoursPerDay: c.customHoursPerDay,
+    perDayHours: c.perDayHours,
+    bookingWindowStart: c.bookingWindowStart,
+    bookingWindowEnd: c.bookingWindowEnd,
+    reportTime: c.reportTime,
+    city: c.city || undefined,
+    contact: {
+      phone: c.phone || undefined,
+      email: c.email || undefined,
+      address: [c.address, c.city].filter(Boolean).join(', ') || undefined,
+    },
+    socialLinks: c.socialLinks,
     locale: c.locale.toLowerCase(),
+    templateChoice: c.templateChoice || undefined,
+    logoSrc: c.logoSrc || undefined,
+    carPhoto: c.carPhoto || undefined,
+    instructorPhoto: c.instructorPhoto || undefined,
+    gallery: c.gallery,
+    customization: c.customization || undefined,
   };
 }

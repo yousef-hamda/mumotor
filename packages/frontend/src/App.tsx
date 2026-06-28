@@ -12,10 +12,13 @@ import Billing from './pages/dashboard/Billing';
 import Settings from './pages/dashboard/Settings';
 import BuilderWizard from './pages/builder/BuilderWizard';
 import EditorPage from './pages/editor/EditorPage';
+import CustomizePage from './pages/customize/CustomizePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import PublicSite from './pages/public/PublicSite';
 import Enroll from './pages/public/Enroll';
 import BookLesson from './pages/public/BookLesson';
+import TemplatesGallery from './pages/templates/TemplatesGallery';
+import TemplatePreview from './pages/templates/TemplatePreview';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -26,11 +29,23 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/builder" element={<BuilderWizard />} />
+
+      {/* Template gallery + live interactive previews */}
+      <Route path="/templates" element={<TemplatesGallery />} />
+      <Route path="/templates/:slug" element={<TemplatePreview />} />
       <Route
         path="/editor/:id"
         element={
           <ProtectedRoute>
             <EditorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customize/:id"
+        element={
+          <ProtectedRoute>
+            <CustomizePage />
           </ProtectedRoute>
         }
       />

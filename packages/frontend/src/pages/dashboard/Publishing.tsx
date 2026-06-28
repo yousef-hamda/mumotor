@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, Copy, ExternalLink, Globe, Pencil } from 'lucide-react';
+import { Check, Copy, ExternalLink, Globe, Pencil, Sparkles } from 'lucide-react';
 import { apiError, siteUrl, websiteApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, EmptyState, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -47,6 +47,9 @@ function SiteRow({ website }: { website: Website }) {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Link to={`/customize/${website.id}`} className="btn-primary">
+              <Sparkles className="h-4 w-4" /> Customize
+            </Link>
             <Link to={`/editor/${website.id}`} className="btn-secondary">
               <Pencil className="h-4 w-4" /> Edit
             </Link>

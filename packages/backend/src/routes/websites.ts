@@ -5,7 +5,7 @@ import { kv } from '../lib/redis.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { forbidden, notFound } from '../utils/errors.js';
+import { badRequest, forbidden, notFound } from '../utils/errors.js';
 import { slugify } from '../utils/slug.js';
 import { DEFAULTS } from '../services/scheduling/schedulingService.js';
 import { generateWebsite, configToSiteConfig } from '../services/ai/generator.js';
@@ -195,6 +195,22 @@ router.post(
     await prisma.website.update({ where: { id: website.id }, data: { status: 'DRAFT' } });
     await kv.del(`site:${website.slug}`);
     res.json({ status: 'DRAFT' });
+  })
+);
+
+// DELETE /websites/:id — permanently delete a website and ALL its data.
+// Requires a typed confirmation ("DELETE") in the body. Cascades to settings,
+// services, enrollments, bookings, daily codes, reviews, media, versions.
+router.delete(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    const website = await loadOwned(req.params.id, req.user!.id);
+    if (String(req.body?.confirm ?? '').trim().toUpperCase() !== 'DELETE') {
+      throw badRequest('Type DELETE to confirm permanent deletion', 'CONFIRM_REQUIRED');
+    }
+    await prisma.website.delete({ where: { id: website.id } });
+    await kv.del(`site:${website.slug}`);
+    res.json({ deleted: true });
   })
 );
 

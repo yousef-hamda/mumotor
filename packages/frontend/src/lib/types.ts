@@ -139,6 +139,21 @@ export interface PublicSettings {
   experienceYears: number | null;
   passRate: number | null;
   services: { name: string; duration: number; price: number }[];
+  // template + branding tokens for the public React-rendered site
+  template?: string | null;
+  locale?: string | null;
+  bio?: string | null;
+  experienceLevel?: string | null;
+  transmission?: string | null;
+  plans?: unknown[] | null;
+  city?: string | null;
+  logoSrc?: string | null;
+  carPhoto?: string | null;
+  instructorPhoto?: string | null;
+  gallery?: string[] | null;
+  contact?: { phone?: string; email?: string; address?: string } | null;
+  socialLinks?: Record<string, string> | null;
+  customization?: Record<string, unknown> | null;
 }
 
 export interface CheckEnrollment {

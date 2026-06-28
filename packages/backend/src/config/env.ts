@@ -32,6 +32,10 @@ const schema = z.object({
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_STUDIO: z.string().optional(),
 
+  // Unsplash (photo search proxy — used by Customize "find a photo").
+  // Only the access key is used (sent as a Client-ID); no secret is stored.
+  UNSPLASH_ACCESS_KEY: z.string().optional(),
+
   // Toggle cron jobs (off during tests)
   ENABLE_CRON: z
     .union([z.boolean(), z.string()])
