@@ -2,13 +2,29 @@
  * TemplateConcept — a small, bespoke ANIMATED preview that expresses each
  * template's actual aesthetic (palette + glass style + motion signature), used
  * on the gallery + builder cards instead of an unrelated driving photo.
- * Pure CSS (cheap, reduced-motion safe). Fills its (relatively-positioned) parent.
+ *
+ * Every preview is a tiny "website hero": a signature background + a mini content
+ * panel (title bar · two text lines · a small accent button) — so it reads like a
+ * real site, never an empty box. Pure CSS (cheap, reduced-motion safe). Fills its
+ * (relatively-positioned) parent.
  */
 import type { CSSProperties } from 'react';
 import type { TemplateMeta } from './registry';
 import './TemplateConcept.css';
 
 type Vars = CSSProperties & Record<string, string>;
+
+/** Mini hero content (title bar, two lines, a button) for the "card" previews. */
+function Lines({ title, line, btn }: { title: string; line: string; btn: string }) {
+  return (
+    <>
+      <span className="tc-l tc-l-title" style={{ background: title, width: '56%' }} />
+      <span className="tc-l" style={{ background: line, width: '82%' }} />
+      <span className="tc-l" style={{ background: line, width: '50%' }} />
+      <span className="tc-btn" style={{ background: btn }} />
+    </>
+  );
+}
 
 export function TemplateConcept({ meta }: { meta: TemplateMeta }) {
   const [c1, c2, c3] = [meta.swatch[1] ?? meta.accent, meta.swatch[2] ?? meta.accent, meta.swatch[3] ?? meta.accent];
@@ -20,7 +36,6 @@ export function TemplateConcept({ meta }: { meta: TemplateMeta }) {
     '--tc-c2': c2,
     '--tc-c3': c3,
   };
-
   return (
     <div className="tc-root" style={vars} aria-hidden="true">
       {render(meta, c1, c2, c3)}
@@ -36,17 +51,14 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string) {
           <span className="tc-blob tc-aurora-1" style={{ background: c1 }} />
           <span className="tc-blob tc-aurora-2" style={{ background: c2 }} />
           <span className="tc-blob tc-aurora-3" style={{ background: c3 }} />
-          <div className="tc-glass">
-            <span className="tc-glass-bar" style={{ left: '12%', top: '28%', width: '55%' }} />
-            <span className="tc-glass-bar" style={{ left: '12%', top: '52%', width: '38%', opacity: 0.7 }} />
-          </div>
+          <div className="tc-card tc-card--glass-light"><Lines title="#0B1220" line="rgba(11,18,32,0.16)" btn={`linear-gradient(135deg, ${c1}, ${c3})`} /></div>
         </>
       );
     case 'obsidian':
       return (
         <>
           <div className="tc-grid" />
-          <div className="tc-panel" />
+          <div className="tc-card tc-card--glass-dark"><Lines title="#D7E3EE" line="rgba(234,238,242,0.22)" btn={meta.accent} /></div>
         </>
       );
     case 'bento':
@@ -61,21 +73,38 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string) {
       return (
         <>
           <div className="tc-flow" />
-          <div className="tc-flow-glass" />
+          <div className="tc-card tc-card--glass-dark"><Lines title="#FFFFFF" line="rgba(255,255,255,0.30)" btn={`linear-gradient(135deg, ${c1}, ${c2})`} /></div>
         </>
       );
     case 'prism':
       return (
         <>
-          <div className="tc-iris-panel" />
           <div className="tc-iris" />
+          <div className="tc-card tc-card--glass-dark"><Lines title="#F4F5F7" line="rgba(244,245,247,0.22)" btn={`linear-gradient(110deg, ${c1}, ${c2}, ${c3})`} /></div>
         </>
       );
     case 'frosted':
       return (
         <>
           {meta.thumb && <div className="tc-photo" style={{ backgroundImage: `url(${meta.thumb})` }} />}
-          <div className="tc-frost" />
+          <div className="tc-card tc-card--glass-dark" style={{ background: 'rgba(255,255,255,0.16)' }}><Lines title="#FFFFFF" line="rgba(255,255,255,0.42)" btn={meta.accent} /></div>
+        </>
+      );
+    case 'night-shift':
+      return (
+        <>
+          <span className="tc-neon-1" style={{ background: c1 }} />
+          <span className="tc-neon-2" style={{ background: c2 }} />
+          <div className="tc-card tc-card--glass-dark"><Lines title="#EAF2FF" line="rgba(234,242,255,0.22)" btn={meta.accent} /></div>
+        </>
+      );
+    case 'easy-lane':
+      return (
+        <>
+          <span className="tc-soft-1" style={{ background: c1 }} />
+          <span className="tc-soft-2" style={{ background: c2 }} />
+          <span className="tc-soft-3" style={{ background: c3 }} />
+          <div className="tc-card tc-card--solid" style={{ borderRadius: 22 }}><Lines title={meta.ink} line="rgba(36,59,83,0.16)" btn={meta.accent} /></div>
         </>
       );
     case 'grid-ink':
@@ -90,22 +119,6 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string) {
         <>
           <span className="tc-sun" />
           <span className="tc-road" />
-        </>
-      );
-    case 'night-shift':
-      return (
-        <>
-          <span className="tc-blob tc-neon-1" style={{ background: c1 }} />
-          <span className="tc-blob tc-neon-2" style={{ background: c2 }} />
-          <div className="tc-neon-panel" />
-        </>
-      );
-    case 'easy-lane':
-      return (
-        <>
-          <span className="tc-soft-1" style={{ background: c1 }} />
-          <span className="tc-soft-2" style={{ background: c2 }} />
-          <span className="tc-pill" />
         </>
       );
     case 'prestige':

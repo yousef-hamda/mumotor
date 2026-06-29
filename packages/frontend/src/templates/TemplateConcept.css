@@ -1,23 +1,34 @@
-/* Animated concept previews for template cards. Scoped to .tc-root. Cheap (transform/opacity/filter). */
+/* Animated concept previews for template cards. Scoped to .tc-root. Cheap (transform/opacity/filter).
+   Each preview is a tiny "website hero": a signature background + a mini content panel
+   (title bar · two text lines · a small accent button) so it reads as a real site, never an empty box. */
 .tc-root { position: absolute; inset: 0; overflow: hidden; }
 .tc-root, .tc-root * { box-sizing: border-box; }
 .tc-layer { position: absolute; inset: 0; }
 
-/* aurora — drifting soft blobs + frosted slab */
-.tc-blob { position: absolute; border-radius: 50%; filter: blur(26px); opacity: 0.85; }
+/* ── Mini content panel (the "hero card") ── */
+.tc-card {
+  position: absolute; left: 13%; top: 22%; width: 62%; height: 52%;
+  border-radius: 16px; padding: 16px 18px;
+  display: flex; flex-direction: column; justify-content: center; gap: 9px;
+}
+.tc-card--glass-light { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 26px -14px rgba(0,0,0,0.3); }
+.tc-card--glass-dark  { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.tc-card--solid       { background: #fff; border: 1px solid rgba(11,18,32,0.08); box-shadow: 0 12px 26px -14px rgba(0,0,0,0.22); }
+.tc-l { height: 7px; border-radius: 4px; }
+.tc-l-title { height: 11px; }
+.tc-btn { margin-top: 5px; height: 17px; width: 44%; border-radius: 999px; }
+
+/* aurora — drifting soft blobs */
+.tc-blob { position: absolute; border-radius: 50%; filter: blur(26px); opacity: 0.9; }
 .tc-aurora-1 { width: 60%; height: 70%; left: -10%; top: -20%; animation: tc-drift 9s ease-in-out infinite; }
 .tc-aurora-2 { width: 55%; height: 65%; right: -12%; top: 10%; animation: tc-drift 11s ease-in-out infinite reverse; }
 .tc-aurora-3 { width: 50%; height: 60%; left: 25%; bottom: -25%; animation: tc-drift 13s ease-in-out infinite; }
-.tc-glass { position: absolute; left: 18%; top: 30%; width: 64%; height: 44%; border-radius: 14px; background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px -10px rgba(0,0,0,0.25); }
-.tc-glass-bar { position: absolute; height: 7px; border-radius: 4px; background: rgba(255,255,255,0.85); }
-
 @keyframes tc-drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(8%,6%) scale(1.12); } }
 
-/* obsidian — receding perspective grid + smoked panel */
+/* obsidian — receding perspective grid */
 .tc-grid { position: absolute; inset: 0; perspective: 200px; overflow: hidden; }
 .tc-grid::before { content: ''; position: absolute; left: -50%; right: -50%; bottom: -10%; height: 130%; transform: rotateX(62deg); transform-origin: bottom; background-image: linear-gradient(rgba(159,182,204,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(159,182,204,0.35) 1px, transparent 1px); background-size: 26px 26px; animation: tc-grid-move 6s linear infinite; }
 @keyframes tc-grid-move { from { background-position: 0 0; } to { background-position: 0 26px; } }
-.tc-panel { position: absolute; left: 16%; top: 26%; width: 68%; height: 40%; border-radius: 12px; background: rgba(20,24,29,0.55); border: 1px solid rgba(215,227,238,0.25); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
 /* bento — mini grid of tiles */
 .tc-bento { position: absolute; inset: 12%; display: grid; grid-template-columns: 1.4fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; }
@@ -26,19 +37,16 @@
 .tc-tile-accent { background: var(--tc-accent, #4F46E5); }
 
 /* flow — animated flowing gradient */
-.tc-flow { position: absolute; inset: -30%; background: conic-gradient(from 0deg, var(--tc-c1), var(--tc-c2), var(--tc-c3), var(--tc-c1)); filter: blur(28px); opacity: 0.9; animation: tc-spin 14s linear infinite; }
+.tc-flow { position: absolute; inset: -30%; background: conic-gradient(from 0deg, var(--tc-c1), var(--tc-c2), var(--tc-c3), var(--tc-c1)); filter: blur(28px); opacity: 0.95; animation: tc-spin 14s linear infinite; }
 @keyframes tc-spin { to { transform: rotate(360deg); } }
-.tc-flow-glass { position: absolute; left: 20%; top: 32%; width: 60%; height: 40%; border-radius: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 
 /* prism — iridescent sweep */
-.tc-iris { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 20%, var(--tc-c1), var(--tc-c2), var(--tc-c3), transparent 80%); background-size: 250% 100%; opacity: 0.55; mix-blend-mode: screen; animation: tc-sweep 7s ease-in-out infinite; }
+.tc-iris { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 18%, var(--tc-c1), var(--tc-c2), var(--tc-c3), transparent 82%); background-size: 250% 100%; opacity: 0.6; mix-blend-mode: screen; animation: tc-sweep 7s ease-in-out infinite; }
 @keyframes tc-sweep { 0%,100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
-.tc-iris-panel { position: absolute; left: 16%; top: 28%; width: 68%; height: 42%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.04); }
 
 /* frosted — photo + frosted card */
 .tc-photo { position: absolute; inset: 0; background-size: cover; background-position: center; animation: tc-ken 12s ease-in-out infinite alternate; }
 @keyframes tc-ken { from { transform: scale(1); } to { transform: scale(1.12); } }
-.tc-frost { position: absolute; left: 14%; bottom: 14%; width: 60%; height: 38%; border-radius: 12px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
 /* grid-ink — Swiss hairlines + red dot */
 .tc-lines { position: absolute; inset: 0; background-image: linear-gradient(rgba(17,17,17,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,0.12) 1px, transparent 1px); background-size: 22px 22px; }
@@ -50,14 +58,13 @@
 .tc-road { position: absolute; left: 0; right: 0; bottom: 18%; height: 6px; background: repeating-linear-gradient(90deg, var(--tc-ink, #3A2A1E) 0 14px, transparent 14px 26px); opacity: 0.7; }
 
 /* night-shift — neon glow */
-.tc-neon-1 { width: 55%; height: 60%; left: -8%; top: 8%; filter: blur(30px); opacity: 0.7; }
-.tc-neon-2 { width: 55%; height: 60%; right: -10%; bottom: -6%; filter: blur(30px); opacity: 0.6; }
-.tc-neon-panel { position: absolute; left: 18%; top: 32%; width: 64%; height: 40%; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.tc-neon-1 { width: 55%; height: 60%; left: -8%; top: 8%; filter: blur(30px); opacity: 0.7; border-radius: 50%; position: absolute; }
+.tc-neon-2 { width: 55%; height: 60%; right: -10%; bottom: -6%; filter: blur(30px); opacity: 0.6; border-radius: 50%; position: absolute; }
 
-/* easy-lane — soft pastel blobs */
-.tc-soft-1 { width: 50%; height: 60%; left: 6%; top: 10%; filter: blur(20px); opacity: 0.8; border-radius: 50%; animation: tc-drift 10s ease-in-out infinite; }
-.tc-soft-2 { width: 46%; height: 56%; right: 6%; bottom: 6%; filter: blur(20px); opacity: 0.75; border-radius: 50%; animation: tc-drift 12s ease-in-out infinite reverse; }
-.tc-pill { position: absolute; left: 26%; top: 42%; width: 48%; height: 16%; border-radius: 999px; background: rgba(255,255,255,0.7); }
+/* easy-lane — soft pastel blobs (visible) */
+.tc-soft-1 { width: 62%; height: 74%; left: -6%; top: -10%; filter: blur(22px); opacity: 0.7; border-radius: 50%; position: absolute; animation: tc-drift 10s ease-in-out infinite; }
+.tc-soft-2 { width: 58%; height: 70%; right: -8%; top: 4%; filter: blur(22px); opacity: 0.65; border-radius: 50%; position: absolute; animation: tc-drift 12s ease-in-out infinite reverse; }
+.tc-soft-3 { width: 54%; height: 66%; left: 22%; bottom: -22%; filter: blur(22px); opacity: 0.6; border-radius: 50%; position: absolute; animation: tc-drift 14s ease-in-out infinite; }
 
 /* prestige — gold hairline frame */
 .tc-gold-frame { position: absolute; inset: 14%; border: 1px solid var(--tc-accent, #C9A24B); }
@@ -70,6 +77,4 @@
 .tc-b2 { right: 12%; top: 26%; width: 34%; height: 30%; background: var(--tc-c2, #FFE600); }
 .tc-b3 { left: 26%; bottom: 16%; width: 46%; height: 24%; background: #fff; }
 
-@media (prefers-reduced-motion: reduce) {
-  .tc-root * { animation: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .tc-root * { animation: none !important; } }
