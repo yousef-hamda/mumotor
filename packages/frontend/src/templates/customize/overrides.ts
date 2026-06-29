@@ -113,6 +113,13 @@ export interface ColorSlot {
 }
 
 export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
+  mumotor: [
+    { key: 'bg', label: 'Background', cssVar: '--mm-bg', default: '#FFFFFF' },
+    { key: 'text', label: 'Text', cssVar: '--mm-ink', default: '#1D1D1F' },
+    { key: 'accent', label: 'Accent', cssVar: '--mm-accent', default: '#0071E3' },
+    { key: 'band', label: 'Section bands', cssVar: '--mm-band', default: '#F5F5F7' },
+    { key: 'muted', label: 'Muted text', cssVar: '--mm-muted', default: '#6E6E73' },
+  ],
   aurora: [
     { key: 'bg', label: 'Background', cssVar: '--au-bg', default: '#F6F8FC' },
     { key: 'text', label: 'Text', cssVar: '--au-ink', default: '#0B1220' },
@@ -147,13 +154,6 @@ export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
     { key: 'accent', label: 'Accent', cssVar: '--fr-accent', default: '#E8A14B' },
     { key: 'secondary', label: 'Secondary', cssVar: '--fr-accent2', default: '#58C0B0' },
     { key: 'surface', label: 'Card', cssVar: '--fr-panel', default: '#FFFFFF' },
-  ],
-  flow: [
-    { key: 'bg', label: 'Background', cssVar: '--fl-bg', default: '#0B0A1F' },
-    { key: 'text', label: 'Text', cssVar: '--fl-ink', default: '#F3F1FF' },
-    { key: 'accent', label: 'Indigo', cssVar: '--fl-c1', default: '#6366F1' },
-    { key: 'secondary', label: 'Violet', cssVar: '--fl-c2', default: '#A855F7' },
-    { key: 'highlight', label: 'Cyan', cssVar: '--fl-c3', default: '#22D3EE' },
   ],
   'grid-ink': [
     { key: 'bg', label: 'Background', cssVar: '--paper', default: '#FAFAF7' },

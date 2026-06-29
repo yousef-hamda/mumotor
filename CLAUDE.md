@@ -75,9 +75,16 @@ classes never needed renaming.
 ## Templates & Customize (the user-facing site)
 - Published teacher sites are the **React** route `GET /p/:slug` (`pages/public/PublicSite.tsx`), rendering 1 of
   **12 self-contained templates** in `src/templates/<slug>/` from a shared `TemplateData` via `TemplateRender.tsx`.
-  Six originals (grid-ink, open-road, night-shift, easy-lane, prestige, full-throttle) + six **glass-forward**
-  (aurora=Apple, flow=Stripe/Linear, bento=Vercel/Notion, prism=Rivian/Polestar automotive, obsidian=smoked dark,
+  **`mumotor`** (first — the app's own Apple-minimal design: glass nav, soft `color-mix(--mm-accent)` aurora orbs,
+  FadeUp/Stagger/ScrollTilt, ScrollTilt hero media with floating glass cards, ScrollTilt "Today's schedule" showcase,
+  dark band, btn-glass) + six originals (grid-ink, open-road, night-shift, easy-lane, prestige, full-throttle) + five
+  **glass-forward** (aurora=Apple, bento=Vercel/Notion, prism=Rivian/Polestar automotive, obsidian=smoked dark,
   frosted=photo-led). All driven off the `TEMPLATES` registry — adding one auto-wires gallery/builder/preview/public/customize.
+  **mumotor accent picker**: its card shows bottom-right colour dots (`MumotorAccentDots` in `TemplateConcept.tsx`) that
+  set `customization.theme['--mm-accent']` — recolouring only the one restrained accent (CTA/links/active/popular/orbs).
+  Builder `BrowseCard` persists it to config (flows to live preview + publish via `wizardToTemplateData`→`applyOverrides`);
+  gallery card links `/templates/mumotor?accent=<hex>` (TemplatePreview applies it). The mumotor card is a `div[role=button]`
+  (not `<button>`) so the dot `<button>`s nest validly.
   The deterministic backend HTML at `GET /site/:slug` still generates on publish but isn't the user-facing site.
 - **WebGL backgrounds**: `templates/webgl/ShaderBackground.tsx` is a tiny zero-dep raw-WebGL fullscreen-quad renderer
   (GLSL in `webgl/shaders.ts`: aurora / mesh-gradient / iridescent). Palette uniforms seed from the template's CSS vars

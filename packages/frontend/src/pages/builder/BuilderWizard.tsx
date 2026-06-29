@@ -7,10 +7,10 @@ import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
-import { TEMPLATES, getTemplate } from '../../templates/registry';
+import { TEMPLATES, getTemplate, type TemplateMeta } from '../../templates/registry';
 import { wizardToTemplateData } from '../../templates/fromWizard';
 import { TemplateRender } from '../../templates/TemplateRender';
-import { TemplateConcept } from '../../templates/TemplateConcept';
+import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
 import CustomizeMode from '../../components/customize/CustomizeMode';
 import {
   EXPERIENCE_LEVELS,
@@ -121,7 +121,17 @@ export default function BuilderWizard() {
         {step === 'browse' && (
           <BrowseStep
             config={config}
-            onPick={(id) => { set('templateChoice', id); setStep('design'); }}
+            onPick={(id, accent) => {
+              setConfig((c) => {
+                const next: WizardConfig = { ...c, templateChoice: id };
+                // Mumotor's on-card colour dots set the site's main accent (kept restrained).
+                if (accent) {
+                  next.customization = { ...c.customization, theme: { ...(c.customization?.theme ?? {}), '--mm-accent': accent } };
+                }
+                return next;
+              });
+              setStep('design');
+            }}
             onBack={() => setStep('setup')}
           />
         )}
@@ -587,7 +597,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 // ── Step 4: Browse templates (gallery) — pick one → Design step ──────────────
 
-function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void }) {
+function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: (id: string, accent?: string) => void; onBack: () => void }) {
   const selected = config.templateChoice;
   return (
     <FadeUp className="w-full">
@@ -599,36 +609,46 @@ function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: 
       </div>
 
       <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" gap={0.04}>
-        {TEMPLATES.map((t) => {
-          const sel = selected === t.slug;
-          return (
-            <Stagger.Item key={t.slug}>
-              <button
-                onClick={() => onPick(t.slug)}
-                aria-pressed={sel}
-                className={cn(
-                  'group block w-full overflow-hidden rounded-3xl border bg-white text-start shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated',
-                  sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200'
-                )}
-              >
-                <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-                  <TemplateConcept meta={t} />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                  <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: t.accent }}>{t.style}</span>
-                  <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
-                </div>
-                <div className="p-5">
-                  <p className="text-sm leading-relaxed text-sand-600">{t.blurb}</p>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sun-600">
-                    Preview live <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </div>
-              </button>
-            </Stagger.Item>
-          );
-        })}
+        {TEMPLATES.map((t) => (
+          <Stagger.Item key={t.slug}>
+            <BrowseCard t={t} sel={selected === t.slug} onPick={onPick} initialAccent={(config.customization?.theme?.['--mm-accent'] as string) || t.accent} />
+          </Stagger.Item>
+        ))}
       </Stagger>
     </FadeUp>
+  );
+}
+
+function BrowseCard({ t, sel, onPick, initialAccent }: { t: TemplateMeta; sel: boolean; onPick: (id: string, accent?: string) => void; initialAccent: string }) {
+  const isMumotor = t.slug === 'mumotor';
+  const [accent, setAccent] = useState(initialAccent);
+  const pick = () => onPick(t.slug, isMumotor ? accent : undefined);
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={pick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
+      aria-pressed={sel}
+      className={cn(
+        'group block w-full cursor-pointer overflow-hidden rounded-3xl border bg-white text-start shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-sand-900/30',
+        sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200'
+      )}
+    >
+      <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
+        <TemplateConcept meta={t} accent={isMumotor ? accent : undefined} />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: t.accent }}>{t.style}</span>}
+        <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
+        {isMumotor && <MumotorAccentDots value={accent} onPick={setAccent} />}
+      </div>
+      <div className="p-5">
+        <p className="text-sm leading-relaxed text-sand-600">{t.blurb}</p>
+        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sun-600">
+          Preview live <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </div>
   );
 }
 

@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
-import { TemplateConcept } from '../../templates/TemplateConcept';
+import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
 import { FadeUp, Stagger } from '../../components/motion';
 
 const COUNT_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][TEMPLATES.length] ?? `${TEMPLATES.length}`;
@@ -50,12 +51,17 @@ export default function TemplatesGallery() {
 }
 
 function TemplateCard({ t }: { t: TemplateMeta }) {
+  const isMumotor = t.slug === 'mumotor';
+  const [accent, setAccent] = useState(t.accent);
+  const to = isMumotor && accent.toLowerCase() !== t.accent.toLowerCase()
+    ? `/templates/${t.slug}?accent=${encodeURIComponent(accent)}`
+    : `/templates/${t.slug}`;
   return (
     <Link
-      to={`/templates/${t.slug}`}
+      to={to}
       className="group block overflow-hidden rounded-3xl border border-sand-200 bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated"
     >
-      <TemplatePreviewThumb t={t} />
+      <TemplatePreviewThumb t={t} accent={accent} onPickAccent={isMumotor ? setAccent : undefined} />
       <div className="p-5">
         <div className="flex items-center gap-2">
           <span className="pill border-sand-200 text-sand-600">{t.style}</span>
@@ -77,15 +83,16 @@ function TemplateCard({ t }: { t: TemplateMeta }) {
 }
 
 /** Bespoke ANIMATED concept preview per template (expresses its real look). */
-function TemplatePreviewThumb({ t }: { t: TemplateMeta }) {
+function TemplatePreviewThumb({ t, accent, onPickAccent }: { t: TemplateMeta; accent: string; onPickAccent?: (hex: string) => void }) {
   return (
     <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-      <TemplateConcept meta={t} />
+      <TemplateConcept meta={t} accent={accent} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
         <span className="text-xl font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
-        <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.accent }}>{t.style}</span>
+        {!onPickAccent && <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.accent }}>{t.style}</span>}
       </div>
+      {onPickAccent && <MumotorAccentDots value={accent} onPick={onPickAccent} />}
     </div>
   );
 }

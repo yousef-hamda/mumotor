@@ -10,7 +10,7 @@ const ok = (n, c, extra) => { if (c) { pass++; console.log('  \x1b[32m✓\x1b[0m
 const section = (t) => console.log('\n\x1b[1m' + t + '\x1b[0m');
 const clickText = async (page, re) => page.evaluate((src) => {
   const rx = new RegExp(src, 'i');
-  const b = [...document.querySelectorAll('button, a')].find((x) => rx.test(x.textContent || ''));
+  const b = [...document.querySelectorAll('button, a, [role="button"]')].find((x) => rx.test(x.textContent || ''));
   if (b) b.click();
   return !!b;
 }, re.source);
@@ -41,7 +41,7 @@ try {
 
   // ── 2b. New glass templates render (smoke + no horizontal overflow) ──
   section('New glass templates');
-  for (const slug of ['aurora', 'obsidian', 'bento', 'prism', 'frosted', 'flow']) {
+  for (const slug of ['mumotor', 'aurora', 'obsidian', 'bento', 'prism', 'frosted']) {
     await page.goto(`${WEB}/templates/${slug}`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector(`.tmpl-${slug}`, { timeout: 8000 });
     ok(`${slug} renders`, (await page.locator(`.tmpl-${slug}`).count()) === 1);

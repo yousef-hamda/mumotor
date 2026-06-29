@@ -36,9 +36,15 @@
 .tc-tile-a { grid-row: span 2; }
 .tc-tile-accent { background: var(--tc-accent, #4F46E5); }
 
-/* flow — animated flowing gradient */
-.tc-flow { position: absolute; inset: -30%; background: conic-gradient(from 0deg, var(--tc-c1), var(--tc-c2), var(--tc-c3), var(--tc-c1)); filter: blur(28px); opacity: 0.95; animation: tc-spin 14s linear infinite; }
 @keyframes tc-spin { to { transform: rotate(360deg); } }
+
+/* mumotor — app-faithful: soft accent aurora orbs + faint grid + white mini-hero + monogram */
+.tc-mm-grid { position: absolute; inset: 0; opacity: 0.5; background-image: linear-gradient(rgba(29,29,31,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(29,29,31,0.07) 1px, transparent 1px); background-size: 26px 26px; -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.6), transparent 70%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.6), transparent 70%); }
+.tc-mm-orb { position: absolute; border-radius: 50%; filter: blur(26px); }
+.tc-mm-orb-1 { width: 62%; height: 78%; left: -12%; top: -22%; animation: tc-drift 9s ease-in-out infinite; }
+.tc-mm-orb-2 { width: 56%; height: 70%; right: -12%; top: 0; animation: tc-drift 12s ease-in-out infinite reverse; }
+.tc-mm-card { gap: 8px; }
+.tc-mm-logo { width: 22px; height: 22px; border-radius: 7px; margin-bottom: 2px; }
 
 /* prism — iridescent sweep */
 .tc-iris { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 18%, var(--tc-c1), var(--tc-c2), var(--tc-c3), transparent 82%); background-size: 250% 100%; opacity: 0.6; mix-blend-mode: screen; animation: tc-sweep 7s ease-in-out infinite; }
@@ -76,5 +82,11 @@
 .tc-b1 { left: 12%; top: 16%; width: 40%; height: 34%; background: var(--tc-accent); }
 .tc-b2 { right: 12%; top: 26%; width: 34%; height: 30%; background: var(--tc-c2, #FFE600); }
 .tc-b3 { left: 26%; bottom: 16%; width: 46%; height: 24%; background: #fff; }
+
+/* mumotor accent colour dots (bottom-right of the card) */
+.tc-dots { position: absolute; right: 10px; bottom: 10px; z-index: 6; display: flex; gap: 6px; padding: 6px 8px; border-radius: 999px; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(29,29,31,0.08); box-shadow: 0 6px 18px -8px rgba(0,0,0,0.3); }
+.tc-dot-sw { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); cursor: pointer; padding: 0; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.tc-dot-sw:hover { transform: scale(1.18); }
+.tc-dot-sw.is-on { box-shadow: 0 0 0 2px #1D1D1F; }
 
 @media (prefers-reduced-motion: reduce) { .tc-root * { animation: none !important; } }

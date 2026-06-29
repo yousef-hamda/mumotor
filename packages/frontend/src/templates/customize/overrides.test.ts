@@ -80,7 +80,7 @@ describe('overrides: applyOverrides', () => {
 describe('overrides: colour slots + sections', () => {
   it('exposes colour slots for every template', () => {
     const slugs = [
-      'aurora', 'obsidian', 'bento', 'prism', 'frosted', 'flow',
+      'mumotor', 'aurora', 'obsidian', 'bento', 'prism', 'frosted',
       'grid-ink', 'open-road', 'night-shift', 'easy-lane', 'prestige', 'full-throttle',
     ];
     for (const slug of slugs) {

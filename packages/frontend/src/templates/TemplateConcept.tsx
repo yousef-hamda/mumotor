@@ -26,11 +26,35 @@ function Lines({ title, line, btn }: { title: string; line: string; btn: string 
   );
 }
 
-export function TemplateConcept({ meta }: { meta: TemplateMeta }) {
+const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
+
+/** Preset accent colours offered on the Mumotor template card (Apple-system). */
+export const MUMOTOR_ACCENTS = ['#0071E3', '#5E5CE6', '#AF52DE', '#30B0C7', '#34C759', '#FF9500', '#FF2D55', '#64748B'];
+
+/** Bottom-right colour dots on the Mumotor card — recolours the site's main accent. */
+export function MumotorAccentDots({ value, onPick }: { value: string; onPick: (hex: string) => void }) {
+  return (
+    <div className="tc-dots" role="group" aria-label="Accent colour">
+      {MUMOTOR_ACCENTS.map((c) => (
+        <button
+          key={c}
+          type="button"
+          aria-label={`Accent ${c}`}
+          aria-pressed={value.toLowerCase() === c.toLowerCase()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPick(c); }}
+          className={cx('tc-dot-sw', value.toLowerCase() === c.toLowerCase() && 'is-on')}
+          style={{ background: c }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function TemplateConcept({ meta, accent }: { meta: TemplateMeta; accent?: string }) {
   const [c1, c2, c3] = [meta.swatch[1] ?? meta.accent, meta.swatch[2] ?? meta.accent, meta.swatch[3] ?? meta.accent];
   const vars: Vars = {
     background: meta.bg,
-    '--tc-accent': meta.accent,
+    '--tc-accent': accent ?? meta.accent,
     '--tc-ink': meta.ink,
     '--tc-c1': c1,
     '--tc-c2': c2,
@@ -38,13 +62,27 @@ export function TemplateConcept({ meta }: { meta: TemplateMeta }) {
   };
   return (
     <div className="tc-root" style={vars} aria-hidden="true">
-      {render(meta, c1, c2, c3)}
+      {render(meta, c1, c2, c3, accent ?? meta.accent)}
     </div>
   );
 }
 
-function render(meta: TemplateMeta, c1: string, c2: string, c3: string) {
+function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: string) {
   switch (meta.slug) {
+    case 'mumotor':
+      return (
+        <>
+          <div className="tc-mm-grid" />
+          <span className="tc-mm-orb tc-mm-orb-1" style={{ background: `radial-gradient(circle, color-mix(in srgb, ${accent} 36%, transparent), transparent 70%)` }} />
+          <span className="tc-mm-orb tc-mm-orb-2" style={{ background: `radial-gradient(circle, color-mix(in srgb, ${accent} 24%, transparent), transparent 70%)` }} />
+          <div className="tc-card tc-card--solid tc-mm-card" style={{ borderRadius: 18 }}>
+            <span className="tc-mm-logo" style={{ background: accent }} />
+            <span className="tc-l tc-l-title" style={{ background: '#1D1D1F', width: '54%' }} />
+            <span className="tc-l" style={{ background: 'rgba(29,29,31,0.16)', width: '78%' }} />
+            <span className="tc-btn" style={{ background: accent }} />
+          </div>
+        </>
+      );
     case 'aurora':
       return (
         <>
@@ -68,13 +106,6 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string) {
           <div className="tc-tile tc-tile-accent" />
           <div className="tc-tile" />
         </div>
-      );
-    case 'flow':
-      return (
-        <>
-          <div className="tc-flow" />
-          <div className="tc-card tc-card--glass-dark"><Lines title="#FFFFFF" line="rgba(255,255,255,0.30)" btn={`linear-gradient(135deg, ${c1}, ${c2})`} /></div>
-        </>
       );
     case 'prism':
       return (

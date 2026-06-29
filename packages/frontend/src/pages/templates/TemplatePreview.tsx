@@ -1,11 +1,16 @@
 import { Suspense, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, LayoutGrid, Check } from 'lucide-react';
 import { TEMPLATES, getTemplate, getTemplateIndex } from '../../templates/registry';
+import { TemplateRender } from '../../templates/TemplateRender';
+import { applyOverrides } from '../../templates/customize/overrides';
+import { sampleData } from '../../templates/sampleData';
 
 export default function TemplatePreview() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const accent = params.get('accent') || undefined;
   const meta = getTemplate(slug);
   const idx = getTemplateIndex(slug);
 
@@ -40,12 +45,14 @@ export default function TemplatePreview() {
   }
 
   const Component = meta.Component;
+  // For the mumotor template, an `?accent` query recolours the live preview's main colour.
+  const themedData = accent ? applyOverrides(sampleData, { theme: { '--mm-accent': accent } }) : null;
 
   return (
     <div className="relative min-h-dvh bg-white">
       {/* The live, scrollable, interactive template */}
       <Suspense fallback={<PreviewLoader />}>
-        <Component />
+        {themedData ? <TemplateRender slug={meta.slug} data={themedData} /> : <Component />}
       </Suspense>
 
       {/* Floating chrome — switch between templates / use this one */}

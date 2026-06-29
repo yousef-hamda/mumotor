@@ -26,6 +26,20 @@ export interface TemplateMeta {
 
 export const TEMPLATES: TemplateMeta[] = [
   {
+    slug: 'mumotor',
+    name: 'Mumotor',
+    style: 'Mumotor signature',
+    blurb: 'The Mumotor look — clean white, one calm accent and soft aurora. Tap the colour dots to recolour the whole site.',
+    swatch: ['#FFFFFF', '#0071E3', '#1D1D1F', '#F5F5F7'],
+    accent: '#0071E3',
+    bg: '#FFFFFF',
+    ink: '#1D1D1F',
+    theme: 'light',
+    font: 'Inter',
+    thumb: 'https://images.unsplash.com/photo-1596649714492-a8f90ecb3776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=900',
+    Component: lazy(() => import('./mumotor')),
+  },
+  {
     slug: 'aurora',
     name: 'Aurora',
     style: 'Liquid glass',
@@ -94,20 +108,6 @@ export const TEMPLATES: TemplateMeta[] = [
     font: 'Fraunces',
     thumb: 'https://images.unsplash.com/photo-1675798891288-07fe456fc998?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=900',
     Component: lazy(() => import('./frosted')),
-  },
-  {
-    slug: 'flow',
-    name: 'Flow',
-    style: 'Animated gradient glass',
-    blurb: 'A living indigo-violet mesh gradient that flows and shifts on scroll, with crisp glass panels. Stripe-grade and smooth.',
-    swatch: ['#0B0A1F', '#6366F1', '#A855F7', '#22D3EE'],
-    accent: '#6366F1',
-    bg: '#0B0A1F',
-    ink: '#F3F1FF',
-    theme: 'dark',
-    font: 'Outfit',
-    thumb: 'https://images.unsplash.com/photo-1588192754695-ea55aef5117f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=900',
-    Component: lazy(() => import('./flow')),
   },
   {
     slug: 'grid-ink',
