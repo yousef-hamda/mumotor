@@ -10,6 +10,7 @@ import { FadeUp, Stagger } from '../../components/motion';
 import { TEMPLATES, getTemplate } from '../../templates/registry';
 import { wizardToTemplateData } from '../../templates/fromWizard';
 import { TemplateRender } from '../../templates/TemplateRender';
+import { TemplateConcept } from '../../templates/TemplateConcept';
 import CustomizeMode from '../../components/customize/CustomizeMode';
 import {
   EXPERIENCE_LEVELS,
@@ -29,9 +30,9 @@ import {
 import type { Customization } from '../../templates/customize/overrides';
 import { cn, titleCase } from '../../lib/utils';
 
-type Step = 'welcome' | 'business' | 'setup' | 'design' | 'preview' | 'customize' | 'account' | 'done';
-const MAIN: Step[] = ['business', 'setup', 'design', 'preview'];
-const STEP_LABELS = ['Business', 'Setup', 'Design', 'Preview'];
+type Step = 'welcome' | 'business' | 'setup' | 'browse' | 'design' | 'customize' | 'account' | 'done';
+const MAIN: Step[] = ['business', 'setup', 'browse', 'design'];
+const STEP_LABELS = ['Business', 'Setup', 'Templates', 'Design'];
 
 /** Minutes from time `a` ("HH:MM") to time `b`; negative if b is earlier. */
 function minutesAfter(a: string, b: string): number {
@@ -66,9 +67,9 @@ export default function BuilderWizard() {
   useEffect(() => saveWizard(config), [config]);
   const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
 
-  const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'preview' : step) as Step));
+  const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'design' : step) as Step));
   const showStepper = step !== 'welcome' && step !== 'done' && step !== 'customize';
-  const wide = step === 'preview';
+  const wide = step === 'design' || step === 'browse';
 
   // Customize is a full-screen mode of its own.
   if (step === 'customize') {
@@ -78,7 +79,7 @@ export default function BuilderWizard() {
         templateSlug={config.templateChoice || TEMPLATES[0].slug}
         value={config.customization}
         onSave={(c: Customization) => { set('customization', c); toast.success('Changes saved'); }}
-        onDone={() => setStep('preview')}
+        onDone={() => setStep('design')}
       />
     );
   }
@@ -116,19 +117,25 @@ export default function BuilderWizard() {
             onNext={() => (config.businessName.trim() ? setStep('setup') : toast.error('Please enter your business name'))}
           />
         )}
-        {step === 'setup' && <SetupStep config={config} set={set} onBack={() => setStep('business')} onNext={() => setStep('design')} />}
-        {step === 'design' && <DesignStep config={config} onPick={(id) => set('templateChoice', id)} onBack={() => setStep('setup')} onNext={() => setStep('preview')} />}
-        {step === 'preview' && (
-          <PreviewStep
+        {step === 'setup' && <SetupStep config={config} set={set} onBack={() => setStep('business')} onNext={() => setStep('browse')} />}
+        {step === 'browse' && (
+          <BrowseStep
+            config={config}
+            onPick={(id) => { set('templateChoice', id); setStep('design'); }}
+            onBack={() => setStep('setup')}
+          />
+        )}
+        {step === 'design' && (
+          <DesignPreviewStep
             config={config}
             onPick={(id) => set('templateChoice', id)}
-            onBack={() => setStep('design')}
+            onBack={() => setStep('browse')}
             onCustomize={() => setStep('customize')}
             onPublish={() => (user ? doPublish() : setStep('account'))}
             publishing={publishing}
           />
         )}
-        {step === 'account' && <AccountStep onAuthed={doPublish} onBack={() => setStep('preview')} publishing={publishing} />}
+        {step === 'account' && <AccountStep onAuthed={doPublish} onBack={() => setStep('design')} publishing={publishing} />}
         {step === 'done' && result && <DoneStep result={result} onDashboard={() => navigate('/dashboard')} />}
       </main>
     </div>
@@ -161,7 +168,7 @@ export default function BuilderWizard() {
       setStep('done');
     } catch (e) {
       toast.error(apiError(e).message);
-      setStep('preview');
+      setStep('design');
     } finally {
       setPublishing(false);
     }
@@ -578,49 +585,56 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   );
 }
 
-// ── Step 4: Design ───────────────────────────────────────────────────────────
+// ── Step 4: Browse templates (gallery) — pick one → Design step ──────────────
 
-function DesignStep({ config, onPick, onBack, onNext }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onNext: () => void }) {
-  const selected = config.templateChoice || TEMPLATES[0].slug;
+function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void }) {
+  const selected = config.templateChoice;
   return (
     <FadeUp className="w-full">
       <BackLink onClick={onBack} />
-      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Choose a design</h1>
-      <p className="mt-2 text-sand-600">Your details are already inside every template — pick a look, then preview it live.</p>
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="section-eyebrow">Choose your look</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-sand-900 sm:text-5xl">Pick a design to start from</h1>
+        <p className="mt-4 text-lg text-sand-600">{TEMPLATES.length} genuinely different styles — your details are already inside each one. Click any to preview it live, then switch or customize anytime.</p>
+      </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" gap={0.04}>
         {TEMPLATES.map((t) => {
           const sel = selected === t.slug;
           return (
-            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel}
-              className={cn('card group w-full overflow-hidden p-0 text-start transition-all duration-200', sel ? 'border-sand-900 ring-2 ring-sand-900/10' : 'hover:border-sand-300')}>
-              <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-                {t.thumb ? (
-                  <img src={t.thumb} alt="" className="h-full w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="flex h-full w-full">{t.swatch.map((c) => <div key={c} className="flex-1" style={{ background: c }} />)}</div>
+            <Stagger.Item key={t.slug}>
+              <button
+                onClick={() => onPick(t.slug)}
+                aria-pressed={sel}
+                className={cn(
+                  'group block w-full overflow-hidden rounded-3xl border bg-white text-start shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated',
+                  sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200'
                 )}
-                <span className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.accent }}>{t.style}</span>
-              </div>
-              <div className="flex items-center justify-between p-4">
-                <span className="font-semibold tracking-tight text-sand-900">{t.name}</span>
-                {sel && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white"><Check className="h-3 w-3" strokeWidth={2.25} /></span>}
-              </div>
-            </button>
+              >
+                <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
+                  <TemplateConcept meta={t} />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                  <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: t.accent }}>{t.style}</span>
+                  <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
+                </div>
+                <div className="p-5">
+                  <p className="text-sm leading-relaxed text-sand-600">{t.blurb}</p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sun-600">
+                    Preview live <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </button>
+            </Stagger.Item>
           );
         })}
-      </div>
-
-      <div className="mt-8 flex justify-end">
-        <Button variant="primary" onClick={onNext} className="px-7">Preview my site <ArrowRight className="h-4 w-4" /></Button>
-      </div>
+      </Stagger>
     </FadeUp>
   );
 }
 
-// ── Step 5: Preview (wide, live, switchable) ─────────────────────────────────
+// ── Step 5: Design + live preview (pick = instant live) ──────────────────────
 
-function PreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
+function DesignPreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
   const data = useMemo(() => wizardToTemplateData(config), [config]);
   const selected = config.templateChoice || TEMPLATES[0].slug;
   const meta = getTemplate(selected) ?? TEMPLATES[0];
@@ -628,7 +642,7 @@ function PreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishin
     <FadeUp className="w-full">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
-          <ArrowLeft className="h-4 w-4" /> Change design
+          <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> Customize</Button>
@@ -636,28 +650,26 @@ function PreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishin
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="me-1 text-sm font-medium text-sand-500">Your site in:</span>
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight text-sand-900">Pick a design — it previews live</h1>
+        <span className="hidden text-sm text-sand-500 sm:block"><span className="font-medium" style={{ color: meta.accent }}>{meta.name}</span> · {meta.style}</span>
+      </div>
+
+      {/* Live concept selector — clicking swaps the live preview instantly */}
+      <div className="mb-4 flex gap-3 overflow-x-auto pb-2">
         {TEMPLATES.map((t) => {
           const sel = selected === t.slug;
           return (
-            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel}
-              className={cn('inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors', sel ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300 hover:text-sand-800')}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: t.accent }} />{t.name}
+            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel} title={`${t.name} · ${t.style}`}
+              className={cn('group relative w-[150px] shrink-0 overflow-hidden rounded-xl border bg-white text-start transition-all duration-200', sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200 hover:border-sand-300')}>
+              <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
+                <TemplateConcept meta={t} />
+                {sel && <span className="absolute right-1.5 top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white shadow"><Check className="h-3 w-3" strokeWidth={2.5} /></span>}
+              </div>
+              <span className="block truncate px-3 py-2 text-[13px] font-semibold tracking-tight text-sand-900">{t.name}</span>
             </button>
           );
         })}
-      </div>
-
-      {/* Template banner — photo + name above the live site */}
-      <div className="mb-3 flex items-center gap-4 overflow-hidden rounded-2xl border border-sand-200 bg-white p-3 shadow-card">
-        <div className="h-16 w-28 shrink-0 overflow-hidden rounded-xl" style={{ background: meta.bg }}>
-          {meta.thumb && <img src={meta.thumb} alt={meta.name} className="h-full w-full object-cover" />}
-        </div>
-        <div className="min-w-0">
-          <p className="text-base font-semibold tracking-tight text-sand-900">{meta.name}</p>
-          <p className="truncate text-sm text-sand-500"><span className="font-medium" style={{ color: meta.accent }}>{meta.style}</span> · {meta.blurb}</p>
-        </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
@@ -669,7 +681,7 @@ function PreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishin
           <TemplateRender slug={selected} data={data} />
         </div>
       </div>
-      <p className="mt-3 text-center text-xs text-sand-500">Scroll inside the frame — every button works. Use <strong>Customize</strong> to change colours, text and photos.</p>
+      <p className="mt-3 text-center text-xs text-sand-500">Click any design above to preview it live — every button works. Use <strong>Customize</strong> to change colours, text, icons and photos.</p>
     </FadeUp>
   );
 }

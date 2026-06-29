@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
+import { TemplateConcept } from '../../templates/TemplateConcept';
 import { FadeUp, Stagger } from '../../components/motion';
+
+const COUNT_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][TEMPLATES.length] ?? `${TEMPLATES.length}`;
 
 export default function TemplatesGallery() {
   return (
@@ -25,11 +28,11 @@ export default function TemplatesGallery() {
         <FadeUp>
           <p className="section-eyebrow">Choose your look</p>
           <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            Six ways to show up online.
+            {COUNT_WORD} ways to show up online.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-sand-600">
-            Six genuinely different designs for your driving-school site — each fully scrollable and
-            interactive. Open any one to scroll the whole thing, use the buttons and switch between them.
+            {COUNT_WORD} genuinely different designs for your driving-school site — each fully scrollable and
+            interactive. Click any one to open it live and switch between them.
           </p>
         </FadeUp>
       </section>
@@ -73,16 +76,12 @@ function TemplateCard({ t }: { t: TemplateMeta }) {
   );
 }
 
-/** Concept-relevant photo per template, with a palette-tinted overlay + name. */
+/** Bespoke ANIMATED concept preview per template (expresses its real look). */
 function TemplatePreviewThumb({ t }: { t: TemplateMeta }) {
   return (
     <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-      {t.thumb ? (
-        <img src={t.thumb} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
-      ) : (
-        <div className="absolute inset-0 flex">{t.swatch.map((c) => <div key={c} className="flex-1" style={{ background: c }} />)}</div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+      <TemplateConcept meta={t} />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
         <span className="text-xl font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
         <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: t.accent }}>{t.style}</span>

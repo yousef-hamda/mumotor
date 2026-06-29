@@ -79,7 +79,11 @@ describe('overrides: applyOverrides', () => {
 
 describe('overrides: colour slots + sections', () => {
   it('exposes colour slots for every template', () => {
-    for (const slug of ['grid-ink', 'open-road', 'night-shift', 'easy-lane', 'prestige', 'full-throttle']) {
+    const slugs = [
+      'aurora', 'obsidian', 'bento', 'prism', 'frosted', 'flow',
+      'grid-ink', 'open-road', 'night-shift', 'easy-lane', 'prestige', 'full-throttle',
+    ];
+    for (const slug of slugs) {
       const slots = colorSlotsFor(slug);
       expect(slots.length).toBeGreaterThan(0);
       for (const s of slots) {
@@ -87,7 +91,8 @@ describe('overrides: colour slots + sections', () => {
         expect(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s.default)).toBe(true);
       }
     }
-    expect(Object.keys(COLOR_SLOTS)).toHaveLength(6);
+    // every registered template has a colour-slot entry
+    expect(Object.keys(COLOR_SLOTS)).toEqual(expect.arrayContaining(slugs));
   });
 
   it('edit sections cover core fields', () => {

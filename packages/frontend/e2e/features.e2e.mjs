@@ -28,8 +28,8 @@ try {
   await page.goto(`${WEB}/templates`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('a[href^="/templates/"]', { timeout: 8000 });
   const cards = await page.locator('a[href^="/templates/"]').count();
-  ok('shows 6 template cards', cards === 6, { cards });
-  ok('cards use concept photos (img)', (await page.locator('a[href^="/templates/"] img').count()) >= 6);
+  ok('shows 12 template cards', cards === 12, { cards });
+  ok('cards use animated concept previews (.tc-root)', (await page.locator('a[href^="/templates/"] .tc-root').count()) >= 12);
 
   // ── 2. Live template preview ──
   section('Template preview (/templates/:slug)');
@@ -38,6 +38,18 @@ try {
   ok('night-shift template renders', (await page.locator('.tmpl-night-shift').count()) === 1);
   ok('hero headline present', (await page.locator('[data-edit="hero.headline"]').count()) >= 1);
   ok('switcher chrome "Use this" present', (await page.getByText(/Use this/i).count()) >= 1);
+
+  // ── 2b. New glass templates render (smoke + no horizontal overflow) ──
+  section('New glass templates');
+  for (const slug of ['aurora', 'obsidian', 'bento', 'prism', 'frosted', 'flow']) {
+    await page.goto(`${WEB}/templates/${slug}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector(`.tmpl-${slug}`, { timeout: 8000 });
+    ok(`${slug} renders`, (await page.locator(`.tmpl-${slug}`).count()) === 1);
+    ok(`${slug} has hero headline`, (await page.locator('[data-edit="hero.headline"]').count()) >= 1);
+    ok(`${slug} booking CTA present`, (await page.locator(`#book`).count()) >= 1);
+    const ov = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    ok(`${slug} no horizontal overflow`, ov <= 1, { ov });
+  }
 
   // ── 3. Builder: data collection ──
   section('Builder — data collection + auto-fill');
@@ -63,21 +75,19 @@ try {
   ok('plans editor + Add plan', (await page.getByText(/Plans \/ packages/i).count()) > 0 && (await page.getByText(/Add plan/i).count()) > 0);
   ok('10 social platform buttons', (await page.getByText(/^Snapchat$/).count()) > 0 && (await page.getByText(/^Telegram$/).count()) > 0);
 
-  ok('continue to design', await clickText(page, /choose a design/));
+  ok('continue to Templates gallery', await clickText(page, /choose a design/));
   await page.waitForTimeout(300);
-  ok('design step shows template thumbnails', (await page.locator('img').count()) >= 6);
-  ok('pick Night Shift', await clickText(page, /Night Shift/));
-  await page.waitForTimeout(200);
+  ok('Templates step shows 12 animated concept cards', (await page.locator('.tc-root').count()) >= 12);
 
-  // ── 4. Wide preview ──
-  section('Builder — wide live preview');
-  ok('preview my site', await clickText(page, /preview my site/));
+  // ── 4. Pick a template → instant live Design step ──
+  section('Builder — pick → instant live preview');
+  ok('pick Night Shift card', await clickText(page, /Night Shift/));
   await page.waitForSelector('.tmpl-night-shift', { timeout: 8000 });
-  ok('selected template renders with data', (await page.locator('.tmpl-night-shift').count()) === 1);
+  ok('selected template renders live instantly', (await page.locator('.tmpl-night-shift').count()) === 1);
+  ok('no separate "preview" button', (await page.getByText(/preview my site/i).count()) === 0);
   const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2);
   ok('no horizontal overflow (nothing clipped)', noOverflow);
-  ok('switcher row present', (await page.getByText(/Your site in:/i).count()) > 0);
-  ok('template banner (photo + name) above site', (await page.getByText(/Dark cinematic neon/i).count()) > 0);
+  ok('concept selector present (12)', (await page.locator('.tc-root').count()) >= 12);
   ok('booking section is a CTA (no multi-step widget)', await page.evaluate(() => {
     const book = document.getElementById('book');
     return !!book && !/choose a date|choose a time/i.test(book.textContent || '');
@@ -230,7 +240,7 @@ try {
   // done
   ok('Done returns to preview', await clickText(page, /Done/));
   await page.waitForTimeout(300);
-  ok('back on preview (switcher visible)', (await page.getByText(/Your site in:/i).count()) > 0);
+  ok('back on the live design step', (await page.locator('.tmpl-night-shift').count()) >= 1);
 
   // ── 6. Published site renders a template ──
   section('Published site (/p/:slug)');

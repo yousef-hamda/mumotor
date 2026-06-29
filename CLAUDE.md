@@ -74,9 +74,34 @@ classes never needed renaming.
 
 ## Templates & Customize (the user-facing site)
 - Published teacher sites are the **React** route `GET /p/:slug` (`pages/public/PublicSite.tsx`), rendering 1 of
-  **6 self-contained templates** in `src/templates/<slug>/` (grid-ink, open-road, night-shift, easy-lane, prestige,
-  full-throttle) from a shared `TemplateData` via `TemplateRender.tsx`. The deterministic backend HTML at
-  `GET /site/:slug` still generates on publish but is no longer the user-facing site. Gallery at `/templates`.
+  **12 self-contained templates** in `src/templates/<slug>/` from a shared `TemplateData` via `TemplateRender.tsx`.
+  Six originals (grid-ink, open-road, night-shift, easy-lane, prestige, full-throttle) + six **glass-forward**
+  (aurora=Apple, flow=Stripe/Linear, bento=Vercel/Notion, prism=Rivian/Polestar automotive, obsidian=smoked dark,
+  frosted=photo-led). All driven off the `TEMPLATES` registry — adding one auto-wires gallery/builder/preview/public/customize.
+  The deterministic backend HTML at `GET /site/:slug` still generates on publish but isn't the user-facing site.
+- **WebGL backgrounds**: `templates/webgl/ShaderBackground.tsx` is a tiny zero-dep raw-WebGL fullscreen-quad renderer
+  (GLSL in `webgl/shaders.ts`: aurora / mesh-gradient / iridescent). Palette uniforms seed from the template's CSS vars
+  (so Customize "Colours" tints the shader). DPR-capped, paused offscreen/hidden, reduced-motion → static. On no-WebGL
+  (headless test browsers, GPU-less devices) it **hides the canvas → each template's CSS-gradient fallback shows** — so
+  the hero always looks designed. NOTE: headless Playwright has no working WebGL, so screenshots show the CSS fallback,
+  not the live shader (verify shaders in a real browser).
+- **Animated concept cards**: `templates/TemplateConcept.tsx` renders a bespoke CSS mini-preview of each template's real
+  look (not a stock photo) — used on all gallery + builder cards.
+- **Builder flow** (`pages/builder/BuilderWizard.tsx`): Business → Setup → **Templates** (browse gallery of all 12) →
+  **Design** (clicking a card jumps here; the chosen template renders live instantly with a selector to switch on the fly)
+  → Customize / Publish. No separate "Preview" click.
+- **Customize mode** (`components/customize/CustomizeMode.tsx`, route `/customize/:id`, also from the builder
+  preview): full-screen live site, **no side panel**, persists only on **Save**. Overrides =
+  `Customization {fields, theme, styles, copy, icons}` applied by `applyOverrides` (in `templates/customize/overrides.ts`).
+  Click any `[data-edit]` element: **text** → contentEditable + popover with **Text** and **Fill** colour
+  (`styles[path].{color,background}`, injected as scoped CSS by `TemplateRender`); **background** → palette; **image**
+  → upload/Find (Unsplash); **icon** → searchable **full lucide icon-library** picker (`templates/DynamicIcon.tsx`,
+  `data.icons` overrides). ALL hardcoded headings/subtitles are editable via free-form `data.copy` (`{copy.key ?? 'literal'}`).
+  Toolbar has a **"Colours"** button (theme panel for background/colours) so it's discoverable; hovering shows a dashed
+  outline on every editable region. In Customize NOTHING navigates — any `<a>/<button>` click is intercepted to select-to-edit.
+  Lists (packages/faqs/areas/stats) have `data-edit-item` + hover +/trash. Add new editable text/icons by tagging with
+  `data-edit="copy.X"|"icons.X"` + the matching `data-edit-type`. New templates must add a `COLOR_SLOTS[<slug>]` entry in
+  `overrides.ts` mapping their 5 CSS vars + a `TemplateConcept` case + (for shaders) a CSS-gradient fallback on the shader container.
 - **Customize mode** (`components/customize/CustomizeMode.tsx`, route `/customize/:id`, also from the builder
   preview): full-screen live site, **no side panel**, persists only on **Save**. Overrides =
   `Customization {fields, theme, styles, copy, icons}` applied by `applyOverrides` (in `templates/customize/overrides.ts`).
@@ -98,7 +123,7 @@ classes never needed renaming.
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
 
-## Testing (all green: unit 26/26 · integration 70/70 · E2E 61/61, 0 console errors)
+## Testing (all green: unit 26/26 · integration 70/70 · E2E 84/84, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
   then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.

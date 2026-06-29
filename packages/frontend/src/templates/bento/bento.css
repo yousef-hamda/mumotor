@@ -1,0 +1,1042 @@
+/* ============================================================
+   Bento — Spacious asymmetric bento (Vercel / Notion / Linear grade).
+   All selectors scoped to .tmpl-bento — zero leakage into the app.
+
+   Tile model: solid-white panels on a cool #EEF2F8 base.
+   26 px gaps, varied grid spans, editorial spacing.
+   Glass morphism is reserved for the sticky nav pill only.
+   ============================================================ */
+
+/* ── Root / Palette ────────────────────────────────────────────────────────── */
+
+.tmpl-bento {
+  /* Core palette — kept exactly as per contract */
+  --bn-bg:     #EEF2F8;
+  --bn-ink:    #0B1220;
+  --bn-accent: #4F46E5;
+  --bn-mint:   #2DD4BF;
+  --bn-panel:  #FFFFFF;
+
+  /* Derived tokens */
+  --bn-muted:  #5A6478;
+  --bn-line:   rgba(11, 18, 32, 0.08);
+  --bn-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 20px -6px rgba(0,0,0,0.08);
+  --bn-shadow-lifted: 0 2px 4px rgba(0,0,0,0.04), 0 12px 40px -10px rgba(79,70,229,0.16);
+
+  /* Glass — used only for the nav */
+  --bn-glass:        rgba(255, 255, 255, 0.80);
+  --bn-glass-strong: rgba(255, 255, 255, 0.92);
+  --bn-glass-border: rgba(255, 255, 255, 0.85);
+
+  position: relative;
+  min-height: 100%;
+  background: var(--bn-bg);
+  /* Very subtle page-level depth: faint indigo NW, faint mint SE */
+  background-image:
+    radial-gradient(ellipse 70% 55% at -5% -5%,  rgba(79,70,229,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 105% 110%, rgba(45,212,191,0.07) 0%, transparent 55%);
+  color: var(--bn-ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.tmpl-bento *,
+.tmpl-bento *::before,
+.tmpl-bento *::after { box-sizing: border-box; }
+.tmpl-bento img   { display: block; max-width: 100%; }
+.tmpl-bento a     { color: inherit; text-decoration: none; }
+
+/* ── Tile primitive ────────────────────────────────────────────────────────── */
+/* Solid-white, 1 px border, gentle lift shadow.
+   Spotlight effect (radial gradient follows cursor) via CSS vars set in JS. */
+
+.tmpl-bento .bn-tile {
+  position: relative;
+  border-radius: 20px;
+  background: var(--bn-panel);
+  border: 1px solid var(--bn-line);
+  box-shadow: var(--bn-shadow);
+  overflow: hidden;
+  isolation: isolate;
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+  will-change: transform;
+}
+.tmpl-bento .bn-tile:hover {
+  box-shadow: var(--bn-shadow-lifted);
+}
+
+/* Cursor-follow specular spot — JS sets --mx/--my/--spot */
+.tmpl-bento .bn-tile-spot {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  --spot: 0;
+  background: radial-gradient(
+    280px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(79,70,229,0.06),
+    transparent 60%
+  );
+  opacity: var(--spot);
+  transition: opacity 0.4s ease;
+}
+
+.tmpl-bento .bn-tile-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+/* ── Layout helpers ────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.tmpl-bento .bn-section        { padding: 96px 0; }
+.tmpl-bento .bn-section-tight  { padding: 60px 0; }
+
+/* ── Typography ────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-h1 {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  margin: 0;
+  color: var(--bn-ink);
+}
+.tmpl-bento .bn-h2 {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 2.65rem);
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  margin: 0;
+  color: var(--bn-ink);
+}
+.tmpl-bento .bn-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bn-accent);
+  margin: 0 0 12px;
+  display: block;
+}
+.tmpl-bento .bn-section-sub {
+  font-size: 17px;
+  color: var(--bn-muted);
+  margin: 14px 0 0;
+  max-width: 52ch;
+  line-height: 1.65;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 13px 26px;
+  font-size: 15px;
+  min-height: 44px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, color 0.22s ease;
+  text-decoration: none;
+}
+.tmpl-bento .bn-btn-sm  { padding: 9px 18px; min-height: 38px; font-size: 14px; }
+.tmpl-bento .bn-btn-lg  { padding: 15px 32px; font-size: 16px; }
+.tmpl-bento .bn-btn-block { width: 100%; justify-content: center; }
+
+/* Primary — indigo fill */
+.tmpl-bento .bn-btn-primary {
+  color: #fff;
+  background: var(--bn-accent);
+  box-shadow: 0 2px 12px -4px rgba(79,70,229,0.55);
+}
+.tmpl-bento .bn-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px -6px rgba(79,70,229,0.70);
+  background: #4338ca;
+}
+
+/* Outline — ink border, no fill */
+.tmpl-bento .bn-btn-outline {
+  color: var(--bn-ink);
+  background: transparent;
+  border: 1.5px solid var(--bn-line);
+  box-shadow: none;
+}
+.tmpl-bento .bn-btn-outline:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79,70,229,0.35);
+  color: var(--bn-accent);
+  background: rgba(79,70,229,0.04);
+}
+
+/* Book-tile variants — inverted (white on indigo background) */
+.tmpl-bento .bn-btn-book-primary {
+  color: var(--bn-accent);
+  background: #fff;
+  box-shadow: 0 2px 16px -4px rgba(0,0,0,0.18);
+}
+.tmpl-bento .bn-btn-book-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px -6px rgba(0,0,0,0.22);
+}
+.tmpl-bento .bn-btn-book-ghost {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.25);
+}
+.tmpl-bento .bn-btn-book-ghost:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.22);
+}
+
+/* ── Sticky glass pill nav ─────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-nav {
+  position: sticky;
+  top: 16px;
+  z-index: 60;
+  padding: 0 24px;
+}
+.tmpl-bento .bn-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 10px 18px;
+  border-radius: 999px;
+  background: var(--bn-glass-strong);
+  border: 1px solid var(--bn-glass-border);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 12px 40px -20px rgba(79,70,229,0.28);
+}
+.tmpl-bento .bn-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--bn-ink);
+  flex-shrink: 0;
+}
+.tmpl-bento .bn-nav-links { display: none; gap: 2px; }
+.tmpl-bento .bn-nav-link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bn-muted);
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.tmpl-bento .bn-nav-link:hover      { color: var(--bn-ink); background: rgba(255,255,255,0.60); }
+.tmpl-bento .bn-nav-link.is-active  { color: var(--bn-accent); background: rgba(79,70,229,0.08); }
+.tmpl-bento .bn-nav-end   { display: flex; align-items: center; gap: 8px; }
+.tmpl-bento .bn-menu-btn {
+  display: inline-flex;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--bn-ink);
+  padding: 8px;
+  border-radius: 10px;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+}
+.tmpl-bento .bn-nav-mobile {
+  max-width: 1200px;
+  margin: 10px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 20px;
+  background: var(--bn-glass-strong);
+  border: 1px solid var(--bn-glass-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 12px 40px -20px rgba(79,70,229,0.28);
+}
+.tmpl-bento .bn-nav-mobile button {
+  background: none;
+  border: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+  color: var(--bn-ink);
+  padding: 13px 16px;
+  border-radius: 14px;
+  min-height: 44px;
+}
+.tmpl-bento .bn-nav-mobile button:hover { background: rgba(255,255,255,0.60); }
+
+/* ── Hero — GENUINELY ASYMMETRIC bento grid ────────────────────────────────
+   Mobile: stacked single column.
+   860px+: copy tile (left, spans 2 rows) | image tile (top right) | stat tile (bottom right).
+   The asymmetry (1.3fr / 0.7fr) gives the headline room to breathe at scale.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-hero {
+  padding: 48px 0 80px;
+}
+.tmpl-bento .bn-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* Copy tile */
+.tmpl-bento .bn-hero-copy-wrap,
+.tmpl-bento .bn-hero-copy-tile { height: 100%; }
+.tmpl-bento .bn-hero-copy-tile {
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 360px;
+  /* Very faint indigo gradient on the hero copy tile only */
+  background: linear-gradient(160deg, #fff 0%, rgba(238,242,248,0.6) 100%);
+}
+.tmpl-bento .bn-hero-eyebrow-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--bn-accent);
+  margin-bottom: 22px;
+  width: fit-content;
+}
+.tmpl-bento .bn-hero-eyebrow { /* inline text only */ }
+.tmpl-bento .bn-hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bn-accent);
+  flex-shrink: 0;
+  animation: bn-pulse 2.4s ease-in-out infinite;
+}
+@keyframes bn-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.tmpl-bento .bn-hero-sub {
+  color: var(--bn-muted);
+  font-size: 17.5px;
+  margin: 20px 0 0;
+  max-width: 50ch;
+  line-height: 1.58;
+}
+.tmpl-bento .bn-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.tmpl-bento .bn-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.tmpl-bento .bn-trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--bn-muted);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(79,70,229,0.05);
+  border: 1px solid rgba(79,70,229,0.12);
+}
+.tmpl-bento .bn-trust-chip svg { color: var(--bn-accent); flex-shrink: 0; }
+
+/* Image tile */
+.tmpl-bento .bn-hero-img-wrap,
+.tmpl-bento .bn-hero-img-tile { height: 100%; }
+.tmpl-bento .bn-hero-img-tile { padding: 10px; }
+.tmpl-bento .bn-hero-img {
+  width: 100%;
+  height: clamp(280px, 40vw, 460px);
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+/* Stat tile — indigo tinted, count animates in */
+.tmpl-bento .bn-hero-stat-wrap { }
+.tmpl-bento .bn-hero-stat-tile {
+  padding: 36px 32px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(145deg, rgba(79,70,229,0.07), rgba(79,70,229,0.03));
+  border-color: rgba(79,70,229,0.14);
+}
+.tmpl-bento .bn-hero-stat-inner { }
+.tmpl-bento .bn-hero-stat-num {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+  color: var(--bn-accent);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 0;
+}
+.tmpl-bento .bn-hero-stat-label {
+  font-size: 13.5px;
+  color: var(--bn-muted);
+  margin-top: 8px;
+}
+
+/* ── Stats strip ───────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-stats-section { padding: 0 0 80px; }
+.tmpl-bento .bn-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.tmpl-bento .bn-stat-tile {
+  padding: 36px 28px;
+  text-align: center;
+}
+.tmpl-bento .bn-stat-num {
+  display: block;
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  color: var(--bn-ink);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.tmpl-bento .bn-stat-label {
+  display: block;
+  font-size: 13px;
+  color: var(--bn-muted);
+  margin-top: 9px;
+  font-weight: 500;
+}
+
+/* ── Why / Features ─────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-why-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 40px;
+}
+.tmpl-bento .bn-feature-tile {
+  padding: 40px 34px;
+  height: 100%;
+}
+.tmpl-bento .bn-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  color: var(--bn-accent);
+  background: rgba(79,70,229,0.08);
+  border: 1px solid rgba(79,70,229,0.14);
+  margin-bottom: 22px;
+}
+.tmpl-bento .bn-feature-title {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 0 0 10px;
+  color: var(--bn-ink);
+  letter-spacing: -0.015em;
+}
+.tmpl-bento .bn-feature-body {
+  font-size: 15px;
+  color: var(--bn-muted);
+  margin: 0;
+  line-height: 1.65;
+}
+
+/* ── Packages ──────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-pkg-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 44px;
+}
+.tmpl-bento .bn-pkg-tile {
+  padding: 36px 32px;
+  height: 100%;
+}
+/* Popular package: indigo tinted border + very subtle fill */
+.tmpl-bento .bn-pkg-tile.is-popular {
+  border-color: rgba(79,70,229,0.28);
+  background: linear-gradient(160deg, rgba(79,70,229,0.05) 0%, rgba(255,255,255,1) 60%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 40px -10px rgba(79,70,229,0.22);
+}
+.tmpl-bento .bn-pkg-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #fff;
+  background: var(--bn-accent);
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.tmpl-bento .bn-pkg-name {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 21px;
+  margin: 0;
+  color: var(--bn-ink);
+  letter-spacing: -0.018em;
+}
+.tmpl-bento .bn-pkg-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+.tmpl-bento .bn-pkg-amount {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  color: var(--bn-ink);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.tmpl-bento .bn-pkg-unit { font-size: 14px; color: var(--bn-muted); }
+.tmpl-bento .bn-pkg-features {
+  list-style: none;
+  margin: 24px 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tmpl-bento .bn-pkg-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  color: var(--bn-ink);
+}
+.tmpl-bento .bn-check {
+  color: var(--bn-mint);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── About bento grid ──────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-about-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 40px;
+}
+.tmpl-bento .bn-about-img-tile { padding: 10px; }
+.tmpl-bento .bn-about-img {
+  width: 100%;
+  height: clamp(280px, 36vw, 440px);
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+.tmpl-bento .bn-about-copy-tile {
+  padding: 44px 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.tmpl-bento .bn-about-body {
+  font-size: 16px;
+  color: var(--bn-muted);
+  line-height: 1.72;
+  margin: 0;
+}
+.tmpl-bento .bn-checklist {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tmpl-bento .bn-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--bn-ink);
+  font-weight: 500;
+}
+.tmpl-bento .bn-checklist svg { color: var(--bn-mint); flex-shrink: 0; margin-top: 2px; }
+
+/* Instructor card */
+.tmpl-bento .bn-instructor-tile {
+  padding: 36px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.tmpl-bento .bn-instructor-photo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 12px -4px rgba(79,70,229,0.25);
+  flex-shrink: 0;
+}
+.tmpl-bento .bn-instructor-name {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0;
+  color: var(--bn-ink);
+  letter-spacing: -0.018em;
+}
+.tmpl-bento .bn-instructor-title {
+  font-size: 13px;
+  color: var(--bn-muted);
+  margin: 4px 0 0;
+}
+.tmpl-bento .bn-instructor-bio {
+  font-size: 14px;
+  color: var(--bn-muted);
+  margin: 6px 0 0;
+  line-height: 1.65;
+}
+.tmpl-bento .bn-creds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+.tmpl-bento .bn-cred-chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bn-accent);
+  background: rgba(79,70,229,0.07);
+  border: 1px solid rgba(79,70,229,0.15);
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+
+/* ── Areas — stylized coverage map tile ────────────────────────────────────── */
+/* A dot-grid background mimics a city map; chips are "pins" on the grid.
+   The chip hover animation is the signature micro-interaction of this tile. */
+
+.tmpl-bento .bn-areas-tile {
+  padding: 44px 40px;
+  /* Dot grid: small indigo dots at 28 px intervals */
+  background-image:
+    radial-gradient(circle, rgba(79,70,229,0.13) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-color: var(--bn-panel);
+}
+/* Soften the dots near the edges */
+.tmpl-bento .bn-areas-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, var(--bn-panel) 100%);
+  z-index: 0;
+}
+.tmpl-bento .bn-areas-tile .bn-tile-inner { position: relative; z-index: 2; }
+
+/* Coverage header row */
+.tmpl-bento .bn-areas-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.tmpl-bento .bn-areas-radar {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.tmpl-bento .bn-areas-radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(79,70,229,0.30);
+  animation: bn-radar 2s ease-in-out infinite;
+}
+.tmpl-bento .bn-areas-radar-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bn-accent);
+}
+@keyframes bn-radar {
+  0%   { transform: scale(0.7); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.tmpl-bento .bn-areas-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bn-muted);
+}
+
+/* Area chips — elevated on hover with accent tint */
+.tmpl-bento .bn-areas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tmpl-bento .bn-area-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bn-ink);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(11,18,32,0.10);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: default;
+  box-shadow: 0 1px 4px -1px rgba(0,0,0,0.06);
+  transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+.tmpl-bento .bn-area-chip:hover {
+  background: rgba(79,70,229,0.07);
+  border-color: rgba(79,70,229,0.28);
+  color: var(--bn-accent);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 16px -4px rgba(79,70,229,0.22);
+}
+.tmpl-bento .bn-area-chip svg { color: var(--bn-accent); flex-shrink: 0; }
+.tmpl-bento .bn-area-chip:hover svg { color: var(--bn-accent); }
+.tmpl-bento .bn-area-note {
+  font-size: 11px;
+  color: var(--bn-muted);
+  margin-left: 2px;
+}
+
+/* ── Reviews ───────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-reviews-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 44px;
+}
+.tmpl-bento .bn-review-tile { padding: 34px 30px; }
+.tmpl-bento .bn-stars       { display: inline-flex; gap: 3px; }
+.tmpl-bento .bn-review-text {
+  font-size: 15.5px;
+  line-height: 1.68;
+  color: var(--bn-ink);
+  margin: 16px 0 20px;
+  font-style: italic;
+}
+.tmpl-bento .bn-review-meta { display: flex; align-items: center; gap: 12px; }
+.tmpl-bento .bn-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px -1px rgba(0,0,0,0.10);
+  flex-shrink: 0;
+}
+.tmpl-bento .bn-review-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+  color: var(--bn-ink);
+}
+.tmpl-bento .bn-review-sub {
+  font-size: 12.5px;
+  color: var(--bn-muted);
+  margin: 3px 0 0;
+}
+
+/* ── Gallery ───────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 40px;
+}
+.tmpl-bento .bn-gallery-cell { padding: 6px; }
+.tmpl-bento .bn-gallery-cell img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+}
+
+/* ── FAQ ────────────────────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-faq-wrap  { max-width: 840px; }
+.tmpl-bento .bn-faq-list  {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
+}
+.tmpl-bento .bn-faq-tile  { padding: 6px 26px; }
+.tmpl-bento .bn-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--bn-ink);
+  padding: 20px 0;
+  text-align: start;
+  min-height: 44px;
+}
+.tmpl-bento .bn-faq-chev  { color: var(--bn-accent); display: inline-flex; flex-shrink: 0; }
+.tmpl-bento .bn-faq-a {
+  font-size: 15px;
+  color: var(--bn-muted);
+  margin: 0;
+  padding: 0 0 20px;
+  line-height: 1.68;
+}
+
+/* ── Booking CTA — bold solid-indigo tile ──────────────────────────────────── */
+
+.tmpl-bento .bn-book-tile {
+  padding: 80px 40px;
+  text-align: center;
+  background: var(--bn-accent);
+  border-color: var(--bn-accent);
+  box-shadow: 0 24px 72px -20px rgba(79,70,229,0.55);
+  border-radius: 24px;
+}
+/* Override tile hover on book tile — it's already elevated */
+.tmpl-bento .bn-book-tile:hover {
+  box-shadow: 0 24px 72px -20px rgba(79,70,229,0.60);
+}
+.tmpl-bento .bn-book-h {
+  max-width: 22ch;
+  margin: 0 auto;
+  color: #fff;
+}
+.tmpl-bento .bn-book-tile .bn-h2 { color: #fff; }
+.tmpl-bento .bn-book-body {
+  font-size: 17px;
+  color: rgba(255,255,255,0.78);
+  margin: 16px auto 0;
+  max-width: 50ch;
+}
+.tmpl-bento .bn-book-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+/* ── Contact / Footer ──────────────────────────────────────────────────────── */
+
+.tmpl-bento .bn-footer      { padding: 0 0 60px; }
+.tmpl-bento .bn-footer-tile { padding: 48px 44px; }
+.tmpl-bento .bn-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
+.tmpl-bento .bn-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+.tmpl-bento .bn-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--bn-ink);
+  transition: color 0.2s ease;
+  min-height: 44px;
+}
+.tmpl-bento .bn-contact-link svg  { color: var(--bn-accent); flex-shrink: 0; }
+.tmpl-bento .bn-contact-link:hover { color: var(--bn-accent); }
+.tmpl-bento .bn-socials {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.tmpl-bento .bn-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--bn-ink);
+  background: rgba(79,70,229,0.06);
+  border: 1px solid rgba(79,70,229,0.12);
+  transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.tmpl-bento .bn-social:hover {
+  transform: translateY(-2px);
+  color: var(--bn-accent);
+  background: rgba(79,70,229,0.10);
+  border-color: rgba(79,70,229,0.22);
+}
+.tmpl-bento .bn-hours {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+.tmpl-bento .bn-hours td {
+  padding: 10px 0;
+  font-size: 14.5px;
+  border-bottom: 1px solid var(--bn-line);
+  color: var(--bn-ink);
+}
+.tmpl-bento .bn-hours td:last-child { text-align: end; color: var(--bn-muted); }
+.tmpl-bento .bn-hours tr.is-closed td { color: var(--bn-muted); opacity: 0.65; }
+.tmpl-bento .bn-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--bn-line);
+  font-size: 13px;
+  color: var(--bn-muted);
+}
+
+/* ── Responsive — tablet 640 px ────────────────────────────────────────────── */
+
+@media (min-width: 640px) {
+  .tmpl-bento .bn-hero-grid { gap: 22px; }
+  .tmpl-bento .bn-stats-grid { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-bento .bn-pkg-grid   { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .tmpl-bento .bn-gallery-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-bento .bn-footer-grid  { grid-template-columns: 1.4fr 1fr; }
+}
+
+/* ── Responsive — desktop 860 px — full asymmetric bento ───────────────────── */
+
+@media (min-width: 860px) {
+  /* Hero: 1.3fr copy | 0.7fr [image / stat] */
+  .tmpl-bento .bn-hero-grid {
+    grid-template-columns: 1.3fr 0.7fr;
+    grid-template-rows: 1fr auto;
+    gap: 26px;
+  }
+  .tmpl-bento .bn-hero-copy-wrap { grid-column: 1; grid-row: 1 / 3; }
+  .tmpl-bento .bn-hero-img-wrap  { grid-column: 2; grid-row: 1; }
+  .tmpl-bento .bn-hero-stat-wrap { grid-column: 2; grid-row: 2; }
+
+  /* Give the hero image its natural height at this viewport */
+  .tmpl-bento .bn-hero-img {
+    height: clamp(300px, 35vw, 440px);
+  }
+
+  /* Stats: always 4-col */
+  .tmpl-bento .bn-stats-grid { gap: 22px; }
+
+  /* Why: 3-col */
+  .tmpl-bento .bn-why-grid { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+
+  /* Packages: 3-col */
+  .tmpl-bento .bn-pkg-grid { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+
+  /* About: image | copy | instructor — asymmetric */
+  .tmpl-bento .bn-about-grid {
+    grid-template-columns: 0.95fr 1.1fr 0.72fr;
+    gap: 22px;
+  }
+
+  /* Reviews: 3-col */
+  .tmpl-bento .bn-reviews-grid { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+}
+
+/* ── Responsive — wide 1060 px — max gaps ──────────────────────────────────── */
+
+@media (min-width: 1060px) {
+  .tmpl-bento .bn-hero-grid,
+  .tmpl-bento .bn-why-grid,
+  .tmpl-bento .bn-pkg-grid,
+  .tmpl-bento .bn-about-grid,
+  .tmpl-bento .bn-reviews-grid,
+  .tmpl-bento .bn-stats-grid { gap: 26px; }
+
+  .tmpl-bento .bn-hero { padding: 56px 0 88px; }
+}
+
+/* ── Nav links visible at 940 px ────────────────────────────────────────────── */
+
+@media (min-width: 940px) {
+  .tmpl-bento .bn-nav-links { display: flex; }
+  .tmpl-bento .bn-menu-btn  { display: none; }
+}
+
+/* ── Reduced motion — disable all CSS animations + hovers ─────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-bento .bn-hero-dot               { animation: none !important; }
+  .tmpl-bento .bn-areas-radar-ring       { animation: none !important; }
+  .tmpl-bento .bn-btn:hover,
+  .tmpl-bento .bn-btn-primary:hover,
+  .tmpl-bento .bn-btn-outline:hover,
+  .tmpl-bento .bn-btn-book-primary:hover,
+  .tmpl-bento .bn-btn-book-ghost:hover,
+  .tmpl-bento .bn-social:hover,
+  .tmpl-bento .bn-area-chip:hover        { transform: none !important; }
+  .tmpl-bento .bn-tile                   { transition: none !important; }
+}

@@ -1,0 +1,965 @@
+/* Flow — Stripe / Linear developer-premium. All selectors scoped to .tmpl-flow. */
+
+/* ── Design tokens ────────────────────────────────────────────────────────── */
+.tmpl-flow {
+  /* Palette — 5 user-overridable vars (Customize colour panel reads these) */
+  --fl-bg:  #0B0A1F;   /* deep indigo-black background */
+  --fl-ink: #F3F1FF;   /* near-white text on dark */
+  --fl-c1:  #6366F1;   /* accent indigo */
+  --fl-c2:  #A855F7;   /* secondary violet */
+  --fl-c3:  #22D3EE;   /* highlight cyan */
+
+  /* Derived — computed conveniences, not user-overridable */
+  --fl-card-ink:         #15132A;
+  --fl-muted:            rgba(243,241,255,0.60);
+  --fl-muted-card:       #4B4970;
+  --fl-line:             rgba(255,255,255,0.09);
+  --fl-line-card:        rgba(21,19,42,0.10);
+  --fl-panel:            rgba(255,255,255,0.025);
+  --fl-glass:            rgba(255,255,255,0.08);
+  --fl-glass-border:     rgba(255,255,255,0.14);
+  --fl-glass-light:      rgba(255,255,255,0.94);
+  --fl-glass-light-border: rgba(255,255,255,0.80);
+
+  position: relative;
+  min-height: 100%;
+  background: var(--fl-bg);
+  color: var(--fl-ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-flow *,
+.tmpl-flow *::before,
+.tmpl-flow *::after { box-sizing: border-box; }
+.tmpl-flow img { display: block; max-width: 100%; }
+
+/* ── Scroll progress rail ─────────────────────────────────────────────────── */
+.tmpl-flow .fl-progress-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--fl-c1) 0%, var(--fl-c2) 55%, var(--fl-c3) 100%);
+  transform-origin: left center;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* ── Shader canvas — inside sections, fills the parent ───────────────────── */
+.tmpl-flow .fl-shader {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Layout foundation ────────────────────────────────────────────────────── */
+.tmpl-flow .fl-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+/* Standard section: solid dark panel with hairline top border */
+.tmpl-flow .fl-section {
+  padding: 88px 0;
+  border-top: 1px solid var(--fl-line);
+}
+/* Alternate panels — tiny tint for visual rhythm */
+.tmpl-flow .fl-why-section,
+.tmpl-flow .fl-reviews-section {
+  background: var(--fl-panel);
+}
+
+/* ── Glass primitive ──────────────────────────────────────────────────────── */
+/* Dark variant — sits on dark panels, white ink */
+.tmpl-flow .fl-glass {
+  position: relative;
+  border-radius: 18px;
+  background: var(--fl-glass);
+  border: 1px solid var(--fl-glass-border);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 20px 48px -24px rgba(0,0,0,0.65);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* Specular top-edge highlight */
+.tmpl-flow .fl-glass::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0) 38%);
+}
+/* Pointer-follow glow spot */
+.tmpl-flow .fl-glass-spot {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  --spot: 0;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,0.22), transparent 65%);
+  opacity: var(--spot);
+  transition: opacity 0.35s ease;
+}
+.tmpl-flow .fl-glass-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+/* Light variant — near-white, dark ink, for packages + FAQ */
+.tmpl-flow .fl-glass-light {
+  background: var(--fl-glass-light);
+  border-color: var(--fl-glass-light-border);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 18px 44px -22px rgba(0,0,0,0.30);
+  color: var(--fl-card-ink);
+}
+.tmpl-flow .fl-glass-light::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.50), rgba(255,255,255,0) 34%);
+}
+.tmpl-flow .fl-glass-light .fl-glass-spot {
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgba(99,102,241,0.10), transparent 65%);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.tmpl-flow .fl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 12px 22px;
+  font-size: 15px;
+  min-height: 44px;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, opacity 0.22s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tmpl-flow .fl-btn-sm  { padding: 9px 18px; min-height: 38px; font-size: 14px; }
+.tmpl-flow .fl-btn-lg  { padding: 15px 28px; font-size: 16px; }
+.tmpl-flow .fl-btn-block { width: 100%; }
+
+/* Primary — indigo gradient pill */
+.tmpl-flow .fl-btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--fl-c1), var(--fl-c2));
+  box-shadow: 0 10px 26px -8px rgba(99,102,241,0.65);
+}
+.tmpl-flow .fl-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -8px rgba(99,102,241,0.85);
+}
+
+/* Glass — semi-transparent pill on gradient sections */
+.tmpl-flow .fl-btn-glass {
+  color: var(--fl-ink);
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.22);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+.tmpl-flow .fl-btn-glass:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.16);
+}
+
+/* Outline — for non-popular package CTAs on light glass */
+.tmpl-flow .fl-btn-outline {
+  color: var(--fl-c1);
+  background: transparent;
+  border: 1.5px solid var(--fl-c1);
+}
+.tmpl-flow .fl-btn-outline:hover {
+  background: rgba(99,102,241,0.07);
+  transform: translateY(-2px);
+}
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+.tmpl-flow .fl-h1 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.5rem, 6vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  margin: 16px 0 0;
+  /* Gradient text: white → cyan for editorial impact */
+  background: linear-gradient(130deg, var(--fl-ink) 30%, var(--fl-c3) 65%, var(--fl-c2) 95%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tmpl-flow .fl-h2 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, 2.6rem);
+  line-height: 1.10;
+  letter-spacing: -0.022em;
+  margin: 10px 0 0;
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fl-c3);
+  margin: 0 0 8px;
+}
+.tmpl-flow .fl-section-sub {
+  color: var(--fl-muted);
+  font-size: 17px;
+  max-width: 54ch;
+  margin: 14px 0 0;
+}
+.tmpl-flow .fl-body {
+  color: var(--fl-muted);
+  font-size: 16.5px;
+  margin: 16px 0 0;
+  max-width: 60ch;
+}
+
+/* ── Nav — sticky glass pill ──────────────────────────────────────────────── */
+.tmpl-flow .fl-nav {
+  position: sticky;
+  top: 14px;
+  z-index: 60;
+  padding: 0 24px;
+}
+.tmpl-flow .fl-nav-glass {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 999px;
+  background: rgba(11,10,31,0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 16px 40px -18px rgba(0,0,0,0.55);
+}
+.tmpl-flow .fl-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--fl-ink);
+  min-height: 44px;
+  padding: 0 4px;
+}
+.tmpl-flow .fl-nav-links { display: none; gap: 4px; }
+.tmpl-flow .fl-nav-link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fl-muted);
+  padding: 8px 14px;
+  border-radius: 999px;
+  min-height: 44px;
+  transition: color 0.2s, background 0.2s;
+}
+.tmpl-flow .fl-nav-link:hover { color: var(--fl-ink); background: rgba(255,255,255,0.07); }
+.tmpl-flow .fl-nav-link.is-active {
+  color: var(--fl-c3);
+  background: rgba(34,211,238,0.08);
+}
+.tmpl-flow .fl-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-flow .fl-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--fl-ink);
+  padding: 10px;
+  min-height: 44px;
+}
+.tmpl-flow .fl-nav-mobile {
+  max-width: 1180px;
+  margin: 8px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(11,10,31,0.82);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.tmpl-flow .fl-nav-mobile button {
+  background: none;
+  border: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+  color: var(--fl-ink);
+  padding: 13px 16px;
+  border-radius: 12px;
+  min-height: 44px;
+}
+.tmpl-flow .fl-nav-mobile button:hover { background: rgba(255,255,255,0.06); }
+
+/* ── Hero — editorial, full-height, shader behind ────────────────────────── */
+.tmpl-flow .fl-hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  padding: 128px 0 100px;
+  overflow: hidden;
+  /* CSS mesh-gradient fallback (shown if WebGL is unavailable; shader over it) */
+  background:
+    radial-gradient(55% 60% at 15% 20%, rgba(99, 102, 241, 0.42), transparent 70%),
+    radial-gradient(55% 60% at 88% 18%, rgba(168, 85, 247, 0.38), transparent 70%),
+    radial-gradient(65% 65% at 60% 95%, rgba(34, 211, 238, 0.28), transparent 72%),
+    var(--fl-bg);
+}
+/* Gradient overlay — left-weighted for text legibility over the shader */
+.tmpl-flow .fl-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    rgba(11,10,31,0.78) 0%,
+    rgba(11,10,31,0.48) 40%,
+    rgba(11,10,31,0.12) 100%
+  );
+}
+.tmpl-flow .fl-hero .fl-container {
+  position: relative;
+  z-index: 2;
+}
+/* Editorial text block — left-aligned, max-width for legibility */
+.tmpl-flow .fl-hero-copy {
+  max-width: 700px;
+}
+/* Eyebrow pill */
+.tmpl-flow .fl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fl-ink);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.09);
+  border: 1px solid rgba(255,255,255,0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+/* Animated status dot */
+.tmpl-flow .fl-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fl-c3), var(--fl-c1));
+  box-shadow: 0 0 8px var(--fl-c3);
+  animation: fl-pulse 2.4s ease-in-out infinite;
+}
+@keyframes fl-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.tmpl-flow .fl-hero-sub {
+  color: rgba(243,241,255,0.80);
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 22px 0 0;
+  max-width: 54ch;
+}
+.tmpl-flow .fl-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 32px 0 0;
+}
+/* Trust signals row — credentials as small pill chips */
+.tmpl-flow .fl-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 28px 0 0;
+}
+.tmpl-flow .fl-trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fl-muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--fl-line);
+  min-height: 32px;
+}
+.tmpl-flow .fl-trust-chip svg { color: var(--fl-c3); flex-shrink: 0; }
+
+/* ── Product moment — framed hero image below the fold ───────────────────── */
+.tmpl-flow .fl-product {
+  padding: 0 0 80px;
+  background: var(--fl-bg);
+  border-top: 1px solid var(--fl-line);
+}
+.tmpl-flow .fl-product .fl-container {
+  padding-top: 64px;
+}
+/* Premium frame: dark border + heavy shadow with indigo tint */
+.tmpl-flow .fl-product-frame {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.11);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 80px 160px -40px rgba(0,0,0,0.80),
+    0 40px 80px -20px rgba(99,102,241,0.18);
+  transform-style: preserve-3d;
+  will-change: transform;
+  background: var(--fl-bg);
+}
+.tmpl-flow .fl-product-img {
+  width: 100%;
+  height: clamp(240px, 44vw, 560px);
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.92) contrast(1.04);
+  transition: filter 0.4s ease;
+}
+.tmpl-flow .fl-product-frame:hover .fl-product-img {
+  filter: brightness(1) contrast(1.04);
+}
+
+/* ── Stats — flat hairline-divided spec bar ───────────────────────────────── */
+.tmpl-flow .fl-stats-section {
+  border-top: 1px solid var(--fl-line);
+  border-bottom: 1px solid var(--fl-line);
+  background: rgba(255,255,255,0.025);
+}
+.tmpl-flow .fl-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.tmpl-flow .fl-stat {
+  padding: 44px 24px;
+  text-align: center;
+  border-right: 1px solid var(--fl-line);
+}
+/* 2-col mobile: right border only on odd children */
+.tmpl-flow .fl-stat:nth-child(even) { border-right: none; }
+/* Top border for second row in 2-col layout */
+.tmpl-flow .fl-stat:nth-child(n+3) { border-top: 1px solid var(--fl-line); }
+
+.tmpl-flow .fl-stat-num {
+  display: block;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  color: var(--fl-ink);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--fl-ink) 25%, var(--fl-c3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tmpl-flow .fl-stat-label {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fl-muted);
+  letter-spacing: 0.01em;
+}
+
+/* ── Why — developer feature cards (border + subtle fill, no blur) ─────────── */
+.tmpl-flow .fl-why-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+.tmpl-flow .fl-why-card {
+  padding: 28px;
+  border: 1px solid var(--fl-line);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+  transition: border-color 0.28s ease, background 0.28s ease;
+}
+.tmpl-flow .fl-why-card:hover {
+  border-color: rgba(99,102,241,0.28);
+  background: rgba(99,102,241,0.04);
+}
+.tmpl-flow .fl-why-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--fl-c1), var(--fl-c2));
+  box-shadow: 0 8px 20px -8px rgba(99,102,241,0.65);
+  flex-shrink: 0;
+}
+.tmpl-flow .fl-why-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 16px 0 0;
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-why-body {
+  color: var(--fl-muted);
+  font-size: 15px;
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+
+/* ── Packages — light-glass cards ────────────────────────────────────────── */
+.tmpl-flow .fl-packages-section { background: var(--fl-bg); }
+.tmpl-flow .fl-pkg-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 44px;
+  align-items: start;
+}
+.tmpl-flow .fl-pkg { padding: 28px; }
+.tmpl-flow .fl-pkg.is-popular {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 24px 56px -24px rgba(99,102,241,0.40);
+  border-color: rgba(99,102,241,0.35);
+}
+.tmpl-flow .fl-pkg-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--fl-c1), var(--fl-c2));
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+.tmpl-flow .fl-pkg-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 19px;
+  margin: 0;
+  color: var(--fl-card-ink);
+}
+.tmpl-flow .fl-pkg-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.tmpl-flow .fl-pkg-amount {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 38px;
+  color: var(--fl-card-ink);
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.tmpl-flow .fl-pkg-unit { font-size: 14px; color: var(--fl-muted-card); }
+.tmpl-flow .fl-pkg-features {
+  list-style: none;
+  margin: 22px 0 26px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.tmpl-flow .fl-pkg-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--fl-card-ink);
+}
+.tmpl-flow .fl-check { color: var(--fl-c1); flex-shrink: 0; margin-top: 2px; }
+
+/* ── About ────────────────────────────────────────────────────────────────── */
+.tmpl-flow .fl-about-section { background: var(--fl-panel); }
+.tmpl-flow .fl-about-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.tmpl-flow .fl-about-media { position: relative; padding-bottom: 32px; }
+.tmpl-flow .fl-about-card { padding: 10px; }
+.tmpl-flow .fl-about-card .fl-glass-inner { padding: 0; }
+.tmpl-flow .fl-about-img {
+  width: 100%;
+  height: clamp(280px, 38vw, 440px);
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+.tmpl-flow .fl-instructor {
+  position: absolute;
+  left: 22px;
+  bottom: 0;
+  padding: 12px 16px;
+}
+.tmpl-flow .fl-instructor .fl-glass-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tmpl-flow .fl-instructor-photo {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.tmpl-flow .fl-instructor-name {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0;
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-instructor-title {
+  font-size: 12.5px;
+  color: var(--fl-muted);
+  margin: 2px 0 0;
+}
+.tmpl-flow .fl-checklist {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.tmpl-flow .fl-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15.5px;
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-checklist svg { color: var(--fl-c3); flex-shrink: 0; margin-top: 3px; }
+
+/* ── Areas — inline pill tag cloud ───────────────────────────────────────── */
+.tmpl-flow .fl-areas-section { background: var(--fl-bg); }
+.tmpl-flow .fl-areas-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 36px;
+}
+.tmpl-flow .fl-area-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: 1px solid var(--fl-line);
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--fl-ink);
+  background: rgba(255,255,255,0.04);
+  min-height: 44px;
+  transition: border-color 0.22s ease, background 0.22s ease, color 0.22s ease;
+}
+.tmpl-flow .fl-area-tag:hover {
+  border-color: rgba(99,102,241,0.30);
+  background: rgba(99,102,241,0.06);
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-area-name { font-weight: 500; }
+.tmpl-flow .fl-area-note {
+  font-size: 11.5px;
+  color: var(--fl-c3);
+  font-weight: 600;
+}
+
+/* ── Reviews ──────────────────────────────────────────────────────────────── */
+.tmpl-flow .fl-reviews-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 44px;
+}
+.tmpl-flow .fl-review { padding: 26px; }
+.tmpl-flow .fl-stars { display: inline-flex; gap: 2px; }
+.tmpl-flow .fl-review-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--fl-ink);
+  margin: 14px 0 18px;
+  quotes: '\201C' '\201D';
+}
+.tmpl-flow .fl-review-meta { display: flex; align-items: center; gap: 12px; }
+.tmpl-flow .fl-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.tmpl-flow .fl-review-name {
+  font-weight: 700;
+  font-size: 14.5px;
+  margin: 0;
+  color: var(--fl-ink);
+}
+.tmpl-flow .fl-review-sub {
+  font-size: 12.5px;
+  color: var(--fl-muted);
+  margin: 2px 0 0;
+}
+
+/* ── Gallery ──────────────────────────────────────────────────────────────── */
+.tmpl-flow .fl-gallery-section { background: var(--fl-bg); }
+.tmpl-flow .fl-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 40px;
+}
+.tmpl-flow .fl-gallery-cell {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--fl-line);
+  background: rgba(255,255,255,0.02);
+}
+.tmpl-flow .fl-gallery-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease, filter 0.4s ease;
+  filter: brightness(0.9);
+}
+.tmpl-flow .fl-gallery-cell:hover .fl-gallery-img {
+  transform: scale(1.04);
+  filter: brightness(1);
+}
+
+/* ── FAQ — light-glass accordion ─────────────────────────────────────────── */
+.tmpl-flow .fl-faq-section { background: var(--fl-panel); }
+.tmpl-flow .fl-faq-wrap { max-width: 820px; }
+.tmpl-flow .fl-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 40px;
+}
+.tmpl-flow .fl-faq-item { padding: 4px 22px; }
+.tmpl-flow .fl-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--fl-card-ink);
+  padding: 18px 0;
+  text-align: start;
+  min-height: 60px;
+}
+.tmpl-flow .fl-faq-chev { color: var(--fl-c1); display: inline-flex; flex-shrink: 0; }
+.tmpl-flow .fl-faq-a {
+  color: var(--fl-muted-card);
+  font-size: 15.5px;
+  margin: 0;
+  padding: 0 0 18px;
+  line-height: 1.65;
+}
+
+/* ── Book CTA — shader + centered heading ─────────────────────────────────── */
+.tmpl-flow .fl-book {
+  position: relative;
+  overflow: hidden;
+  padding: 120px 0;
+  border-top: 1px solid var(--fl-line);
+}
+.tmpl-flow .fl-book-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(60% 80% at 25% 50%, rgba(99, 102, 241, 0.40), transparent 70%),
+    radial-gradient(60% 80% at 80% 50%, rgba(34, 211, 238, 0.30), transparent 72%),
+    var(--fl-bg);
+}
+/* Overlay to darken book section center for legibility */
+.tmpl-flow .fl-book-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(11,10,31,0.55) 0%, rgba(11,10,31,0.25) 70%, transparent 100%);
+}
+.tmpl-flow .fl-book-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+.tmpl-flow .fl-book-h {
+  max-width: 22ch;
+}
+.tmpl-flow .fl-book-body {
+  color: rgba(243,241,255,0.80);
+  font-size: 18px;
+  margin: 20px 0 0;
+  max-width: 50ch;
+}
+.tmpl-flow .fl-book-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+/* ── Footer — solid dark, clean grid ──────────────────────────────────────── */
+.tmpl-flow .fl-footer {
+  padding: 72px 0 48px;
+  background: rgba(0,0,0,0.35);
+  border-top: 1px solid var(--fl-line);
+}
+.tmpl-flow .fl-footer-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--fl-line);
+}
+.tmpl-flow .fl-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+.tmpl-flow .fl-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fl-muted);
+  text-decoration: none;
+  font-size: 15px;
+  min-height: 44px;
+  transition: color 0.2s;
+}
+.tmpl-flow .fl-contact-link svg { color: var(--fl-c3); flex-shrink: 0; }
+.tmpl-flow .fl-contact-link:hover { color: var(--fl-ink); }
+.tmpl-flow .fl-socials { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+.tmpl-flow .fl-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--fl-muted);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--fl-line);
+  transition: transform 0.2s, color 0.2s, background 0.2s;
+}
+.tmpl-flow .fl-social:hover {
+  transform: translateY(-2px);
+  color: var(--fl-c3);
+  background: rgba(34,211,238,0.08);
+}
+.tmpl-flow .fl-hours {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+.tmpl-flow .fl-hours td {
+  padding: 9px 0;
+  font-size: 14.5px;
+  border-bottom: 1px solid var(--fl-line);
+  color: var(--fl-muted);
+}
+.tmpl-flow .fl-hours td:last-child { text-align: end; }
+.tmpl-flow .fl-hours tr:not(.is-closed) td:first-child { color: var(--fl-ink); }
+.tmpl-flow .fl-hours tr.is-closed td { opacity: 0.45; }
+.tmpl-flow .fl-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  padding-top: 32px;
+  font-size: 13px;
+  color: var(--fl-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (min-width: 600px) {
+  .tmpl-flow .fl-why-grid     { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-flow .fl-gallery-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 720px) {
+  /* Stats: reset 2-col borders, go 4-col */
+  .tmpl-flow .fl-stats-row            { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-flow .fl-stat                 { border-right: 1px solid var(--fl-line); }
+  .tmpl-flow .fl-stat:nth-child(even) { border-right: 1px solid var(--fl-line); }
+  .tmpl-flow .fl-stat:nth-child(n+3)  { border-top: none; }
+  .tmpl-flow .fl-stat:last-child      { border-right: none; }
+
+  .tmpl-flow .fl-pkg-grid      { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-flow .fl-reviews-grid  { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-flow .fl-footer-top    { grid-template-columns: 1.5fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-flow .fl-nav-links  { display: flex; }
+  .tmpl-flow .fl-menu       { display: none; }
+  .tmpl-flow .fl-about-grid { grid-template-columns: 0.95fr 1.05fr; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-flow .fl-dot               { animation: none; }
+  .tmpl-flow .fl-progress-bar      { display: none; }
+  .tmpl-flow .fl-btn:hover,
+  .tmpl-flow .fl-social:hover,
+  .tmpl-flow .fl-area-tag:hover    { transform: none; }
+  .tmpl-flow .fl-gallery-cell:hover .fl-gallery-img { transform: none; filter: brightness(0.9); }
+  /* ShaderBackground is reduced-motion safe in its own JS (renders one static frame) */
+}

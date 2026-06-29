@@ -1,6 +1,6 @@
 # Mumotor
 
-**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of **6 premium, distinct templates**, and Mumotor **generates, lets them visually customize, and hosts** a complete, trilingual (Hebrew / Arabic / English) website. They then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, bulk email, reviews — from one dashboard.
+**An AI/no-code website builder built exclusively for driving instructors.** A teacher answers a short wizard, picks one of **12 premium, distinct templates**, and Mumotor **generates, lets them visually customize, and hosts** a complete, trilingual (Hebrew / Arabic / English) website. They then run their whole business — student enrollment, lesson booking, daily codes, schedule reports, bulk email, reviews — from one dashboard.
 
 One teacher = one website. Booking-first. Built for bilingual Israel (Arabic + Jewish communities).
 
@@ -33,7 +33,7 @@ wizard    inline editor   /p/{slug}    dashboard
 ## Highlights
 
 - **Brand & landing** — a premium, near-monochrome **Apple-style minimal** design system (Tailwind tokens `sand` = greyscale, `sun` = the one accent Apple-blue `#0071E3`, `ember` = danger; `tailwind.config.js` + `index.css`; system/SF-Pro font with an Inter fallback). The marketing page (`pages/Landing.tsx`) has a fixed aurora background, a real driving-lesson video hero, scroll-driven 3D tilt, glass nav, and a dark "everything a driving instructor's site needs" section. Gradient-`M` monogram logo (`components/Logo.tsx`).
-- **6 distinct website templates** — `grid-ink` (Swiss editorial), `open-road` (retro 70s), `night-shift` (dark neon), `easy-lane` (soft friendly), `prestige` (luxury black-gold), `full-throttle` (neo-brutalist). Each is a self-contained, responsive, animated long-scroll site (hero · stats · packages · about · areas · reviews · gallery · FAQ · booking · contact) rendered from a shared `TemplateData` contract.
+- **12 distinct website templates** — six originals (`grid-ink` Swiss editorial, `open-road` retro 70s, `night-shift` dark neon, `easy-lane` soft friendly, `prestige` luxury black-gold, `full-throttle` neo-brutalist) plus six **glass-forward, big-company-grade** designs: `aurora` (Apple-keynote liquid glass), `flow` (Stripe/Linear gradient), `bento` (Vercel/Notion bento grid), `prism` (Rivian/Polestar premium-automotive), `obsidian` (smoked dark luxury glass), `frosted` (photo-led editorial). The four gradient/iridescent heroes use a small **zero-dependency WebGL shader** layer (custom GLSL) with a CSS-gradient fallback. Each is a self-contained, responsive, animated long-scroll site (hero · stats · packages · about · areas · reviews · gallery · FAQ · booking · contact) rendered from a shared `TemplateData` contract.
 - **Builder wizard** — welcome → business info → driving setup (lesson **plans**, **manual/automatic/both**, per-day hours, breaks, booking window, instructor photo) → contact & socials → **pick template + logo** → live preview (with a switcher across all 6) → publish. An **Auto-fill sample** button populates demo data.
 - **Inline visual Customize editor** — full-screen live site, no side panel. Click anything to edit: **text** (type inline + Text/Fill colour), **icons** (swap from the full lucide icon library), **images** (upload or find on Unsplash), **background & colours** (a "Colours" panel), and **lists** (add/remove packages/FAQs/areas/stats inline). Undo / Redo / Reset; persists only on **Save**.
 - **Operational dashboard** — overview (live student/booking counts per site), Driving Teacher (rotating + static enrollment code, students with search/filter/pause/finish/delete, today's schedule, bulk email, full booking/hours/profile settings), reviews (approve/delete), publishing (customize/edit/visit/unpublish), billing, account (profile, password, **delete a website**).
@@ -113,7 +113,7 @@ Open **http://localhost:5173**.
 
 ## Templates & the Customize editor
 
-**Templates** live in `packages/frontend/src/templates/<slug>/` (`index.tsx` + `<slug>.css`, every selector namespaced under `.tmpl-<slug>`, own palette/fonts). All 6 render from one `TemplateData` shape via `TemplateRender.tsx`; `fromWizard.ts` maps the teacher's wizard answers and the public settings onto that shape. The `/templates` gallery shows concept photos; the builder Design step shows the same 6 as choosable cards.
+**Templates** live in `packages/frontend/src/templates/<slug>/` (`index.tsx` + `<slug>.css`, every selector namespaced under `.tmpl-<slug>`, own palette/fonts). All 12 render from one `TemplateData` shape via `TemplateRender.tsx`; `fromWizard.ts` maps the teacher's wizard answers and the public settings onto that shape. WebGL backgrounds use the shared, zero-dependency `templates/webgl/ShaderBackground.tsx` (DPR-capped, offscreen-paused, reduced-motion + WebGL-unavailable fallbacks). Every template card (gallery + builder) shows a bespoke **animated concept preview** (`templates/TemplateConcept.tsx`) of its real look — not a stock photo. The builder flow is **Business → Setup → Templates (browse gallery) → Design**: clicking a card jumps to a live Design step where the chosen template renders instantly and a selector lets you switch between all 12 on the fly.
 
 **Customize mode** (`components/customize/CustomizeMode.tsx`, opened from the builder preview or the dashboard route `/customize/:id`) is a full-screen live editor with **no side panel**. It writes a small, serializable overrides layer and persists **only on Save**:
 
@@ -212,7 +212,7 @@ i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language 
 
 ## Testing
 
-All green: **unit 26/26 · integration 70/70 · E2E 61/61 (0 console errors)**, both packages typecheck-clean.
+All green: **unit 26/26 · integration 70/70 · E2E 84/84 (0 console errors)**, both packages typecheck-clean, production build OK.
 
 ```bash
 # Frontend unit (vitest)
@@ -248,7 +248,8 @@ packages/
   frontend/
     src/
       pages/  builder/ customize/ dashboard/ public/ templates/ auth/ admin/ Landing
-      templates/                  # 6 templates + types, sampleData, registry, shared,
+      templates/                  # 12 templates + webgl/ (ShaderBackground+GLSL), TemplateConcept,
+                                  #   types, sampleData, registry, shared,
                                   #   TemplateRender, fromWizard, DynamicIcon, SocialIcon, BrandMark,
                                   #   customize/overrides.ts
       components/  Logo, Background, LanguageSwitcher, motion, ui, layout,

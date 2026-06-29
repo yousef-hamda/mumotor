@@ -113,6 +113,48 @@ export interface ColorSlot {
 }
 
 export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
+  aurora: [
+    { key: 'bg', label: 'Background', cssVar: '--au-bg', default: '#F6F8FC' },
+    { key: 'text', label: 'Text', cssVar: '--au-ink', default: '#0B1220' },
+    { key: 'accent', label: 'Accent', cssVar: '--au-blue', default: '#5B8DEF' },
+    { key: 'secondary', label: 'Secondary', cssVar: '--au-teal', default: '#36C5C0' },
+    { key: 'highlight', label: 'Highlight', cssVar: '--au-violet', default: '#8B7BF0' },
+  ],
+  obsidian: [
+    { key: 'bg', label: 'Background', cssVar: '--ob-bg', default: '#0B0D10' },
+    { key: 'text', label: 'Text', cssVar: '--ob-ink', default: '#EAEEF2' },
+    { key: 'accent', label: 'Accent', cssVar: '--ob-accent', default: '#9FB6CC' },
+    { key: 'secondary', label: 'Bright ice', cssVar: '--ob-accent2', default: '#D7E3EE' },
+    { key: 'surface', label: 'Panels', cssVar: '--ob-panel', default: '#14181D' },
+  ],
+  bento: [
+    { key: 'bg', label: 'Background', cssVar: '--bn-bg', default: '#EEF2F8' },
+    { key: 'text', label: 'Text', cssVar: '--bn-ink', default: '#0B1220' },
+    { key: 'accent', label: 'Accent', cssVar: '--bn-accent', default: '#4F46E5' },
+    { key: 'secondary', label: 'Mint', cssVar: '--bn-mint', default: '#2DD4BF' },
+    { key: 'surface', label: 'Tiles', cssVar: '--bn-panel', default: '#FFFFFF' },
+  ],
+  prism: [
+    { key: 'bg', label: 'Background', cssVar: '--pr-bg', default: '#101114' },
+    { key: 'text', label: 'Text', cssVar: '--pr-ink', default: '#F4F5F7' },
+    { key: 'accent', label: 'Magenta', cssVar: '--pr-c1', default: '#FF4D9D' },
+    { key: 'secondary', label: 'Cyan', cssVar: '--pr-c2', default: '#38E1FF' },
+    { key: 'highlight', label: 'Lime', cssVar: '--pr-c3', default: '#B6FF5C' },
+  ],
+  frosted: [
+    { key: 'bg', label: 'Background', cssVar: '--fr-bg', default: '#0E1116' },
+    { key: 'text', label: 'Text', cssVar: '--fr-ink', default: '#0B1220' },
+    { key: 'accent', label: 'Accent', cssVar: '--fr-accent', default: '#E8A14B' },
+    { key: 'secondary', label: 'Secondary', cssVar: '--fr-accent2', default: '#58C0B0' },
+    { key: 'surface', label: 'Card', cssVar: '--fr-panel', default: '#FFFFFF' },
+  ],
+  flow: [
+    { key: 'bg', label: 'Background', cssVar: '--fl-bg', default: '#0B0A1F' },
+    { key: 'text', label: 'Text', cssVar: '--fl-ink', default: '#F3F1FF' },
+    { key: 'accent', label: 'Indigo', cssVar: '--fl-c1', default: '#6366F1' },
+    { key: 'secondary', label: 'Violet', cssVar: '--fl-c2', default: '#A855F7' },
+    { key: 'highlight', label: 'Cyan', cssVar: '--fl-c3', default: '#22D3EE' },
+  ],
   'grid-ink': [
     { key: 'bg', label: 'Background', cssVar: '--paper', default: '#FAFAF7' },
     { key: 'text', label: 'Text', cssVar: '--ink', default: '#111111' },
