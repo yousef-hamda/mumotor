@@ -237,4 +237,51 @@ export function useGsapScrollTrigger(
   }, deps);
 }
 
+/**
+ * Scroll-reveal 3D tilt that works in ANY scroll context (window OR an inner
+ * scroll container like the builder preview frame / Customize) — unlike a
+ * `useScroll`-based tilt which only tracks window scroll. The element starts
+ * tilted back + slightly small + faded and settles flat when it enters the
+ * viewport (IntersectionObserver). Reduced-motion → renders flat immediately.
+ */
+export function EnterTilt({
+  children,
+  className,
+  maxTilt = 14,
+}: {
+  children: ReactNode;
+  className?: string;
+  maxTilt?: number;
+}) {
+  const reduced = usePrefersReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(reduced);
+  useEffect(() => {
+    if (reduced) { setShown(true); return; }
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setShown(true); return; }
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setShown(true); obs.disconnect(); } },
+      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [reduced]);
+  return (
+    <div ref={ref} className={className} style={{ perspective: 1000 }}>
+      <div
+        style={{
+          transform: shown ? 'none' : `rotateX(${maxTilt}deg) scale(0.92)`,
+          opacity: shown ? 1 : 0.35,
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.9s cubic-bezier(0.16,1,0.3,1), opacity 0.7s ease',
+          willChange: 'transform',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export { usePrefersReducedMotion };

@@ -17,8 +17,8 @@ import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
-import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp } from '../shared';
-import { FadeUp, Stagger, ScrollTilt } from '../../components/motion';
+import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt } from '../shared';
+import { FadeUp, Stagger } from '../../components/motion';
 import './mumotor.css';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
@@ -106,7 +106,7 @@ function MmHero({ data }: { data: TemplateData }) {
           </div>
         </FadeUp>
       </div>
-      <ScrollTilt maxTilt={14} className="mm-container mm-hero-tilt">
+      <EnterTilt maxTilt={14} className="mm-container mm-hero-tilt">
         <div className="mm-media">
           <img src={hero.image} alt="Driving lesson in progress" className="mm-media-img" data-edit="hero.image" data-edit-type="image" />
           <div className="mm-media-shade" aria-hidden="true" />
@@ -120,7 +120,7 @@ function MmHero({ data }: { data: TemplateData }) {
             </div>
           )}
         </div>
-      </ScrollTilt>
+      </EnterTilt>
     </section>
   );
 }
@@ -231,7 +231,7 @@ function MmAbout({ data }: { data: TemplateData }) {
             <div><p className="mm-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="mm-instructor-title">{instructor.title}</p></div>
           </div>
         </FadeUp>
-        <ScrollTilt maxTilt={12} className="mm-about-media">
+        <EnterTilt maxTilt={12} className="mm-about-media">
           <div className="mm-media">
             <img src={about.image} alt="Instructor with a learner driver" className="mm-media-img mm-about-img" data-edit="about.image" data-edit-type="image" />
           </div>
@@ -241,7 +241,7 @@ function MmAbout({ data }: { data: TemplateData }) {
               <div key={r.time} className="mm-schedule-row"><span className="mm-schedule-time">{r.time}</span><span className="mm-schedule-av">{r.name.charAt(0)}</span><span className="mm-schedule-name">{r.name}</span><span className="mm-schedule-tag">{r.tag}</span></div>
             ))}
           </div>
-        </ScrollTilt>
+        </EnterTilt>
       </div>
     </section>
   );
