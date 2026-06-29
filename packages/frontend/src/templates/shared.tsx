@@ -238,11 +238,13 @@ export function useGsapScrollTrigger(
 }
 
 /**
- * Scroll-reveal 3D tilt that works in ANY scroll context (window OR an inner
- * scroll container like the builder preview frame / Customize) — unlike a
- * `useScroll`-based tilt which only tracks window scroll. The element starts
- * tilted back + slightly small + faded and settles flat when it enters the
- * viewport (IntersectionObserver). Reduced-motion → renders flat immediately.
+ * SCROLL-LINKED 3D tilt — the element continuously tilts back→flat (and scales
+ * 0.92→1, fades in) as it scrolls through the viewport, exactly like the app's
+ * `components/motion.tsx` ScrollTilt (`offset: ['start 0.95','center 0.55']`).
+ * Unlike framer's window-only `useScroll`, this detects the nearest scrollable
+ * ancestor and reads `getBoundingClientRect` each scroll frame, so the scrub
+ * works in window scroll AND inner containers (builder preview / Customize).
+ * Reduced-motion → renders flat, no listeners.
  */
 export function EnterTilt({
   children,
@@ -255,31 +257,48 @@ export function EnterTilt({
 }) {
   const reduced = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(reduced);
+  const p = useMotionValue(reduced ? 1 : 0);
+  const rotateX = useSpring(useTransform(p, [0, 1], [maxTilt, 0]), { stiffness: 90, damping: 22 });
+  const scale = useSpring(useTransform(p, [0, 1], [0.92, 1]), { stiffness: 90, damping: 22 });
+  const opacity = useTransform(p, [0, 0.6], [0.4, 1]);
+
   useEffect(() => {
-    if (reduced) { setShown(true); return; }
+    if (reduced) { p.set(1); return; }
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === 'undefined') { setShown(true); return; }
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setShown(true); obs.disconnect(); } },
-      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [reduced]);
+    if (!el) return;
+    // nearest scrollable ancestor (else the window)
+    let sp: HTMLElement | null = el.parentElement;
+    while (sp) {
+      const oy = getComputedStyle(sp).overflowY;
+      if (oy === 'auto' || oy === 'scroll' || oy === 'overlay') break;
+      sp = sp.parentElement;
+    }
+    const scroller: HTMLElement | Window = sp ?? window;
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const rect = el.getBoundingClientRect();
+      const vTop = sp ? sp.getBoundingClientRect().top : 0;
+      const vH = sp ? sp.clientHeight : window.innerHeight;
+      // progress 0 when element top is at 95% of the viewport, 1 when its centre reaches 55%
+      const d0 = vTop + 0.95 * vH - rect.top;
+      const span = 0.4 * vH + rect.height / 2;
+      p.set(Math.max(0, Math.min(1, d0 / Math.max(1, span))));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(compute); };
+    compute();
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => { cancelAnimationFrame(raf); scroller.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced, maxTilt]);
+
+  if (reduced) return <div className={className}>{children}</div>;
   return (
     <div ref={ref} className={className} style={{ perspective: 1000 }}>
-      <div
-        style={{
-          transform: shown ? 'none' : `rotateX(${maxTilt}deg) scale(0.92)`,
-          opacity: shown ? 1 : 0.35,
-          transformStyle: 'preserve-3d',
-          transition: 'transform 0.9s cubic-bezier(0.16,1,0.3,1), opacity 0.7s ease',
-          willChange: 'transform',
-        }}
-      >
+      <motion.div style={{ rotateX, scale, opacity, transformStyle: 'preserve-3d', willChange: 'transform' }}>
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 }
