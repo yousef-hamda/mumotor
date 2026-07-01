@@ -130,6 +130,38 @@ classes never needed renaming.
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
 
+## Known Gaps & Improvement Priorities (July 2026)
+Full detail in `IMPROVEMENT_PLAN.md`. Key issues by tier:
+
+### Tier 0 — Security (fix before any real user)
+- `JWT_SECRET` has a hardcoded default string in `config/env.ts` — must be required with no fallback.
+- CORS is `origin: '*'` in `app.ts` — must be locked to `FRONTEND_URL`.
+- `STRIPE_WEBHOOK_SECRET` is optional — anyone can forge Stripe webhooks if not set.
+- No rate limit on media uploads (`POST /websites/:id/media`).
+
+### Tier 1 — Product blockers
+- **No plan enforcement**: billing plans are display-only; FREE and STUDIO users have identical API access.
+- **Media storage is ephemeral**: uploads go to local `/uploads/` — wiped on every Railway deploy. `Media.cdnUrl` always null. Fix: S3/R2 or Railway persistent volume.
+- **No password reset**: `POST /auth/forgot-password` does not exist. Locked-out users cannot recover.
+- **No email verification**: `User.emailVerified` field exists but is never set to `true`.
+- **No public review submission**: no `POST /reviews` endpoint. Every published site has empty testimonials.
+- **False subdomain URL**: wizard done screen shows `slug.mumotor.com` but no wildcard DNS exists. Real URL is `/p/:slug`.
+
+### Tier 2 — High priority
+- **Zero analytics**: no instrumentation anywhere. Cannot measure wizard completion, template choice, or growth.
+- **Dual pipeline confusion**: `EditorPage` uses the old 9-preset HTML generator; Customize Mode uses the 12 React templates. They are completely separate and diverge on every save. Plan: deprecate Pipeline A, redirect dashboard "Edit" → `/customize/:id`.
+- **Templates are English-only**: `data.locale` flows through `TemplateData` but all 12 templates have hardcoded English copy. HE/AR market promise is broken.
+- **Wizard data loss**: only `localStorage` — no server-side draft. Closing mid-flow loses all progress.
+- **Currency mismatch**: billing shows USD ($29/$79); UI shows NIS (₪). Target market is Israel.
+- **No SEO**: `Website.seoSettings` field is never written or read. Published sites at `/p/:slug` have no `<title>`, no OG tags, no LocalBusiness JSON-LD.
+
+### Tier 3+ — See IMPROVEMENT_PLAN.md
+- No lesson cancellation, no student portal, no waiting list, no referral flow.
+- AI branding is misleading — zero actual AI calls anywhere. Opportunity: add Claude Haiku for bio generation and SEO copy.
+- PRO/STUDIO feature lists need to reflect enforced reality.
+- Israeli payment methods (Bit/Cardcom) not covered by default Stripe.
+- `Page` and `Section` Prisma models are dead code with no routes or frontend references.
+
 ## Testing (all green: unit 26/26 · integration 70/70 · E2E 84/84, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),

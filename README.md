@@ -264,9 +264,22 @@ Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.ym
 ## Notes & deviations
 
 - **Express (not Fastify)** + React Query + node-cron — a battle-tested core for the same behavior without a rewrite.
-- **Billing is demo-mode** (plans switch without payment) until `STRIPE_SECRET_KEY` is set.
-- **Generation is deterministic** (presets + builder), not a freeform AI call — predictable, fast, on-brand. AI keys only power optional bio enhancement.
+- **Billing is demo-mode** (plans switch without payment) until `STRIPE_SECRET_KEY` is set. Plan limits are not yet enforced server-side.
+- **Generation is deterministic** (presets + builder), not a freeform AI call — predictable, fast, on-brand. AI keys only power optional bio enhancement (not yet implemented).
 - **Scheduling math is timezone-aware** (UTC internally; set `BUSINESS_TIMEZONE`).
 - **The published user-facing site is the React `/p/:slug`** (applies customization); the older deterministic `GET /site/:slug` HTML still generates on publish but isn't the site teachers/students see.
 - The folder/packages/branding/domain/GitHub repo are all **mumotor** (renamed from the old `otto-il` codename); the Postgres role/db stay `otto` / `otto_driving` internally.
+- **Subdomain routing is not yet live**: the product UI refers to `{slug}.mumotor.com` but wildcard DNS and proxy routing are not configured. Published sites are accessible at `mumotor.com/p/{slug}`.
+
+---
+
+## Improvement Roadmap
+
+A full improvement plan is documented in [`IMPROVEMENT_PLAN.md`](./IMPROVEMENT_PLAN.md). It covers 30 prioritised issues across security, product, growth, infrastructure, and technical debt — with a 90-day execution roadmap and pitch-readiness scoring.
+
+Key open items:
+- **P0 security**: JWT secret must be required (no default), CORS must be locked to origin, Stripe webhook signature must be enforced.
+- **P0 product**: plan enforcement (billing is decorative today), media persistence (Railway ephemeral FS), password reset, email verification, review submission endpoint.
+- **P1**: analytics instrumentation (zero currently), Hebrew/Arabic template copy (all 12 templates are English-only), SEO for published sites, wizard draft saving.
+- **P2+**: student portal, lesson cancellation, waiting list, real AI generation (bio/SEO copy via Claude Haiku), Israeli payment methods (Bit/Cardcom).
 ```
