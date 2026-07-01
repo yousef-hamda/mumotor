@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: #5ea8f2;
+  --accent2: #a78bfa;
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #06070a;
+  color: #e7e9ee;
+  font-family: 'Roboto Flex', ui-sans-serif, system-ui, -apple-system, Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Subtle page texture so the dark shell never looks flat */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(60rem 60rem at 80% -10%, rgba(94, 168, 242, 0.10), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 110%, rgba(167, 139, 250, 0.08), transparent 60%);
+}
+
+@layer components {
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium tracking-wide text-white/70;
+  }
+  .stage-box {
+    @apply relative overflow-hidden rounded-2xl border border-white/10 bg-ink-900;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 30px 80px -40px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* ---- Holographic foil card (effect #2) ---- */
+.holo-card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  --bg-x: 50%;
+  --bg-y: 50%;
+  --active: 0;
+  position: relative;
+  transform: perspective(900px) rotateX(var(--ry)) rotateY(var(--rx));
+  transition: transform 0.18s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.holo-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+/* rainbow sheen — slides with --bg-x/--bg-y, only visible while tilting */
+.holo-shine {
+  background:
+    repeating-linear-gradient(
+      115deg,
+      hsl(0 100% 60% / 0.5) 0%,
+      hsl(60 100% 60% / 0.5) 8%,
+      hsl(120 100% 60% / 0.5) 16%,
+      hsl(190 100% 60% / 0.5) 24%,
+      hsl(280 100% 60% / 0.5) 32%,
+      hsl(330 100% 60% / 0.5) 40%
+    ),
+    radial-gradient(120% 120% at var(--bg-x) var(--bg-y), rgba(255, 255, 255, 0.35), transparent 60%);
+  background-size: 220% 220%, 100% 100%;
+  background-position: var(--bg-x) var(--bg-y), center;
+  mix-blend-mode: color-dodge;
+  opacity: calc(0.55 * var(--active));
+  filter: saturate(1.4) contrast(1.1);
+}
+/* metallic sparkle flakes — masked to a disc near the cursor */
+.holo-sparkle {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: color-dodge;
+  opacity: calc(0.45 * var(--active));
+  -webkit-mask-image: radial-gradient(circle at var(--mx) var(--my), #000 0%, rgba(0, 0, 0, 0.2) 22%, transparent 40%);
+  mask-image: radial-gradient(circle at var(--mx) var(--my), #000 0%, rgba(0, 0, 0, 0.2) 22%, transparent 40%);
+}
+/* glare hot-spot following the cursor */
+.holo-glare {
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0) 45%);
+  mix-blend-mode: overlay;
+  opacity: calc(0.65 * var(--active));
+}
+
+/* ---- Cursor-following conic border glow (effect #17) ---- */
+.glow-card {
+  --angle: 0deg;
+  --glow: 0;
+  position: relative;
+}
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle), transparent 0%, var(--accent) 12%, transparent 30%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: var(--glow);
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 40px -10px rgba(94, 168, 242, 0.7);
+  opacity: calc(var(--glow) * 0.55);
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+/* ---- Native CSS scroll-driven animations (effect #57) ---- */
+@keyframes sd-rise {
+  from { opacity: 0; transform: translateY(44px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sd-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+/* fallback: visible/static if scroll-driven timelines aren't supported */
+.sd-reveal { opacity: 1; }
+.sd-bar-fill { transform: scaleX(0.5); }
+@supports (animation-timeline: view()) {
+  .sd-reveal {
+    animation: sd-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 40%;
+  }
+  .sd-bar-fill {
+    transform-origin: left;
+    animation: sd-grow linear both;
+    animation-timeline: scroll(nearest);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .holo-card {
+    transition: none;
+  }
+  .sd-reveal { animation: none; opacity: 1; }
+}
