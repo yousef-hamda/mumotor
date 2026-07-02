@@ -72,20 +72,35 @@ export function isCustomized(c?: Customization | null): boolean {
   );
 }
 
-/** Build CSS rules that apply per-element style overrides via [data-edit] selectors. */
+/** Build CSS rules that apply per-element style overrides via [data-edit] selectors.
+ *  This CSS is injected via a <style> tag on the PUBLIC site, so both the path
+ *  and the values are strictly validated — otherwise stored customization data
+ *  could break out of the style element (`</style><script>`) as XSS. */
+const SAFE_EDIT_PATH = /^[\w.-]+$/; // e.g. "hero.headline", "packages.0.name"
+const SAFE_CSS_COLOR = /^[#a-zA-Z0-9(),.%\s/-]+$/; // hex, rgb()/hsl(), named colours
+
+function safeColor(value?: string): string | null {
+  if (!value) return null;
+  const v = value.trim();
+  return v.length <= 64 && SAFE_CSS_COLOR.test(v) ? v : null;
+}
+
 export function stylesToCss(styles?: Record<string, { color?: string; background?: string }>): string {
   if (!styles) return '';
   return Object.entries(styles)
     .map(([path, s]) => {
+      if (!SAFE_EDIT_PATH.test(path)) return '';
       const decls: string[] = [];
-      if (s.color) decls.push(`color:${s.color} !important`);
-      if (s.background) {
-        decls.push(`background-color:${s.background} !important`);
+      const color = safeColor(s.color);
+      const background = safeColor(s.background);
+      if (color) decls.push(`color:${color} !important`);
+      if (background) {
+        decls.push(`background-color:${background} !important`);
         decls.push(`background-image:none !important`);
-        decls.push(`border-color:${s.background} !important`);
+        decls.push(`border-color:${background} !important`);
       }
       if (!decls.length) return '';
-      return `[data-edit="${path.replace(/"/g, '\\"')}"]{${decls.join(';')}}`;
+      return `[data-edit="${path}"]{${decls.join(';')}}`;
     })
     .filter(Boolean)
     .join('\n');

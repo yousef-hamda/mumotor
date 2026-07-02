@@ -271,17 +271,24 @@ export function EnterTilt({
     if (reduced) { p.set(1); return; }
     const el = ref.current;
     if (!el) return;
-    // nearest scrollable ancestor (else the window)
-    let sp: HTMLElement | null = el.parentElement;
-    while (sp) {
-      const oy = getComputedStyle(sp).overflowY;
-      if (oy === 'auto' || oy === 'scroll' || oy === 'overlay') break;
-      sp = sp.parentElement;
-    }
-    const scroller: HTMLElement | Window = sp ?? window;
+    // Nearest ancestor that GENUINELY scrolls (overflow allows it AND content
+    // overflows). A container that merely declares `overflow-y:auto` but lets
+    // the window do the scrolling (e.g. the template root on /templates/:slug)
+    // must be skipped, else the tilt freezes. Re-resolved per frame — content
+    // can become scrollable after images/fonts load.
+    const findScroller = (): HTMLElement | null => {
+      let sp: HTMLElement | null = el.parentElement;
+      while (sp && sp !== document.body && sp !== document.documentElement) {
+        const oy = getComputedStyle(sp).overflowY;
+        if ((oy === 'auto' || oy === 'scroll' || oy === 'overlay') && sp.scrollHeight > sp.clientHeight + 1) return sp;
+        sp = sp.parentElement;
+      }
+      return null; // the window scrolls
+    };
     let raf = 0;
     const compute = () => {
       raf = 0;
+      const sp = findScroller();
       const rect = el.getBoundingClientRect();
       const vTop = sp ? sp.getBoundingClientRect().top : 0;
       const vH = sp ? sp.clientHeight : window.innerHeight;
@@ -292,9 +299,15 @@ export function EnterTilt({
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(compute); };
     compute();
-    scroller.addEventListener('scroll', onScroll, { passive: true });
+    // Capture-phase window listener hears scroll from the window AND from any
+    // inner scroll container (builder preview / Customize), whichever moves.
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
     window.addEventListener('resize', onScroll);
-    return () => { cancelAnimationFrame(raf); scroller.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll, { capture: true });
+      window.removeEventListener('resize', onScroll);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, maxTilt]);
 
