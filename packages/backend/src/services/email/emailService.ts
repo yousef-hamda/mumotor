@@ -23,24 +23,60 @@ function buildTransport(): Transporter {
 transporter = buildTransport();
 if (usingConsole) logger.info('Email: using console transport (set SMTP_* to send real email)');
 
+// ---------------------------------------------------------------------------
+// Per-school branding
+// ---------------------------------------------------------------------------
+// Mail is sent from the Mumotor address, but every student-facing message is
+// branded as the teacher's school (sender name, header logo/name, footer) so
+// the student recognises it as coming from *their* instructor's site.
+
+export interface EmailBrand {
+  schoolName: string;
+  logoUrl?: string; // absolute, email-safe URL (or undefined → show the name)
+  fromName?: string; // sender display name; defaults to schoolName
+}
+
+/** Turn a stored logoSrc into an email-safe absolute URL, or undefined. */
+export function resolveLogoUrl(logoSrc?: string | null): string | undefined {
+  if (!logoSrc) return undefined;
+  if (/^https?:\/\//i.test(logoSrc)) return logoSrc; // already absolute
+  if (logoSrc.startsWith('/')) return `${env.APP_URL}${logoSrc}`; // uploaded path → absolutise
+  return undefined; // data: URLs are stripped by most inboxes → fall back to the name
+}
+
+/** Build the email brand for a site from its name + stored configuration. */
+export function siteBrand(site: { name: string; configuration?: unknown }): EmailBrand {
+  const cfg = (site.configuration ?? {}) as { logoSrc?: string };
+  return { schoolName: site.name, logoUrl: resolveLogoUrl(cfg.logoSrc), fromName: site.name };
+}
+
+/** From header: the school as the display name over the Mumotor address. */
+function fromField(brand?: EmailBrand): string | { name: string; address: string } {
+  const name = (brand?.fromName ?? brand?.schoolName)?.replace(/[<>"\r\n]/g, '').trim().slice(0, 78);
+  if (!name) return env.EMAIL_FROM;
+  const address = env.EMAIL_FROM.match(/<([^>]+)>/)?.[1] ?? env.EMAIL_FROM;
+  return { name, address };
+}
+
 export interface SendArgs {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  brand?: EmailBrand;
 }
 
-export async function sendEmail({ to, subject, html, text }: SendArgs): Promise<boolean> {
+export async function sendEmail({ to, subject, html, text, brand }: SendArgs): Promise<boolean> {
   try {
     const info = await transporter.sendMail({
-      from: env.EMAIL_FROM,
+      from: fromField(brand),
       to,
       subject,
       html,
       text: text ?? stripHtml(html),
     });
     if (usingConsole) {
-      logger.info(`📧 [console-email] → ${to} :: ${subject}`);
+      logger.info(`📧 [console-email] → ${to} :: ${subject}${brand ? ` (from: ${brand.schoolName})` : ''}`);
     } else {
       logger.info(`📧 Email sent → ${to} :: ${subject} (${info.messageId})`);
     }
@@ -63,20 +99,22 @@ function stripHtml(html: string): string {
 // Layout + templates
 // ---------------------------------------------------------------------------
 
-function layout(title: string, bodyHtml: string): string {
+function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
+  const name = brand?.schoolName || 'Mumotor';
+  const header = brand?.logoUrl
+    ? `<img src="${esc(brand.logoUrl)}" alt="${esc(name)}" height="40" style="height:40px;max-height:44px;max-width:220px;display:inline-block;border:0;outline:0">`
+    : `<div style="font-size:19px;font-weight:700;color:#18181b;letter-spacing:-0.3px">${esc(name)}</div>`;
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title}</title></head>
+<title>${esc(title)}</title></head>
 <body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b">
   <div style="max-width:560px;margin:0 auto;padding:24px">
-    <div style="background:#18181b;border-radius:12px 12px 0 0;padding:22px 32px">
-      <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px">Mumotor</div>
-    </div>
-    <div style="background:#fff;border:1px solid #e4e4e7;border-top:0;border-radius:0 0 12px 12px;padding:32px">
-      ${bodyHtml}
+    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden">
+      <div style="padding:20px 32px;border-bottom:1px solid #f0f0f0;text-align:center">${header}</div>
+      <div style="padding:32px">${bodyHtml}</div>
     </div>
     <p style="text-align:center;color:#a1a1aa;font-size:12px;margin-top:20px">
-      Mumotor — driving lessons made simple.
+      Sent by ${esc(name)} · powered by Mumotor
     </p>
   </div>
 </body></html>`;
@@ -90,13 +128,26 @@ function infoBox(rowsHtml: string): string {
   return `<div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:16px;margin:16px 0">${rowsHtml}</div>`;
 }
 
+/** "· School Name" suffix for subject lines (empty when no brand). */
+function subjectTag(brand?: EmailBrand): string {
+  return brand?.schoolName ? ` · ${brand.schoolName}` : '';
+}
+
 export function sendBookingConfirmation(
   to: string,
-  data: { studentName: string; date: string; time: string; teacherName?: string; duration?: number }
+  data: {
+    studentName: string;
+    date: string;
+    time: string;
+    teacherName?: string;
+    duration?: number;
+    brand?: EmailBrand;
+  }
 ) {
+  const school = data.brand?.schoolName;
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your lesson is confirmed</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson is booked.</p>
+    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} is booked.</p>
     ${infoBox(`
       <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Date</strong> ${esc(data.date)}</p>
       <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Time</strong> ${esc(data.time)}</p>
@@ -104,31 +155,48 @@ export function sendBookingConfirmation(
       ${data.teacherName ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Instructor</strong> ${esc(data.teacherName)}</p>` : ''}
     `)}
     <p style="color:#52525b">Please arrive 5 minutes early. We'll send a reminder about 2 hours before.</p>`;
-  return sendEmail({ to, subject: `Lesson confirmed — ${data.date} at ${data.time}`, html: layout('Lesson confirmed', body) });
+  return sendEmail({
+    to,
+    subject: `Lesson confirmed — ${data.date} at ${data.time}${subjectTag(data.brand)}`,
+    html: layout('Lesson confirmed', body, data.brand),
+    brand: data.brand,
+  });
 }
 
 export function sendBookingReminder(
   to: string,
-  data: { studentName: string; date: string; time: string }
+  data: { studentName: string; date: string; time: string; brand?: EmailBrand }
 ) {
+  const school = data.brand?.schoolName;
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Lesson reminder</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson is coming up soon.</p>
+    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} is coming up soon.</p>
     ${infoBox(`<p style="margin:0;font-size:16px"><strong>${esc(data.date)} at ${esc(data.time)}</strong></p>`)}
     <p style="color:#52525b">See you soon — drive safe getting here.</p>`;
-  return sendEmail({ to, subject: `Reminder: lesson today at ${data.time}`, html: layout('Lesson reminder', body) });
+  return sendEmail({
+    to,
+    subject: `Reminder: lesson today at ${data.time}${subjectTag(data.brand)}`,
+    html: layout('Lesson reminder', body, data.brand),
+    brand: data.brand,
+  });
 }
 
 export function sendDailyBookingOpen(
   to: string,
-  data: { studentName: string; bookingUrl: string; forDate: string }
+  data: { studentName: string; bookingUrl: string; forDate: string; brand?: EmailBrand }
 ) {
+  const school = data.brand?.schoolName;
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Booking is now open</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, you can now book your driving lesson for <strong>${esc(data.forDate)}</strong>. Slots fill up quickly.</p>
+    <p style="color:#52525b">Hi ${esc(data.studentName)}, you can now book your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} for <strong>${esc(data.forDate)}</strong>. Slots fill up quickly.</p>
     <p>${button(data.bookingUrl, 'Book a lesson')}</p>
     <p style="color:#a1a1aa;font-size:13px">Or open this link: ${esc(data.bookingUrl)}</p>`;
-  return sendEmail({ to, subject: 'Booking is open for your next driving lesson', html: layout('Booking open', body) });
+  return sendEmail({
+    to,
+    subject: school ? `Booking is open at ${school}` : 'Booking is open for your next driving lesson',
+    html: layout('Booking open', body, data.brand),
+    brand: data.brand,
+  });
 }
 
 export interface ReportSlot {
@@ -140,7 +208,15 @@ export interface ReportSlot {
 
 export function sendEnhancedDailyReport(
   to: string,
-  data: { teacherName: string; date: string; slots: ReportSlot[]; booked: number; empty: number; total: number }
+  data: {
+    teacherName: string;
+    date: string;
+    slots: ReportSlot[];
+    booked: number;
+    empty: number;
+    total: number;
+    brand?: EmailBrand;
+  }
 ) {
   const rows = data.slots
     .map(
@@ -165,37 +241,74 @@ export function sendEnhancedDailyReport(
       <div style="flex:1;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.total}</div><div style="font-size:12px;color:#71717a">Total</div></div>
     </div>
     <table style="width:100%;border-collapse:collapse;margin-top:8px">${rows || '<tr><td style="color:#a1a1aa;padding:8px 10px">No slots scheduled.</td></tr>'}</table>`;
-  return sendEmail({ to, subject: `Your schedule for ${data.date} — ${data.booked} lesson(s)`, html: layout('Daily report', body) });
+  return sendEmail({
+    to,
+    subject: `Your schedule for ${data.date} — ${data.booked} lesson(s)`,
+    html: layout('Daily report', body, data.brand),
+    brand: data.brand,
+  });
 }
 
 export function sendBulkCustomEmail(
   to: string,
-  data: { subject: string; body: string; studentName: string }
+  data: { subject: string; body: string; studentName: string; brand?: EmailBrand }
 ) {
   const safeBody = esc(data.body).replace(/\n/g, '<br>');
   const body = `
     <p>Hi ${esc(data.studentName)},</p>
     <div style="margin:12px 0;line-height:1.6">${safeBody}</div>`;
-  return sendEmail({ to, subject: data.subject, html: layout(data.subject, body) });
+  return sendEmail({
+    to,
+    subject: data.subject,
+    html: layout(data.subject, body, data.brand),
+    brand: data.brand,
+  });
 }
 
-export function sendMagicLink(to: string, data: { magicUrl: string; studentName?: string }) {
+export function sendMagicLink(
+  to: string,
+  data: { magicUrl: string; studentName?: string; brand?: EmailBrand }
+) {
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your booking link</h1>
     <p style="color:#52525b">${data.studentName ? `Hi ${esc(data.studentName)},` : 'Hi,'} use the button below to book a lesson without re-entering your code. This link works once and expires in 15 minutes.</p>
     <p>${button(data.magicUrl, 'Open booking')}</p>`;
-  return sendEmail({ to, subject: 'Your one-time booking link', html: layout('Booking link', body) });
+  return sendEmail({
+    to,
+    subject: `Your one-time booking link${subjectTag(data.brand)}`,
+    html: layout('Booking link', body, data.brand),
+    brand: data.brand,
+  });
+}
+
+export function sendPasswordReset(to: string, data: { name?: string; resetUrl: string }) {
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Reset your password</h1>
+    <p style="color:#52525b">${data.name ? `Hi ${esc(data.name)},` : 'Hi,'} we received a request to reset your Mumotor password. This link works once and expires in 30 minutes.</p>
+    <p>${button(data.resetUrl, 'Choose a new password')}</p>
+    <p style="color:#a1a1aa;font-size:13px">If you didn't request this, you can safely ignore this email — your password stays unchanged.</p>`;
+  return sendEmail({
+    to,
+    subject: 'Reset your Mumotor password',
+    html: layout('Reset password', body),
+  });
 }
 
 export function sendWelcomeEnrollment(
   to: string,
-  data: { studentName: string; bookingUrl: string; schoolName: string }
+  data: { studentName: string; bookingUrl: string; brand: EmailBrand }
 ) {
+  const school = data.brand.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Welcome to ${esc(data.schoolName)}</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, you're enrolled. Each morning you'll get an email when booking opens, and you can book a lesson anytime.</p>
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Welcome to ${esc(school)}</h1>
+    <p style="color:#52525b">Hi ${esc(data.studentName)}, you're enrolled${school ? ` at <strong>${esc(school)}</strong>` : ''}. Each morning you'll get an email when booking opens, and you can book a lesson anytime.</p>
     <p>${button(data.bookingUrl, 'Book your first lesson')}</p>`;
-  return sendEmail({ to, subject: `You're enrolled at ${data.schoolName}`, html: layout('Welcome', body) });
+  return sendEmail({
+    to,
+    subject: `You're enrolled at ${school}`,
+    html: layout('Welcome', body, data.brand),
+    brand: data.brand,
+  });
 }
 
 function esc(s: string): string {

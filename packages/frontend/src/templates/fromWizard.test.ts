@@ -32,7 +32,7 @@ describe('wizardToTemplateData', () => {
     expect(d.hero.image).toBe('data:car');     // car photo → hero image
     expect(d.gallery).toEqual(['data:g1', 'data:g2']);
     expect(d.contact.instagram).toBe('https://ig/x');
-    expect(d.contact.socials?.Instagram).toBe('https://ig/x');
+    expect(d.contact.socials?.some((s) => s.platform === 'instagram' && s.url === 'https://ig/x')).toBe(true);
     expect(d.contact.address).toBe('5 Herzl St, Haifa');
     expect(d.reviews).toEqual([]);             // no fabricated testimonials
     expect(d.stats.length).toBeGreaterThan(0); // honest stats from real data

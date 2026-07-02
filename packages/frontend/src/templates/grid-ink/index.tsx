@@ -247,12 +247,12 @@ function GIPackages({
               >
                 <div className="gi-pkg-header">
                   <div>
-                    {pkg.badge && <span className="gi-pkg-badge">{pkg.badge}</span>}
+                    {pkg.badge && <span className="gi-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                     <p className="gi-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                   </div>
                   <p className="gi-pkg-price">
                     <span className="gi-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-                    {pkg.unit && <span className="gi-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && <span className="gi-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                 </div>
                 <ul className="gi-pkg-features" aria-label={`${pkg.name} features`}>
@@ -298,11 +298,11 @@ function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; in
             <img src={instructor.photo} alt={instructor.name} className="gi-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
             <div>
               <p className="gi-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p>
-              <p className="gi-instructor-title">{instructor.title}</p>
+              <p className="gi-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p>
               <ul className="gi-credentials" aria-label="Credentials">
                 {instructor.credentials.map((c, i) => (
-                  <li key={i} className="gi-credential">
-                    <Check size={11} aria-hidden="true" />{c}
+                  <li key={i} className="gi-credential" data-edit-item={`instructor.credentials.${i}`}>
+                    <Check size={11} aria-hidden="true" /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
                   </li>
                 ))}
               </ul>
@@ -316,15 +316,15 @@ function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; in
           </h2>
           {about.body.map((p, i) => (
             <Reveal key={i} delay={0.1 + i * 0.06} as="p" className="gi-body gi-body--light">
-              {i === 0 ? <span data-edit="about.body.0" data-edit-type="text">{p}</span> : p}
+              <span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span>
             </Reveal>
           ))}
           <Reveal delay={0.22}>
             <ul className="gi-checklist" aria-label="Key benefits">
               {about.checklist.map((item, i) => (
-                <li key={i} className="gi-checklist-item">
+                <li key={i} className="gi-checklist-item" data-edit-item={`about.checklist.${i}`}>
                   <Check size={14} aria-hidden="true" />
-                  <span>{item}</span>
+                  <span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                 </li>
               ))}
             </ul>
@@ -348,7 +348,7 @@ function GIAreas({ areas, copy }: { areas: TemplateData['areas']; copy?: Templat
             {areas.map((area, i) => (
               <li key={i} className="gi-area-item" data-edit-item={`areas.${i}`}>
                 <span className="gi-area-name" data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                {area.note && <span className="gi-area-note">{area.note}</span>}
+                {area.note && <span className="gi-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
               </li>
             ))}
           </ul>
@@ -369,14 +369,14 @@ function GIReviews({ reviews, copy }: { reviews: TemplateData['reviews']; copy?:
         <div className="gi-reviews-grid">
           {reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.1}>
-              <article className="gi-review-card">
+              <article className="gi-review-card" data-edit-item={`reviews.${i}`}>
                 <Stars n={r.rating} />
-                <blockquote className="gi-review-text">"{r.text}"</blockquote>
+                <blockquote className="gi-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
                 <div className="gi-review-meta">
-                  {r.avatar && <img src={r.avatar} alt={r.name} className="gi-avatar" />}
+                  {r.avatar && <img src={r.avatar} alt={r.name} className="gi-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                   <div>
-                    <p className="gi-review-name">{r.name}</p>
-                    {r.meta && <p className="gi-review-sub">{r.meta}</p>}
+                    <p className="gi-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                    {r.meta && <p className="gi-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
                   </div>
                 </div>
               </article>
@@ -399,8 +399,8 @@ function GIGallery({ gallery, copy }: { gallery: TemplateData['gallery']; copy?:
         <div className="gi-gallery-grid">
           {gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.06}>
-              <div className="gi-gallery-cell">
-                <img src={src} alt="" className="gi-gallery-img" loading="lazy" />
+              <div className="gi-gallery-cell" data-edit-item={`gallery.${i}`}>
+                <img src={src} alt="" className="gi-gallery-img" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
               </div>
             </Reveal>
           ))}
@@ -508,7 +508,7 @@ function GIBook({ data }: { data: TemplateData }) {
             </button>
           )}
           {data.enrollUrl && (
-            <a href={data.enrollUrl} className="gi-btn-ghost">Enroll</a>
+            <a href={data.enrollUrl} className="gi-btn-ghost" data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</a>
           )}
         </Reveal>
       </div>
@@ -520,7 +520,7 @@ function GIBook({ data }: { data: TemplateData }) {
 
 function GIContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="gi-footer">
       <div className="gi-container">
@@ -529,37 +529,27 @@ function GIContact({ data }: { data: TemplateData }) {
             <Reveal><SectionLabel n="07" label={data.copy?.contactEyebrow ?? 'Contact'} editKey="contactEyebrow" /></Reveal>
             <Reveal delay={0.06} className="gi-contact-info">
               <a href={`tel:${contact.phone}`} className="gi-contact-link">
-                <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" />{contact.phone}
+                <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /><span data-edit="contact.phone" data-edit-type="text">{contact.phone}</span>
               </a>
               <a href={`mailto:${contact.email}`} className="gi-contact-link">
-                <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" />{contact.email}
+                <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /><span data-edit="contact.email" data-edit-type="text">{contact.email}</span>
               </a>
               <span className="gi-contact-link gi-contact-address">
-                <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" />{contact.address}
+                <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span data-edit="contact.address" data-edit-type="text">{contact.address}</span>
               </span>
             </Reveal>
             <Reveal delay={0.12} className="gi-socials">
-              {contact.whatsapp && (
+              {socials.map((s, i) => (
                 <a
-                  href={`https://wa.me/${contact.whatsapp}`}
+                  key={i}
+                  href={s.url}
                   className="gi-social-btn"
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="whatsapp"
+                  aria-label={s.platform}
+                  data-edit-item={`contact.socials.${i}`}
                 >
-                  <SocialIcon platform="whatsapp" size={17} />
-                </a>
-              )}
-              {socials.map(([name, url]) => (
-                <a
-                  key={name}
-                  href={url}
-                  className="gi-social-btn"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={name}
-                >
-                  <SocialIcon platform={name} size={17} />
+                  <SocialIcon platform={s.platform} size={17} />
                 </a>
               ))}
             </Reveal>

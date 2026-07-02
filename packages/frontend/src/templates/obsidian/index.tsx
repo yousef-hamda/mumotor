@@ -144,8 +144,10 @@ function ObNav({ data, active }: { data: TemplateData; active: string }) {
               key={id}
               className={cx('ob-nav-link', active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
+              data-edit={`copy.nav_${id}`}
+              data-edit-type="text"
             >
-              {label}
+              {data.copy?.[`nav_${id}`] ?? label}
             </button>
           ))}
         </div>
@@ -233,8 +235,9 @@ function ObHero({ data }: { data: TemplateData }) {
 
           <Reveal className="ob-trust-row" delay={0.34}>
             {data.instructor.credentials.slice(0, 3).map((c, i) => (
-              <span key={i} className="ob-trust-chip">
-                <Check size={13} aria-hidden="true" />{c}
+              <span key={i} className="ob-trust-chip" data-edit-item={`instructor.credentials.${i}`}>
+                <Check size={13} aria-hidden="true" />
+                <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
               </span>
             ))}
           </Reveal>
@@ -250,7 +253,7 @@ function ObHero({ data }: { data: TemplateData }) {
               data-edit-type="image"
             />
             <Glass className="ob-hero-badge">
-              <p className="ob-hero-badge-num">
+              <p className="ob-hero-badge-num" data-edit="stats.0.value" data-edit-type="text">
                 {data.stats[0]?.prefix}{data.stats[0]?.value}{data.stats[0]?.suffix}
               </p>
               <p
@@ -419,7 +422,7 @@ function ObPackages({ data }: { data: TemplateData }) {
               >
                 <div data-edit-item={`packages.${i}`}>
                   {pkg.popular && (
-                    <span className="ob-pkg-badge">{pkg.badge ?? 'Most popular'}</span>
+                    <span className="ob-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
                   )}
                   <p
                     className="ob-pkg-name"
@@ -436,7 +439,7 @@ function ObPackages({ data }: { data: TemplateData }) {
                     >
                       £{pkg.price}
                     </span>
-                    {pkg.unit && <span className="ob-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && <span className="ob-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                   <ul className="ob-pkg-features">
                     {pkg.features.map((f, fi) => (
@@ -508,7 +511,7 @@ function ObAbout({ data }: { data: TemplateData }) {
               >
                 {instructor.name}
               </p>
-              <p className="ob-instructor-title">{instructor.title}</p>
+              <p className="ob-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p>
             </div>
           </Glass>
         </Reveal>
@@ -528,17 +531,15 @@ function ObAbout({ data }: { data: TemplateData }) {
           </Reveal>
           {about.body.map((p, i) => (
             <Reveal key={i} as="p" className="ob-body" delay={0.1 + i * 0.06}>
-              {i === 0
-                ? <span data-edit="about.body.0" data-edit-type="text">{p}</span>
-                : p}
+              <span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span>
             </Reveal>
           ))}
           <Reveal delay={0.22}>
             <ul className="ob-checklist">
               {about.checklist.map((item, i) => (
-                <li key={i}>
+                <li key={i} data-edit-item={`about.checklist.${i}`}>
                   <Check size={16} aria-hidden="true" />
-                  <span>{item}</span>
+                  <span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                 </li>
               ))}
             </ul>
@@ -580,7 +581,7 @@ function ObAreas({ data }: { data: TemplateData }) {
                   >
                     {area.name}
                   </span>
-                  {area.note && <span className="ob-area-note">{area.note}</span>}
+                  {area.note && <span className="ob-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
                 </Glass>
               </div>
             </Reveal>
@@ -612,19 +613,21 @@ function ObReviews({ data }: { data: TemplateData }) {
         <div className="ob-reviews-grid">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.08}>
-              <Glass tilt className="ob-review">
-                <Stars n={r.rating} />
-                <blockquote className="ob-review-text">"{r.text}"</blockquote>
-                <div className="ob-review-meta">
-                  {r.avatar && (
-                    <img src={r.avatar} alt={r.name} className="ob-avatar" />
-                  )}
-                  <div>
-                    <p className="ob-review-name">{r.name}</p>
-                    {r.meta && <p className="ob-review-sub">{r.meta}</p>}
+              <div data-edit-item={`reviews.${i}`}>
+                <Glass tilt className="ob-review">
+                  <Stars n={r.rating} />
+                  <blockquote className="ob-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                  <div className="ob-review-meta">
+                    {r.avatar && (
+                      <img src={r.avatar} alt={r.name} className="ob-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
+                    )}
+                    <div>
+                      <p className="ob-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                      {r.meta && <p className="ob-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
+                    </div>
                   </div>
-                </div>
-              </Glass>
+                </Glass>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -654,9 +657,11 @@ function ObGallery({ data }: { data: TemplateData }) {
         <div className="ob-gallery-grid">
           {data.gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.06}>
-              <Glass className="ob-gallery-cell">
-                <img src={src} alt="" loading="lazy" />
-              </Glass>
+              <div data-edit-item={`gallery.${i}`}>
+                <Glass className="ob-gallery-cell">
+                  <img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
+                </Glass>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -802,7 +807,7 @@ function ObBook({ data }: { data: TemplateData }) {
 
 function ObContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="ob-footer">
       <div className="ob-container">
@@ -847,27 +852,17 @@ function ObContact({ data }: { data: TemplateData }) {
                 </span>
               </div>
               <div className="ob-socials">
-                {contact.whatsapp && (
+                {socials.map((s, i) => (
                   <a
-                    href={`https://wa.me/${contact.whatsapp}`}
+                    key={i}
+                    href={s.url}
                     className="ob-social"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="whatsapp"
+                    aria-label={s.platform}
+                    data-edit-item={`contact.socials.${i}`}
                   >
-                    <SocialIcon platform="whatsapp" size={18} />
-                  </a>
-                )}
-                {socials.map(([name, url]) => (
-                  <a
-                    key={name}
-                    href={url}
-                    className="ob-social"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={name}
-                  >
-                    <SocialIcon platform={name} size={18} />
+                    <SocialIcon platform={s.platform} size={18} />
                   </a>
                 ))}
               </div>

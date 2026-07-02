@@ -23,6 +23,9 @@ export interface Plan {
   name: string;
   price: number;
   features: string[];
+  currency?: string;
+  period?: string;
+  note?: string;
 }
 
 export interface SubscriptionInfo {
@@ -87,6 +90,9 @@ export interface DrivingSettings {
   classDuration: number;
   advanceBookingDays: number;
   bookingCutoffHour: number;
+  bookingWindowStart: string;
+  bookingWindowEnd: string;
+  reportTime: string;
   dailyCodeEnabled: boolean;
   breakTimes: { start: string; end: string }[];
   restMinutes: number;
@@ -129,6 +135,8 @@ export interface PublicSettings {
   tagline: string | null;
   advanceBookingDays: number;
   bookingCutoffHour: number;
+  bookingWindowStart?: string;
+  bookingWindowEnd?: string;
   classDuration: number;
   dailyCodeEnabled: boolean;
   requiresStaticCode: boolean;
@@ -161,7 +169,6 @@ export interface CheckEnrollment {
   active?: boolean;
   status?: EnrollmentStatus;
   studentName?: string;
-  studentPhone?: string;
 }
 
 export interface AvailabilityResponse {

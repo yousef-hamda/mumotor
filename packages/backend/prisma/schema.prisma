@@ -165,6 +165,9 @@ model SiteSettings {
   socialLinks   Json     @default("{}")
   contactInfo   Json     @default("{}")
   customCss     String?
+  // Idempotency markers for the daily rhythm cron (once-per-day send guards).
+  lastBookingOpenSentOn DateTime? @db.Date
+  lastReportSentOn      DateTime? @db.Date
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   website       Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)

@@ -42,8 +42,8 @@ export default function Billing() {
   if (isLoading || !data) return <CenteredSpinner />;
   const current = data.subscription.plan;
 
-  // PRO is the recommended (middle) plan
-  const recommended = 'PRO';
+  // Highlight a "recommended" plan only when there's more than one to compare.
+  const recommended = data.plans.length > 1 ? 'PRO' : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -58,7 +58,10 @@ export default function Billing() {
         </div>
       </FadeUp>
 
-      <Stagger className="grid gap-5 md:grid-cols-3" gap={0.1}>
+      <Stagger
+        className={cn('grid gap-5', data.plans.length > 1 ? 'md:grid-cols-3' : 'mx-auto max-w-md')}
+        gap={0.1}
+      >
         {data.plans.map((p) => {
           const active = p.id === current;
           const isRecommended = p.id === recommended;
@@ -95,10 +98,12 @@ export default function Billing() {
 
                 <p className="mt-2 flex items-baseline gap-1">
                   <span className="text-4xl font-semibold tracking-tight tabular-nums text-sand-900">
-                    ${p.price}
+                    {p.currency ?? '$'}
+                    {p.price}
                   </span>
-                  <span className="text-xs font-medium text-sand-500">/mo</span>
+                  <span className="text-xs font-medium text-sand-500">/{p.period ?? 'mo'}</span>
                 </p>
+                {p.note && <p className="mt-1 text-sm text-sand-500">{p.note}</p>}
 
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {p.features.map((f) => (

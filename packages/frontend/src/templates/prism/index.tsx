@@ -97,8 +97,10 @@ function PrNav({ data, active }: { data: TemplateData; active: string }) {
               key={id}
               className={cx('pr-nav-link', active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
+              data-edit={`copy.nav_${id}`}
+              data-edit-type="text"
             >
-              {label}
+              {data.copy?.[`nav_${id}`] ?? label}
             </button>
           ))}
         </div>
@@ -214,7 +216,7 @@ function PrHero({ data }: { data: TemplateData }) {
         </motion.div>
         {stat && (
           <div className="pr-hero-film-cap">
-            <span className="pr-film-num">
+            <span className="pr-film-num" data-edit="stats.0.value" data-edit-type="text">
               {stat.prefix}{stat.value}{stat.suffix}
             </span>
             <span className="pr-film-label" data-edit="stats.0.label" data-edit-type="text">
@@ -338,7 +340,7 @@ function PrPackages({ data }: { data: TemplateData }) {
             <Reveal key={pkg.id} delay={i * 0.08}>
               <div className={cx('pr-plan', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
                 {pkg.popular && (
-                  <span className="pr-plan-badge">{pkg.badge ?? 'Most popular'}</span>
+                  <span className="pr-plan-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
                 )}
                 <p className="pr-plan-name" data-edit={`packages.${i}.name`} data-edit-type="text">
                   {pkg.name}
@@ -347,7 +349,7 @@ function PrPackages({ data }: { data: TemplateData }) {
                   <span className="pr-plan-amount" data-edit={`packages.${i}.price`} data-edit-type="text">
                     £{pkg.price}
                   </span>
-                  {pkg.unit && <span className="pr-plan-unit">{pkg.unit}</span>}
+                  {pkg.unit && <span className="pr-plan-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                 </p>
                 <ul className="pr-plan-features">
                   {pkg.features.map((f, fi) => (
@@ -405,7 +407,7 @@ function PrAbout({ data }: { data: TemplateData }) {
               <p className="pr-instructor-name" data-edit="instructor.name" data-edit-type="text">
                 {instructor.name}
               </p>
-              <p className="pr-instructor-title">{instructor.title}</p>
+              <p className="pr-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p>
             </div>
           </div>
         </Reveal>
@@ -425,15 +427,15 @@ function PrAbout({ data }: { data: TemplateData }) {
           </Reveal>
           {about.body.map((p, i) => (
             <Reveal key={i} as="p" className="pr-body" delay={0.1 + i * 0.06}>
-              {i === 0 ? <span data-edit="about.body.0" data-edit-type="text">{p}</span> : p}
+              <span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span>
             </Reveal>
           ))}
           <Reveal delay={0.22}>
             <ul className="pr-checklist">
               {about.checklist.map((item, i) => (
-                <li key={i}>
+                <li key={i} data-edit-item={`about.checklist.${i}`}>
                   <Check size={16} aria-hidden="true" />
-                  <span>{item}</span>
+                  <span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                 </li>
               ))}
             </ul>
@@ -467,7 +469,7 @@ function PrAreas({ data }: { data: TemplateData }) {
             <Reveal key={i} delay={(i % 5) * 0.04} className="pr-area-tag" data-edit-item={`areas.${i}`}>
               <span className="pr-area-dot" aria-hidden="true" />
               <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-              {area.note && <span className="pr-area-note">{area.note}</span>}
+              {area.note && <span className="pr-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
             </Reveal>
           ))}
         </div>
@@ -497,15 +499,17 @@ function PrReviews({ data }: { data: TemplateData }) {
         <div className="pr-quotes-grid">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.08} className="pr-quote">
-              <Stars n={r.rating} />
-              <blockquote className="pr-quote-text">"{r.text}"</blockquote>
-              <div className="pr-quote-meta">
-                {r.avatar && (
-                  <img src={r.avatar} alt={r.name} className="pr-avatar" loading="lazy" />
-                )}
-                <div>
-                  <p className="pr-quote-name">{r.name}</p>
-                  {r.meta && <p className="pr-quote-sub">{r.meta}</p>}
+              <div data-edit-item={`reviews.${i}`}>
+                <Stars n={r.rating} />
+                <blockquote className="pr-quote-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                <div className="pr-quote-meta">
+                  {r.avatar && (
+                    <img src={r.avatar} alt={r.name} className="pr-avatar" loading="lazy" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
+                  )}
+                  <div>
+                    <p className="pr-quote-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                    {r.meta && <p className="pr-quote-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -536,8 +540,10 @@ function PrGallery({ data }: { data: TemplateData }) {
         </Reveal>
         <div className="pr-gallery-grid">
           {data.gallery.map((src, i) => (
-            <Reveal key={i} delay={(i % 3) * 0.06} className="pr-gallery-cell">
-              <img src={src} alt="" loading="lazy" />
+            <Reveal key={i} delay={(i % 3) * 0.06}>
+              <div className="pr-gallery-cell" data-edit-item={`gallery.${i}`}>
+                <img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
+              </div>
             </Reveal>
           ))}
         </div>
@@ -674,7 +680,7 @@ function PrBook({ data }: { data: TemplateData }) {
 
 function PrContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
 
   return (
     <footer id={SECTION_IDS.contact} className="pr-footer">
@@ -718,27 +724,17 @@ function PrContact({ data }: { data: TemplateData }) {
             </span>
           </div>
           <div className="pr-socials">
-            {contact.whatsapp && (
+            {socials.map((s, i) => (
               <a
-                href={`https://wa.me/${contact.whatsapp}`}
+                key={i}
+                href={s.url}
                 className="pr-social"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="whatsapp"
+                aria-label={s.platform}
+                data-edit-item={`contact.socials.${i}`}
               >
-                <SocialIcon platform="whatsapp" size={18} />
-              </a>
-            )}
-            {socials.map(([name, url]) => (
-              <a
-                key={name}
-                href={url}
-                className="pr-social"
-                target="_blank"
-                rel="noreferrer"
-                aria-label={name}
-              >
-                <SocialIcon platform={name} size={18} />
+                <SocialIcon platform={s.platform} size={18} />
               </a>
             ))}
           </div>

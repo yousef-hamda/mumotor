@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { prisma } from '../lib/prisma.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, forbidden, notFound } from '../utils/errors.js';
 import { uploadsDir } from '../lib/uploads.js';
@@ -20,6 +21,23 @@ const MIME_EXT: Record<string, string> = {
 };
 const MAX_BYTES = 6 * 1024 * 1024; // ~6MB
 
+/** The decoded bytes must actually be the image type they claim to be. */
+function matchesMagicBytes(ext: string, buf: Buffer): boolean {
+  if (buf.length < 12) return false;
+  switch (ext) {
+    case 'png':
+      return buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+    case 'jpg':
+      return buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+    case 'webp':
+      return buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP';
+    case 'gif':
+      return buf.subarray(0, 4).toString('ascii') === 'GIF8';
+    default:
+      return false;
+  }
+}
+
 // Note: verifyToken is applied per-route (not router-wide) because this router is
 // mounted at the API root — a router-wide guard would 401 every unmatched /api path.
 
@@ -34,6 +52,7 @@ async function ownWebsite(id: string, userId: string) {
 router.post(
   '/websites/:websiteId/media',
   verifyToken,
+  rateLimit({ keyPrefix: 'media-upload', windowSeconds: 600, max: 40, keyFn: (req) => req.user?.id ?? 'anon' }),
   asyncHandler(async (req, res) => {
     await ownWebsite(req.params.websiteId, req.user!.id);
     const { dataUrl, type } = z
@@ -47,6 +66,7 @@ router.post(
     if (!ext) throw badRequest('Unsupported image type (png/jpg/webp/gif only)');
     const buf = Buffer.from(m[2], 'base64');
     if (buf.length > MAX_BYTES) throw badRequest('Image is too large (max 6MB)');
+    if (!matchesMagicBytes(ext, buf)) throw badRequest('File content does not match its image type');
 
     const fileName = `${randomUUID()}.${ext}`;
     await writeFile(`${uploadsDir}/${fileName}`, buf);

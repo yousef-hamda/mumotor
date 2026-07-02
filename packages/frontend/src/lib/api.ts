@@ -73,6 +73,10 @@ export const authApi = {
     api.patch<{ user: User }>('/auth/me', data).then((r) => r.data.user),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.post<{ success: boolean }>('/auth/change-password', data).then((r) => r.data),
+  forgotPassword: (email: string) =>
+    api.post<{ sent: boolean }>('/auth/forgot-password', { email }).then((r) => r.data),
+  resetPassword: (token: string, newPassword: string) =>
+    api.post<{ success: boolean }>('/auth/reset-password', { token, newPassword }).then((r) => r.data),
 };
 
 // Reviews
@@ -212,6 +216,11 @@ export const drivingSchoolApi = {
     api.put<DrivingSettings>(`/driving-school/${websiteId}/settings`, data).then((r) => r.data),
   listStudents: (websiteId: string, params: { status?: string; search?: string; page?: number; limit?: number }) =>
     api.get<StudentsResponse>(`/driving-school/${websiteId}/students`, { params }).then((r) => r.data),
+  addStudent: (
+    websiteId: string,
+    data: { studentName: string; studentEmail: string; studentPhone?: string; notes?: string }
+  ) =>
+    api.post<{ enrollment: Student }>(`/driving-school/${websiteId}/students`, data).then((r) => r.data),
   finishStudent: (websiteId: string, enrollmentId: string) =>
     api.patch<{ enrollment: Student }>(`/driving-school/${websiteId}/students/${enrollmentId}/finish`).then((r) => r.data),
   toggleStudentStatus: (websiteId: string, enrollmentId: string) =>
@@ -235,7 +244,7 @@ export const drivingSchoolApi = {
     api.get<PublicSettings>(`/driving-school/${slug}/public-settings`).then((r) => r.data),
   checkEnrollment: (websiteId: string, email: string) =>
     api.get<CheckEnrollment>(`/driving-school/${websiteId}/check-enrollment`, { params: { email } }).then((r) => r.data),
-  enroll: (data: { websiteId: string; enrollmentCode: string; studentName: string; studentEmail: string; studentPhone?: string }) =>
+  enroll: (data: { websiteId: string; enrollmentCode: string; studentName: string; studentEmail: string; studentPhone: string }) =>
     api
       .post<{ enrollment: { id: string; studentName: string; studentEmail: string; status: string } }>(
         '/driving-school/enroll',

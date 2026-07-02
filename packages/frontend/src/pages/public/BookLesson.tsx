@@ -58,6 +58,7 @@ export default function BookLesson() {
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [studentPhone, setStudentPhone] = useState('');
   const [needsEnrollment, setNeedsEnrollment] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -99,6 +100,7 @@ export default function BookLesson() {
         websiteId: settings!.id,
         studentName: studentName.trim(),
         studentEmail: email.trim(),
+        studentPhone: studentPhone.trim(),
         enrollmentCode: code.trim(),
       }),
     onSuccess: () => {
@@ -221,6 +223,13 @@ export default function BookLesson() {
           <p className="mt-1 text-sm text-sand-600">
             Book up to {advanceDays} day{advanceDays > 1 ? 's' : ''} ahead.
           </p>
+          {settings.bookingWindowStart &&
+            settings.bookingWindowEnd &&
+            !(settings.bookingWindowStart === '00:00' && settings.bookingWindowEnd === '23:59') && (
+              <p className="mt-1 text-sm text-sand-500">
+                Booking is open daily {settings.bookingWindowStart}–{settings.bookingWindowEnd} (Israel time).
+              </p>
+            )}
           <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
             {dates.map((d) => {
               const open = isDayOpen(d, hours);
@@ -271,6 +280,8 @@ export default function BookLesson() {
                 e.preventDefault();
                 const code = (new FormData(e.currentTarget).get('code') as string) ?? '';
                 if (studentName.trim().length < 2) return toast.error('Please enter your name');
+                if (!/^[+\d][\d\s-]{6,18}$/.test(studentPhone.trim()))
+                  return toast.error('Please enter a valid phone number');
                 if (code.trim().length < 4) return toast.error('Enter the code from your instructor');
                 enroll.mutate(code);
               }}
@@ -278,6 +289,9 @@ export default function BookLesson() {
             >
               <Field label="Full name">
                 <Input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Jane Doe" required />
+              </Field>
+              <Field label="Phone">
+                <Input type="tel" value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} placeholder="+972 50 123 4567" required />
               </Field>
               <Field label="Enrollment code">
                 <Input name="code" placeholder="e.g. DRIVE2026" className="font-mono tracking-widest uppercase" required />

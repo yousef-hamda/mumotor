@@ -7,7 +7,7 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(4000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 chars').default('dev-secret-change-me-in-production'),
+  JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 chars').optional(),
   JWT_EXPIRES_IN: z.string().default('7d'),
 
   // Redis (optional — falls back to in-memory store if unset/unreachable)
@@ -41,6 +41,11 @@ const schema = z.object({
     .union([z.boolean(), z.string()])
     .transform((v) => v === true || v === 'true')
     .default(true),
+
+  // Wall-clock timezone for the daily rhythm (booking-open email, teacher report,
+  // booking-window gate). Israel by default — the target market. Everything else
+  // (slots/dates/cutoff) stays UTC.
+  APP_TIMEZONE: z.string().default('Asia/Jerusalem'),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -51,6 +56,26 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
-export const isProd = env.NODE_ENV === 'production';
-export const isTest = env.NODE_ENV === 'test';
+const data = parsed.data;
+const prod = data.NODE_ENV === 'production';
+
+// --- Production hard requirements (fail fast, never fall back) --------------
+const DEV_JWT_FALLBACK = 'dev-secret-change-me-in-production';
+if (prod) {
+  if (!data.JWT_SECRET || data.JWT_SECRET.length < 32 || data.JWT_SECRET === DEV_JWT_FALLBACK) {
+    console.error('❌ JWT_SECRET is required in production (min 32 chars, no dev fallback).');
+    console.error('   Generate one with: openssl rand -hex 32');
+    process.exit(1);
+  }
+  if (data.STRIPE_SECRET_KEY && !data.STRIPE_WEBHOOK_SECRET) {
+    console.error('❌ STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set in production');
+    console.error('   (without it, anyone could forge subscription webhooks).');
+    process.exit(1);
+  }
+} else if (!data.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET not set — using an insecure dev fallback (dev/test only).');
+}
+
+export const env = { ...data, JWT_SECRET: data.JWT_SECRET ?? DEV_JWT_FALLBACK };
+export const isProd = prod;
+export const isTest = data.NODE_ENV === 'test';

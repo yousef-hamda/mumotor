@@ -85,6 +85,9 @@
 .tmpl-mumotor .mm-hero-copy { text-align: center; }
 .tmpl-mumotor .mm-hero-sub { color: var(--mm-muted); font-size: clamp(1.1rem, 2vw, 1.35rem); max-width: 46ch; margin: 22px auto 0; }
 .tmpl-mumotor .mm-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 30px 0 0; }
+.tmpl-mumotor .mm-hero-creds { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 26px 0 0; }
+.tmpl-mumotor .mm-cred { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 500; color: var(--mm-ink); background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.65); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); box-shadow: 0 1px 2px rgba(29,29,31,0.06); }
+.tmpl-mumotor .mm-cred svg { color: var(--mm-accent); }
 .tmpl-mumotor .mm-hero-tilt { margin-top: clamp(44px, 6vw, 72px); }
 .tmpl-mumotor .mm-media { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 50px 100px -50px rgba(29,29,31,0.5); background: #fff; }
 .tmpl-mumotor .mm-media-img { width: 100%; aspect-ratio: 16 / 9; height: auto; object-fit: cover; display: block; }

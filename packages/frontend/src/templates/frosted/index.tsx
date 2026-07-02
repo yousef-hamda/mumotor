@@ -7,7 +7,7 @@
  */
 import { useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { ChevronDown, Check, Star, Menu, X, ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
+import { ChevronDown, Check, Star, Menu, X, ArrowRight, MapPin } from 'lucide-react';
 import type { TemplateData } from '../types';
 import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
@@ -89,8 +89,8 @@ function FrNav({ data, active }: { data: TemplateData; active: string }) {
         </button>
         <div className="fr-nav-links">
           {links.map(({ id, label }) => (
-            <button key={id} className={cx('fr-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)}>
-              {label}
+            <button key={id} className={cx('fr-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)} data-edit={`copy.nav_${id}`} data-edit-type="text">
+              {data.copy?.[`nav_${id}`] ?? label}
             </button>
           ))}
         </div>
@@ -157,7 +157,10 @@ function FrHero({ data }: { data: TemplateData }) {
             </Reveal>
             <Reveal className="fr-hero-trust" delay={0.30}>
               {data.instructor.credentials.slice(0, 3).map((c, i) => (
-                <span key={i} className="fr-trust-chip"><Check size={13} aria-hidden="true" />{c}</span>
+                <span key={i} className="fr-trust-chip" data-edit-item={`instructor.credentials.${i}`}>
+                  <Check size={13} aria-hidden="true" />
+                  <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                </span>
               ))}
             </Reveal>
           </FrGlassDark>
@@ -167,7 +170,7 @@ function FrHero({ data }: { data: TemplateData }) {
         <div style={{ position: 'relative' }}>
           <Reveal delay={0.18} y={20}>
             <FrGlassDark className="fr-hero-badge">
-              <p className="fr-hero-badge-num">{data.stats[0]?.prefix}{data.stats[0]?.value}{data.stats[0]?.suffix}</p>
+              <p className="fr-hero-badge-num" data-edit="stats.0.value" data-edit-type="text">{data.stats[0]?.prefix}{data.stats[0]?.value}{data.stats[0]?.suffix}</p>
               <p className="fr-hero-badge-label" data-edit="stats.0.label" data-edit-type="text">{data.stats[0]?.label}</p>
             </FrGlassDark>
           </Reveal>
@@ -280,12 +283,12 @@ function FrPackages({ data }: { data: TemplateData }) {
               <FrGlass tilt className={cx('fr-pkg', pkg.popular && 'is-popular')} style={{ height: '100%' }}>
                 <div data-edit-item={`packages.${i}`}>
                   {pkg.popular && (
-                    <span className="fr-pkg-badge">{pkg.badge ?? 'Most popular'}</span>
+                    <span className="fr-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
                   )}
                   <p className="fr-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                   <p className="fr-pkg-price">
                     <span className="fr-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-                    {pkg.unit && <span className="fr-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && <span className="fr-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                   <ul className="fr-pkg-features">
                     {pkg.features.map((f, fi) => (
@@ -345,7 +348,7 @@ function FrAbout({ data }: { data: TemplateData }) {
               />
               <div>
                 <p className="fr-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p>
-                <p className="fr-instructor-title">{instructor.title}</p>
+                <p className="fr-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p>
               </div>
             </FrGlass>
           </Reveal>
@@ -362,12 +365,12 @@ function FrAbout({ data }: { data: TemplateData }) {
                 <h2 className="fr-h2 fr-ink-h2" data-edit="about.heading" data-edit-type="text">{about.heading}</h2>
                 {about.body.map((p, i) => (
                   <p key={i} className="fr-body fr-body-dark" style={{ marginTop: i === 0 ? '16px' : '12px' }}>
-                    {i === 0 ? <span data-edit="about.body.0" data-edit-type="text">{p}</span> : p}
+                    <span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span>
                   </p>
                 ))}
                 <ul className="fr-checklist">
                   {about.checklist.map((item, i) => (
-                    <li key={i}><Check size={16} aria-hidden="true" /><span>{item}</span></li>
+                    <li key={i} data-edit-item={`about.checklist.${i}`}><Check size={16} aria-hidden="true" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>
                   ))}
                 </ul>
               </FrGlass>
@@ -401,7 +404,7 @@ function FrAreas({ data }: { data: TemplateData }) {
               <FrGlass tilt className="fr-area" data-edit-item={`areas.${i}`}>
                 <MapPin size={15} aria-hidden="true" />
                 <span className="fr-area-name" data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                {area.note && <span className="fr-area-note">{area.note}</span>}
+                {area.note && <span className="fr-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
               </FrGlass>
             </Reveal>
           ))}
@@ -431,13 +434,15 @@ function FrReviews({ data }: { data: TemplateData }) {
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.08}>
               <FrGlass tilt className="fr-review">
-                <Stars n={r.rating} />
-                <blockquote className="fr-review-text">"{r.text}"</blockquote>
-                <div className="fr-review-meta">
-                  {r.avatar && <img src={r.avatar} alt={r.name} className="fr-avatar" loading="lazy" />}
-                  <div>
-                    <p className="fr-review-name">{r.name}</p>
-                    {r.meta && <p className="fr-review-sub">{r.meta}</p>}
+                <div data-edit-item={`reviews.${i}`}>
+                  <Stars n={r.rating} />
+                  <blockquote className="fr-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                  <div className="fr-review-meta">
+                    {r.avatar && <img src={r.avatar} alt={r.name} className="fr-avatar" loading="lazy" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
+                    <div>
+                      <p className="fr-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                      {r.meta && <p className="fr-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
+                    </div>
                   </div>
                 </div>
               </FrGlass>
@@ -468,8 +473,8 @@ function FrGallery({ data }: { data: TemplateData }) {
         <div className="fr-gallery-grid">
           {data.gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.06}>
-              <div className="fr-gallery-cell">
-                <img src={src} alt="" loading="lazy" />
+              <div className="fr-gallery-cell" data-edit-item={`gallery.${i}`}>
+                <img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
               </div>
             </Reveal>
           ))}
@@ -586,7 +591,7 @@ function FrBook({ data }: { data: TemplateData }) {
 
 function FrContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="fr-footer">
       <div className="fr-container">
@@ -611,14 +616,9 @@ function FrContact({ data }: { data: TemplateData }) {
                 </span>
               </div>
               <div className="fr-socials">
-                {contact.whatsapp && (
-                  <a href={`https://wa.me/${contact.whatsapp}`} className="fr-social" target="_blank" rel="noreferrer" aria-label="whatsapp">
-                    <SocialIcon platform="whatsapp" size={18} />
-                  </a>
-                )}
-                {socials.map(([name, url]) => (
-                  <a key={name} href={url} className="fr-social" target="_blank" rel="noreferrer" aria-label={name}>
-                    <SocialIcon platform={name} size={18} />
+                {socials.map((s, i) => (
+                  <a key={i} href={s.url} className="fr-social" target="_blank" rel="noreferrer" aria-label={s.platform} data-edit-item={`contact.socials.${i}`}>
+                    <SocialIcon platform={s.platform} size={18} />
                   </a>
                 ))}
               </div>

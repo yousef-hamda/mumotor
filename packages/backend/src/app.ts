@@ -6,7 +6,7 @@ import path from 'node:path';
 import routes from './routes/index.js';
 import siteServingRoutes from './routes/siteServing.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
-import { env } from './config/env.js';
+import { env, isProd } from './config/env.js';
 import { uploadsDir } from './lib/uploads.js';
 import { logger } from './lib/logger.js';
 import { stripeWebhookHandler } from './services/billing/stripeWebhook.js';
@@ -28,18 +28,34 @@ export function createApp() {
 
   app.set('trust proxy', 1);
 
-  // Flexible CORS: localhost, the configured frontend, and the platform's
-  // production domains (mumotor.com + per-teacher subdomains, Vercel, Railway).
-  const allowed = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/];
-  const prodHosts = [/\.mumotor\.com$/, /mumotor\.com$/, /\.vercel\.app$/, /\.up\.railway\.app$/];
+  // Security headers on every response (CSP is intentionally omitted: published
+  // teacher sites and the SPA rely on inline styles/scripts).
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (isProd) res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+    next();
+  });
+
+  // CORS allowlist: the configured frontend + the platform's production domains
+  // (mumotor.com + per-teacher subdomains, Vercel, Railway). Localhost only
+  // outside production. Unknown origins get no CORS headers (browser blocks).
+  const devOrigins = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/];
+  const prodHosts = [/(^|\.)mumotor\.com$/, /\.vercel\.app$/, /\.up\.railway\.app$/];
   app.use(
     cors({
       origin(origin, cb) {
         if (!origin) return cb(null, true); // same-origin / curl / server-to-server
         if (origin === env.FRONTEND_URL) return cb(null, true);
-        if (allowed.some((r) => r.test(origin))) return cb(null, true);
-        if (prodHosts.some((r) => r.test(new URL(origin).host))) return cb(null, true);
-        return cb(null, true); // permissive in this build; tighten with an allowlist in prod
+        if (!isProd && devOrigins.some((r) => r.test(origin))) return cb(null, true);
+        try {
+          if (prodHosts.some((r) => r.test(new URL(origin).host))) return cb(null, true);
+        } catch {
+          /* malformed Origin header → not allowed */
+        }
+        return cb(null, false);
       },
       credentials: true,
     })

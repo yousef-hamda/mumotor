@@ -52,7 +52,8 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
               <button
                 className={`or-nav-link${active === id ? ' or-nav-link--active' : ''}`}
                 onClick={() => scrollToSection(id)}
-              >{label}</button>
+                data-edit={`copy.nav_${id}`} data-edit-type="text"
+              >{data.copy?.[`nav_${id}`] ?? label}</button>
             </li>
           ))}
         </ul>
@@ -80,7 +81,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
             {links.map(({ label, id }) => (
               <button key={id} className="or-nav-mobile-link"
                 onClick={() => { scrollToSection(id); setOpen(false); }}>
-                {label}
+                {data.copy?.[`nav_${id}`] ?? label}
               </button>
             ))}
             <button className="or-btn or-btn-primary" style={{ marginTop: '0.75rem' }}
@@ -199,11 +200,11 @@ function Packages({
                 whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(58,42,30,0.18)' }}
                 transition={{ duration: 0.28 }}
               >
-                {pkg.badge && <span className="or-package-badge">{pkg.badge}</span>}
+                {pkg.badge && <span className="or-package-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                 <h3 className="or-package-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                 <div className="or-package-price">
                   <span className="or-package-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-                  {pkg.unit && <span className="or-package-unit">{pkg.unit}</span>}
+                  {pkg.unit && <span className="or-package-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                 </div>
                 {pkg.duration && (
                   <p className="or-package-detail">
@@ -255,7 +256,7 @@ function About({ data }: { data: TemplateData }) {
                 <img src={data.instructor.photo} alt={data.instructor.name} className="or-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
                 <div className="or-instructor-info">
                   <strong data-edit="instructor.name" data-edit-type="text">{data.instructor.name}</strong>
-                  <span>{data.instructor.title}</span>
+                  <span data-edit="instructor.title" data-edit-type="text">{data.instructor.title}</span>
                 </div>
               </div>
             </div>
@@ -266,23 +267,23 @@ function About({ data }: { data: TemplateData }) {
             </Reveal>
             {data.about.body.map((para, i) => (
               <Reveal key={i} delay={i * 0.1 + 0.1}>
-                <p className="or-body-text" data-edit={i === 0 ? 'about.body.0' : undefined} data-edit-type={i === 0 ? 'text' : undefined}>{para}</p>
+                <p className="or-body-text" data-edit={`about.body.${i}`} data-edit-type="text">{para}</p>
               </Reveal>
             ))}
             <Reveal delay={0.25}>
               <ul className="or-checklist">
-                {data.about.checklist.map(item => (
-                  <li key={item} className="or-checklist-item">
-                    <Check size={15} className="or-check-icon" />{item}
+                {data.about.checklist.map((item, i) => (
+                  <li key={i} className="or-checklist-item" data-edit-item={`about.checklist.${i}`}>
+                    <Check size={15} className="or-check-icon" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                   </li>
                 ))}
               </ul>
             </Reveal>
             <Reveal delay={0.35}>
               <div className="or-credentials">
-                {data.instructor.credentials.map(c => (
-                  <span key={c} className="or-credential-chip">
-                    <Award size={11} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />{c}
+                {data.instructor.credentials.map((c, i) => (
+                  <span key={i} className="or-credential-chip" data-edit-item={`instructor.credentials.${i}`}>
+                    <Award size={11} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
                   </span>
                 ))}
               </div>
@@ -310,7 +311,7 @@ function Areas({ data }: { data: TemplateData }) {
             <Reveal key={area.name} delay={i * 0.06}>
               <div className="or-plate" data-edit-item={`areas.${i}`}>
                 <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                {area.note && <span className="or-plate-note"> · {area.note}</span>}
+                {area.note && <span className="or-plate-note"> · <span data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span></span>}
               </div>
             </Reveal>
           ))}
@@ -343,19 +344,20 @@ function Reviews({ data }: { data: TemplateData }) {
             <Reveal key={r.id} delay={i * 0.1}>
               <motion.div
                 className="or-review-card"
+                data-edit-item={`reviews.${i}`}
                 style={{ rotate: i % 2 === 0 ? -1.5 : 1.2 }}
                 whileHover={{ rotate: 0, scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               >
                 <StarRow rating={r.rating} />
-                <p className="or-review-text">"{r.text}"</p>
+                <p className="or-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
                 <div className="or-review-author">
                   {r.avatar && (
-                    <img src={r.avatar} alt={r.name} className="or-review-avatar" />
+                    <img src={r.avatar} alt={r.name} className="or-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
                   )}
                   <div>
-                    <strong className="or-review-name">{r.name}</strong>
-                    {r.meta && <span className="or-review-meta">{r.meta}</span>}
+                    <strong className="or-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</strong>
+                    {r.meta && <span className="or-review-meta" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</span>}
                   </div>
                 </div>
               </motion.div>
@@ -378,8 +380,8 @@ function Gallery({ data }: { data: TemplateData }) {
       <div className="or-gallery-grid">
         {data.gallery.map((src, i) => (
           <Reveal key={i} delay={i * 0.06}>
-            <div className="or-gallery-frame" style={{ rotate: i % 3 === 0 ? '-1.5deg' : i % 3 === 1 ? '1.2deg' : '-0.6deg' }}>
-              <img src={src} alt="" className="or-gallery-img" loading="lazy" />
+            <div className="or-gallery-frame" data-edit-item={`gallery.${i}`} style={{ rotate: i % 3 === 0 ? '-1.5deg' : i % 3 === 1 ? '1.2deg' : '-0.6deg' }}>
+              <img src={src} alt="" className="or-gallery-img" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
             </div>
           </Reveal>
         ))}
@@ -498,42 +500,37 @@ function Contact({ data }: { data: TemplateData }) {
         <div className="or-contact-grid">
           <div>
             <Reveal>
-              <h2 className="or-section-title">{data.business.name}</h2>
-              <p className="or-body-text or-text-muted" style={{ color: 'rgba(244,233,216,0.55)', marginTop: '0.35rem' }}>
+              <h2 className="or-section-title" data-edit="business.name" data-edit-type="text">{data.business.name}</h2>
+              <p className="or-body-text or-text-muted" style={{ color: 'rgba(244,233,216,0.55)', marginTop: '0.35rem' }} data-edit="business.tagline" data-edit-type="text">
                 {data.business.tagline}
               </p>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="or-contact-list">
                 <a href={`tel:${data.contact.phone}`} className="or-contact-item" aria-label="Call us">
-                  <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> {data.contact.phone}
+                  <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> <span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span>
                 </a>
                 <a href={`mailto:${data.contact.email}`} className="or-contact-item" aria-label="Email us">
-                  <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> {data.contact.email}
+                  <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> <span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span>
                 </a>
                 <span className="or-contact-item">
-                  <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /> {data.contact.address}
+                  <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /> <span data-edit="contact.address" data-edit-type="text">{data.contact.address}</span>
                 </span>
               </div>
             </Reveal>
             <Reveal delay={0.2}>
               <div className="or-social-row">
-                {data.contact.whatsapp && (
-                  <a href={`https://wa.me/${data.contact.whatsapp}`} className="or-social-btn" aria-label="whatsapp"
-                    target="_blank" rel="noreferrer">
-                    <SocialIcon platform="whatsapp" size={17} />
-                  </a>
-                )}
-                {Object.entries(data.contact.socials ?? {}).map(([platform, url]) => (
+                {(data.contact.socials ?? []).map((s, i) => (
                   <a
-                    key={platform}
-                    href={url}
+                    key={i}
+                    href={s.url}
                     className="or-social-btn"
-                    aria-label={platform}
+                    aria-label={s.platform}
                     target="_blank"
                     rel="noreferrer"
+                    data-edit-item={`contact.socials.${i}`}
                   >
-                    <SocialIcon platform={platform} size={17} />
+                    <SocialIcon platform={s.platform} size={17} />
                   </a>
                 ))}
               </div>
@@ -558,7 +555,7 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
         </div>
         <div className="or-footer-bar">
-          © {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
+          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
         </div>
       </div>
     </footer>

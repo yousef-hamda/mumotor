@@ -1,13 +1,15 @@
 import cron from 'node-cron';
+import type { Website, SiteSettings, User, ClientEnrollment } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { logger } from '../../lib/logger.js';
 import { env } from '../../config/env.js';
-import { todayUtcMidnight } from '../../utils/time.js';
-import { buildDaySchedule } from '../scheduling/schedulingService.js';
+import { nowInZone, parseTimeToMinutes, toUtcMidnight, todayUtcMidnight } from '../../utils/time.js';
+import { buildDaySchedule, ensureDailyCode, normalizeConfig } from '../scheduling/schedulingService.js';
 import {
   sendBookingReminder,
   sendDailyBookingOpen,
   sendEnhancedDailyReport,
+  siteBrand,
 } from '../email/emailService.js';
 
 const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
@@ -20,12 +22,20 @@ function lessonDateTime(date: Date, time: string): Date {
   return d;
 }
 
+/** UTC-midnight date of tomorrow. */
+function tomorrowUtcMidnight(): Date {
+  const t = todayUtcMidnight();
+  t.setUTCDate(t.getUTCDate() + 1);
+  return t;
+}
+
 /** Every 15 min: email students ~2h before their lesson, set reminderSent. */
 export async function processBookingReminders(): Promise<number> {
   const today = todayUtcMidnight();
   const now = new Date();
   const candidates = await prisma.booking.findMany({
     where: { bookingDate: today, reminderSent: false, status: { in: ['CONFIRMED', 'PENDING'] } },
+    include: { website: true },
   });
 
   let sent = 0;
@@ -37,6 +47,7 @@ export async function processBookingReminders(): Promise<number> {
         studentName: b.customerName,
         date: b.bookingDate.toISOString().slice(0, 10),
         time: b.bookingTime,
+        brand: siteBrand(b.website),
       });
       if (ok) {
         await prisma.booking.update({ where: { id: b.id }, data: { reminderSent: true } });
@@ -48,63 +59,149 @@ export async function processBookingReminders(): Promise<number> {
   return sent;
 }
 
-/** 9 AM daily: notify every ACTIVE student that booking is open for tomorrow. */
+// ── Per-site senders (reused by the tick + the all-sites wrappers) ──────────────
+
+type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration'> & {
+  enrollments: Pick<ClientEnrollment, 'studentEmail' | 'studentName'>[];
+};
+
+/** Email every ACTIVE student of one site that booking is open for tomorrow. */
+async function sendBookingOpenForSite(site: SiteForBookingOpen): Promise<number> {
+  const forDate = tomorrowUtcMidnight().toISOString().slice(0, 10);
+  const bookingUrl = `${env.FRONTEND_URL}/p/${site.slug}/book-lesson`;
+  const brand = siteBrand(site);
+  let sent = 0;
+  for (const student of site.enrollments) {
+    const ok = await sendDailyBookingOpen(student.studentEmail, {
+      studentName: student.studentName,
+      bookingUrl,
+      forDate,
+      brand,
+    });
+    if (ok) sent++;
+  }
+  return sent;
+}
+
+type SiteForReport = Pick<Website, 'id' | 'name' | 'configuration'> & { user: Pick<User, 'email' | 'name'> };
+
+/** Email one teacher their full, ordered schedule for tomorrow. */
+async function sendReportForSite(
+  site: SiteForReport,
+  settings: Pick<SiteSettings, 'businessHours'> | null
+): Promise<boolean> {
+  const schedule = await buildDaySchedule(site, settings, tomorrowUtcMidnight());
+  return sendEnhancedDailyReport(site.user.email, {
+    teacherName: site.user.name,
+    date: schedule.date,
+    slots: schedule.slots.map((s) => ({
+      time: s.time,
+      booked: s.booked,
+      studentName: s.studentName,
+      studentPhone: s.studentPhone,
+    })),
+    booked: schedule.bookedCount,
+    empty: schedule.emptyCount,
+    total: schedule.total,
+    brand: siteBrand(site),
+  });
+}
+
+// ── All-sites wrappers (used by the manual test/cron-check.ts harness) ──────────
+
+/** Notify every ACTIVE student of every published school (ignores per-site timing). */
 export async function processDailyStudentNotifications(): Promise<number> {
   const websites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
     include: { enrollments: { where: { status: 'ACTIVE' } } },
   });
-
-  const tomorrow = todayUtcMidnight();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  const forDate = tomorrow.toISOString().slice(0, 10);
-
   let sent = 0;
-  for (const site of websites) {
-    const bookingUrl = `${env.FRONTEND_URL}/p/${site.slug}/book-lesson`;
-    for (const student of site.enrollments) {
-      const ok = await sendDailyBookingOpen(student.studentEmail, {
-        studentName: student.studentName,
-        bookingUrl,
-        forDate,
-      });
-      if (ok) sent++;
-    }
-  }
+  for (const site of websites) sent += await sendBookingOpenForSite(site);
   if (sent) logger.info(`Daily student notifications: sent ${sent}`);
   return sent;
 }
 
-/** 8 PM daily: email each teacher tomorrow's schedule. */
+/** Email every teacher tomorrow's schedule (ignores per-site timing). */
 export async function processTeacherDailyReport(): Promise<number> {
   const websites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
     include: { settings: true, user: true },
   });
-
-  const tomorrow = todayUtcMidnight();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-
   let sent = 0;
   for (const site of websites) {
-    const schedule = await buildDaySchedule(site, site.settings, tomorrow);
-    const ok = await sendEnhancedDailyReport(site.user.email, {
-      teacherName: site.user.name,
-      date: schedule.date,
-      slots: schedule.slots.map((s) => ({
-        time: s.time,
-        booked: s.booked,
-        studentName: s.studentName,
-        studentPhone: s.studentPhone,
-      })),
-      booked: schedule.bookedCount,
-      empty: schedule.emptyCount,
-      total: schedule.total,
-    });
+    const ok = await sendReportForSite(site, site.settings);
     if (ok) sent++;
   }
   if (sent) logger.info(`Teacher daily reports: sent ${sent}`);
   return sent;
+}
+
+// ── Per-teacher daily rhythm (each site fires at its own chosen time) ───────────
+
+function sameDay(a: Date | null | undefined, b: Date): boolean {
+  return !!a && a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);
+}
+
+/** Stamp a once-per-day send marker on the site's settings row (upsert = may not exist). */
+async function markSent(
+  websiteId: string,
+  data: { lastBookingOpenSentOn?: Date; lastReportSentOn?: Date }
+): Promise<void> {
+  await prisma.siteSettings.upsert({
+    where: { websiteId },
+    update: data,
+    create: { websiteId, ...data },
+  });
+}
+
+/**
+ * Runs every 5 minutes. For each published driving school, honour the teacher's
+ * OWN chosen times (in APP_TIMEZONE wall-clock):
+ *  - at/after bookingWindowStart → ensure today's daily code exists + email active
+ *    students that booking is open (once per day).
+ *  - at/after reportTime → email the teacher tomorrow's ordered schedule (once per day).
+ * "Fire at/after the chosen time + per-day date guard" makes it idempotent and
+ * self-healing if a tick is missed (e.g. a restart).
+ */
+export async function processDailyRhythmTick(): Promise<{ codes: number; bookingOpen: number; reports: number }> {
+  const { ymd, hhmm } = nowInZone(env.APP_TIMEZONE);
+  const today = toUtcMidnight(ymd);
+  const nowMin = parseTimeToMinutes(hhmm);
+
+  const sites = await prisma.website.findMany({
+    where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
+    include: { settings: true, user: true, enrollments: { where: { status: 'ACTIVE' } } },
+  });
+
+  let codes = 0;
+  let bookingOpen = 0;
+  let reports = 0;
+
+  for (const site of sites) {
+    const cfg = normalizeConfig(site);
+
+    // Booking opens for the day → daily code + "booking is open" emails.
+    if (nowMin >= parseTimeToMinutes(cfg.bookingWindowStart) && !sameDay(site.settings?.lastBookingOpenSentOn, today)) {
+      if (cfg.dailyCodeEnabled) {
+        await ensureDailyCode(site.id, today);
+        codes++;
+      }
+      bookingOpen += await sendBookingOpenForSite(site);
+      await markSent(site.id, { lastBookingOpenSentOn: today });
+    }
+
+    // Report time → teacher gets tomorrow's ordered schedule.
+    if (nowMin >= parseTimeToMinutes(cfg.reportTime) && !sameDay(site.settings?.lastReportSentOn, today)) {
+      const ok = await sendReportForSite(site, site.settings);
+      if (ok) reports++;
+      await markSent(site.id, { lastReportSentOn: today });
+    }
+  }
+
+  if (codes || bookingOpen || reports) {
+    logger.info(`Daily rhythm: codes=${codes} bookingOpen=${bookingOpen} reports=${reports}`);
+  }
+  return { codes, bookingOpen, reports };
 }
 
 let started = false;
@@ -120,14 +217,10 @@ export function startCronJobs() {
   cron.schedule('*/15 * * * *', () => {
     processBookingReminders().catch((e) => logger.error('reminder job failed', e));
   });
-  // 9 AM — "booking is open" to active students
-  cron.schedule('0 9 * * *', () => {
-    processDailyStudentNotifications().catch((e) => logger.error('student notif job failed', e));
-  });
-  // 8 PM — teacher daily report
-  cron.schedule('0 20 * * *', () => {
-    processTeacherDailyReport().catch((e) => logger.error('teacher report job failed', e));
+  // Every 5 min: per-teacher booking-open email + teacher report at each site's chosen time
+  cron.schedule('*/5 * * * *', () => {
+    processDailyRhythmTick().catch((e) => logger.error('daily rhythm tick failed', e));
   });
 
-  logger.info('Cron jobs scheduled (reminders */15m, students 9:00, teacher report 20:00)');
+  logger.info('Cron jobs scheduled (reminders */15m, daily rhythm */5m)');
 }

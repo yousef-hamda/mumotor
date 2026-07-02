@@ -143,8 +143,10 @@ function BnNav({ data, active }: { data: TemplateData; active: string }) {
               key={id}
               className={cx('bn-nav-link', active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
+              data-edit={`copy.nav_${id}`}
+              data-edit-type="text"
             >
-              {label}
+              {data.copy?.[`nav_${id}`] ?? label}
             </button>
           ))}
         </div>
@@ -269,9 +271,15 @@ function BnHero({ data }: { data: TemplateData }) {
             </div>
             <div className="bn-trust-row">
               {data.instructor.credentials.slice(0, 3).map((c, i) => (
-                <span key={i} className="bn-trust-chip">
+                <span
+                  key={i}
+                  className="bn-trust-chip"
+                  data-edit-item={`instructor.credentials.${i}`}
+                >
                   <Check size={13} aria-hidden="true" />
-                  {c}
+                  <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">
+                    {c}
+                  </span>
                 </span>
               ))}
             </div>
@@ -469,7 +477,13 @@ function BnPackages({ data }: { data: TemplateData }) {
               >
                 <div data-edit-item={`packages.${i}`}>
                   {pkg.popular && (
-                    <span className="bn-pkg-badge">{pkg.badge ?? 'Most popular'}</span>
+                    <span
+                      className="bn-pkg-badge"
+                      data-edit={`packages.${i}.badge`}
+                      data-edit-type="text"
+                    >
+                      {pkg.badge ?? 'Most popular'}
+                    </span>
                   )}
                   <p
                     className="bn-pkg-name"
@@ -486,7 +500,15 @@ function BnPackages({ data }: { data: TemplateData }) {
                     >
                       £{pkg.price}
                     </span>
-                    {pkg.unit && <span className="bn-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && (
+                      <span
+                        className="bn-pkg-unit"
+                        data-edit={`packages.${i}.unit`}
+                        data-edit-type="text"
+                      >
+                        {pkg.unit}
+                      </span>
+                    )}
                   </div>
                   <ul className="bn-pkg-features">
                     {pkg.features.map((f, fi) => (
@@ -572,18 +594,16 @@ function BnAbout({ data }: { data: TemplateData }) {
                   className="bn-about-body"
                   style={i > 0 ? { marginTop: 14 } : undefined}
                 >
-                  {i === 0 ? (
-                    <span data-edit="about.body.0" data-edit-type="text">{p}</span>
-                  ) : (
-                    p
-                  )}
+                  <span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span>
                 </p>
               ))}
               <ul className="bn-checklist">
                 {about.checklist.map((item, i) => (
-                  <li key={i}>
+                  <li key={i} data-edit-item={`about.checklist.${i}`}>
                     <Check size={16} aria-hidden="true" />
-                    <span>{item}</span>
+                    <span data-edit={`about.checklist.${i}`} data-edit-type="text">
+                      {item}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -608,12 +628,32 @@ function BnAbout({ data }: { data: TemplateData }) {
                 >
                   {instructor.name}
                 </p>
-                <p className="bn-instructor-title">{instructor.title}</p>
-                <p className="bn-instructor-bio">{instructor.bio}</p>
+                <p
+                  className="bn-instructor-title"
+                  data-edit="instructor.title"
+                  data-edit-type="text"
+                >
+                  {instructor.title}
+                </p>
+                <p
+                  className="bn-instructor-bio"
+                  data-edit="instructor.bio"
+                  data-edit-type="text"
+                >
+                  {instructor.bio}
+                </p>
               </div>
               <div className="bn-creds">
                 {instructor.credentials.map((c, i) => (
-                  <span key={i} className="bn-cred-chip">{c}</span>
+                  <span
+                    key={i}
+                    className="bn-cred-chip"
+                    data-edit-item={`instructor.credentials.${i}`}
+                  >
+                    <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">
+                      {c}
+                    </span>
+                  </span>
                 ))}
               </div>
             </Tile>
@@ -672,7 +712,13 @@ function BnAreas({ data }: { data: TemplateData }) {
                     {area.name}
                   </span>
                   {area.note && (
-                    <span className="bn-area-note">{area.note}</span>
+                    <span
+                      className="bn-area-note"
+                      data-edit={`areas.${i}.note`}
+                      data-edit-type="text"
+                    >
+                      {area.note}
+                    </span>
                   )}
                 </span>
               ))}
@@ -710,15 +756,39 @@ function BnReviews({ data }: { data: TemplateData }) {
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.08}>
               <Tile tilt className="bn-review-tile">
-                <Stars n={r.rating} />
-                <blockquote className="bn-review-text">"{r.text}"</blockquote>
-                <div className="bn-review-meta">
-                  {r.avatar && (
-                    <img src={r.avatar} alt={r.name} className="bn-avatar" />
-                  )}
-                  <div>
-                    <p className="bn-review-name">{r.name}</p>
-                    {r.meta && <p className="bn-review-sub">{r.meta}</p>}
+                <div data-edit-item={`reviews.${i}`}>
+                  <Stars n={r.rating} />
+                  <blockquote className="bn-review-text">
+                    "<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"
+                  </blockquote>
+                  <div className="bn-review-meta">
+                    {r.avatar && (
+                      <img
+                        src={r.avatar}
+                        alt={r.name}
+                        className="bn-avatar"
+                        data-edit={`reviews.${i}.avatar`}
+                        data-edit-type="image"
+                      />
+                    )}
+                    <div>
+                      <p
+                        className="bn-review-name"
+                        data-edit={`reviews.${i}.name`}
+                        data-edit-type="text"
+                      >
+                        {r.name}
+                      </p>
+                      {r.meta && (
+                        <p
+                          className="bn-review-sub"
+                          data-edit={`reviews.${i}.meta`}
+                          data-edit-type="text"
+                        >
+                          {r.meta}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Tile>
@@ -756,7 +826,15 @@ function BnGallery({ data }: { data: TemplateData }) {
           {data.gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.06}>
               <Tile className="bn-gallery-cell">
-                <img src={src} alt="" loading="lazy" />
+                <div data-edit-item={`gallery.${i}`}>
+                  <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    data-edit={`gallery.${i}`}
+                    data-edit-type="image"
+                  />
+                </div>
               </Tile>
             </Reveal>
           ))}
@@ -916,7 +994,7 @@ function BnBook({ data }: { data: TemplateData }) {
 
 function BnContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="bn-footer">
       <div className="bn-container">
@@ -970,27 +1048,17 @@ function BnContact({ data }: { data: TemplateData }) {
                 </span>
               </div>
               <div className="bn-socials">
-                {contact.whatsapp && (
+                {socials.map((s, i) => (
                   <a
-                    href={`https://wa.me/${contact.whatsapp}`}
+                    key={i}
+                    href={s.url}
                     className="bn-social"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="whatsapp"
+                    aria-label={s.platform}
+                    data-edit-item={`contact.socials.${i}`}
                   >
-                    <SocialIcon platform="whatsapp" size={18} />
-                  </a>
-                )}
-                {socials.map(([name, url]) => (
-                  <a
-                    key={name}
-                    href={url}
-                    className="bn-social"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={name}
-                  >
-                    <SocialIcon platform={name} size={18} />
+                    <SocialIcon platform={s.platform} size={18} />
                   </a>
                 ))}
               </div>

@@ -89,6 +89,7 @@ export function Reveal({
   x = 0,
   once = true,
   as = 'div',
+  ...rest
 }: {
   children: ReactNode;
   className?: string;
@@ -103,9 +104,10 @@ export function Reveal({
   // Resolve the motion component from the proxy (motion.div/span/...) for the
   // common string-tag case; only fall back to motion.create() for components.
   const M = (typeof as === 'string' ? (motion as never)[as] : motion.create(as)) as ElementType;
+  // Forward extra (data-*) attributes so Customize's data-edit-item works on the wrapper.
   if (reduced)
     return (
-      <div className={className} style={style}>
+      <div className={className} style={style} {...rest}>
         {children}
       </div>
     );
@@ -113,6 +115,7 @@ export function Reveal({
     <M
       className={className}
       style={style}
+      {...rest}
       initial={{ opacity: 0, y, x }}
       whileInView={{ opacity: 1, y: 0, x: 0 }}
       viewport={{ once, margin: '0px 0px -12% 0px' }}
@@ -250,10 +253,12 @@ export function EnterTilt({
   children,
   className,
   maxTilt = 14,
+  perspective = 1000,
 }: {
   children: ReactNode;
   className?: string;
   maxTilt?: number;
+  perspective?: number;
 }) {
   const reduced = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -295,7 +300,7 @@ export function EnterTilt({
 
   if (reduced) return <div className={className}>{children}</div>;
   return (
-    <div ref={ref} className={className} style={{ perspective: 1000 }}>
+    <div ref={ref} className={className} style={{ perspective }}>
       <motion.div style={{ rotateX, scale, opacity, transformStyle: 'preserve-3d', willChange: 'transform' }}>
         {children}
       </motion.div>

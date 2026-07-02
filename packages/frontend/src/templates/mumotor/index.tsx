@@ -11,7 +11,7 @@
  */
 import { useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Check, Star, Menu, X, ArrowRight, Plus, Minus, CalendarCheck, ShieldCheck } from 'lucide-react';
+import { Check, Star, Menu, X, ArrowRight, Plus, Minus, ShieldCheck } from 'lucide-react';
 import type { TemplateData } from '../types';
 import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
@@ -69,7 +69,7 @@ function MmNav({ data, active }: { data: TemplateData; active: string }) {
         </button>
         <div className="mm-nav-links">
           {links.map(({ id, label }) => (
-            <button key={id} className={cx('mm-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)}>{label}</button>
+            <button key={id} className={cx('mm-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)} data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</button>
           ))}
         </div>
         <div className="mm-nav-end">
@@ -105,18 +105,30 @@ function MmHero({ data }: { data: TemplateData }) {
             <button className="mm-btn mm-btn-glass mm-btn-lg" data-edit="hero.ctaSecondary" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.packages)}>{hero.ctaSecondary}</button>
           </div>
         </FadeUp>
+        {data.instructor.credentials.length > 0 && (
+          <FadeUp delay={0.2}>
+            <div className="mm-hero-creds">
+              {data.instructor.credentials.map((c, i) => (
+                <span key={i} className="mm-cred" data-edit-item={`instructor.credentials.${i}`}>
+                  <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                </span>
+              ))}
+            </div>
+          </FadeUp>
+        )}
       </div>
-      <EnterTilt maxTilt={14} className="mm-container mm-hero-tilt">
+      <EnterTilt maxTilt={18} perspective={1200} className="mm-container mm-hero-tilt">
         <div className="mm-media">
           <img src={hero.image} alt="Driving lesson in progress" className="mm-media-img" data-edit="hero.image" data-edit-type="image" />
           <div className="mm-media-shade" aria-hidden="true" />
           <div className="mm-glass mm-float mm-float-book">
-            <span className="mm-float-ic"><CalendarCheck size={18} strokeWidth={2} aria-hidden="true" /></span>
-            <div><p className="mm-float-t">New booking confirmed</p><p className="mm-float-s">Lesson booked · just now</p></div>
+            <span className="mm-float-ic"><DynamicIcon name={data.icons?.heroFloat ?? 'CalendarCheck'} size={18} strokeWidth={2} aria-hidden="true" data-edit="icons.heroFloat" data-edit-type="icon" /></span>
+            <div><p className="mm-float-t" data-edit="copy.heroFloatTitle" data-edit-type="text">{data.copy?.heroFloatTitle ?? 'New booking confirmed'}</p><p className="mm-float-s" data-edit="copy.heroFloatSub" data-edit-type="text">{data.copy?.heroFloatSub ?? 'Lesson booked · just now'}</p></div>
           </div>
           {stat && (
             <div className="mm-glass mm-chip">
-              <ShieldCheck size={15} aria-hidden="true" /> {stat.prefix}{stat.value}{stat.suffix} <span data-edit="stats.0.label" data-edit-type="text">{stat.label}</span>
+              <ShieldCheck size={15} aria-hidden="true" /> <span data-edit="stats.0.value" data-edit-type="text">{stat.prefix}{stat.value}{stat.suffix}</span> <span data-edit="stats.0.label" data-edit-type="text">{stat.label}</span>
             </div>
           )}
         </div>
@@ -196,9 +208,9 @@ function MmPackages({ data }: { data: TemplateData }) {
           {packages.map((pkg, i) => (
             <Stagger.Item key={pkg.id}>
               <div className={cx('mm-pkg', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
-                {pkg.popular && <span className="mm-pkg-badge">{pkg.badge ?? 'Most popular'}</span>}
+                {pkg.popular && <span className="mm-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>}
                 <p className="mm-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
-                <p className="mm-pkg-price"><span className="mm-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="mm-pkg-unit">{pkg.unit}</span>}</p>
+                <p className="mm-pkg-price"><span className="mm-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="mm-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}</p>
                 <ul className="mm-pkg-features">
                   {pkg.features.map((f, fi) => <li key={fi}><Check size={15} className="mm-check" aria-hidden="true" /><span data-edit={`packages.${i}.features.${fi}`} data-edit-type="text">{f}</span></li>)}
                 </ul>
@@ -224,11 +236,11 @@ function MmAbout({ data }: { data: TemplateData }) {
         <FadeUp className="mm-about-copy">
           <p className="mm-eyebrow"><span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? 'About'}</span></p>
           <h2 className="mm-h2 mm-h2-left" data-edit="about.heading" data-edit-type="text">{about.heading}</h2>
-          {about.body.map((p, i) => <p key={i} className="mm-body">{i === 0 ? <span data-edit="about.body.0" data-edit-type="text">{p}</span> : p}</p>)}
-          <ul className="mm-checklist">{about.checklist.map((item, i) => <li key={i}><span className="mm-tick"><Check size={13} strokeWidth={3} aria-hidden="true" /></span><span>{item}</span></li>)}</ul>
+          {about.body.map((p, i) => <p key={i} className="mm-body"><span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span></p>)}
+          <ul className="mm-checklist">{about.checklist.map((item, i) => <li key={i} data-edit-item={`about.checklist.${i}`}><span className="mm-tick"><Check size={13} strokeWidth={3} aria-hidden="true" /></span><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>)}</ul>
           <div className="mm-instructor">
             <img src={instructor.photo} alt={instructor.name} className="mm-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
-            <div><p className="mm-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="mm-instructor-title">{instructor.title}</p></div>
+            <div><p className="mm-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="mm-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p></div>
           </div>
         </FadeUp>
         <EnterTilt maxTilt={12} className="mm-about-media">
@@ -262,7 +274,7 @@ function MmAreas({ data }: { data: TemplateData }) {
             <Stagger.Item key={i}>
               <span className="mm-area" data-edit-item={`areas.${i}`}>
                 <span className="mm-area-name" data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                {area.note && <span className="mm-area-note">{area.note}</span>}
+                {area.note && <span className="mm-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
               </span>
             </Stagger.Item>
           ))}
@@ -283,14 +295,14 @@ function MmReviews({ data }: { data: TemplateData }) {
           <h2 className="mm-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'Loved by learners.'}</h2>
         </FadeUp>
         <Stagger className="mm-reviews">
-          {data.reviews.map((r) => (
+          {data.reviews.map((r, i) => (
             <Stagger.Item key={r.id}>
-              <div className="mm-glass mm-review">
+              <div className="mm-glass mm-review" data-edit-item={`reviews.${i}`}>
                 <Stars n={r.rating} />
-                <blockquote className="mm-review-text">"{r.text}"</blockquote>
+                <blockquote className="mm-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
                 <div className="mm-review-meta">
-                  {r.avatar && <img src={r.avatar} alt={r.name} className="mm-avatar" />}
-                  <div><p className="mm-review-name">{r.name}</p>{r.meta && <p className="mm-review-sub">{r.meta}</p>}</div>
+                  {r.avatar && <img src={r.avatar} alt={r.name} className="mm-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
+                  <div><p className="mm-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>{r.meta && <p className="mm-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}</div>
                 </div>
               </div>
             </Stagger.Item>
@@ -311,7 +323,7 @@ function MmGallery({ data }: { data: TemplateData }) {
           <p className="mm-eyebrow mm-eyebrow-center"><span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? 'Gallery'}</span></p>
           <h2 className="mm-h2" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'From the driving seat.'}</h2>
         </FadeUp>
-        <Stagger className="mm-gallery">{data.gallery.map((src, i) => <Stagger.Item key={i}><div className="mm-gallery-cell"><img src={src} alt="" loading="lazy" /></div></Stagger.Item>)}</Stagger>
+        <Stagger className="mm-gallery">{data.gallery.map((src, i) => <Stagger.Item key={i}><div className="mm-gallery-cell" data-edit-item={`gallery.${i}`}><img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" /></div></Stagger.Item>)}</Stagger>
       </div>
     </section>
   );
@@ -377,7 +389,7 @@ function MmBook({ data }: { data: TemplateData }) {
 
 function MmContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="mm-footer">
       <div className="mm-container mm-footer-grid">
@@ -389,8 +401,11 @@ function MmContact({ data }: { data: TemplateData }) {
             <span className="mm-contact-link"><DynamicIcon name={data.icons?.address ?? 'MapPin'} size={16} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span data-edit="contact.address" data-edit-type="text">{contact.address}</span></span>
           </div>
           <div className="mm-socials">
-            {contact.whatsapp && <a href={`https://wa.me/${contact.whatsapp}`} className="mm-social" target="_blank" rel="noreferrer" aria-label="whatsapp"><SocialIcon platform="whatsapp" size={18} /></a>}
-            {socials.map(([name, url]) => <a key={name} href={url} className="mm-social" target="_blank" rel="noreferrer" aria-label={name}><SocialIcon platform={name} size={18} /></a>)}
+            {socials.map((s, i) => (
+              <a key={i} href={s.url} className="mm-social" target="_blank" rel="noreferrer" aria-label={s.platform} data-edit-item={`contact.socials.${i}`}>
+                <SocialIcon platform={s.platform} size={18} />
+              </a>
+            ))}
           </div>
         </div>
         <div>

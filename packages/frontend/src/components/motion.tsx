@@ -53,6 +53,7 @@ export function Reveal({
   delay = 0,
   className,
   as: Tag = 'div',
+  ...rest
 }: {
   children: ReactNode;
   delay?: number;
@@ -61,7 +62,7 @@ export function Reveal({
 }) {
   const { ref, inView } = useInView();
   return (
-    <Tag ref={ref as never} className={cn('reveal', inView && 'in', className)} style={{ transitionDelay: `${delay}ms` }}>
+    <Tag ref={ref as never} className={cn('reveal', inView && 'in', className)} style={{ transitionDelay: `${delay}ms` }} {...rest}>
       {children}
     </Tag>
   );
@@ -74,6 +75,7 @@ export function FadeUp({
   y = 24,
   className,
   once = true,
+  ...rest
 }: {
   children: ReactNode;
   delay?: number;
@@ -82,10 +84,12 @@ export function FadeUp({
   once?: boolean;
 }) {
   const reduced = usePrefersReducedMotion();
-  if (reduced) return <div className={className}>{children}</div>;
+  // Forward extra (data-*) attributes so Customize's data-edit-item works on the wrapper.
+  if (reduced) return <div className={className} {...rest}>{children}</div>;
   return (
     <motion.div
       className={className}
+      {...rest}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once, margin: '0px 0px -12% 0px' }}
@@ -110,10 +114,11 @@ export function Stagger({ children, className, gap = 0.08 }: { children: ReactNo
     </motion.div>
   );
 }
-Stagger.Item = function StaggerItem({ children, className, y = 22 }: { children: ReactNode; className?: string; y?: number }) {
+Stagger.Item = function StaggerItem({ children, className, y = 22, ...rest }: { children: ReactNode; className?: string; y?: number }) {
   return (
     <motion.div
       className={className}
+      {...rest}
       variants={{ hidden: { opacity: 0, y }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } } }}
     >
       {children}

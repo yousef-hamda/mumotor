@@ -1,17 +1,33 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { env } from '../config/env.js';
+import { env, isProd } from '../config/env.js';
 import { stripe, PRICE_IDS } from '../lib/stripe.js';
+import { ApiError } from '../utils/errors.js';
 import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();
 
 export const PLANS = [
-  { id: 'FREE', name: 'Free', price: 0, features: ['1 published site (Mumotor badge)', 'Up to 25 students', 'Online booking', 'Daily codes'] },
-  { id: 'PRO', name: 'Pro', price: 29, features: ['Badge removed', 'Unlimited students', 'Custom domain', 'Bulk email', 'Daily schedule reports'] },
-  { id: 'STUDIO', name: 'Studio', price: 79, features: ['Everything in Pro', 'Multiple sites / locations', 'Priority generation', 'Early features'] },
+  {
+    id: 'PRO',
+    name: 'Mumotor',
+    price: 199,
+    currency: '₪',
+    period: 'month',
+    note: 'Cancel anytime',
+    features: [
+      'Your own published website',
+      'Unlimited students',
+      'Online booking — students pick a free slot',
+      'A fresh access code every day',
+      'Automatic “booking is open” emails to students',
+      'Instant booking confirmations',
+      'Tomorrow’s schedule emailed to you daily',
+      'Custom domain',
+    ],
+  },
 ];
 
 router.use(verifyToken);
@@ -59,6 +75,12 @@ router.post(
         metadata: { userId, plan },
       });
       return res.json({ mode: 'stripe', url: session.url });
+    }
+
+    // In production a paid plan is NEVER granted without going through Stripe —
+    // the demo fallback below is a dev/test convenience only.
+    if (plan !== 'FREE' && isProd) {
+      throw new ApiError(503, 'Billing is not configured yet. Please try again later.', 'BILLING_NOT_CONFIGURED');
     }
 
     // Demo fallback (and FREE downgrades): switch plan immediately

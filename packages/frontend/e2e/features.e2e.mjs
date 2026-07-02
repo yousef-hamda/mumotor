@@ -149,6 +149,42 @@ try {
   await page.waitForTimeout(250);
   ok('package removed via hover trash', (await page.locator('[data-edit-item^="packages."]').count()) === beforeRemove - 1);
 
+  // ── new: social icons + credentials are deletable/draggable items ──
+  ok('social icons are deletable items', (await page.locator('[data-edit-item^="contact.socials."]').count()) >= 1);
+  ok('credential badges are deletable items', (await page.locator('[data-edit-item^="instructor.credentials."]').count()) >= 1);
+  {
+    const beforeSoc = await page.locator('[data-edit-item^="contact.socials."]').count();
+    await page.locator('[data-edit-item^="contact.socials."]').first().scrollIntoViewIfNeeded();
+    await page.locator('[data-edit-item^="contact.socials."]').first().hover();
+    await page.waitForTimeout(200);
+    await page.locator('button[title="Remove item"]').first().click();
+    await page.waitForTimeout(250);
+    ok('social icon deleted via trash', (await page.locator('[data-edit-item^="contact.socials."]').count()) === beforeSoc - 1);
+  }
+
+  // ── new: drag-to-reorder within a group (grip dragstart → drop on sibling) ──
+  {
+    const names = () => page.evaluate(() => [...document.querySelectorAll('[data-edit^="areas."][data-edit$=".name"]')].map((e) => e.textContent));
+    const order0 = await names();
+    await page.locator('[data-edit-item^="areas."]').first().scrollIntoViewIfNeeded();
+    await page.locator('[data-edit-item^="areas."]').first().hover();
+    await page.waitForTimeout(150);
+    const didDrag = await page.evaluate(() => {
+      const items = [...document.querySelectorAll('[data-edit-item^="areas."]')];
+      const grip = document.querySelector('button[title="Drag to reorder"]');
+      if (!grip || items.length < 2) return false;
+      const dt = new DataTransfer();
+      grip.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+      const target = items[1];
+      target.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer: dt }));
+      target.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: dt }));
+      return true;
+    });
+    await page.waitForTimeout(250);
+    const order1 = await names();
+    ok('drag-reorder swaps item order', didDrag && order0.length >= 2 && order0.length === order1.length && order0[0] === order1[1] && order1[0] === order0[1]);
+  }
+
   // edit a list-item text inline (package name)
   await page.locator('[data-edit="packages.0.name"]').first().click();
   await page.waitForTimeout(200);
@@ -205,13 +241,11 @@ try {
   await page.evaluate(() => document.querySelector('[data-edit="hero.image"]').dispatchEvent(new MouseEvent('click', { bubbles: true })));
   await page.waitForTimeout(250);
   ok('image popover (Upload + Find) appears', (await page.getByText(/Find/i).count()) > 0 && (await page.getByText(/Upload/i).count()) > 0);
-  await page.evaluate(() => {
-    const inp = document.querySelector('div.fixed input.input');
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-    setter.call(inp, 'https://example.com/x.jpg'); inp.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-  await page.waitForTimeout(250);
-  ok('hero image replaced live', await page.evaluate(() => (document.querySelector('[data-edit="hero.image"]')?.getAttribute('src') || '').includes('example.com')));
+  ok('image popover has no paste-URL field (removed)', (await page.locator('div.fixed input.input').count()) === 0);
+  // replace the hero image via Upload (the paste-URL field was removed by design)
+  await page.locator('div.fixed input[type=file]').setInputFiles({ name: 'x.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64') });
+  await page.waitForTimeout(400);
+  ok('hero image replaced live (upload)', await page.evaluate(() => (document.querySelector('[data-edit="hero.image"]')?.getAttribute('src') || '').startsWith('data:image')));
 
   // Save persists everything to wizard config
   await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Save/.test(x.textContent || '')); b?.click(); });
@@ -220,7 +254,7 @@ try {
     const c = JSON.parse(localStorage.getItem('mumotor_wizard') || '{}').customization || {};
     return c.fields?.['hero.headline'] === 'E2E HEADLINE'
       && (c.styles?.['hero.headline']?.color || '').toLowerCase() === '#ff0000'
-      && (c.fields?.['hero.image'] || '').includes('example.com')
+      && (c.fields?.['hero.image'] || '').startsWith('data:image')
       && Array.isArray(c.fields?.['packages']) && c.fields['packages'][0]?.name === 'E2E PLAN';
   }));
   ok('Save persists copy + icon + button-fill overrides (#3)', await page.evaluate(() => {

@@ -123,9 +123,16 @@ function buildTemplateData(c: CoreInput): TemplateData {
   const heroImg = c.carPhoto || c.gallery[0] || sampleData.hero.image;
   const aboutImg = c.gallery[1] || c.carPhoto || sampleData.about.image;
 
-  // socials: keep the known keys templates already render + the full map.
+  // socials: raw map for `pick`, plus an ordered {platform,url} list the templates render.
   const socials = c.socialLinks || {};
   const pick = (k: string) => socials[k] || socials[k.toLowerCase()];
+  const waNum = waNumber(c.phone) || waNumber(pick('WhatsApp'));
+  const socialsList: { platform: string; url: string }[] = [
+    ...(waNum ? [{ platform: 'whatsapp', url: `https://wa.me/${waNum}` }] : []),
+    ...Object.entries(socials)
+      .filter(([platform, url]) => url && !/whatsapp/i.test(platform))
+      .map(([platform, url]) => ({ platform: platform.toLowerCase(), url })),
+  ];
 
   const base: TemplateData = {
     ...sampleData,
@@ -169,7 +176,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
       whatsapp: waNumber(c.phone) || waNumber(pick('WhatsApp')),
       instagram: pick('Instagram') || undefined,
       facebook: pick('Facebook') || undefined,
-      socials,
+      socials: socialsList,
     },
     hours: c.hours,
     locale: c.locale,

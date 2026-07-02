@@ -104,8 +104,8 @@ export interface TemplateData {
     whatsapp?: string;
     instagram?: string;
     facebook?: string;
-    /** All social platforms the owner added: platform name -> URL. */
-    socials?: Record<string, string>;
+    /** Social links as an ordered, editable/deletable list: { platform, url }. */
+    socials?: { platform: string; url: string }[];
   };
   hours: Hour[];
   locale: Locale;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Redo2, RotateCcw, Undo2, Save, X, Upload, Search, Plus, Trash2, Type as TypeIcon, Image as ImageIcon, Paintbrush, Smile } from 'lucide-react';
+import { Redo2, RotateCcw, Undo2, Save, X, Upload, Search, Plus, Trash2, GripVertical, Type as TypeIcon, Image as ImageIcon, Paintbrush, Smile } from 'lucide-react';
 import type { TemplateData } from '../../templates/types';
 import { TemplateRender } from '../../templates/TemplateRender';
 import {
@@ -15,13 +15,29 @@ import { mediaApi } from '../../lib/api';
 import { useHistory } from './useHistory';
 import { PhotoPicker } from './PhotoPicker';
 
-const LIST_ROOTS = ['packages', 'faqs', 'areas', 'stats'];
 type Rect = { top: number; left: number; width: number; height: number };
 interface Selection { path: string; type: EditType }
 interface PopoverState { kind: 'text' | 'background' | 'image' | 'icon'; path: string; rect: Rect }
 
 function clone<T>(v: T): T { return JSON.parse(JSON.stringify(v)) as T; }
-function isListPath(path: string) { return LIST_ROOTS.includes(path.split('.')[0]) && path.includes('.'); }
+/** Shortest path prefix that resolves to an array in `data` — the whole array we persist. Null = plain scalar field. */
+function arrayRootOf(data: unknown, path: string): string | null {
+  const parts = path.split('.');
+  let prefix = '';
+  for (let i = 0; i < parts.length; i++) {
+    prefix = i ? `${prefix}.${parts[i]}` : parts[i];
+    if (Array.isArray(getPath(data, prefix))) return prefix;
+  }
+  return null;
+}
+/** Split an item path "a.b.N" → { parentPath:"a.b", index:N }. */
+function splitItem(itemPath: string): { parentPath: string; index: number } {
+  const parts = itemPath.split('.');
+  const index = Number(parts.pop());
+  return { parentPath: parts.join('.'), index };
+}
+/** The group a list item belongs to (its parent path), for same-group drag checks. */
+function groupOf(itemPath: string): string { return splitItem(itemPath).parentPath; }
 function toHex(v?: string): string {
   if (v && /^#[0-9a-fA-F]{6}$/.test(v)) return v;
   if (v && /^#[0-9a-fA-F]{3}$/.test(v)) return `#${v[1]}${v[1]}${v[2]}${v[2]}${v[3]}${v[3]}`;
@@ -53,6 +69,8 @@ export default function CustomizeMode({
   const [picker, setPicker] = useState<{ path: string; query: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const editingRef = useRef<HTMLElement | null>(null);
+  const dragSrc = useRef<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ path: string; rect: Rect } | null>(null);
   const savedRef = useRef<string>(JSON.stringify(value ?? {}));
   const dirty = JSON.stringify(hist.current) !== savedRef.current;
 
@@ -62,13 +80,15 @@ export default function CustomizeMode({
   }, [hist]);
 
   const commitField = useCallback((path: string, raw: string) => {
-    if (isListPath(path)) {
-      const root = path.split('.')[0];
-      const src = getPath(data, root);
-      const arr: unknown[] = Array.isArray(src) ? clone(src) : [];
+    const root = arrayRootOf(data, path);
+    if (root) {
+      // Edit into an array element → persist the whole array under fields[root]
+      // (keeps indices consistent across add/remove/reorder).
+      const arr = clone(getPath(data, root)) as unknown[];
+      const rel = path.slice(root.length).replace(/^\./, '');
       const last = path.split('.').pop()!;
       const v: unknown = last === 'price' || last === 'value' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
-      setPath({ [root]: arr } as Record<string, unknown>, path, v);
+      setPath({ _: arr } as Record<string, unknown>, `_.${rel}`, v);
       pushFields({ [root]: arr });
     } else {
       pushFields({ [path]: raw });
@@ -96,30 +116,55 @@ export default function CustomizeMode({
     hist.set({ ...hist.current, theme });
   }, [hist]);
 
+  // Locate the persisted top-level array + the direct parent array for an item path.
+  const resolveList = useCallback((itemPath: string) => {
+    const { parentPath, index } = splitItem(itemPath);
+    const store = arrayRootOf(data, itemPath) ?? parentPath;
+    const storeArr = clone(getPath(data, store)) as unknown[];
+    const rel = parentPath.slice(store.length).replace(/^\./, '');
+    const parentArr = (rel ? getPath({ _: storeArr }, `_.${rel}`) : storeArr) as unknown[];
+    return { store, storeArr, parentArr, index };
+  }, [data]);
+
   const listOp = useCallback((itemPath: string, op: 'add' | 'remove') => {
-    const [root, idxStr] = itemPath.split('.');
-    const index = Number(idxStr);
-    const src = getPath(data, root);
-    const arr: unknown[] = Array.isArray(src) ? clone(src) : [];
+    const { store, storeArr, parentArr, index } = resolveList(itemPath);
+    if (!Array.isArray(parentArr)) return;
     if (op === 'add') {
-      const copy = clone(arr[index] ?? {}) as Record<string, unknown>;
-      if (copy && typeof copy === 'object' && 'id' in copy) copy.id = `item-${Date.now()}-${index}`;
-      arr.splice(index + 1, 0, copy);
-    } else arr.splice(index, 1);
-    pushFields({ [root]: arr });
+      const copy = clone(parentArr[index] ?? (typeof parentArr[0] === 'string' ? '' : {}));
+      if (copy && typeof copy === 'object' && 'id' in (copy as object)) (copy as Record<string, unknown>).id = `item-${Date.now()}-${index}`;
+      parentArr.splice(index + 1, 0, copy);
+    } else {
+      parentArr.splice(index, 1);
+    }
+    pushFields({ [store]: storeArr });
     setHover(null);
-  }, [data, pushFields]);
+  }, [resolveList, pushFields]);
+
+  // Reorder within the same group (grab & drop).
+  const move = useCallback((fromPath: string, toPath: string) => {
+    if (groupOf(fromPath) !== groupOf(toPath)) return;
+    const from = splitItem(fromPath).index;
+    const to = splitItem(toPath).index;
+    if (from === to || Number.isNaN(from) || Number.isNaN(to)) return;
+    const { store, storeArr, parentArr } = resolveList(fromPath);
+    if (!Array.isArray(parentArr)) return;
+    const [moved] = parentArr.splice(from, 1);
+    parentArr.splice(to, 0, moved);
+    pushFields({ [store]: storeArr });
+    setHover(null);
+  }, [resolveList, pushFields]);
 
   // Compute the customization that results from committing one field edit — SYNC
   // (so Save/Done can include an in-progress edit without waiting for setState).
   const computeCommit = useCallback((base: Customization, path: string, raw: string): Customization => {
-    if (isListPath(path)) {
-      const root = path.split('.')[0];
-      const src = getPath(applyOverrides(baseData, base), root);
-      const arr: unknown[] = Array.isArray(src) ? clone(src) : [];
+    const d = applyOverrides(baseData, base);
+    const root = arrayRootOf(d, path);
+    if (root) {
+      const arr = clone(getPath(d, root)) as unknown[];
+      const rel = path.slice(root.length).replace(/^\./, '');
       const last = path.split('.').pop()!;
       const v: unknown = last === 'price' || last === 'value' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
-      setPath({ [root]: arr } as Record<string, unknown>, path, v);
+      setPath({ _: arr } as Record<string, unknown>, `_.${rel}`, v);
       return { ...base, fields: { ...(base.fields ?? {}), [root]: arr } };
     }
     return { ...base, fields: { ...(base.fields ?? {}), [path]: raw } };
@@ -188,6 +233,27 @@ export default function CustomizeMode({
     const r = el.getBoundingClientRect();
     setHover((h) => (h && h.path === path ? h : { path, rect: { top: r.top, left: r.left, width: r.width, height: r.height } }));
   }, []);
+
+  // ── drag to reorder within the same group ──────────────────────────────────
+  const onCanvasDragOver = useCallback((e: React.DragEvent) => {
+    if (!dragSrc.current) return;
+    const el = (e.target as HTMLElement).closest('[data-edit-item]') as HTMLElement | null;
+    if (!el || groupOf(el.dataset.editItem!) !== groupOf(dragSrc.current)) { setDropTarget((d) => (d ? null : d)); return; }
+    e.preventDefault(); // allow drop only within the same group
+    const targetPath = el.dataset.editItem!;
+    const r = el.getBoundingClientRect();
+    setDropTarget((d) => (d && d.path === targetPath ? d : { path: targetPath, rect: { top: r.top, left: r.left, width: r.width, height: r.height } }));
+  }, []);
+  const onCanvasDrop = useCallback((e: React.DragEvent) => {
+    const src = dragSrc.current;
+    dragSrc.current = null;
+    setDropTarget(null);
+    if (!src) return;
+    const el = (e.target as HTMLElement).closest('[data-edit-item]') as HTMLElement | null;
+    if (!el) return;
+    e.preventDefault();
+    move(src, el.dataset.editItem!);
+  }, [move]);
 
   // ── keep selection outline + popover anchored on scroll/resize/rerender ─────
   const reanchor = useCallback(() => {
@@ -270,7 +336,7 @@ export default function CustomizeMode({
 
       {/* Canvas */}
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
-        <div onClickCapture={onCanvasClick} onMouseMove={onCanvasMove} className="cz-canvas">
+        <div onClickCapture={onCanvasClick} onMouseMove={onCanvasMove} onDragOver={onCanvasDragOver} onDrop={onCanvasDrop} className="cz-canvas">
           <TemplateRender slug={templateSlug} data={data} />
         </div>
       </div>
@@ -283,9 +349,21 @@ export default function CustomizeMode({
       {/* Selection outline */}
       {popover && <div className="pointer-events-none fixed z-[150] rounded-[3px] ring-2 ring-purple-500" style={{ top: popover.rect.top - 2, left: popover.rect.left - 2, width: popover.rect.width + 4, height: popover.rect.height + 4 }} />}
 
-      {/* Hover list controls */}
+      {/* Drop target while dragging */}
+      {dropTarget && (
+        <div className="pointer-events-none fixed z-[155] rounded-[4px] bg-purple-500/10 ring-2 ring-purple-500" style={{ top: dropTarget.rect.top - 2, left: dropTarget.rect.left - 2, width: dropTarget.rect.width + 4, height: dropTarget.rect.height + 4 }} />
+      )}
+
+      {/* Hover list controls — drag to reorder, add, remove */}
       {hover && (
-        <div className="fixed z-[160] flex gap-1" style={{ top: hover.rect.top + 4, left: hover.rect.left + hover.rect.width - 56 }}>
+        <div className="fixed z-[160] flex gap-1" style={{ top: hover.rect.top + 4, left: hover.rect.left + hover.rect.width - 84 }}>
+          <button
+            title="Drag to reorder"
+            draggable
+            onDragStart={(e) => { dragSrc.current = hover.path; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', hover.path); } catch { /* noop */ } }}
+            onDragEnd={() => { dragSrc.current = null; setDropTarget(null); }}
+            className="grid h-7 w-7 cursor-grab place-items-center rounded-md bg-white text-sand-500 shadow ring-1 ring-sand-200 hover:text-sand-800 active:cursor-grabbing"
+          ><GripVertical className="h-4 w-4" /></button>
           <button title="Add item" onClick={() => listOp(hover.path, 'add')} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500"><Plus className="h-4 w-4" /></button>
           <button title="Remove item" onClick={() => listOp(hover.path, 'remove')} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50"><Trash2 className="h-4 w-4" /></button>
         </div>
@@ -336,7 +414,6 @@ export default function CustomizeMode({
                 </label>
                 <button onClick={() => { setPicker({ path: popover.path, query: queryFor(popover.path, data) }); setPopover(null); }} className="flex-1 rounded-lg bg-purple-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-purple-500"><Search className="me-1 inline h-3 w-3" /> Find</button>
               </div>
-              <input value={typeof getPath(data, popover.path) === 'string' ? (getPath(data, popover.path) as string) : ''} onChange={(e) => commitField(popover.path, e.target.value)} placeholder="…or paste an image URL" className="input mt-2 text-xs" />
             </div>
           )}
           {popover.kind === 'icon' && (

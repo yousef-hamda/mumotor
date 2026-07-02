@@ -98,7 +98,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
 
   const hasReviews = data.reviews.length > 0;
   const hasGallery = data.gallery.length > 0;
-  const socials = Object.entries(data.contact.socials ?? {});
+  const socials = data.contact.socials ?? [];
 
   const bookCta = data.labels?.bookCta ?? 'Book a lesson';
 
@@ -256,16 +256,16 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
             {data.packages.map((pkg, i) => (
               <Reveal key={pkg.id} delay={i * 0.12}>
                 <div className={`ns-pkg-card${pkg.popular ? ' ns-popular' : ''}`} data-edit-item={`packages.${i}`}>
-                  {pkg.badge && <span className="ns-pkg-badge">{pkg.badge}</span>}
+                  {pkg.badge && <span className="ns-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                   <h3 className="ns-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                   <div className="ns-pkg-price">
                     <span className="ns-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-                    {pkg.unit && <span className="ns-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && <span className="ns-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </div>
                   {pkg.duration && (
                     <p className="ns-pkg-meta">
                       <Clock size={12} aria-hidden="true" />
-                      {' '}{pkg.duration}<span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? '-minute lessons'}</span>
+                      {' '}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? '-minute lessons'}</span>
                     </p>
                   )}
                   <ul className="ns-pkg-features" aria-label="Features included">
@@ -301,19 +301,15 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
             <Reveal><h2 className="ns-section-title" data-edit="about.heading" data-edit-type="text">{data.about.heading}</h2></Reveal>
             {data.about.body.map((p, i) => (
               <Reveal key={i} delay={0.1 + i * 0.1}>
-                <p
-                  className="ns-body-text"
-                  data-edit={i === 0 ? 'about.body.0' : undefined}
-                  data-edit-type={i === 0 ? 'text' : undefined}
-                >{p}</p>
+                <p className="ns-body-text" data-edit={`about.body.${i}`} data-edit-type="text">{p}</p>
               </Reveal>
             ))}
             <Reveal delay={0.28}>
               <ul className="ns-checklist">
-                {data.about.checklist.map(item => (
-                  <li key={item}>
+                {data.about.checklist.map((item, i) => (
+                  <li key={i} data-edit-item={`about.checklist.${i}`}>
                     <Check size={13} className="ns-check-icon" aria-hidden="true" />
-                    {item}
+                    <span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -331,11 +327,13 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                 />
                 <div className="ns-instr-info">
                   <p className="ns-instr-name" data-edit="instructor.name" data-edit-type="text">{data.instructor.name}</p>
-                  <p className="ns-instr-title">{data.instructor.title}</p>
-                  <p className="ns-instr-bio">{data.instructor.bio}</p>
+                  <p className="ns-instr-title" data-edit="instructor.title" data-edit-type="text">{data.instructor.title}</p>
+                  <p className="ns-instr-bio" data-edit="instructor.bio" data-edit-type="text">{data.instructor.bio}</p>
                   <div className="ns-creds">
-                    {data.instructor.credentials.map(c => (
-                      <span key={c} className="ns-cred">{c}</span>
+                    {data.instructor.credentials.map((c, i) => (
+                      <span key={i} className="ns-cred" data-edit-item={`instructor.credentials.${i}`}>
+                        <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -364,7 +362,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                 <div key={area.name} className="ns-area-chip" data-edit-item={`areas.${i}`}>
                   <Car size={12} aria-hidden="true" />
                   <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                  {area.note && <span className="ns-area-note">{area.note}</span>}
+                  {area.note && <span className="ns-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
                 </div>
               ))}
             </div>
@@ -383,17 +381,17 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
             <div className="ns-reviews-grid">
               {data.reviews.map((r, i) => (
                 <Reveal key={r.id} delay={i * 0.1}>
-                  <div className="ns-review-card">
+                  <div className="ns-review-card" data-edit-item={`reviews.${i}`}>
                     <Stars n={r.rating} />
-                    <p className="ns-review-text">&#8220;{r.text}&#8221;</p>
+                    <p className="ns-review-text">&#8220;<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>&#8221;</p>
                     <div className="ns-reviewer">
                       {r.avatar
-                        ? <img src={r.avatar} alt="" className="ns-avatar" width={38} height={38} />
+                        ? <img src={r.avatar} alt="" className="ns-avatar" width={38} height={38} data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
                         : <div className="ns-avatar-init" aria-hidden="true">{r.name.charAt(0)}</div>
                       }
                       <div>
-                        <p className="ns-reviewer-name">{r.name}</p>
-                        {r.meta && <p className="ns-reviewer-meta">{r.meta}</p>}
+                        <p className="ns-reviewer-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                        {r.meta && <p className="ns-reviewer-meta" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
                       </div>
                     </div>
                   </div>
@@ -415,8 +413,8 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
             <div className="ns-gallery-grid">
               {data.gallery.map((src, i) => (
                 <Reveal key={i} delay={i * 0.06}>
-                  <div className="ns-gallery-item">
-                    <img src={src} alt="" className="ns-gallery-img" loading="lazy" />
+                  <div className="ns-gallery-item" data-edit-item={`gallery.${i}`}>
+                    <img src={src} alt="" className="ns-gallery-img" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
                   </div>
                 </Reveal>
               ))}
@@ -493,40 +491,32 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
               <ul className="ns-contact-list">
                 <li>
                   <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" />
-                  <a href={`tel:${data.contact.phone.replace(/\s/g, '')}`}>{data.contact.phone}</a>
+                  <a href={`tel:${data.contact.phone.replace(/\s/g, '')}`}><span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span></a>
                 </li>
                 <li>
                   <DynamicIcon name={data.icons?.email ?? 'Mail'} size={14} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" />
-                  <a href={`mailto:${data.contact.email}`}>{data.contact.email}</a>
+                  <a href={`mailto:${data.contact.email}`}><span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span></a>
                 </li>
                 <li>
                   <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={14} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" />
-                  <span>{data.contact.address}</span>
+                  <span data-edit="contact.address" data-edit-type="text">{data.contact.address}</span>
                 </li>
               </ul>
             </Reveal>
             <Reveal delay={0.2}>
               <div className="ns-social">
-                {socials.map(([name, url]) => (
+                {socials.map((s, i) => (
                   <a
-                    key={name}
-                    href={url}
+                    key={i}
+                    href={s.url}
                     target="_blank" rel="noreferrer"
-                    aria-label={name}
+                    aria-label={s.platform}
                     className="ns-social-btn"
+                    data-edit-item={`contact.socials.${i}`}
                   >
-                    <SocialIcon platform={name} size={16} />
+                    <SocialIcon platform={s.platform} size={16} />
                   </a>
                 ))}
-                {data.contact.whatsapp && (
-                  <a
-                    href={`https://wa.me/${data.contact.whatsapp}`}
-                    target="_blank" rel="noreferrer"
-                    aria-label="whatsapp" className="ns-social-btn"
-                  >
-                    <SocialIcon platform="whatsapp" size={16} />
-                  </a>
-                )}
               </div>
             </Reveal>
           </div>
@@ -551,8 +541,8 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           </Reveal>
         </div>
         <div className="ns-footer-bottom">
-          <p>© {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
-          <p className="ns-tagline-small">{data.business.tagline}</p>
+          <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
+          <p className="ns-tagline-small" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
         </div>
       </footer>
 

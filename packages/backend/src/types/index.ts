@@ -20,6 +20,10 @@ export interface DrivingConfig {
   breakTimes?: { start: string; end: string }[];
   advanceBookingDays?: number; // 1–90, default 1 (public client default 14)
   bookingCutoffHour?: number; // 0–23, default 18
+  // Daily booking rhythm, in the app timezone (Asia/Jerusalem). "HH:MM".
+  bookingWindowStart?: string; // booking opens + "booking is open" email; default "00:00"
+  bookingWindowEnd?: string; // booking closes; default "23:59"
+  reportTime?: string; // teacher gets tomorrow's schedule; default "18:00"
   dailyCodeEnabled?: boolean; // default true
   // Presentation / marketing tokens (used by the public site)
   teacherName?: string;

@@ -14,8 +14,9 @@ export default function Login() {
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/dashboard';
 
-  const [email, setEmail] = useState('teacher@mumotor.local');
-  const [password, setPassword] = useState('password123');
+  // Demo credentials are pre-filled in local dev only — never in production.
+  const [email, setEmail] = useState(import.meta.env.DEV ? 'teacher@mumotor.local' : '');
+  const [password, setPassword] = useState(import.meta.env.DEV ? 'password123' : '');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -75,6 +76,11 @@ export default function Login() {
               </button>
             </div>
           </Field>
+          <div className="text-end">
+            <Link to="/forgot-password" className="text-sm font-medium text-sun-600 hover:text-sun-700 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" variant="primary" loading={loading} className="w-full">
             Sign in
           </Button>
@@ -85,9 +91,11 @@ export default function Login() {
             Create an account
           </Link>
         </p>
-        <p className="mt-5 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2.5 text-center text-xs text-sand-500">
-          Demo credentials pre-filled above
-        </p>
+        {import.meta.env.DEV && (
+          <p className="mt-5 rounded-lg border border-sand-200 bg-sand-50 px-4 py-2.5 text-center text-xs text-sand-500">
+            Demo credentials pre-filled above
+          </p>
+        )}
       </FadeUp>
     </AuthShell>
   );

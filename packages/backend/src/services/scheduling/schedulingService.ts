@@ -1,6 +1,7 @@
-import type { Website, SiteSettings, Booking } from '@prisma/client';
+import type { Website, SiteSettings, Booking, DailyCode } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import { generateTimeSlots, weekdayKey, type BreakTime } from '../../utils/time.js';
+import { generateTimeSlots, todayUtcMidnight, weekdayKey, type BreakTime } from '../../utils/time.js';
+import { generateDailyCodeValue } from '../../utils/crypto.js';
 import type { BusinessHours, DrivingConfig } from '../../types/index.js';
 
 export const DEFAULTS = {
@@ -10,11 +11,30 @@ export const DEFAULTS = {
   dailyCodeEnabled: true,
   open: '08:00',
   close: '18:00',
+  // Daily booking rhythm (app timezone). Default = always open, so existing/seeded
+  // sites are never gated; wizard-created sites carry the teacher's real choice.
+  bookingWindowStart: '00:00',
+  bookingWindowEnd: '23:59',
+  reportTime: '18:00',
 };
+
+/** Keep a value only if it looks like "HH:MM", else fall back to a default. */
+function validTime(value: unknown, fallback: string): string {
+  return typeof value === 'string' && /^\d{2}:\d{2}$/.test(value) ? value : fallback;
+}
 
 /** Read + default the scheduling config off Website.configuration. */
 export function normalizeConfig(website: Pick<Website, 'configuration'>): Required<
-  Pick<DrivingConfig, 'classDuration' | 'advanceBookingDays' | 'bookingCutoffHour' | 'dailyCodeEnabled'>
+  Pick<
+    DrivingConfig,
+    | 'classDuration'
+    | 'advanceBookingDays'
+    | 'bookingCutoffHour'
+    | 'dailyCodeEnabled'
+    | 'bookingWindowStart'
+    | 'bookingWindowEnd'
+    | 'reportTime'
+  >
 > & DrivingConfig {
   const cfg = (website.configuration ?? {}) as DrivingConfig;
   return {
@@ -23,6 +43,9 @@ export function normalizeConfig(website: Pick<Website, 'configuration'>): Requir
     advanceBookingDays: clamp(cfg.advanceBookingDays ?? DEFAULTS.advanceBookingDays, 1, 90),
     bookingCutoffHour: clamp(cfg.bookingCutoffHour ?? DEFAULTS.bookingCutoffHour, 0, 23),
     dailyCodeEnabled: cfg.dailyCodeEnabled ?? DEFAULTS.dailyCodeEnabled,
+    bookingWindowStart: validTime(cfg.bookingWindowStart, DEFAULTS.bookingWindowStart),
+    bookingWindowEnd: validTime(cfg.bookingWindowEnd, DEFAULTS.bookingWindowEnd),
+    reportTime: validTime(cfg.reportTime, DEFAULTS.reportTime),
     breakTimes: cfg.breakTimes ?? [],
     restMinutes: cfg.restMinutes ?? 0,
   };
@@ -131,4 +154,21 @@ export async function buildDaySchedule(
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
+}
+
+/**
+ * Get-or-create a website's daily code for a given date (default today, UTC).
+ * Idempotent: the first call each day mints the code, later calls return it
+ * unchanged. Used by the teacher dashboard route AND the daily rhythm cron, so
+ * the code truly exists "once each day" even if the teacher never opens the tab.
+ */
+export async function ensureDailyCode(
+  websiteId: string,
+  date: Date = todayUtcMidnight()
+): Promise<DailyCode> {
+  return prisma.dailyCode.upsert({
+    where: { websiteId_date: { websiteId, date } },
+    update: {},
+    create: { websiteId, date, code: generateDailyCodeValue(), isActive: true },
+  });
 }

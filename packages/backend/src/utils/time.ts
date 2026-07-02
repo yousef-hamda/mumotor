@@ -56,6 +56,25 @@ export function generateTimeSlots(opts: GenerateSlotsOptions): string[] {
   return slots;
 }
 
+/**
+ * Current wall-clock date + time in a given IANA timezone.
+ * Returns { ymd: "YYYY-MM-DD", hhmm: "HH:MM" } so the daily rhythm can compare a
+ * teacher's chosen "HH:MM" against "now" in their local time (default Asia/Jerusalem).
+ */
+export function nowInZone(tz: string): { ymd: string; hhmm: string } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  return { ymd: `${get('year')}-${get('month')}-${get('day')}`, hhmm: `${get('hour')}:${get('minute')}` };
+}
+
 /** Today's date at UTC midnight (matches @db.Date columns). */
 export function todayUtcMidnight(): Date {
   const now = new Date();

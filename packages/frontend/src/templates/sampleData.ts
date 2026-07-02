@@ -147,6 +147,11 @@ export const sampleData: TemplateData = {
     whatsapp: '447700900123',
     instagram: 'northgatedriving',
     facebook: 'northgatedriving',
+    socials: [
+      { platform: 'whatsapp', url: 'https://wa.me/447700900123' },
+      { platform: 'instagram', url: 'https://instagram.com/northgatedriving' },
+      { platform: 'facebook', url: 'https://facebook.com/northgatedriving' },
+    ],
   },
   hours: [
     { day: 'Monday', open: '08:00', close: '18:00' },

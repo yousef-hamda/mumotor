@@ -47,7 +47,9 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
               <button
                 className={`el-nav-link${active === id ? ' el-nav-link--active' : ''}`}
                 onClick={() => scrollToSection(id)}
-              >{label}</button>
+                data-edit={`copy.nav_${id}`}
+                data-edit-type="text"
+              >{data.copy?.[`nav_${id}`] ?? label}</button>
             </li>
           ))}
         </ul>
@@ -224,11 +226,11 @@ function PackageCard({
       whileHover={{ y: -8, boxShadow: '0 28px 52px rgba(59,130,246,0.16)' }}
       transition={spring}
     >
-      {pkg.badge && <span className="el-pkg-badge">{pkg.badge}</span>}
+      {pkg.badge && <span className="el-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
       <h3 className="el-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
       <div className="el-pkg-price">
         <span className="el-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-        {pkg.unit && <span className="el-pkg-unit">{pkg.unit}</span>}
+        {pkg.unit && <span className="el-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
       </div>
       {pkg.duration && (
         <p className="el-pkg-detail">
@@ -295,7 +297,7 @@ function About({ data }: { data: TemplateData }) {
                 <img src={data.instructor.photo} alt={data.instructor.name} className="el-instructor-photo" loading="lazy" data-edit="instructor.photo" data-edit-type="image" />
                 <div>
                   <strong className="el-instructor-name" data-edit="instructor.name" data-edit-type="text">{data.instructor.name}</strong>
-                  <span className="el-instructor-title">{data.instructor.title}</span>
+                  <span className="el-instructor-title" data-edit="instructor.title" data-edit-type="text">{data.instructor.title}</span>
                 </div>
               </motion.div>
             </div>
@@ -303,20 +305,20 @@ function About({ data }: { data: TemplateData }) {
           <div>
             <Reveal><h2 className="el-section-title" data-edit="about.heading" data-edit-type="text">{data.about.heading}</h2></Reveal>
             {data.about.body.map((para, i) => (
-              <Reveal key={i} delay={i * 0.1 + 0.1}><p className="el-body-text" {...(i === 0 ? { 'data-edit': 'about.body.0', 'data-edit-type': 'text' } : {})}>{para}</p></Reveal>
+              <Reveal key={i} delay={i * 0.1 + 0.1}><p className="el-body-text" data-edit={`about.body.${i}`} data-edit-type="text">{para}</p></Reveal>
             ))}
             <Reveal delay={0.25}>
               <ul className="el-checklist">
-                {data.about.checklist.map(item => (
-                  <li key={item} className="el-checklist-item"><Check size={15} className="el-check" />{item}</li>
+                {data.about.checklist.map((item, i) => (
+                  <li key={i} className="el-checklist-item" data-edit-item={`about.checklist.${i}`}><Check size={15} className="el-check" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>
                 ))}
               </ul>
             </Reveal>
             <Reveal delay={0.35}>
               <div className="el-credentials">
-                {data.instructor.credentials.map(c => (
-                  <span key={c} className="el-credential-chip">
-                    <Award size={11} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} />{c}
+                {data.instructor.credentials.map((c, i) => (
+                  <span key={i} className="el-credential-chip" data-edit-item={`instructor.credentials.${i}`}>
+                    <Award size={11} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
                   </span>
                 ))}
               </div>
@@ -349,7 +351,7 @@ function Areas({ data }: { data: TemplateData }) {
               >
                 <Navigation size={13} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
                 <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                {area.note && <span className="el-area-note"> · {area.note}</span>}
+                {area.note && <span className="el-area-note"> · <span data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span></span>}
               </motion.div>
             </Reveal>
           ))}
@@ -380,16 +382,17 @@ function Reviews({ data }: { data: TemplateData }) {
             <Reveal key={r.id} delay={i * 0.1}>
               <motion.div
                 className="el-review-card"
+                data-edit-item={`reviews.${i}`}
                 whileHover={{ y: -6, boxShadow: '0 22px 44px rgba(52,211,153,0.15)' }}
                 transition={spring}
               >
                 <StarRow rating={r.rating} />
-                <p className="el-review-text">"{r.text}"</p>
+                <p className="el-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
                 <div className="el-review-author">
-                  {r.avatar && <img src={r.avatar} alt={r.name} className="el-review-avatar" />}
+                  {r.avatar && <img src={r.avatar} alt={r.name} className="el-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                   <div>
-                    <strong className="el-review-name">{r.name}</strong>
-                    {r.meta && <span className="el-review-meta">{r.meta}</span>}
+                    <strong className="el-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</strong>
+                    {r.meta && <span className="el-review-meta" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</span>}
                   </div>
                 </div>
               </motion.div>
@@ -418,10 +421,11 @@ function Gallery({ data }: { data: TemplateData }) {
             <Reveal key={src + i} delay={(i % 3) * 0.08}>
               <motion.div
                 className="el-gallery-item"
+                data-edit-item={`gallery.${i}`}
                 whileHover={{ y: -5, boxShadow: '0 22px 44px rgba(59,130,246,0.16)' }}
                 transition={spring}
               >
-                <img src={src} alt="" className="el-gallery-img" loading="lazy" />
+                <img src={src} alt="" className="el-gallery-img" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
               </motion.div>
             </Reveal>
           ))}
@@ -515,46 +519,42 @@ function Book({ data }: { data: TemplateData }) {
 
 // ── CONTACT / FOOTER ──────────────────────────────────────────────────────────
 function Contact({ data }: { data: TemplateData }) {
-  const socials = Object.entries(data.contact.socials ?? {});
+  const socials = data.contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="el-contact-section" style={{ paddingBottom: '7rem' }}>
       <div className="el-container">
         <div className="el-contact-grid">
           <div>
             <Reveal>
-              <div className="el-footer-logo">{data.business.name}</div>
-              <p className="el-footer-tagline">{data.business.tagline}</p>
+              <div className="el-footer-logo" data-edit="business.name" data-edit-type="text">{data.business.name}</div>
+              <p className="el-footer-tagline" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="el-contact-list">
                 <a href={`tel:${data.contact.phone}`} className="el-contact-item" aria-label="Call us">
-                  <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" />{data.contact.phone}
+                  <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /><span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span>
                 </a>
                 <a href={`mailto:${data.contact.email}`} className="el-contact-item" aria-label="Email us">
-                  <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" />{data.contact.email}
+                  <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /><span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span>
                 </a>
                 <span className="el-contact-item">
-                  <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" />{data.contact.address}
+                  <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={15} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span data-edit="contact.address" data-edit-type="text">{data.contact.address}</span>
                 </span>
               </div>
             </Reveal>
             <Reveal delay={0.2}>
               <div className="el-social-row">
-                {data.contact.whatsapp && (
-                  <a href={`https://wa.me/${data.contact.whatsapp}`} className="el-social-btn" target="_blank" rel="noreferrer" aria-label="whatsapp">
-                    <SocialIcon platform="whatsapp" size={17} />
-                  </a>
-                )}
-                {socials.map(([platform, url]) => (
+                {socials.map((s, i) => (
                   <a
-                    key={platform}
-                    href={url}
+                    key={i}
+                    href={s.url}
                     className="el-social-btn"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label={platform}
+                    aria-label={s.platform}
+                    data-edit-item={`contact.socials.${i}`}
                   >
-                    <SocialIcon platform={platform} size={17} />
+                    <SocialIcon platform={s.platform} size={17} />
                   </a>
                 ))}
               </div>
@@ -577,7 +577,7 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
         </div>
         <div className="el-footer-bar">
-          © {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
+          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
         </div>
       </div>
     </footer>

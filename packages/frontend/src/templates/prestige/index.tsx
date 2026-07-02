@@ -130,8 +130,9 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             {navLinks.map(({ id, label }) => (
               <button key={id} role="listitem"
                 className={`pd-nav-link${activeSection === id ? ' pd-active' : ''}`}
-                onClick={() => { scrollToSection(id); setMobileOpen(false); }}>
-                {label}
+                onClick={() => { scrollToSection(id); setMobileOpen(false); }}
+                data-edit={`copy.nav_${id}`} data-edit-type="text">
+                {data.copy?.[`nav_${id}`] ?? label}
               </button>
             ))}
           </div>
@@ -199,9 +200,9 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           </motion.div>
         </div>
         <div className="pd-creds-strip" aria-label="Instructor credentials">
-          {data.instructor.credentials.map(c => (
-            <span key={c} className="pd-cred-item">
-              <Award size={11} aria-hidden="true" />{c}
+          {data.instructor.credentials.map((c, i) => (
+            <span key={i} className="pd-cred-item" data-edit-item={`instructor.credentials.${i}`}>
+              <Award size={11} aria-hidden="true" /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
             </span>
           ))}
         </div>
@@ -229,15 +230,15 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             {data.packages.map((pkg, i) => (
               <Reveal key={pkg.id} delay={i * 0.14}>
                 <div className={`pd-pkg-card${pkg.popular ? ' pd-popular' : ''}`} data-edit-item={`packages.${i}`}>
-                  {pkg.badge && <span className="pd-pkg-badge">{pkg.badge}</span>}
+                  {pkg.badge && <span className="pd-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                   <h3 className="pd-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                   <div className="pd-pkg-price">
                     <span className="pd-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
-                    {pkg.unit && <span className="pd-pkg-unit">{pkg.unit}</span>}
+                    {pkg.unit && <span className="pd-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </div>
                   {pkg.duration && (
                     <p className="pd-pkg-meta">
-                      <Clock size={11} aria-hidden="true" /> {pkg.duration}<span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? '-minute lessons'}</span>
+                      <Clock size={11} aria-hidden="true" /> <span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? '-minute lessons'}</span>
                     </p>
                   )}
                   <div className="pd-pkg-rule" aria-hidden="true" />
@@ -271,14 +272,13 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             </Reveal>
             {data.about.body.map((p, i) => (
               <Reveal key={i} delay={0.1 + i * 0.12}>
-                <p className="pd-body-text"
-                  {...(i === 0 ? { 'data-edit': 'about.body.0', 'data-edit-type': 'text' } : {})}>{p}</p>
+                <p className="pd-body-text" data-edit={`about.body.${i}`} data-edit-type="text">{p}</p>
               </Reveal>
             ))}
             <Reveal delay={0.3}>
               <ul className="pd-checklist">
-                {data.about.checklist.map(item => (
-                  <li key={item}><Check size={12} className="pd-check-icon" aria-hidden="true" />{item}</li>
+                {data.about.checklist.map((item, i) => (
+                  <li key={i} data-edit-item={`about.checklist.${i}`}><Check size={12} className="pd-check-icon" aria-hidden="true" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>
                 ))}
               </ul>
             </Reveal>
@@ -289,8 +289,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   data-edit="instructor.photo" data-edit-type="image" />
                 <div>
                   <p className="pd-instr-name" data-edit="instructor.name" data-edit-type="text">{data.instructor.name}</p>
-                  <p className="pd-instr-title">{data.instructor.title}</p>
-                  <p className="pd-instr-bio">{data.instructor.bio}</p>
+                  <p className="pd-instr-title" data-edit="instructor.title" data-edit-type="text">{data.instructor.title}</p>
+                  <p className="pd-instr-bio" data-edit="instructor.bio" data-edit-type="text">{data.instructor.bio}</p>
                 </div>
               </div>
             </Reveal>
@@ -324,7 +324,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                 <div key={area.name} className="pd-area-chip" data-edit-item={`areas.${i}`}>
                   <Car size={11} aria-hidden="true" />
                   <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-                  {area.note && <span className="pd-area-note">{area.note}</span>}
+                  {area.note && <span className="pd-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
                 </div>
               ))}
             </div>
@@ -343,17 +343,17 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             <div className="pd-reviews-grid">
               {data.reviews.map((r, i) => (
                 <Reveal key={r.id} delay={i * 0.12}>
-                  <div className="pd-review-card">
+                  <div className="pd-review-card" data-edit-item={`reviews.${i}`}>
                     <Stars n={r.rating} />
-                    <p className="pd-review-text">&#8220;{r.text}&#8221;</p>
+                    <p className="pd-review-text">&#8220;<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>&#8221;</p>
                     <div className="pd-reviewer">
                       {r.avatar
-                        ? <img src={r.avatar} alt="" className="pd-avatar" width={40} height={40} />
+                        ? <img src={r.avatar} alt="" className="pd-avatar" width={40} height={40} data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
                         : <div className="pd-avatar-init" aria-hidden="true">{r.name.charAt(0)}</div>
                       }
                       <div>
-                        <p className="pd-reviewer-name">{r.name}</p>
-                        {r.meta && <p className="pd-reviewer-meta">{r.meta}</p>}
+                        <p className="pd-reviewer-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>
+                        {r.meta && <p className="pd-reviewer-meta" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}
                       </div>
                     </div>
                   </div>
@@ -375,8 +375,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             <div className="pd-gallery-grid">
               {data.gallery.map((src, i) => (
                 <Reveal key={i} delay={(i % 3) * 0.1}>
-                  <figure className="pd-gallery-item">
-                    <img src={src} alt="" className="pd-gallery-img" loading="lazy" />
+                  <figure className="pd-gallery-item" data-edit-item={`gallery.${i}`}>
+                    <img src={src} alt="" className="pd-gallery-img" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" />
                   </figure>
                 </Reveal>
               ))}
@@ -443,26 +443,20 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             <Reveal delay={0.1}>
               <ul className="pd-contact-list">
                 <li><DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" />
-                  <a href={`tel:${data.contact.phone.replace(/\s/g, '')}`}>{data.contact.phone}</a></li>
+                  <a href={`tel:${data.contact.phone.replace(/\s/g, '')}`} data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</a></li>
                 <li><DynamicIcon name={data.icons?.email ?? 'Mail'} size={14} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" />
-                  <a href={`mailto:${data.contact.email}`}>{data.contact.email}</a></li>
-                <li><DynamicIcon name={data.icons?.address ?? 'MapPin'} size={14} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span>{data.contact.address}</span></li>
+                  <a href={`mailto:${data.contact.email}`} data-edit="contact.email" data-edit-type="text">{data.contact.email}</a></li>
+                <li><DynamicIcon name={data.icons?.address ?? 'MapPin'} size={14} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span data-edit="contact.address" data-edit-type="text">{data.contact.address}</span></li>
               </ul>
             </Reveal>
             <Reveal delay={0.18}>
               <div className="pd-social">
-                {Object.entries(data.contact.socials ?? {}).map(([platform, url]) => (
-                  <a key={platform} href={url} target="_blank" rel="noreferrer"
-                    aria-label={platform} className="pd-social-btn">
-                    <SocialIcon platform={platform} size={16} />
+                {(data.contact.socials ?? []).map((s, i) => (
+                  <a key={i} href={s.url} target="_blank" rel="noreferrer"
+                    aria-label={s.platform} className="pd-social-btn" data-edit-item={`contact.socials.${i}`}>
+                    <SocialIcon platform={s.platform} size={16} />
                   </a>
                 ))}
-                {data.contact.whatsapp && (
-                  <a href={`https://wa.me/${data.contact.whatsapp}`} target="_blank" rel="noreferrer"
-                    aria-label="whatsapp" className="pd-social-btn">
-                    <SocialIcon platform="whatsapp" size={16} />
-                  </a>
-                )}
               </div>
             </Reveal>
           </div>
@@ -484,8 +478,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
         </div>
         <div className="pd-container">
           <div className="pd-footer-bottom">
-            <p>© {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
-            <p className="pd-footer-tagline">{data.business.tagline}</p>
+            <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
+            <p className="pd-footer-tagline" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
           </div>
         </div>
       </footer>

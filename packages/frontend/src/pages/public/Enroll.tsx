@@ -29,7 +29,7 @@ export default function Enroll() {
         websiteId: settings!.id,
         studentName: form.studentName.trim(),
         studentEmail: form.studentEmail.trim(),
-        studentPhone: form.studentPhone.trim() || undefined,
+        studentPhone: form.studentPhone.trim(),
         enrollmentCode: form.enrollmentCode.trim(),
       }),
     onSuccess: () => setDone(true),
@@ -93,6 +93,8 @@ export default function Enroll() {
             onSubmit={(e) => {
               e.preventDefault();
               if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
+              if (!/^[+\d][\d\s-]{6,18}$/.test(form.studentPhone.trim()))
+                return toast.error('Please enter a valid phone number');
               if (form.enrollmentCode.trim().length < 4) return toast.error('Enrollment code looks too short');
               enroll.mutate();
             }}
@@ -104,8 +106,8 @@ export default function Enroll() {
             <Field label="Email">
               <Input type="email" value={form.studentEmail} onChange={set('studentEmail')} placeholder="jane@example.com" required />
             </Field>
-            <Field label="Phone (optional)">
-              <Input value={form.studentPhone} onChange={set('studentPhone')} placeholder="+972 50 123 4567" />
+            <Field label="Phone">
+              <Input type="tel" value={form.studentPhone} onChange={set('studentPhone')} placeholder="+972 50 123 4567" required />
             </Field>
             <Field label="Enrollment code">
               <Input

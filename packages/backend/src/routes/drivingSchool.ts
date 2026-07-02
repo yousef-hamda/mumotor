@@ -1,4 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { Prisma, Website, SiteSettings } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
@@ -7,7 +8,6 @@ import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
 import {
-  generateDailyCodeValue,
   hashEnrollmentCode,
   timingSafeEqualStr,
   verifyEnrollmentCode,
@@ -15,6 +15,7 @@ import {
 import {
   diffDaysUtc,
   generateTimeSlots,
+  nowInZone,
   parseTimeToMinutes,
   todayUtcMidnight,
   toUtcMidnight,
@@ -22,6 +23,7 @@ import {
 } from '../utils/time.js';
 import {
   buildDaySchedule,
+  ensureDailyCode,
   getDayHours,
   normalizeConfig,
 } from '../services/scheduling/schedulingService.js';
@@ -32,6 +34,7 @@ import {
   sendBookingConfirmation,
   sendMagicLink,
   sendWelcomeEnrollment,
+  siteBrand,
 } from '../services/email/emailService.js';
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
@@ -76,11 +79,8 @@ const enrollSchema = z.object({
   enrollmentCode: z.string().min(1).max(64),
   studentName: z.string().min(1).max(120),
   studentEmail: z.string().email(),
-  studentPhone: z
-    .string()
-    .regex(/^[+\d][\d\s-]{6,18}$/, 'Invalid phone')
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  // Phone is required at self-enroll — the teacher needs it for lesson coordination.
+  studentPhone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required'),
 });
 
 // POST /driving-school/enroll
@@ -132,8 +132,8 @@ router.post(
     // fire-and-forget welcome email + teacher notification
     void sendWelcomeEnrollment(email, {
       studentName: enrollment.studentName,
-      schoolName: website.name,
       bookingUrl: `${env.FRONTEND_URL}/p/${website.slug}/book-lesson`,
+      brand: siteBrand(website),
     });
     void createNotification(website.userId, {
       type: 'ENROLLMENT',
@@ -155,6 +155,7 @@ router.post(
 // POST /driving-school/validate-magic-link
 router.post(
   '/validate-magic-link',
+  rateLimit({ keyPrefix: 'magic-validate', windowSeconds: 60, max: 10 }),
   asyncHandler(async (req, res) => {
     const { token } = z.object({ token: z.string().min(1) }).parse(req.body);
     const payload = await consumeMagicToken(token);
@@ -232,6 +233,8 @@ router.get(
       tagline: website.tagline,
       advanceBookingDays: cfg.advanceBookingDays ?? 14, // public default 14
       bookingCutoffHour: cfg.bookingCutoffHour ?? 18,
+      bookingWindowStart: cfg.bookingWindowStart,
+      bookingWindowEnd: cfg.bookingWindowEnd,
       classDuration: cfg.classDuration,
       dailyCodeEnabled: cfg.dailyCodeEnabled,
       requiresStaticCode: Boolean(cfg.enrollmentCode && cfg.enrollmentCode.length >= 4),
@@ -275,12 +278,13 @@ router.get(
     });
 
     if (!enrollment) return res.json({ enrolled: false });
+    // Deliberately no phone number here — this endpoint is public and only
+    // gated by knowing an email address.
     res.json({
       enrolled: true,
       active: enrollment.status === 'ACTIVE',
       status: enrollment.status,
       studentName: enrollment.studentName,
-      studentPhone: enrollment.studentPhone,
     });
   })
 );
@@ -371,6 +375,14 @@ router.post(
     if (!website) throw notFound('Driving school not found');
 
     const cfg = normalizeConfig(website);
+
+    // Booking is only open during the teacher's chosen daily window (app timezone).
+    // Default window is 00:00–23:59, so unconfigured/seeded sites are never gated.
+    const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
+    if (nowMin < parseTimeToMinutes(cfg.bookingWindowStart) || nowMin > parseTimeToMinutes(cfg.bookingWindowEnd)) {
+      throw badRequest('Booking is closed right now', 'BOOKING_WINDOW_CLOSED');
+    }
+
     const bookingDate = toUtcMidnight(data.date);
     const today = todayUtcMidnight();
     const diffDays = diffDaysUtc(today, bookingDate);
@@ -445,6 +457,7 @@ router.post(
         time: data.time,
         teacherName: cfg.teacherName,
         duration: cfg.classDuration,
+        brand: siteBrand(website),
       });
       void createNotification(website.userId, {
         type: 'BOOKING',
@@ -479,6 +492,7 @@ router.post(
 // POST /driving-school/:websiteId/daily-code/validate
 router.post(
   '/:websiteId/daily-code/validate',
+  rateLimit({ keyPrefix: 'daily-code', windowSeconds: 60, max: 10 }),
   asyncHandler(async (req, res) => {
     const { code, date } = z
       .object({ code: z.string().min(1), date: z.string().regex(/^\d{4}-\d{2}-\d{2}/) })
@@ -510,7 +524,7 @@ router.post(
     if (enrollment && enrollment.status === 'ACTIVE') {
       try {
         const { url } = await generateMagicToken(normalized, website.id, website.slug);
-        void sendMagicLink(normalized, { magicUrl: url, studentName: enrollment.studentName });
+        void sendMagicLink(normalized, { magicUrl: url, studentName: enrollment.studentName, brand: siteBrand(website) });
       } catch (e) {
         logger.warn('magic link send failed', (e as Error).message);
       }
@@ -535,6 +549,9 @@ router.get(
       classDuration: cfg.classDuration,
       advanceBookingDays: cfg.advanceBookingDays,
       bookingCutoffHour: cfg.bookingCutoffHour,
+      bookingWindowStart: cfg.bookingWindowStart,
+      bookingWindowEnd: cfg.bookingWindowEnd,
+      reportTime: cfg.reportTime,
       dailyCodeEnabled: cfg.dailyCodeEnabled,
       breakTimes: cfg.breakTimes ?? [],
       restMinutes: cfg.restMinutes ?? 0,
@@ -554,6 +571,9 @@ const settingsSchema = z.object({
   classDuration: z.number().int().min(15).max(240).optional(),
   advanceBookingDays: z.number().int().min(1).max(90).optional(),
   bookingCutoffHour: z.number().int().min(0).max(23).optional(),
+  bookingWindowStart: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  bookingWindowEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  reportTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   dailyCodeEnabled: z.boolean().optional(),
   breakTimes: z.array(z.object({ start: z.string(), end: z.string() })).optional(),
   restMinutes: z.number().int().min(0).max(120).optional(),
@@ -602,6 +622,9 @@ router.put(
       classDuration: cfg.classDuration,
       advanceBookingDays: cfg.advanceBookingDays,
       bookingCutoffHour: cfg.bookingCutoffHour,
+      bookingWindowStart: cfg.bookingWindowStart,
+      bookingWindowEnd: cfg.bookingWindowEnd,
+      reportTime: cfg.reportTime,
       dailyCodeEnabled: cfg.dailyCodeEnabled,
       breakTimes: cfg.breakTimes ?? [],
       restMinutes: cfg.restMinutes ?? 0,
@@ -658,6 +681,72 @@ router.get(
     ]);
 
     res.json({ students, total, page, limit, totalPages: Math.ceil(total / limit) });
+  })
+);
+
+// POST /driving-school/:websiteId/students  (teacher adds a student manually — no code needed)
+const addStudentSchema = z.object({
+  studentName: z.string().min(1).max(120),
+  studentEmail: z.string().email(),
+  studentPhone: z
+    .string()
+    .regex(/^[+\d][\d\s-]{6,18}$/, 'Invalid phone')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
+  notes: z.string().max(1000).optional(),
+});
+router.post(
+  '/:websiteId/students',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const data = addStudentSchema.parse(req.body);
+    const email = normalizeEmail(data.studentEmail);
+
+    const existing = await prisma.clientEnrollment.findUnique({
+      where: { websiteId_studentEmail: { websiteId: website.id, studentEmail: email } },
+    });
+    if (existing) throw conflict('A student with this email already exists', 'ALREADY_ENROLLED');
+
+    // No code is required (the teacher is trusted); the unique enrollmentCode column
+    // is satisfied with a hashed random secret.
+    const enrollment = await prisma.clientEnrollment.create({
+      data: {
+        websiteId: website.id,
+        studentName: data.studentName.trim(),
+        studentEmail: email,
+        studentPhone: data.studentPhone,
+        enrollmentCode: hashEnrollmentCode(randomUUID()),
+        status: 'ACTIVE',
+        notes: data.notes,
+      },
+    });
+
+    // Welcome the student + notify the teacher, same as a self-enroll.
+    void sendWelcomeEnrollment(email, {
+      studentName: enrollment.studentName,
+      bookingUrl: `${env.FRONTEND_URL}/p/${website.slug}/book-lesson`,
+      brand: siteBrand(website),
+    });
+    void createNotification(website.userId, {
+      type: 'ENROLLMENT',
+      title: 'New student added',
+      body: `${enrollment.studentName} (${email})`,
+    });
+
+    res.status(201).json({
+      enrollment: {
+        id: enrollment.id,
+        studentName: enrollment.studentName,
+        studentEmail: enrollment.studentEmail,
+        studentPhone: enrollment.studentPhone,
+        status: enrollment.status,
+        classCount: enrollment.classCount,
+        notes: enrollment.notes,
+        enrolledAt: enrollment.enrolledAt,
+        finishedAt: enrollment.finishedAt,
+      },
+    });
   })
 );
 
@@ -751,12 +840,7 @@ router.get(
   ...teacher,
   asyncHandler(async (_req, res) => {
     const website = getWebsite(res);
-    const today = todayUtcMidnight();
-    const daily = await prisma.dailyCode.upsert({
-      where: { websiteId_date: { websiteId: website.id, date: today } },
-      update: {},
-      create: { websiteId: website.id, date: today, code: generateDailyCodeValue(), isActive: true },
-    });
+    const daily = await ensureDailyCode(website.id);
     res.json({ code: daily.code, date: daily.date.toISOString().slice(0, 10), isActive: daily.isActive });
   })
 );
@@ -770,6 +854,7 @@ const bulkEmailSchema = z.object({
 router.post(
   '/:websiteId/bulk-email',
   ...teacher,
+  rateLimit({ keyPrefix: 'bulk-email', windowSeconds: 3600, max: 5, keyFn: (req) => req.params.websiteId }),
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const data = bulkEmailSchema.parse(req.body);
@@ -800,6 +885,7 @@ router.post(
         subject: data.subject,
         body: data.body,
         studentName: r.studentName,
+        brand: siteBrand(website),
       });
       if (ok) sentCount++;
       else failedCount++;

@@ -194,23 +194,30 @@ async function main() {
     const unknown = await req('GET', `/driving-school/${websiteId}/check-enrollment?email=${email('nobody')}`);
     ok('check-enrollment unknown → enrolled:false', unknown.json?.enrolled === false, unknown.json);
 
+    const phone = '+972 50 111 2222';
+
+    const noPhone = await req('POST', '/driving-school/enroll', {
+      body: { websiteId, studentName: 'No Phone', studentEmail: email('nophone'), enrollmentCode: 'DRIVE2026' },
+    });
+    ok('enroll without phone → 400', noPhone.status === 400, noPhone.status);
+
     const wrong = await req('POST', '/driving-school/enroll', {
-      body: { websiteId, studentName: 'Wrong Code', studentEmail: email('wrong'), enrollmentCode: 'NOPE' },
+      body: { websiteId, studentName: 'Wrong Code', studentEmail: email('wrong'), studentPhone: phone, enrollmentCode: 'NOPE' },
     });
     ok('enroll wrong code → 401', wrong.status === 401 && wrong.json?.code === 'INVALID_CODE', wrong.json);
 
     const good = await req('POST', '/driving-school/enroll', {
-      body: { websiteId, studentName: 'Test Student', studentEmail: student, enrollmentCode: 'DRIVE2026' },
+      body: { websiteId, studentName: 'Test Student', studentEmail: student, studentPhone: phone, enrollmentCode: 'DRIVE2026' },
     });
     ok('enroll with static code → 201', good.status === 201, good.json);
 
     const dup = await req('POST', '/driving-school/enroll', {
-      body: { websiteId, studentName: 'Test Student', studentEmail: student, enrollmentCode: 'DRIVE2026' },
+      body: { websiteId, studentName: 'Test Student', studentEmail: student, studentPhone: phone, enrollmentCode: 'DRIVE2026' },
     });
     ok('enroll duplicate email → 409', dup.status === 409 && dup.json?.code === 'ALREADY_ENROLLED', dup.json);
 
     const viaDaily = await req('POST', '/driving-school/enroll', {
-      body: { websiteId, studentName: 'Daily Code Student', studentEmail: email('daily'), enrollmentCode: dailyCode },
+      body: { websiteId, studentName: 'Daily Code Student', studentEmail: email('daily'), studentPhone: phone, enrollmentCode: dailyCode },
     });
     ok('enroll with today daily code → 201', viaDaily.status === 201, viaDaily.json);
   }
@@ -299,9 +306,27 @@ async function main() {
     const search = await req('GET', `/driving-school/${websiteId}/students?search=anna`, { token });
     ok('search finds Anna', search.json?.students?.some((s) => /anna/i.test(s.studentName)), search.json?.students?.length);
 
+    // teacher adds a student manually (no code required)
+    const added = email('added');
+    const addRes = await req('POST', `/driving-school/${websiteId}/students`, {
+      token,
+      body: { studentName: 'Manually Added', studentEmail: added, studentPhone: '+972 50 999 8888', notes: 'walk-in' },
+    });
+    ok('teacher add student → 201 ACTIVE', addRes.status === 201 && addRes.json?.enrollment?.status === 'ACTIVE', addRes.json);
+    const addDup = await req('POST', `/driving-school/${websiteId}/students`, {
+      token,
+      body: { studentName: 'Manually Added', studentEmail: added, studentPhone: '+972 50 999 8888' },
+    });
+    ok('teacher add duplicate email → 409', addDup.status === 409 && addDup.json?.code === 'ALREADY_ENROLLED', addDup.json);
+    const addUnowned = await req('POST', `/driving-school/${websiteId}/students`, {
+      token: token2,
+      body: { studentName: 'Nope', studentEmail: email('nope'), studentPhone: '+972 50 111 0000' },
+    });
+    ok('add student on unowned site → 403', addUnowned.status === 403, addUnowned.status);
+
     // create a throwaway, then toggle/finish/delete
     const ta = email('throwaway');
-    await req('POST', '/driving-school/enroll', { body: { websiteId, studentName: 'Throwaway', studentEmail: ta, enrollmentCode: 'DRIVE2026' } });
+    await req('POST', '/driving-school/enroll', { body: { websiteId, studentName: 'Throwaway', studentEmail: ta, studentPhone: '+972 50 777 6666', enrollmentCode: 'DRIVE2026' } });
     const found = await req('GET', `/driving-school/${websiteId}/students?search=${encodeURIComponent(ta)}`, { token });
     const id = found.json?.students?.[0]?.id;
     ok('throwaway enrolled & listed', !!id, found.json);

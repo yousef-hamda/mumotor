@@ -146,6 +146,9 @@ function StudentsTab({ website }: { website: Website }) {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [toDelete, setToDelete] = useState<Student | null>(null);
+  const emptyAdd = { studentName: '', studentEmail: '', studentPhone: '', notes: '' };
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState(emptyAdd);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350);
@@ -194,6 +197,22 @@ function StudentsTab({ website }: { website: Website }) {
     },
     onError: (e) => toast.error(apiError(e).message),
   });
+  const add = useMutation({
+    mutationFn: () =>
+      drivingSchoolApi.addStudent(website.id, {
+        studentName: addForm.studentName.trim(),
+        studentEmail: addForm.studentEmail.trim(),
+        studentPhone: addForm.studentPhone.trim() || undefined,
+        notes: addForm.notes.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.success('Student added');
+      setAddOpen(false);
+      setAddForm(emptyAdd);
+      invalidate();
+    },
+    onError: (e) => toast.error(apiError(e).message),
+  });
 
   return (
     <Card className="p-0">
@@ -214,6 +233,9 @@ function StudentsTab({ website }: { website: Website }) {
           <option value="INACTIVE">Inactive</option>
           <option value="COMPLETED">Completed</option>
         </Select>
+        <Button type="button" variant="primary" onClick={() => setAddOpen(true)}>
+          <Plus className="h-4 w-4" /> Add student
+        </Button>
       </div>
 
       {isLoading ? (
@@ -341,6 +363,68 @@ function StudentsTab({ website }: { website: Website }) {
           This permanently removes <strong className="text-sand-900">{toDelete?.studentName}</strong> and
           their enrollment. This cannot be undone.
         </p>
+      </Modal>
+
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Add a student"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={add.isPending}
+              onClick={() => {
+                if (addForm.studentName.trim().length < 2) return toast.error('Please enter a name');
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addForm.studentEmail.trim()))
+                  return toast.error('Please enter a valid email');
+                add.mutate();
+              }}
+            >
+              Add student
+            </Button>
+          </>
+        }
+      >
+        <p className="mb-4 text-sm text-sand-600">
+          Add a student yourself — no code needed. They’ll get a welcome email and can book straight away.
+        </p>
+        <div className="space-y-4">
+          <Field label="Full name">
+            <Input
+              value={addForm.studentName}
+              onChange={(e) => setAddForm({ ...addForm, studentName: e.target.value })}
+              placeholder="Jane Doe"
+            />
+          </Field>
+          <Field label="Email">
+            <Input
+              type="email"
+              value={addForm.studentEmail}
+              onChange={(e) => setAddForm({ ...addForm, studentEmail: e.target.value })}
+              placeholder="jane@example.com"
+            />
+          </Field>
+          <Field label="Phone (optional)">
+            <Input
+              type="tel"
+              value={addForm.studentPhone}
+              onChange={(e) => setAddForm({ ...addForm, studentPhone: e.target.value })}
+              placeholder="+972 50 123 4567"
+            />
+          </Field>
+          <Field label="Notes (optional)">
+            <Textarea
+              value={addForm.notes}
+              onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
+              placeholder="Anything useful about this student…"
+              rows={2}
+            />
+          </Field>
+        </div>
       </Modal>
     </Card>
   );
@@ -551,6 +635,9 @@ function SettingsTab({ website }: { website: Website }) {
       classDuration: form.classDuration,
       advanceBookingDays: form.advanceBookingDays,
       bookingCutoffHour: form.bookingCutoffHour,
+      bookingWindowStart: form.bookingWindowStart,
+      bookingWindowEnd: form.bookingWindowEnd,
+      reportTime: form.reportTime,
       dailyCodeEnabled: form.dailyCodeEnabled,
       breakTimes: form.breakTimes,
       restMinutes: form.restMinutes,
@@ -659,6 +746,41 @@ function SettingsTab({ website }: { website: Website }) {
               max={120}
               value={form.restMinutes}
               onChange={(e) => setForm({ ...form, restMinutes: Number(e.target.value) })}
+            />
+          </Field>
+        </div>
+      </Card>
+
+      {/* Booking window */}
+      <Card>
+        <h3 className="text-xl font-semibold tracking-tight text-sand-900">
+          Booking window
+        </h3>
+        <p className="mt-1 text-sm text-sand-600">
+          Each day, enrolled students get a “booking is open” email at the open time and can book their
+          next lesson until it closes. You’re emailed tomorrow’s full schedule at the report time. Times
+          are in Israel time.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <Field label="Booking opens" hint="Students notified + can book">
+            <Input
+              type="time"
+              value={form.bookingWindowStart}
+              onChange={(e) => setForm({ ...form, bookingWindowStart: e.target.value })}
+            />
+          </Field>
+          <Field label="Booking closes">
+            <Input
+              type="time"
+              value={form.bookingWindowEnd}
+              onChange={(e) => setForm({ ...form, bookingWindowEnd: e.target.value })}
+            />
+          </Field>
+          <Field label="Daily report time" hint="Tomorrow’s schedule emailed to you">
+            <Input
+              type="time"
+              value={form.reportTime}
+              onChange={(e) => setForm({ ...form, reportTime: e.target.value })}
             />
           </Field>
         </div>

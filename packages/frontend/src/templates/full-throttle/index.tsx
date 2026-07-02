@@ -306,20 +306,20 @@ function About({ data }: { data: TemplateData }) {
           ))}
           <Reveal delay={0.25}>
             <ul className="ft-checklist">
-              {data.about.checklist.map(item => (
-                <li key={item} className="ft-checklist-item">
+              {data.about.checklist.map((item, i) => (
+                <li key={i} className="ft-checklist-item" data-edit-item={`about.checklist.${i}`}>
                   <span className="ft-checklist-icon" aria-hidden="true">
                     <Check size={11} />
                   </span>
-                  {item}
+                  <span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span>
                 </li>
               ))}
             </ul>
           </Reveal>
           <Reveal delay={0.35}>
             <div className="ft-credentials">
-              {data.instructor.credentials.map(c => (
-                <span key={c} className="ft-credential">{c}</span>
+              {data.instructor.credentials.map((c, i) => (
+                <span key={i} className="ft-credential" data-edit-item={`instructor.credentials.${i}`}><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span></span>
               ))}
             </div>
           </Reveal>
@@ -366,7 +366,7 @@ function Reviews({ data }: { data: TemplateData }) {
         <div className="ft-reviews-grid">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.1}>
-              <div className="ft-review-card">
+              <div className="ft-review-card" data-edit-item={`reviews.${i}`}>
                 <div className="ft-stars" aria-label={`${r.rating} out of 5 stars`}>
                   {Array.from({ length: 5 }, (_, j) => (
                     <Star
@@ -375,14 +375,14 @@ function Reviews({ data }: { data: TemplateData }) {
                     />
                   ))}
                 </div>
-                <p className="ft-review-text">"{r.text}"</p>
+                <p className="ft-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
                 <div className="ft-review-author">
                   {r.avatar && (
-                    <img src={r.avatar} alt={r.name} className="ft-review-avatar" />
+                    <img src={r.avatar} alt={r.name} className="ft-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />
                   )}
                   <div>
-                    <span className="ft-review-name">{r.name}</span>
-                    {r.meta && <span className="ft-review-meta">{r.meta}</span>}
+                    <span className="ft-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</span>
+                    {r.meta && <span className="ft-review-meta" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</span>}
                   </div>
                 </div>
               </div>
@@ -407,8 +407,8 @@ function Gallery({ data }: { data: TemplateData }) {
         <div className="ft-gallery-grid">
           {data.gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.08}>
-              <div className="ft-gallery-item">
-                <img src={src} alt="" loading="lazy" className="ft-gallery-img" />
+              <div className="ft-gallery-item" data-edit-item={`gallery.${i}`}>
+                <img src={src} alt="" loading="lazy" className="ft-gallery-img" data-edit={`gallery.${i}`} data-edit-type="image" />
               </div>
             </Reveal>
           ))}
@@ -544,40 +544,25 @@ function Contact({ data }: { data: TemplateData }) {
               </span>
             </div>
           </Reveal>
-          {(() => {
-            const entries = Object.entries(data.contact.socials ?? {});
-            const hasWhatsapp = Boolean(data.contact.whatsapp);
-            if (entries.length === 0 && !hasWhatsapp) return null;
-            return (
-              <Reveal delay={0.2}>
-                <div className="ft-social-row">
-                  {entries.map(([platform, url]) => (
-                    <a
-                      key={platform}
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ft-social-btn"
-                      aria-label={platform}
-                    >
-                      <SocialIcon platform={platform} size={18} />
-                    </a>
-                  ))}
-                  {hasWhatsapp && (
-                    <a
-                      href={`https://wa.me/${data.contact.whatsapp}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ft-social-btn"
-                      aria-label="whatsapp"
-                    >
-                      <SocialIcon platform="whatsapp" size={18} />
-                    </a>
-                  )}
-                </div>
-              </Reveal>
-            );
-          })()}
+          {(data.contact.socials ?? []).length > 0 && (
+            <Reveal delay={0.2}>
+              <div className="ft-social-row">
+                {(data.contact.socials ?? []).map((s, i) => (
+                  <a
+                    key={i}
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ft-social-btn"
+                    aria-label={s.platform}
+                    data-edit-item={`contact.socials.${i}`}
+                  >
+                    <SocialIcon platform={s.platform} size={18} />
+                  </a>
+                ))}
+              </div>
+            </Reveal>
+          )}
         </div>
 
         <div>

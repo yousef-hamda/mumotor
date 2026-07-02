@@ -60,7 +60,7 @@ function AuNav({ data, active }: { data: TemplateData; active: string }) {
         </button>
         <div className="au-nav-links">
           {links.map(({ id, label }) => (
-            <button key={id} className={cx('au-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)}>{label}</button>
+            <button key={id} className={cx('au-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)} data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</button>
           ))}
         </div>
         <div className="au-nav-end">
@@ -103,7 +103,7 @@ function AuHero({ data }: { data: TemplateData }) {
           <img src={hero.image} alt="Driving lesson in progress" className="au-slab-img" data-edit="hero.image" data-edit-type="image" />
           {stat && (
             <div className="au-slab-badge">
-              <p className="au-slab-num">{stat.prefix}{stat.value}{stat.suffix}</p>
+              <p className="au-slab-num" data-edit="stats.0.value" data-edit-type="text">{stat.prefix}{stat.value}{stat.suffix}</p>
               <p className="au-slab-label" data-edit="stats.0.label" data-edit-type="text">{stat.label}</p>
             </div>
           )}
@@ -178,9 +178,9 @@ function AuPackages({ data }: { data: TemplateData }) {
           {packages.map((pkg, i) => (
             <Reveal key={pkg.id} delay={i * 0.08}>
               <div className={cx('au-pkg', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
-                {pkg.popular && <span className="au-pkg-badge">{pkg.badge ?? 'Most popular'}</span>}
+                {pkg.popular && <span className="au-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>}
                 <p className="au-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
-                <p className="au-pkg-price"><span className="au-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="au-pkg-unit">{pkg.unit}</span>}</p>
+                <p className="au-pkg-price"><span className="au-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="au-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}</p>
                 <ul className="au-pkg-features">
                   {pkg.features.map((f, fi) => <li key={fi}><Check size={15} className="au-check" aria-hidden="true" /><span data-edit={`packages.${i}.features.${fi}`} data-edit-type="text">{f}</span></li>)}
                 </ul>
@@ -207,14 +207,14 @@ function AuAbout({ data }: { data: TemplateData }) {
           <div className="au-about-frame"><img src={about.image} alt="Instructor with a learner driver" className="au-about-img" data-edit="about.image" data-edit-type="image" /></div>
           <div className="au-instructor">
             <img src={instructor.photo} alt={instructor.name} className="au-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
-            <div><p className="au-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="au-instructor-title">{instructor.title}</p></div>
+            <div><p className="au-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="au-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p></div>
           </div>
         </Reveal>
         <div className="au-about-copy">
           <Reveal><p className="au-eyebrow"><span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? 'About'}</span></p></Reveal>
           <Reveal delay={0.05}><h2 className="au-h2 au-h2-left" data-edit="about.heading" data-edit-type="text">{about.heading}</h2></Reveal>
-          {about.body.map((p, i) => <Reveal key={i} as="p" className="au-body" delay={0.1 + i * 0.06}>{i === 0 ? <span data-edit="about.body.0" data-edit-type="text">{p}</span> : p}</Reveal>)}
-          <Reveal delay={0.22}><ul className="au-checklist">{about.checklist.map((item, i) => <li key={i}><Check size={16} aria-hidden="true" /><span>{item}</span></li>)}</ul></Reveal>
+          {about.body.map((p, i) => <Reveal key={i} as="p" className="au-body" delay={0.1 + i * 0.06}><span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span></Reveal>)}
+          <Reveal delay={0.22}><ul className="au-checklist">{about.checklist.map((item, i) => <li key={i} data-edit-item={`about.checklist.${i}`}><Check size={16} aria-hidden="true" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>)}</ul></Reveal>
         </div>
       </div>
     </section>
@@ -233,7 +233,7 @@ function AuAreas({ data }: { data: TemplateData }) {
           {data.areas.map((area, i) => (
             <Reveal key={i} delay={(i % 4) * 0.04} as="span" className="au-area" data-edit-item={`areas.${i}`}>
               <span className="au-area-name" data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
-              {area.note && <span className="au-area-note">{area.note}</span>}
+              {area.note && <span className="au-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}
             </Reveal>
           ))}
         </div>
@@ -252,12 +252,12 @@ function AuReviews({ data }: { data: TemplateData }) {
         <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'Loved by learners.'}</h2></Reveal>
         <div className="au-reviews">
           {data.reviews.map((r, i) => (
-            <Reveal key={r.id} delay={i * 0.08} className="au-review">
+            <Reveal key={r.id} delay={i * 0.08} className="au-review" data-edit-item={`reviews.${i}`}>
               <Stars n={r.rating} />
-              <blockquote className="au-review-text">"{r.text}"</blockquote>
+              <blockquote className="au-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
               <div className="au-review-meta">
-                {r.avatar && <img src={r.avatar} alt={r.name} className="au-avatar" />}
-                <div><p className="au-review-name">{r.name}</p>{r.meta && <p className="au-review-sub">{r.meta}</p>}</div>
+                {r.avatar && <img src={r.avatar} alt={r.name} className="au-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
+                <div><p className="au-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>{r.meta && <p className="au-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}</div>
               </div>
             </Reveal>
           ))}
@@ -275,7 +275,7 @@ function AuGallery({ data }: { data: TemplateData }) {
       <div className="au-wrap">
         <Reveal><p className="au-eyebrow"><span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? 'Gallery'}</span></p></Reveal>
         <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'From the driving seat.'}</h2></Reveal>
-        <div className="au-gallery">{data.gallery.map((src, i) => <Reveal key={i} delay={(i % 3) * 0.06} className="au-gallery-cell"><img src={src} alt="" loading="lazy" /></Reveal>)}</div>
+        <div className="au-gallery">{data.gallery.map((src, i) => <Reveal key={i} delay={(i % 3) * 0.06} className="au-gallery-cell" data-edit-item={`gallery.${i}`}><img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" /></Reveal>)}</div>
       </div>
     </section>
   );
@@ -337,7 +337,7 @@ function AuBook({ data }: { data: TemplateData }) {
 
 function AuContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
-  const socials = Object.entries(contact.socials ?? {});
+  const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="au-footer">
       <div className="au-wrap au-footer-grid">
@@ -349,8 +349,11 @@ function AuContact({ data }: { data: TemplateData }) {
             <span className="au-contact-link"><DynamicIcon name={data.icons?.address ?? 'MapPin'} size={16} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /><span data-edit="contact.address" data-edit-type="text">{contact.address}</span></span>
           </div>
           <div className="au-socials">
-            {contact.whatsapp && <a href={`https://wa.me/${contact.whatsapp}`} className="au-social" target="_blank" rel="noreferrer" aria-label="whatsapp"><SocialIcon platform="whatsapp" size={18} /></a>}
-            {socials.map(([name, url]) => <a key={name} href={url} className="au-social" target="_blank" rel="noreferrer" aria-label={name}><SocialIcon platform={name} size={18} /></a>)}
+            {socials.map((s, i) => (
+              <a key={i} href={s.url} className="au-social" target="_blank" rel="noreferrer" aria-label={s.platform} data-edit-item={`contact.socials.${i}`}>
+                <SocialIcon platform={s.platform} size={18} />
+              </a>
+            ))}
           </div>
         </div>
         <div>

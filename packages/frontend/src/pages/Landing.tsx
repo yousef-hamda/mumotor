@@ -60,6 +60,7 @@ const faqs = [
   { q: 'Which languages are supported?', a: 'Every site is built trilingual — Hebrew, Arabic and English — with full right-to-left support. Students see it in their language automatically.' },
   { q: 'How do students book lessons?', a: 'They enroll with a code you share, then book straight into your real availability. You are notified and your calendar updates instantly.' },
   { q: 'Can I change my site after publishing?', a: 'Yes. Edit text, photos, colours and layout anytime in the editor, then re-publish in one click. Your booking data is never affected.' },
+  { q: 'How much does it cost?', a: 'One simple plan — ₪199 per month — with everything included: your website, unlimited students, online booking, a fresh daily code, and the automatic emails to students and to you. Cancel anytime.' },
 ];
 
 export default function Landing() {
@@ -309,6 +310,9 @@ export default function Landing() {
               Put your driving school online today.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-xl leading-relaxed text-sand-600">{t('landing.ctaText')}</p>
+            <p className="mx-auto mt-4 max-w-xl text-lg text-sand-900">
+              <span className="font-semibold">Everything for ₪199 / month</span> — cancel anytime.
+            </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-x-7 gap-y-3 sm:flex-row">
               <Link to="/builder" className="btn-primary px-7 py-3 text-base">
                 {t('landing.ctaButton')}
@@ -317,6 +321,7 @@ export default function Landing() {
                 {t('common.signIn')}
               </Link>
             </div>
+            <p className="mt-8 text-sm text-sand-500">Because you asked, and we listened.</p>
           </FadeUp>
         </div>
       </section>
