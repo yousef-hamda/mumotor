@@ -757,13 +757,15 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
 
 function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard: () => void }) {
   const liveUrl = `${window.location.origin}/p/${result.slug}`;
+  // Show the REAL working URL — per-teacher subdomains need wildcard DNS that
+  // isn't live yet, so displaying result.subdomain would hand teachers a dead link.
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900"><Check className="h-8 w-8 text-white" strokeWidth={1.75} /></div>
       <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Your site is live</h1>
       <p className="mt-3 text-sand-600">Your driving website is published and ready to take bookings.</p>
       <div className="mt-7 flex items-center justify-between gap-2 rounded-xl border border-sand-200 bg-sand-50 p-4">
-        <code className="truncate text-sm font-medium text-sand-700">{result.subdomain}</code>
+        <code className="truncate text-sm font-medium text-sand-700">{liveUrl.replace(/^https?:\/\//, '')}</code>
         <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary shrink-0 text-sm">Visit <ExternalLink className="h-4 w-4" /></a>
       </div>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
