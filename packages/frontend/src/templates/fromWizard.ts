@@ -1,7 +1,8 @@
 import type { TemplateData, Dir, Locale, Hour, Package, StatItem, Faq, Area, Review } from './types';
 import { sampleData } from './sampleData';
-import { EXPERIENCE_LEVELS, transmissionFeature, type PlanInput, type Transmission, type WizardConfig } from '../lib/wizard';
+import { EXPERIENCE_LEVELS, type PlanInput, type Transmission, type WizardConfig } from '../lib/wizard';
 import { applyOverrides, type Customization } from './customize/overrides';
+import { dataDefaults, defaultFaqs, fmt, strings, type TemplateStrings } from './strings';
 
 const WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const CUR = '₪';
@@ -25,13 +26,16 @@ const waNumber = (s?: string): string | undefined => {
 function experienceMin(level: string): number {
   return EXPERIENCE_LEVELS.find((e) => e.value === level)?.min ?? 5;
 }
-function experienceLabel(level: string): string {
-  return EXPERIENCE_LEVELS.find((e) => e.value === level)?.label ?? '5+ years';
+function experienceLabel(s: TemplateStrings, level: string): string {
+  return fmt(s.experienceYears, { n: experienceMin(level) });
+}
+function transmissionFeature(s: TemplateStrings, t: Transmission): string {
+  return t === 'both' ? s.transmissionBoth : t === 'manual' ? s.transmissionManual : s.transmissionAutomatic;
 }
 
 /** Use the teacher's own plans → packages (no invented offerings). */
-function plansToPackages(plans: PlanInput[] | undefined, duration: number, price: number, transmission: Transmission): Package[] {
-  const list = plans && plans.length ? plans : [{ id: 'single', name: 'Single lesson', price: price || 0, unit: '/ lesson', features: [transmissionFeature(transmission), 'Door-to-door pickup', 'No commitment'] }];
+function plansToPackages(s: TemplateStrings, plans: PlanInput[] | undefined, duration: number, price: number, transmission: Transmission): Package[] {
+  const list = plans && plans.length ? plans : [{ id: 'single', name: s.planSingleName, price: price || 0, unit: s.planPerLessonUnit, features: [transmissionFeature(s, transmission), s.planPickup, s.planNoCommitment] }];
   return list.map((pl) => ({
     id: pl.id,
     name: pl.name,
@@ -39,43 +43,26 @@ function plansToPackages(plans: PlanInput[] | undefined, duration: number, price
     unit: pl.unit,
     duration,
     popular: pl.popular,
-    badge: pl.popular ? 'Most popular' : undefined,
+    badge: pl.popular ? s.badgePopular : undefined,
     features: (pl.features ?? []).filter((f) => f.trim().length > 0),
   }));
 }
 
-function transmissionFaq(t: Transmission): Faq {
-  if (t === 'manual') return { q: 'Do you teach manual or automatic?', a: 'Manual lessons — you’ll master full clutch control in a dual-control manual car.' };
-  if (t === 'automatic') return { q: 'Do you teach manual or automatic?', a: 'Automatic lessons — relaxed, no-clutch learning in a dual-control automatic car.' };
-  return { q: 'Do you teach manual and automatic?', a: 'Both — tell us which you prefer when you book and we’ll match you to the right dual-control car.' };
-}
-
 /** Honest stats built only from data the owner actually entered. */
-function buildStats(level: string, price: number, duration: number, daysPerWeek: number): StatItem[] {
-  const out: StatItem[] = [{ label: 'Years of experience', value: experienceMin(level), suffix: '+' }];
-  if (price) out.push({ label: 'Per lesson', value: price, prefix: CUR });
-  if (duration) out.push({ label: 'Minutes a lesson', value: duration });
-  if (daysPerWeek) out.push({ label: 'Days a week', value: daysPerWeek });
+function buildStats(s: TemplateStrings, level: string, price: number, duration: number, daysPerWeek: number): StatItem[] {
+  const out: StatItem[] = [{ label: s.statYears, value: experienceMin(level), suffix: '+' }];
+  if (price) out.push({ label: s.statPerLesson, value: price, prefix: CUR });
+  if (duration) out.push({ label: s.statMinutes, value: duration });
+  if (daysPerWeek) out.push({ label: s.statDays, value: daysPerWeek });
   return out;
 }
 
-function buildFaqs(price: number, duration: number, area: string, transmission: Transmission): Faq[] {
-  const where = area ? `${area} and the surrounding area` : 'the local area';
-  return [
-    transmissionFaq(transmission),
-    { q: 'How much is a lesson?', a: `Lessons are ${CUR}${price || 0} for ${duration || 45} minutes, with multi-lesson plans that work out cheaper per hour.` },
-    { q: 'Which areas do you cover?', a: `We cover ${where}, with door-to-door pickup from home, work or college.` },
-    { q: 'How quickly can I start?', a: 'Most new learners are on the road within a few days of booking — we confirm your first slot by text.' },
-    { q: 'What if I need to reschedule?', a: 'You can reschedule free up to 24 hours before your lesson.' },
-  ];
-}
-
-function buildAreas(address: string): Area[] {
-  const parts = address.split(/[,/]/).map((s) => s.trim()).filter(Boolean);
+function buildAreas(s: TemplateStrings, address: string): Area[] {
+  const parts = address.split(/[,/]/).map((p) => p.trim()).filter(Boolean);
   const out: Area[] = [];
-  if (parts.length) out.push({ name: parts[0], note: 'Home base' });
+  if (parts.length) out.push({ name: parts[0], note: s.areaHomeBase });
   parts.slice(1, 3).forEach((p) => out.push({ name: p }));
-  out.push({ name: 'Test-centre routes' }, { name: 'Evening & weekend slots' }, { name: 'Pickup on request' });
+  out.push({ name: s.areaTestRoutes }, { name: s.areaEveningWeekend }, { name: s.areaPickup });
   return out.slice(0, 6);
 }
 
@@ -117,6 +104,8 @@ interface CoreInput {
 
 /** Shared builder: real data wins; demo defaults only fill what is genuinely empty. */
 function buildTemplateData(c: CoreInput): TemplateData {
+  const s = strings(c.locale);
+  const d = dataDefaults(c.locale);
   const name = c.businessName || c.teacherName || 'Your Driving School';
   const teacher = c.teacherName || c.businessName || 'Your instructor';
   const area = c.city || c.address.split(/[,/]/)[0]?.trim() || '';
@@ -139,35 +128,40 @@ function buildTemplateData(c: CoreInput): TemplateData {
     ...sampleData,
     business: {
       name,
-      tagline: c.tagline || 'Pass first time, drive for life.',
+      tagline: c.tagline || s.taglineDefault,
       logoText: name,
       logoSrc: c.logoSrc || undefined,
     },
     instructor: {
       ...sampleData.instructor,
       name: teacher,
-      title: `Driving instructor · ${experienceLabel(c.experienceLevel)}`,
+      title: `${s.instructorRole} · ${experienceLabel(s, c.experienceLevel)}`,
       bio: c.description || sampleData.instructor.bio,
       photo: c.instructorPhoto || sampleData.instructor.photo,
+      credentials: d.credentials,
     },
     hero: {
       ...sampleData.hero,
-      eyebrow: area ? `Driving lessons in ${area}` : 'Driving lessons',
-      headline: c.tagline || sampleData.hero.headline,
-      sub: c.description || `One-to-one lessons with ${teacher}${area ? ` across ${area}` : ''}. Book your first lesson in under a minute.`,
+      eyebrow: area ? fmt(s.heroEyebrowIn, { area }) : s.heroEyebrow,
+      headline: c.tagline || (c.locale === 'en' ? sampleData.hero.headline : s.taglineDefault),
+      sub: c.description || fmt(area ? s.heroSubIn : s.heroSub, { teacher, area }),
+      ctaPrimary: d.heroCtaPrimary,
+      ctaSecondary: d.heroCtaSecondary,
       image: heroImg,
     },
-    stats: buildStats(c.experienceLevel, c.price, c.duration, c.daysPerWeek),
-    packages: plansToPackages(c.plans, c.duration, c.price, c.transmission),
+    stats: buildStats(s, c.experienceLevel, c.price, c.duration, c.daysPerWeek),
+    packages: plansToPackages(s, c.plans, c.duration, c.price, c.transmission),
     about: {
       ...sampleData.about,
-      body: c.description ? [c.description, sampleData.about.body[1]] : sampleData.about.body,
+      heading: d.aboutHeading,
+      body: c.description ? [c.description, d.aboutBody[1]] : [...d.aboutBody],
+      checklist: [...d.aboutChecklist],
       image: aboutImg,
     },
-    areas: area ? buildAreas(addressFull) : sampleData.areas,
+    areas: area ? buildAreas(s, addressFull) : sampleData.areas,
     // Real approved reviews when provided; never fabricated (templates hide the empty section).
     reviews: c.reviews ?? [],
-    faqs: buildFaqs(c.price, c.duration, area, c.transmission),
+    faqs: defaultFaqs(c.locale, { price: c.price, duration: c.duration, area, transmission: c.transmission }),
     gallery: c.gallery,
     contact: {
       phone: c.phone || '',
