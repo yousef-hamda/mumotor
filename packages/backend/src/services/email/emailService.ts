@@ -147,7 +147,7 @@ function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
       <div style="padding:32px">${bodyHtml}</div>
     </div>
     <p style="text-align:center;color:#a1a1aa;font-size:12px;margin-top:20px">
-      Sent by ${esc(name)} · powered by Mumotor
+      ${brand?.schoolName ? `Sent by ${esc(name)} · powered by Mumotor` : 'Sent by Mumotor'}
     </p>
   </div>
 </body></html>`;
@@ -268,11 +268,11 @@ export function sendEnhancedDailyReport(
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your schedule for ${esc(data.date)}</h1>
     <p style="color:#52525b">Hi ${esc(data.teacherName)}, here's what tomorrow looks like.</p>
-    <div style="display:flex;gap:8px;margin:16px 0">
-      <div style="flex:1;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.booked}</div><div style="font-size:12px;color:#71717a">Booked</div></div>
-      <div style="flex:1;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.empty}</div><div style="font-size:12px;color:#71717a">Free</div></div>
-      <div style="flex:1;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.total}</div><div style="font-size:12px;color:#71717a">Total</div></div>
-    </div>
+    <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin:16px -8px" role="presentation"><tr>
+      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.booked}</div><div style="font-size:12px;color:#71717a">Booked</div></td>
+      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.empty}</div><div style="font-size:12px;color:#71717a">Free</div></td>
+      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.total}</div><div style="font-size:12px;color:#71717a">Total</div></td>
+    </tr></table>
     <table style="width:100%;border-collapse:collapse;margin-top:8px">${rows || '<tr><td style="color:#a1a1aa;padding:8px 10px">No slots scheduled.</td></tr>'}</table>`;
   return sendEmail({
     to,
