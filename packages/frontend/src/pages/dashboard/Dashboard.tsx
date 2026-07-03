@@ -100,7 +100,7 @@ function SiteOverview({ website }: { website: Website }) {
           <Link to="/dashboard/driving-school" className="btn-primary">
             Manage school <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link to={`/editor/${website.id}`} className="btn-secondary">
+          <Link to={`/customize/${website.id}`} className="btn-secondary">
             <Pencil className="h-4 w-4" /> Edit site
           </Link>
           <a href={`/p/${website.slug}/enroll`} className="btn-ghost" target="_blank" rel="noreferrer">

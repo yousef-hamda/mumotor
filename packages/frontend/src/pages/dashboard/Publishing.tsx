@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, Copy, ExternalLink, Globe, Pencil, Sparkles } from 'lucide-react';
-import { apiError, siteUrl, websiteApi } from '../../lib/api';
+import { Check, Copy, ExternalLink, Globe, Sparkles } from 'lucide-react';
+import { apiError, websiteApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, EmptyState, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import type { Website } from '../../lib/types';
@@ -12,7 +12,7 @@ function SiteRow({ website }: { website: Website }) {
   const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
   const live = website.status === 'PUBLISHED';
-  const url = siteUrl(website.slug);
+  const url = `${window.location.origin}/p/${website.slug}`;
 
   const publish = useMutation({
     mutationFn: () => websiteApi.publish(website.id),
@@ -36,7 +36,7 @@ function SiteRow({ website }: { website: Website }) {
             </div>
             <div className="mt-2.5 inline-flex items-center gap-2 rounded-md border border-sand-200 bg-sand-50 px-3 py-1">
               <Globe className="h-3 w-3 shrink-0 text-sand-500" />
-              <code className="text-[12px] text-sand-600">{website.slug}.mumotor.com</code>
+              <code className="text-[12px] text-sand-600">{url.replace(/^https?:\/\//, '')}</code>
               <button
                 onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                 className="rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
@@ -49,9 +49,6 @@ function SiteRow({ website }: { website: Website }) {
           <div className="flex flex-wrap items-center gap-2">
             <Link to={`/customize/${website.id}`} className="btn-primary">
               <Sparkles className="h-4 w-4" /> Customize
-            </Link>
-            <Link to={`/editor/${website.id}`} className="btn-secondary">
-              <Pencil className="h-4 w-4" /> Edit
             </Link>
             {live && (
               <a href={url} target="_blank" rel="noreferrer" className="btn-secondary">

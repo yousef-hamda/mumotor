@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import Landing from './pages/Landing';
@@ -13,7 +13,6 @@ import Publishing from './pages/dashboard/Publishing';
 import Billing from './pages/dashboard/Billing';
 import Settings from './pages/dashboard/Settings';
 import BuilderWizard from './pages/builder/BuilderWizard';
-import EditorPage from './pages/editor/EditorPage';
 import CustomizePage from './pages/customize/CustomizePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import PublicSite from './pages/public/PublicSite';
@@ -22,6 +21,12 @@ import BookLesson from './pages/public/BookLesson';
 import TemplatesGallery from './pages/templates/TemplatesGallery';
 import TemplatePreview from './pages/templates/TemplatePreview';
 import NotFound from './pages/NotFound';
+
+/** The legacy split-pane editor is retired — old /editor links open Customize. */
+function EditorRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/customize/${id}`} replace />;
+}
 
 export default function App() {
   return (
@@ -37,14 +42,7 @@ export default function App() {
       {/* Template gallery + live interactive previews */}
       <Route path="/templates" element={<TemplatesGallery />} />
       <Route path="/templates/:slug" element={<TemplatePreview />} />
-      <Route
-        path="/editor/:id"
-        element={
-          <ProtectedRoute>
-            <EditorPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/editor/:id" element={<EditorRedirect />} />
       <Route
         path="/customize/:id"
         element={

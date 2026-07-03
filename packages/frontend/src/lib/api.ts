@@ -168,19 +168,6 @@ export const websiteApi = {
     api.delete<{ deleted: boolean }>(`/websites/${id}`, { data: { confirm } }).then((r) => r.data),
 };
 
-// ---------------------------------------------------------------------------
-// AI / generation
-// ---------------------------------------------------------------------------
-export interface PresetSummary {
-  id: string;
-  label: string;
-  description: string;
-  colors: { primary: string; primaryDark: string; accent: string; bg: string; surface: string; fg: string; muted: string; border: string };
-  fonts: { heading: string; body: string };
-  hero: string;
-  bookingLayout: string;
-}
-
 export interface StockPhoto {
   id: string;
   alt: string;
@@ -197,12 +184,6 @@ export const photosApi = {
     api
       .get<{ results: StockPhoto[]; total: number }>('/photos/search', { params: { q, ...opts } })
       .then((r) => r.data),
-};
-
-export const aiApi = {
-  quickTemplates: () => api.get<{ presets: PresetSummary[] }>('/ai/v2/quick-templates').then((r) => r.data.presets),
-  generateWebsite: (data: { name?: string; presetId?: string; businessConfig?: Record<string, unknown> }) =>
-    api.post<{ html: string; metadata: Record<string, unknown>; presetId: string; slug: string }>('/ai/v2/generate-website', data).then((r) => r.data),
 };
 
 // ---------------------------------------------------------------------------
