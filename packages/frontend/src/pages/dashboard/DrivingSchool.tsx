@@ -29,6 +29,7 @@ import {
   Field,
   Input,
   Modal,
+  NumberInput,
   Select,
   StatusBadge,
   Textarea,
@@ -722,30 +723,27 @@ function SettingsTab({ website }: { website: Website }) {
             </Select>
           </Field>
           <Field label="Advance booking (days)">
-            <Input
-              type="number"
+            <NumberInput
               min={1}
               max={90}
               value={form.advanceBookingDays}
-              onChange={(e) => setForm({ ...form, advanceBookingDays: Number(e.target.value) })}
+              onValueChange={(n) => setForm({ ...form, advanceBookingDays: n })}
             />
           </Field>
           <Field label="Same-day cutoff hour" hint="0–23 (UTC)">
-            <Input
-              type="number"
+            <NumberInput
               min={0}
               max={23}
               value={form.bookingCutoffHour}
-              onChange={(e) => setForm({ ...form, bookingCutoffHour: Number(e.target.value) })}
+              onValueChange={(n) => setForm({ ...form, bookingCutoffHour: n })}
             />
           </Field>
           <Field label="Rest between (min)">
-            <Input
-              type="number"
+            <NumberInput
               min={0}
               max={120}
               value={form.restMinutes}
-              onChange={(e) => setForm({ ...form, restMinutes: Number(e.target.value) })}
+              onValueChange={(n) => setForm({ ...form, restMinutes: n })}
             />
           </Field>
         </div>

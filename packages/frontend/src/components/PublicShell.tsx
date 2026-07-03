@@ -25,13 +25,9 @@ export function PublicShell({
     <div className="flex min-h-screen flex-col bg-sand-50">
       <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-          {slug ? (
-            <Link to={`/p/${slug}`} className="transition-opacity hover:opacity-80">
-              {Brand}
-            </Link>
-          ) : (
-            Brand
-          )}
+          <Link to={slug ? `/p/${slug}` : '/'} className="transition-opacity hover:opacity-80">
+            {Brand}
+          </Link>
           <LanguageSwitcher />
         </div>
       </header>

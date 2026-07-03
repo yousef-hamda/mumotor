@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { Logo } from '../components/Logo';
+import { useSeo } from '../lib/seo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { FadeUp, Stagger, ScrollTilt } from '../components/motion';
 import { Background } from '../components/Background';
@@ -68,6 +69,43 @@ export default function Landing() {
   const { t } = useTranslation();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  useSeo({
+    title: 'Mumotor — Website builder & booking for driving instructors',
+    description:
+      'Build a professional driving-instructor website in minutes — online lesson booking, student enrollment, packages and reviews. Trilingual (Hebrew, Arabic, English), no code.',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          name: 'Mumotor',
+          url: window.location.origin,
+          logo: `${window.location.origin}/favicon.svg`,
+          description: 'The all-in-one website builder and booking platform for driving instructors.',
+        },
+        {
+          '@type': 'SoftwareApplication',
+          name: 'Mumotor',
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Web',
+          url: window.location.origin,
+          description:
+            'Website builder for driving instructors: professional site, lesson booking, student enrollment and reminders. Hebrew, Arabic and English with RTL support.',
+          offers: { '@type': 'Offer', price: '199', priceCurrency: 'ILS' },
+          audience: { '@type': 'Audience', audienceType: 'Driving instructors and driving schools' },
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        },
+      ],
+    },
+  });
+
   return (
     <div className="relative min-h-screen overflow-x-clip">
       <Background />
@@ -75,7 +113,7 @@ export default function Landing() {
       {/* Header — translucent frosted glass nav */}
       <header className="sticky top-0 z-40 border-b border-white/40 glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Logo size="sm" />
+          <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
           <nav className="hidden items-center gap-9 text-sm text-sand-600 md:flex">
             <Link to="/templates" className="transition-colors hover:text-sand-900">Templates</Link>
             <a href="#features" className="transition-colors hover:text-sand-900">Features</a>
@@ -331,7 +369,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid gap-8 sm:grid-cols-[2fr_1fr_1fr]">
             <div>
-              <Logo size="sm" />
+              <Link to="/" aria-label="Mumotor home" className="inline-flex"><Logo size="sm" /></Link>
               <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-sand-500">
                 Professional websites and booking for independent driving instructors. Trilingual, no code.
               </p>

@@ -5,7 +5,7 @@ import { Logo } from '../components/Logo';
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-7 bg-white px-6 text-center">
-      <Logo size="lg" />
+      <Link to="/" aria-label="Mumotor home"><Logo size="lg" /></Link>
       <div>
         <p className="text-sm font-medium text-sand-500">Error 404</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-sand-900 sm:text-5xl">Page not found</h1>

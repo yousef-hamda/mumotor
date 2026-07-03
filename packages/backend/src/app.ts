@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import routes from './routes/index.js';
 import siteServingRoutes from './routes/siteServing.js';
+import seoRoutes from './routes/seo.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { env, isProd } from './config/env.js';
 import { uploadsDir } from './lib/uploads.js';
@@ -71,6 +72,7 @@ export function createApp() {
   app.use('/api', routes);
   app.use('/api', notFoundHandler); // JSON 404 for unknown API routes
   app.use(siteServingRoutes); // GET /site/:slug (published teacher sites)
+  app.use(seoRoutes); // GET /robots.txt + /sitemap.xml (search engines)
 
   // Single-service deploy (Railway-only): serve the built SPA from this server.
   // /api, /site and /uploads are handled above; everything else → the SPA shell.

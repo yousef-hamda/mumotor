@@ -4,10 +4,15 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
 import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
 import { FadeUp, Stagger } from '../../components/motion';
+import { useSeo } from '../../lib/seo';
 
 const COUNT_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][TEMPLATES.length] ?? `${TEMPLATES.length}`;
 
 export default function TemplatesGallery() {
+  useSeo({
+    title: 'Website templates for driving instructors — Mumotor',
+    description: `${COUNT_WORD} professionally designed website templates for driving schools and instructors. Pick one, customize it live, and publish in minutes.`,
+  });
   return (
     <div className="min-h-dvh bg-white text-sand-900">
       {/* Sticky nav */}

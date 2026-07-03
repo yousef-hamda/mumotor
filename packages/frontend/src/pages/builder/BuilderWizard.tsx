@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles
 import { apiError, drivingSchoolApi, websiteApi, type PublishResult } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
-import { Button, Field, Input, Select, Textarea } from '../../components/ui';
+import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import { TEMPLATES, getTemplate, type TemplateMeta } from '../../templates/registry';
 import { wizardToTemplateData } from '../../templates/fromWizard';
@@ -319,7 +319,7 @@ function PlansEditor({ plans, onChange }: { plans: PlanInput[]; onChange: (v: Pl
             )}
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <Input type="number" min={0} value={p.price} onChange={(e) => upd(i, { price: Number(e.target.value) })} placeholder="Price (₪)" />
+            <NumberInput min={0} value={p.price} onValueChange={(n) => upd(i, { price: n })} placeholder="Price (₪)" />
             <Input value={p.unit} onChange={(e) => upd(i, { unit: e.target.value })} placeholder="/ lesson · 10 lessons · package" />
           </div>
           <Textarea rows={2} className="mt-2" value={(p.features ?? []).join('\n')} onChange={(e) => upd(i, { features: e.target.value.split('\n') })} placeholder="What's included — one per line" />
@@ -480,7 +480,7 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
           </Field>
           <Toggle label="Rest between lessons" checked={config.restEnabled} onChange={(v) => set('restEnabled', v)} />
           {config.restEnabled && (
-            <Field label="Rest minutes (5–30)"><Input type="number" min={5} max={30} step={5} value={config.restMinutes} onChange={(e) => set('restMinutes', Number(e.target.value))} /></Field>
+            <Field label="Rest minutes (5–30)"><NumberInput min={5} max={30} step={5} value={config.restMinutes} onValueChange={(n) => set('restMinutes', n)} /></Field>
           )}
         </SectionCard>
 
@@ -492,7 +492,7 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
                 {[20, 30, 40, 45, 60, 75, 90].map((d) => <option key={d} value={d}>{d} min</option>)}
               </Select>
             </Field>
-            <Field label="Price per class (₪)"><Input type="number" min={0} value={config.pricePerClass} onChange={(e) => set('pricePerClass', Number(e.target.value))} /></Field>
+            <Field label="Price per class (₪)"><NumberInput min={0} value={config.pricePerClass} onValueChange={(n) => set('pricePerClass', n)} /></Field>
           </div>
           <Field label="Transmission" hint="What you teach — your site copy and FAQ adapt to this.">
             <div className="flex gap-2">

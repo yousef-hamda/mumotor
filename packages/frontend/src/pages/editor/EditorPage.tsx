@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Check, ExternalLink, Monitor, Smartphone, Tablet, Loader2 } from 'lucide-react';
 import { aiApi, apiError, mediaApi, siteUrl, websiteApi, type PresetSummary } from '../../lib/api';
-import { Button, CenteredSpinner, Field, Input, Modal, Select, Textarea } from '../../components/ui';
+import { Button, CenteredSpinner, Field, Input, Modal, NumberInput, Select, Textarea } from '../../components/ui';
 import { Logo } from '../../components/Logo';
 
 type Draft = Record<string, unknown> & { colors?: { primary?: string; accent?: string } };
@@ -311,13 +311,13 @@ export default function EditorPage() {
             <Field label="Instructor name"><Input value={str('teacherName')} onChange={(e) => setField('teacherName', e.target.value)} /></Field>
             <Field label="Bio"><Textarea rows={3} value={str('bio')} onChange={(e) => setField('bio', e.target.value)} /></Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Price/lesson"><Input type="number" value={numv('pricePerClass', 50)} onChange={(e) => setField('pricePerClass', Number(e.target.value))} /></Field>
+              <Field label="Price/lesson"><NumberInput min={0} value={numv('pricePerClass', 50)} onValueChange={(n) => setField('pricePerClass', n)} /></Field>
               <Field label="Duration">
                 <Select value={numv('classDuration', 45)} onChange={(e) => setField('classDuration', Number(e.target.value))}>
                   {[30, 45, 60, 90, 120].map((d) => <option key={d} value={d}>{d}m</option>)}
                 </Select>
               </Field>
-              <Field label="Pass rate %"><Input type="number" value={numv('passRate', 95)} onChange={(e) => setField('passRate', Number(e.target.value))} /></Field>
+              <Field label="Pass rate %"><NumberInput min={0} max={100} value={numv('passRate', 95)} onValueChange={(n) => setField('passRate', n)} /></Field>
               <Field label="Experience"><Input value={str('experienceYears', '10+')} onChange={(e) => setField('experienceYears', e.target.value)} /></Field>
             </div>
           </EditorSection>

@@ -1,5 +1,8 @@
 import {
   forwardRef,
+  useEffect,
+  useRef,
+  useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -64,6 +67,66 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   ({ className, ...props }, ref) => <input ref={ref} className={cn('input', className)} {...props} />
 );
 Input.displayName = 'Input';
+
+/**
+ * Numeric input that doesn't fight the user while typing: the box holds the raw
+ * text (so clearing it shows empty, not a snapped-back "0"), valid numbers are
+ * committed as you type, and on blur the box re-syncs to the committed value
+ * (clamped to min/max when provided).
+ */
+interface NumberInputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
+  value: number;
+  onValueChange: (value: number) => void;
+}
+export function NumberInput({ value, onValueChange, min, max, onBlur, onFocus, ...props }: NumberInputProps) {
+  const [text, setText] = useState(String(value));
+  const editing = useRef(false);
+
+  // Follow external value changes (form reset, server refresh) when not typing.
+  useEffect(() => {
+    if (!editing.current) setText(String(value));
+  }, [value]);
+
+  const clamp = (n: number) => {
+    if (min !== undefined && n < Number(min)) n = Number(min);
+    if (max !== undefined && n > Number(max)) n = Number(max);
+    return n;
+  };
+
+  return (
+    <Input
+      {...props}
+      type="number"
+      inputMode="decimal"
+      min={min}
+      max={max}
+      value={text}
+      onFocus={(e) => {
+        editing.current = true;
+        onFocus?.(e);
+      }}
+      onChange={(e) => {
+        const raw = e.target.value;
+        setText(raw);
+        const n = Number(raw);
+        if (raw !== '' && !Number.isNaN(n)) onValueChange(clamp(n));
+      }}
+      onBlur={(e) => {
+        editing.current = false;
+        const n = Number(text);
+        if (text === '' || Number.isNaN(n)) {
+          setText(String(value)); // abandoned edit → restore last committed value
+        } else {
+          const clamped = clamp(n);
+          if (clamped !== value) onValueChange(clamped);
+          setText(String(clamped));
+        }
+        onBlur?.(e);
+      }}
+    />
+  );
+}
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   ({ className, children, ...props }, ref) => (
