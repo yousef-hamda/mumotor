@@ -6,6 +6,7 @@ import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { forbidden, notFound } from '../utils/errors.js';
 import { createNotification } from '../services/notifications/notificationService.js';
+import { logEvent } from '../services/analytics.js';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.post(
       title: 'New review awaiting approval',
       body: `${data.studentName} left a ${data.rating}-star review`,
     });
+    logEvent('review_submitted', { props: { websiteId: site.id, rating: data.rating } });
     res.status(201).json({ review: { id: review.id, status: review.status } });
   })
 );

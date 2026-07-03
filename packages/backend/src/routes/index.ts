@@ -10,6 +10,7 @@ import notificationRoutes from './notifications.js';
 import adminRoutes from './admin.js';
 import photoRoutes from './photos.js';
 import wizardDraftRoutes from './wizardDraft.js';
+import eventsRoutes from './events.js';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/photos', photoRoutes);
 router.use('/wizard-draft', wizardDraftRoutes);
+router.use('/events', eventsRoutes);
 router.use(mediaRoutes);
 
 export default router;

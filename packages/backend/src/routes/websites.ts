@@ -9,6 +9,7 @@ import { badRequest, forbidden, notFound } from '../utils/errors.js';
 import { slugify } from '../utils/slug.js';
 import { DEFAULTS } from '../services/scheduling/schedulingService.js';
 import { generateWebsite, configToSiteConfig } from '../services/ai/generator.js';
+import { logEvent } from '../services/analytics.js';
 import { getPreset } from '../services/ai/templatePresets.js';
 
 const router = Router();
@@ -175,6 +176,8 @@ router.post(
     ]);
 
     await kv.del(`site:${website.slug}`);
+
+    logEvent('site_published', { userId: req.user!.id, props: { template: website.selectedPreset ?? 'unknown' } });
 
     res.json({
       status: 'PUBLISHED',

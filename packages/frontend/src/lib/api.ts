@@ -143,7 +143,20 @@ export const mediaApi = {
 };
 
 // Admin
-export interface AdminStats { users: number; websites: number; published: number; enrollments: number; bookings: number; reviews: number }
+export interface AdminEventStats {
+  last7: Record<string, number>;
+  last30: Record<string, number>;
+  funnel: { wizardStarted7d: number; published7d: number };
+}
+export interface AdminStats {
+  users: number;
+  websites: number;
+  published: number;
+  enrollments: number;
+  bookings: number;
+  reviews: number;
+  events?: AdminEventStats;
+}
 export interface AdminUser { id: string; email: string; name: string; role: string; createdAt: string; _count: { websites: number } }
 export interface AdminWebsite { id: string; name: string; slug: string; status: string; createdAt: string; user: { email: string }; _count: { enrollments: number; bookings: number } }
 export const adminApi = {

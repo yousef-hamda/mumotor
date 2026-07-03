@@ -92,6 +92,50 @@ export default function AdminDashboard() {
           </Stagger>
         ) : null}
 
+        {/* Product events */}
+        {stats.data?.events && (
+          <FadeUp>
+            <Card className="overflow-hidden p-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sand-200 px-5 py-4">
+                <h2 className="font-semibold tracking-tight text-sand-900">Events</h2>
+                <span className="text-xs text-sand-500">
+                  Funnel (7d): {stats.data.events.funnel.wizardStarted7d} wizard starts →{' '}
+                  {stats.data.events.funnel.published7d} sites published
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-sand-200 text-start text-xs uppercase tracking-widest text-sand-500">
+                      <th className="px-5 py-3 text-start font-semibold">Event</th>
+                      <th className="px-5 py-3 text-start font-semibold">Last 7 days</th>
+                      <th className="px-5 py-3 text-start font-semibold">Last 30 days</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys({ ...stats.data.events.last30, ...stats.data.events.last7 })
+                      .sort()
+                      .map((name) => (
+                        <tr key={name} className="border-b border-sand-100 last:border-0">
+                          <td className="px-5 py-2.5 font-mono text-xs text-sand-700">{name}</td>
+                          <td className="px-5 py-2.5 tabular-nums text-sand-900">{stats.data!.events!.last7[name] ?? 0}</td>
+                          <td className="px-5 py-2.5 tabular-nums text-sand-900">{stats.data!.events!.last30[name] ?? 0}</td>
+                        </tr>
+                      ))}
+                    {Object.keys(stats.data.events.last30).length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="px-5 py-4 text-center text-sand-500">
+                          No events yet — they appear as people use the wizard and public sites.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </FadeUp>
+        )}
+
         {/* Websites table */}
         <FadeUp>
           <Card className="overflow-hidden p-0">

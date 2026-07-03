@@ -14,19 +14,51 @@ const requireAdmin = asyncHandler(async (req, _res, next) => {
 
 router.use(verifyToken, requireAdmin);
 
+/** Event counts per name since a given date. */
+async function eventCounts(since: Date): Promise<Record<string, number>> {
+  const rows = await prisma.analyticsEvent.groupBy({
+    by: ['name'],
+    where: { createdAt: { gte: since } },
+    _count: { _all: true },
+  });
+  return Object.fromEntries(rows.map((r) => [r.name, r._count._all]));
+}
+
 // GET /admin/stats
 router.get(
   '/stats',
   asyncHandler(async (_req, res) => {
-    const [users, websites, published, enrollments, bookings, reviews] = await Promise.all([
+    const now = Date.now();
+    const d7 = new Date(now - 7 * 24 * 3600 * 1000);
+    const d30 = new Date(now - 30 * 24 * 3600 * 1000);
+    const [users, websites, published, enrollments, bookings, reviews, events7, events30] = await Promise.all([
       prisma.user.count(),
       prisma.website.count(),
       prisma.website.count({ where: { status: 'PUBLISHED' } }),
       prisma.clientEnrollment.count(),
       prisma.booking.count(),
       prisma.review.count(),
+      eventCounts(d7),
+      eventCounts(d30),
     ]);
-    res.json({ stats: { users, websites, published, enrollments, bookings, reviews } });
+    res.json({
+      stats: {
+        users,
+        websites,
+        published,
+        enrollments,
+        bookings,
+        reviews,
+        events: {
+          last7: events7,
+          last30: events30,
+          funnel: {
+            wizardStarted7d: events7.wizard_started ?? 0,
+            published7d: events7.site_published ?? 0,
+          },
+        },
+      },
+    });
   })
 );
 

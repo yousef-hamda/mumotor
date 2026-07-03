@@ -117,6 +117,19 @@ model User {
   @@index([email])
 }
 
+// Minimal product analytics: one row per event. userId is a loose attribute
+// (no FK) so deleting an account never erases funnel history.
+model AnalyticsEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  props     Json?
+  sessionId String?
+  userId    String?  @db.Uuid
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}
+
 // Server-side copy of an authenticated user's in-progress builder wizard, so
 // closing the browser mid-flow doesn't lose their setup (localStorage remains
 // the store for anonymous visitors). One draft per user, cleared on publish.

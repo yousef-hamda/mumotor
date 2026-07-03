@@ -29,6 +29,7 @@ import {
 } from '../services/scheduling/schedulingService.js';
 import { consumeMagicToken, generateMagicToken } from '../services/auth/magicLinkService.js';
 import { createNotification } from '../services/notifications/notificationService.js';
+import { logEvent } from '../services/analytics.js';
 import {
   sendBulkCustomEmail,
   sendBookingCancelled,
@@ -163,6 +164,7 @@ router.post(
       title: 'New student enrolled',
       body: `${enrollment.studentName} (${email})`,
     });
+    logEvent('enroll_completed', { props: { websiteId: website.id } });
 
     res.status(201).json({
       enrollment: {
@@ -487,6 +489,7 @@ router.post(
         title: 'New lesson booked',
         body: `${booking.enrollment.studentName} — ${data.date} at ${data.time}`,
       });
+      logEvent('booking_created', { props: { websiteId: website.id } });
 
       res.status(201).json({
         booking: {

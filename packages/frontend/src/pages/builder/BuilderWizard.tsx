@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { apiError, drivingSchoolApi, websiteApi, wizardDraftApi, type PublishResult } from '../../lib/api';
+import { track } from '../../lib/analytics';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
@@ -160,21 +161,33 @@ export default function BuilderWizard() {
             </div>
           </div>
         )}
-        {step === 'welcome' && <Welcome onStart={() => setStep('business')} />}
+        {step === 'welcome' && <Welcome onStart={() => { track('wizard_started'); setStep('business'); }} />}
         {step === 'business' && (
           <BusinessStep
             config={config}
             set={set}
             onAuto={() => { setConfig((c) => sampleWizardConfig(c)); toast.success('Sample details filled in — edit anything you like'); }}
             onBack={() => setStep('welcome')}
-            onNext={() => (config.businessName.trim() ? setStep('setup') : toast.error('Please enter your business name'))}
+            onNext={() => {
+              if (!config.businessName.trim()) return toast.error('Please enter your business name');
+              track('wizard_step_completed', { step: 'business' });
+              setStep('setup');
+            }}
           />
         )}
-        {step === 'setup' && <SetupStep config={config} set={set} onBack={() => setStep('business')} onNext={() => setStep('browse')} />}
+        {step === 'setup' && (
+          <SetupStep
+            config={config}
+            set={set}
+            onBack={() => setStep('business')}
+            onNext={() => { track('wizard_step_completed', { step: 'setup' }); setStep('browse'); }}
+          />
+        )}
         {step === 'browse' && (
           <BrowseStep
             config={config}
             onPick={(id, accent) => {
+              track('template_chosen', { slug: id });
               setConfig((c) => {
                 const next: WizardConfig = { ...c, templateChoice: id };
                 // Mumotor's on-card colour dots set the site's main accent (kept restrained).
