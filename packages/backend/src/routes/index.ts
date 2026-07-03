@@ -9,6 +9,7 @@ import mediaRoutes from './media.js';
 import notificationRoutes from './notifications.js';
 import adminRoutes from './admin.js';
 import photoRoutes from './photos.js';
+import wizardDraftRoutes from './wizardDraft.js';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/subscriptions', subscriptionRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/photos', photoRoutes);
+router.use('/wizard-draft', wizardDraftRoutes);
 router.use(mediaRoutes);
 
 export default router;

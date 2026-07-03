@@ -102,6 +102,17 @@ export const reviewsApi = {
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/reviews/${id}`).then((r) => r.data),
 };
 
+// Wizard draft (server-side copy of the builder wizard for logged-in users)
+export const wizardDraftApi = {
+  get: () =>
+    api
+      .get<{ draft: { config: Record<string, unknown>; updatedAt: string } | null }>('/wizard-draft')
+      .then((r) => r.data.draft),
+  put: (config: Record<string, unknown>) =>
+    api.put<{ saved: boolean; updatedAt: string }>('/wizard-draft', { config }).then((r) => r.data),
+  remove: () => api.delete<{ deleted: boolean }>('/wizard-draft').then((r) => r.data),
+};
+
 // Notifications
 export interface Notification {
   id: string;

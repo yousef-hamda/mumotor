@@ -204,14 +204,25 @@ export function loadWizard(): WizardConfig {
 export function saveWizard(c: WizardConfig) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+    localStorage.setItem(`${STORAGE_KEY}_saved_at`, String(Date.now()));
   } catch {
     /* ignore */
+  }
+}
+
+/** When the local wizard copy was last written (0 = never). Compared against the server draft. */
+export function wizardSavedAt(): number {
+  try {
+    return Number(localStorage.getItem(`${STORAGE_KEY}_saved_at`)) || 0;
+  } catch {
+    return 0;
   }
 }
 
 export function clearWizard() {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(`${STORAGE_KEY}_saved_at`);
   } catch {
     /* ignore */
   }

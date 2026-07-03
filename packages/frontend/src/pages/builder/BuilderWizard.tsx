@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
-import { apiError, drivingSchoolApi, websiteApi, type PublishResult } from '../../lib/api';
+import { apiError, drivingSchoolApi, websiteApi, wizardDraftApi, type PublishResult } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
@@ -19,10 +19,12 @@ import {
   WEEKDAYS,
   buildBusinessHours,
   clearWizard,
+  defaultWizardConfig,
   loadWizard,
   sampleWizardConfig,
   saveWizard,
   toBusinessConfig,
+  wizardSavedAt,
   type PlanInput,
   type SocialPlatform,
   type WizardConfig,
@@ -65,6 +67,41 @@ export default function BuilderWizard() {
   }, [searchParams]);
 
   useEffect(() => saveWizard(config), [config]);
+
+  // ── Server-side draft (logged-in users only) ───────────────────────────────
+  // localStorage remains the primary store; the server copy survives browser
+  // changes. On mount, offer to restore a newer server draft; afterwards keep
+  // the server copy updated with a debounced autosave.
+  const draftReady = useRef(false); // don't autosave until the restore check resolved
+  // Captured before the first render's saveWizard effect stamps a fresh timestamp.
+  const localSavedAt = useRef(wizardSavedAt());
+  const [restorePrompt, setRestorePrompt] = useState<WizardConfig | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    wizardDraftApi
+      .get()
+      .then((draft) => {
+        if (!alive) return;
+        if (draft && new Date(draft.updatedAt).getTime() > localSavedAt.current) {
+          setRestorePrompt({ ...defaultWizardConfig, ...(draft.config as Partial<WizardConfig>) });
+        }
+      })
+      .catch(() => { /* drafts are best-effort */ })
+      .finally(() => { if (alive) draftReady.current = true; });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user || !draftReady.current || restorePrompt) return;
+    const t = setTimeout(() => {
+      wizardDraftApi.put(config as unknown as Record<string, unknown>).catch(() => { /* best-effort */ });
+    }, 2000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, user?.id, restorePrompt]);
   const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
 
   const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'design' : step) as Step));
@@ -107,6 +144,22 @@ export default function BuilderWizard() {
       </header>
 
       <main className={cn('mx-auto flex w-full flex-1 flex-col py-10', wide ? 'max-w-[1320px] px-4' : 'max-w-3xl px-5')}>
+        {restorePrompt && (
+          <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-sand-200 bg-white px-4 py-3 text-sm text-sand-700 shadow-sm">
+            <span>We found a saved setup from another session. Continue where you left off?</span>
+            <div className="ms-auto flex gap-2">
+              <button
+                onClick={() => { setConfig(restorePrompt); setRestorePrompt(null); toast.success('Draft restored'); }}
+                className="btn-primary !py-1.5 text-xs"
+              >
+                Restore draft
+              </button>
+              <button onClick={() => setRestorePrompt(null)} className="btn-secondary !py-1.5 text-xs">
+                Start fresh
+              </button>
+            </div>
+          </div>
+        )}
         {step === 'welcome' && <Welcome onStart={() => setStep('business')} />}
         {step === 'business' && (
           <BusinessStep
@@ -174,6 +227,7 @@ export default function BuilderWizard() {
       } as never);
       const res = await websiteApi.publish(website.id);
       clearWizard();
+      void wizardDraftApi.remove().catch(() => { /* best-effort */ });
       setResult(res);
       setStep('done');
     } catch (e) {
