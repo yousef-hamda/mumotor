@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { drivingSchoolApi } from '../../lib/api';
+import { drivingSchoolApi, reviewsApi } from '../../lib/api';
 import { CenteredSpinner } from '../../components/ui';
 import { LogoMark } from '../../components/Logo';
 import { TemplateRender } from '../../templates/TemplateRender';
@@ -20,8 +20,26 @@ export default function PublicSite() {
     retry: false,
   });
 
+  // Approved reviews render into the template's testimonials section; the site
+  // never waits on this query (reviews simply appear once loaded).
+  const { data: publicReviews } = useQuery({
+    queryKey: ['public-reviews', (data as { id?: string } | undefined)?.id],
+    queryFn: () => reviewsApi.publicList((data as { id: string }).id),
+    enabled: Boolean((data as { id?: string } | undefined)?.id),
+    retry: false,
+  });
+
   const templateData = data
-    ? publicToTemplateData(data as unknown as Parameters<typeof publicToTemplateData>[0])
+    ? publicToTemplateData({
+        ...(data as unknown as Parameters<typeof publicToTemplateData>[0]),
+        reviews: (publicReviews ?? []).map((r, i) => ({
+          id: `r${i}`,
+          name: r.studentName,
+          rating: r.rating,
+          text: r.comment,
+          meta: new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
+        })),
+      })
     : null;
 
   useSeo(

@@ -5,6 +5,7 @@ import { verifyToken } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { forbidden, notFound } from '../utils/errors.js';
+import { createNotification } from '../services/notifications/notificationService.js';
 
 const router = Router();
 
@@ -23,9 +24,14 @@ router.post(
     const data = z
       .object({ websiteId: z.string().uuid(), studentName: z.string().min(1).max(80), rating: z.number().int().min(1).max(5), comment: z.string().min(1).max(1000) })
       .parse(req.body);
-    const site = await prisma.website.findUnique({ where: { id: data.websiteId } });
+    const site = await prisma.website.findUnique({ where: { id: data.websiteId }, select: { id: true, userId: true } });
     if (!site) throw notFound('Driving school not found');
     const review = await prisma.review.create({ data: { ...data, status: 'PENDING' } });
+    void createNotification(site.userId, {
+      type: 'REVIEW',
+      title: 'New review awaiting approval',
+      body: `${data.studentName} left a ${data.rating}-star review`,
+    });
     res.status(201).json({ review: { id: review.id, status: review.status } });
   })
 );

@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import PublicSite from './pages/public/PublicSite';
 import Enroll from './pages/public/Enroll';
 import BookLesson from './pages/public/BookLesson';
+import LeaveReview from './pages/public/LeaveReview';
 import TemplatesGallery from './pages/templates/TemplatesGallery';
 import TemplatePreview from './pages/templates/TemplatePreview';
 import NotFound from './pages/NotFound';
@@ -118,6 +119,7 @@ export default function App() {
       <Route path="/p/:websiteSlug" element={<PublicSite />} />
       <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
       <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
+      <Route path="/p/:websiteSlug/review" element={<LeaveReview />} />
 
       <Route
         path="/admin"

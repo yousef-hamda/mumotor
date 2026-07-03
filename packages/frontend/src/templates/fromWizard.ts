@@ -1,4 +1,4 @@
-import type { TemplateData, Dir, Locale, Hour, Package, StatItem, Faq, Area } from './types';
+import type { TemplateData, Dir, Locale, Hour, Package, StatItem, Faq, Area, Review } from './types';
 import { sampleData } from './sampleData';
 import { EXPERIENCE_LEVELS, transmissionFeature, type PlanInput, type Transmission, type WizardConfig } from '../lib/wizard';
 import { applyOverrides, type Customization } from './customize/overrides';
@@ -111,6 +111,7 @@ interface CoreInput {
   hours: Hour[];
   bookingUrl?: string;
   enrollUrl?: string;
+  reviews?: Review[];
   customization?: Customization;
 }
 
@@ -164,8 +165,8 @@ function buildTemplateData(c: CoreInput): TemplateData {
       image: aboutImg,
     },
     areas: area ? buildAreas(addressFull) : sampleData.areas,
-    // Don't fabricate testimonials — start empty (templates hide the section); owner can add in Customize.
-    reviews: [],
+    // Real approved reviews when provided; never fabricated (templates hide the empty section).
+    reviews: c.reviews ?? [],
     faqs: buildFaqs(c.price, c.duration, area, c.transmission),
     gallery: c.gallery,
     contact: {
@@ -252,6 +253,7 @@ export interface PublicSiteData {
   contact?: { phone?: string; email?: string; address?: string } | null;
   socialLinks?: Record<string, string> | null;
   customization?: Customization | null;
+  reviews?: Review[] | null;
 }
 
 /** Published public-settings → TemplateData for the live React site. */
@@ -284,6 +286,7 @@ export function publicToTemplateData(p: PublicSiteData): TemplateData {
     hours,
     bookingUrl: slug ? `/p/${slug}/book-lesson` : undefined,
     enrollUrl: slug ? `/p/${slug}/enroll` : undefined,
+    reviews: p.reviews || undefined,
     customization: p.customization || undefined,
   });
 }

@@ -9,10 +9,13 @@ import {
   sendBookingReminder,
   sendDailyBookingOpen,
   sendEnhancedDailyReport,
+  sendReviewRequest,
   siteBrand,
 } from '../email/emailService.js';
 
 const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
+const REVIEW_REQUEST_DELAY_MINUTES = 60; // ask ~1h after the lesson ended
+const REVIEW_REQUEST_MAX_AGE_DAYS = 3; // never chase lessons older than this
 
 /** Combine a UTC-midnight date + "HH:MM" into a Date (interpreted in UTC). */
 function lessonDateTime(date: Date, time: string): Date {
@@ -56,6 +59,46 @@ export async function processBookingReminders(): Promise<number> {
     }
   }
   if (sent) logger.info(`Reminders: sent ${sent}`);
+  return sent;
+}
+
+/** Every 15 min: ask students for a review ~1h after their lesson ended. */
+export async function processReviewRequests(): Promise<number> {
+  const today = todayUtcMidnight();
+  const oldest = new Date(today);
+  oldest.setUTCDate(oldest.getUTCDate() - REVIEW_REQUEST_MAX_AGE_DAYS);
+  const now = new Date();
+
+  const candidates = await prisma.booking.findMany({
+    where: {
+      reviewRequestSent: false,
+      status: 'CONFIRMED',
+      bookingDate: { lte: today, gte: oldest },
+    },
+    include: { website: { select: { slug: true, name: true, configuration: true, status: true } } },
+  });
+
+  let sent = 0;
+  for (const b of candidates) {
+    const end = lessonDateTime(b.bookingDate, b.bookingTime);
+    end.setUTCMinutes(end.getUTCMinutes() + b.duration + REVIEW_REQUEST_DELAY_MINUTES);
+    if (now < end) continue; // lesson not long enough over yet
+    if (b.website.status !== 'PUBLISHED') {
+      // Unpublished site — mark handled so we don't rescan forever.
+      await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
+      continue;
+    }
+    const ok = await sendReviewRequest(b.customerEmail, {
+      studentName: b.customerName,
+      reviewUrl: `${env.FRONTEND_URL}/p/${b.website.slug}/review`,
+      brand: siteBrand(b.website),
+    });
+    if (ok) {
+      await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
+      sent++;
+    }
+  }
+  if (sent) logger.info(`Review requests: sent ${sent}`);
   return sent;
 }
 
@@ -213,9 +256,10 @@ export function startCronJobs() {
   if (started) return;
   started = true;
 
-  // ~2h-before lesson reminders
+  // ~2h-before lesson reminders + ~1h-after review requests
   cron.schedule('*/15 * * * *', () => {
     processBookingReminders().catch((e) => logger.error('reminder job failed', e));
+    processReviewRequests().catch((e) => logger.error('review request job failed', e));
   });
   // Every 5 min: per-teacher booking-open email + teacher report at each site's chosen time
   cron.schedule('*/5 * * * *', () => {

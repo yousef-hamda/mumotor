@@ -80,8 +80,19 @@ export const authApi = {
 };
 
 // Reviews
+export interface PublicReview {
+  studentName: string;
+  rating: number;
+  comment: string;
+  reply: string | null;
+  createdAt: string;
+}
 export const reviewsApi = {
   list: (websiteId: string) => api.get<{ reviews: Review[] }>('/reviews', { params: { websiteId } }).then((r) => r.data.reviews),
+  create: (data: { websiteId: string; studentName: string; rating: number; comment: string }) =>
+    api.post<{ review: { id: string; status: string } }>('/reviews', data).then((r) => r.data.review),
+  publicList: (websiteId: string) =>
+    api.get<{ reviews: PublicReview[] }>(`/reviews/public/${websiteId}`).then((r) => r.data.reviews),
   update: (id: string, data: { status?: 'PENDING' | 'APPROVED' | 'REJECTED'; reply?: string }) =>
     api.patch<{ review: Review }>(`/reviews/${id}`, data).then((r) => r.data.review),
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/reviews/${id}`).then((r) => r.data),

@@ -314,6 +314,24 @@ export function sendMagicLink(
   });
 }
 
+export function sendReviewRequest(
+  to: string,
+  data: { studentName: string; reviewUrl: string; brand?: EmailBrand }
+) {
+  const school = data.brand?.schoolName;
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">How was your lesson?</h1>
+    <p style="color:#52525b">Hi ${esc(data.studentName)}, thanks for driving with ${school ? `<strong>${esc(school)}</strong>` : 'us'} today. A short review helps other students choose their instructor — it takes less than a minute.</p>
+    <p>${button(data.reviewUrl, 'Leave a review')}</p>
+    <p style="color:#a1a1aa;font-size:13px">Or open this link: ${esc(data.reviewUrl)}</p>`;
+  return sendEmail({
+    to,
+    subject: `How was your lesson?${subjectTag(data.brand)}`,
+    html: layout('Leave a review', body, data.brand),
+    brand: data.brand,
+  });
+}
+
 export function sendPasswordReset(to: string, data: { name?: string; resetUrl: string }) {
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Reset your password</h1>

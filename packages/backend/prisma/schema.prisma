@@ -285,9 +285,10 @@ model Booking {
   bookingDate   DateTime      @db.Date
   bookingTime   String
   duration      Int
-  status        BookingStatus @default(CONFIRMED)
-  reminderSent  Boolean       @default(false)
-  notes         String?
+  status            BookingStatus @default(CONFIRMED)
+  reminderSent      Boolean       @default(false)
+  reviewRequestSent Boolean       @default(false)
+  notes             String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -298,6 +299,7 @@ model Booking {
   @@index([websiteId, bookingDate])
   @@index([customerEmail])
   @@index([reminderSent])
+  @@index([reviewRequestSent])
 }
 
 // ---------------------------------------------------------------------------
