@@ -21,7 +21,8 @@ function buildTransport(): Transporter {
 }
 
 transporter = buildTransport();
-if (usingConsole) logger.info('Email: using console transport (set SMTP_* to send real email)');
+if (env.RESEND_API_KEY) logger.info('Email: using Resend API transport');
+else if (usingConsole) logger.info('Email: using console transport (set RESEND_API_KEY or SMTP_* to send real email)');
 
 // ---------------------------------------------------------------------------
 // Per-school branding
@@ -66,8 +67,40 @@ export interface SendArgs {
   brand?: EmailBrand;
 }
 
+/** From header as an RFC 5322 string ("Name <addr>") for the Resend API. */
+function fromString(brand?: EmailBrand): string {
+  const f = fromField(brand);
+  return typeof f === 'string' ? f : `${f.name} <${f.address}>`;
+}
+
+async function sendViaResend({ to, subject, html, text, brand }: SendArgs): Promise<boolean> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: fromString(brand),
+      to: [to],
+      subject,
+      html,
+      text: text ?? stripHtml(html),
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Resend ${res.status}: ${body.slice(0, 300)}`);
+  }
+  const { id } = (await res.json()) as { id: string };
+  logger.info(`📧 Email sent → ${to} :: ${subject} (resend ${id})`);
+  return true;
+}
+
 export async function sendEmail({ to, subject, html, text, brand }: SendArgs): Promise<boolean> {
   try {
+    if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand });
     const info = await transporter.sendMail({
       from: fromField(brand),
       to,

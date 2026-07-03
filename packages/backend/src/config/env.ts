@@ -17,6 +17,10 @@ const schema = z.object({
   APP_URL: z.string().default('http://localhost:4000'),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
 
+  // Email — RESEND_API_KEY sends via Resend's HTTPS API (works on hosts that
+  // block outbound SMTP ports, e.g. Railway); otherwise SMTP_* is used, and
+  // with neither set mail falls back to the console transport.
+  RESEND_API_KEY: z.string().optional(),
   // SMTP (optional — falls back to console transport if unset)
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().optional(),
