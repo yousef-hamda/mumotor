@@ -9,7 +9,7 @@ import { signToken, verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, conflict, unauthorized } from '../utils/errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
-import { sendPasswordReset } from '../services/email/emailService.js';
+import { sendEmailVerification, sendPasswordReset } from '../services/email/emailService.js';
 
 const router = Router();
 
@@ -28,8 +28,19 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-function publicUser(u: { id: string; email: string; name: string; phone: string | null; preferredLanguage?: string; role?: string }) {
-  return { id: u.id, email: u.email, name: u.name, phone: u.phone, preferredLanguage: u.preferredLanguage, role: u.role };
+function publicUser(u: { id: string; email: string; name: string; phone: string | null; preferredLanguage?: string; role?: string; emailVerified?: boolean }) {
+  return { id: u.id, email: u.email, name: u.name, phone: u.phone, preferredLanguage: u.preferredLanguage, role: u.role, emailVerified: u.emailVerified };
+}
+
+// Email verification: one-time KV token, 24h TTL, same shape as password reset.
+const VERIFY_TTL_SECONDS = 24 * 3600;
+async function sendVerification(user: { id: string; email: string; name: string }): Promise<void> {
+  const token = nanoid(48);
+  await kv.setex(`emailverify:${token}`, VERIFY_TTL_SECONDS, user.id);
+  void sendEmailVerification(user.email, {
+    name: user.name,
+    verifyUrl: `${env.FRONTEND_URL}/verify-email?token=${token}`,
+  });
 }
 
 // POST /auth/register
@@ -47,6 +58,8 @@ router.post(
     const user = await prisma.user.create({
       data: { email, passwordHash, name: data.name.trim(), phone: data.phone?.trim() },
     });
+
+    void sendVerification(user); // fire-and-forget; registration never blocks on email
 
     const token = signToken({ id: user.id, email: user.email });
     res.status(201).json({ token, user: publicUser(user) });
@@ -110,6 +123,35 @@ router.post(
     if (!ok) throw badRequest('Current password is incorrect', 'BAD_PASSWORD');
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, BCRYPT_ROUNDS) } });
     res.json({ success: true });
+  })
+);
+
+// POST /auth/verify-email — consume the token, mark the account verified.
+router.post(
+  '/verify-email',
+  rateLimit({ keyPrefix: 'verify-email', windowSeconds: 900, max: 15 }),
+  asyncHandler(async (req, res) => {
+    const { token } = z.object({ token: z.string().min(20).max(80) }).parse(req.body);
+    const userId = await kv.getdel(`emailverify:${token}`); // atomic: one use only
+    if (!userId) throw badRequest('Verification link is invalid or expired', 'VERIFY_INVALID');
+    await prisma.user.update({ where: { id: userId }, data: { emailVerified: true } });
+    res.json({ verified: true });
+  })
+);
+
+// POST /auth/resend-verification — logged-in user asks for a fresh link.
+router.post(
+  '/resend-verification',
+  verifyToken,
+  rateLimit({ keyPrefix: 'resend-verify', windowSeconds: 3600, max: 10 }),
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) throw unauthorized('Account not found');
+    if (!user.emailVerified) {
+      const perEmail = await kv.incrWithExpiry(`verify-email-sends:${user.email}`, 3600);
+      if (perEmail <= 5) await sendVerification(user);
+    }
+    res.json({ sent: true });
   })
 );
 

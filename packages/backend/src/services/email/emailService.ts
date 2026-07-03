@@ -109,7 +109,9 @@ export async function sendEmail({ to, subject, html, text, brand }: SendArgs): P
       text: text ?? stripHtml(html),
     });
     if (usingConsole) {
-      logger.info(`📧 [console-email] → ${to} :: ${subject}${brand ? ` (from: ${brand.schoolName})` : ''}`);
+      // Dev aid: surface the action link so local flows (verify/reset/review) are clickable from logs.
+      const link = html.match(/href="(https?:[^"]+)"/)?.[1] ?? '';
+      logger.info(`📧 [console-email] → ${to} :: ${subject}${brand ? ` (from: ${brand.schoolName})` : ''}${link ? ` :: ${link}` : ''}`);
     } else {
       logger.info(`📧 Email sent → ${to} :: ${subject} (${info.messageId})`);
     }
@@ -342,6 +344,19 @@ export function sendPasswordReset(to: string, data: { name?: string; resetUrl: s
     to,
     subject: 'Reset your Mumotor password',
     html: layout('Reset password', body),
+  });
+}
+
+export function sendEmailVerification(to: string, data: { name?: string; verifyUrl: string }) {
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Verify your email</h1>
+    <p style="color:#52525b">${data.name ? `Hi ${esc(data.name)},` : 'Hi,'} welcome to Mumotor. Please confirm this email address so you can recover your account and receive booking updates. The link expires in 24 hours.</p>
+    <p>${button(data.verifyUrl, 'Verify my email')}</p>
+    <p style="color:#a1a1aa;font-size:13px">If you didn't create a Mumotor account, you can safely ignore this email.</p>`;
+  return sendEmail({
+    to,
+    subject: 'Verify your Mumotor email',
+    html: layout('Verify email', body),
   });
 }
 

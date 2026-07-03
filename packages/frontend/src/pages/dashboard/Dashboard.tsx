@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Users, CalendarCheck, ExternalLink, ArrowRight, Plus, Pencil, GraduationCap } from 'lucide-react';
-import { apiError, siteUrl, websiteApi } from '../../lib/api';
+import { apiError, websiteApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Button, Card, CenteredSpinner, Field, Input, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -70,6 +70,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function SiteOverview({ website }: { website: Website }) {
   const live = website.status === 'PUBLISHED';
+  const liveUrl = `${window.location.origin}/p/${website.slug}`;
   return (
     <Card className="overflow-hidden p-0">
       <div className="border-b border-sand-200 bg-sand-50 p-6">
@@ -81,11 +82,11 @@ function SiteOverview({ website }: { website: Website }) {
             </div>
             {website.tagline && <p className="mt-0.5 text-sm text-sand-600">{website.tagline}</p>}
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
-              {website.slug}.mumotor.com
+              {liveUrl.replace(/^https?:\/\//, '')}
             </p>
           </div>
           {live && (
-            <a href={siteUrl(website.slug)} target="_blank" rel="noreferrer" className="btn-secondary">
+            <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">
               View live site <ExternalLink className="h-4 w-4" />
             </a>
           )}

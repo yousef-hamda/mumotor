@@ -5,6 +5,7 @@ export interface User {
   phone: string | null;
   preferredLanguage?: 'HE' | 'AR' | 'EN';
   role?: string;
+  emailVerified?: boolean;
 }
 
 export interface Review {

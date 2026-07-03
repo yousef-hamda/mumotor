@@ -1,12 +1,51 @@
 import { type ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, GraduationCap, Star, Rocket, CreditCard, Settings as SettingsIcon, LogOut, Menu, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { LayoutDashboard, GraduationCap, Star, Rocket, CreditCard, Settings as SettingsIcon, LogOut, MailWarning, Menu, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
+import { apiError, authApi } from '../../lib/api';
 import { cn } from '../../lib/utils';
 import { Logo } from '../Logo';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { NotificationBell } from '../NotificationBell';
+
+/** Soft nudge to verify the account email — dismissible for the session, blocks nothing. */
+function VerifyEmailBanner() {
+  const { user } = useAuth();
+  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem('mm_verify_dismissed') === '1');
+  const [sending, setSending] = useState(false);
+  if (!user || user.emailVerified !== false || dismissed) return null;
+
+  const resend = async () => {
+    setSending(true);
+    try {
+      await authApi.resendVerification();
+      toast.success(`Verification email sent to ${user.email}`);
+    } catch (e) {
+      toast.error(apiError(e).message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:px-6">
+      <MailWarning className="h-4 w-4 shrink-0" />
+      <span>Please verify your email address — check your inbox for the link.</span>
+      <button onClick={resend} disabled={sending} className="font-semibold underline underline-offset-2 hover:opacity-80 disabled:opacity-50">
+        {sending ? 'Sending…' : 'Resend link'}
+      </button>
+      <button
+        onClick={() => { sessionStorage.setItem('mm_verify_dismissed', '1'); setDismissed(true); }}
+        className="ms-auto rounded-md p-1 hover:bg-amber-100"
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
 
 const nav = [
   { to: '/dashboard', labelKey: 'common.overview', icon: LayoutDashboard, exact: true },
@@ -119,6 +158,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <NotificationBell />
           </div>
         </header>
+        <VerifyEmailBanner />
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>

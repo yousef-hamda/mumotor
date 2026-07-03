@@ -77,6 +77,10 @@ export const authApi = {
     api.post<{ sent: boolean }>('/auth/forgot-password', { email }).then((r) => r.data),
   resetPassword: (token: string, newPassword: string) =>
     api.post<{ success: boolean }>('/auth/reset-password', { token, newPassword }).then((r) => r.data),
+  verifyEmail: (token: string) =>
+    api.post<{ verified: boolean }>('/auth/verify-email', { token }).then((r) => r.data),
+  resendVerification: () =>
+    api.post<{ sent: boolean }>('/auth/resend-verification').then((r) => r.data),
 };
 
 // Reviews
