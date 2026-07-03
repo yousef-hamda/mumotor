@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, X } from 'lucide-react';
 import { apiError, drivingSchoolApi } from '../../lib/api';
 import { Button, Card, CenteredSpinner, Field, Input, Modal } from '../../components/ui';
 import { PublicShell } from '../../components/PublicShell';
@@ -64,6 +64,7 @@ export default function BookLesson() {
   const [selectedTime, setSelectedTime] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pauseOpen, setPauseOpen] = useState(false);
+  const [myLessonsOpen, setMyLessonsOpen] = useState(false);
 
   // Magic-link auto-fill
   useEffect(() => {
@@ -380,10 +381,19 @@ export default function BookLesson() {
         </FadeUp>
       )}
 
-      {/* Footer: pause */}
+      {/* Footer: my lessons + pause */}
       {step !== 'done' && (
-        <p className="mt-6 text-center text-xs text-sand-500">
-          Need a break?{' '}
+        <p className="mt-6 flex items-center justify-center gap-4 text-center text-xs text-sand-500">
+          <button
+            onClick={() => {
+              if (!email) return toast('Enter your email first');
+              setMyLessonsOpen(true);
+            }}
+            className="font-medium text-sand-600 underline transition-colors hover:text-sand-900"
+          >
+            My lessons
+          </button>
+          <span aria-hidden="true">·</span>
           <button
             onClick={() => {
               if (!email) return toast('Enter your email first');
@@ -425,7 +435,122 @@ export default function BookLesson() {
         onClose={() => setPauseOpen(false)}
         onConfirm={(code) => pause.mutate(code)}
       />
+
+      {/* My lessons modal */}
+      <MyLessonsModal
+        open={myLessonsOpen}
+        email={email}
+        websiteId={settings.id}
+        onClose={() => setMyLessonsOpen(false)}
+        onChanged={() => availability.refetch()}
+      />
     </PublicShell>
+  );
+}
+
+function MyLessonsModal({
+  open,
+  email,
+  websiteId,
+  onClose,
+  onChanged,
+}: {
+  open: boolean;
+  email: string;
+  websiteId: string;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const [code, setCode] = useState('');
+  const [unlocked, setUnlocked] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
+
+  const lessons = useMutation({
+    mutationFn: () => drivingSchoolApi.myBookings(websiteId, { email: email.trim(), enrollmentCode: code.trim() }),
+    onSuccess: () => setUnlocked(true),
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
+  const cancel = useMutation({
+    mutationFn: (bookingId: string) =>
+      drivingSchoolApi.cancelMyBooking(websiteId, bookingId, { email: email.trim(), enrollmentCode: code.trim() }),
+    onSuccess: () => {
+      toast.success('Lesson cancelled');
+      setCancelId(null);
+      lessons.mutate(); // refresh the list
+      onChanged();
+    },
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
+  const close = () => {
+    setUnlocked(false);
+    setCode('');
+    setCancelId(null);
+    onClose();
+  };
+
+  return (
+    <Modal open={open} onClose={close} title="My lessons">
+      {!unlocked ? (
+        <>
+          <p className="text-sm text-sand-600">
+            Enter the enrollment code you got from your instructor to see the upcoming lessons booked for{' '}
+            <strong className="text-sand-900">{email}</strong>.
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (code.trim().length < 4) return toast.error('Enter your enrollment code');
+              lessons.mutate();
+            }}
+            className="mt-4 space-y-4"
+          >
+            <Field label="Enrollment code">
+              <Input value={code} onChange={(e) => setCode(e.target.value)} className="font-mono tracking-widest" placeholder="Your code" />
+            </Field>
+            <Button variant="primary" type="submit" loading={lessons.isPending} className="w-full">
+              Show my lessons
+            </Button>
+          </form>
+        </>
+      ) : !lessons.data || lessons.data.length === 0 ? (
+        <p className="py-4 text-center text-sm text-sand-600">You have no upcoming lessons booked.</p>
+      ) : (
+        <div className="space-y-2">
+          {lessons.data.map((b) => (
+            <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-sand-200 bg-sand-50 p-3">
+              <div>
+                <p className="text-sm font-semibold text-sand-900">{formatDateLong(b.date)}</p>
+                <p className="font-mono text-sm tabular-nums text-sand-600">
+                  {b.time} · {b.duration} min
+                </p>
+              </div>
+              {cancelId === b.id ? (
+                <div className="flex items-center gap-2">
+                  <Button variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(b.id)}>
+                    Confirm
+                  </Button>
+                  <Button variant="secondary" onClick={() => setCancelId(null)}>Keep</Button>
+                </div>
+              ) : b.cancellable ? (
+                <button
+                  onClick={() => setCancelId(b.id)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-ember-600 hover:underline"
+                >
+                  <X className="h-3.5 w-3.5" /> Cancel
+                </button>
+              ) : (
+                <span className="text-xs text-sand-400" title="Lessons can be cancelled up to 2 hours before they start">
+                  Starts soon
+                </span>
+              )}
+            </div>
+          ))}
+          <p className="pt-1 text-center text-xs text-sand-500">Lessons can be cancelled up to 2 hours before they start.</p>
+        </div>
+      )}
+    </Modal>
   );
 }
 

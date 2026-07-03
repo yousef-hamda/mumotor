@@ -316,6 +316,40 @@ export function sendMagicLink(
   });
 }
 
+export function sendBookingCancelled(
+  to: string,
+  data: {
+    recipientName: string;
+    date: string;
+    time: string;
+    /** Who cancelled — copy adapts for the other party. */
+    cancelledBy: 'teacher' | 'student';
+    studentName?: string;
+    brand?: EmailBrand;
+  }
+) {
+  const school = data.brand?.schoolName;
+  const intro =
+    data.cancelledBy === 'teacher'
+      ? `Hi ${esc(data.recipientName)}, unfortunately your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} had to be cancelled.`
+      : `Hi ${esc(data.recipientName)}, ${esc(data.studentName ?? 'a student')} cancelled their lesson — the slot is open again for other students.`;
+  const outro =
+    data.cancelledBy === 'teacher'
+      ? 'Sorry for the inconvenience — you can book a new time whenever suits you.'
+      : 'No action needed; your availability updated automatically.';
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Lesson cancelled</h1>
+    <p style="color:#52525b">${intro}</p>
+    ${infoBox(`<p style="margin:0;font-size:16px"><strong>${esc(data.date)} at ${esc(data.time)}</strong></p>`)}
+    <p style="color:#52525b">${outro}</p>`;
+  return sendEmail({
+    to,
+    subject: `Lesson cancelled — ${data.date} at ${data.time}${subjectTag(data.brand)}`,
+    html: layout('Lesson cancelled', body, data.brand),
+    brand: data.brand,
+  });
+}
+
 export function sendReviewRequest(
   to: string,
   data: { studentName: string; reviewUrl: string; brand?: EmailBrand }

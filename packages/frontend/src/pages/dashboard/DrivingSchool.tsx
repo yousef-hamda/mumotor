@@ -435,9 +435,21 @@ function StudentsTab({ website }: { website: Website }) {
 // Tab: Today's Schedule
 // ===========================================================================
 function ScheduleTab({ website }: { website: Website }) {
+  const qc = useQueryClient();
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['daily-report', website.id],
     queryFn: () => drivingSchoolApi.getDailyReport(website.id),
+  });
+  const [cancelTarget, setCancelTarget] = useState<{ bookingId: string; time: string; studentName?: string } | null>(null);
+
+  const cancelBooking = useMutation({
+    mutationFn: (bookingId: string) => drivingSchoolApi.cancelBooking(website.id, bookingId),
+    onSuccess: () => {
+      toast.success('Lesson cancelled — the student was emailed and the slot is free again');
+      setCancelTarget(null);
+      qc.invalidateQueries({ queryKey: ['daily-report', website.id] });
+    },
+    onError: (e) => toast.error(apiError(e).message),
   });
 
   if (isLoading) return <CenteredSpinner />;
@@ -499,12 +511,38 @@ function ScheduleTab({ website }: { website: Website }) {
                   {typeof slot.classCount === 'number' && (
                     <p className="mt-1 text-xs text-sand-500">Lesson #{slot.classCount}</p>
                   )}
+                  {slot.bookingId && (
+                    <button
+                      onClick={() => setCancelTarget({ bookingId: slot.bookingId!, time: slot.time, studentName: slot.studentName })}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-ember-600 hover:underline"
+                    >
+                      <X className="h-3.5 w-3.5" /> Cancel lesson
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           ))}
         </div>
       )}
+
+      <Modal open={Boolean(cancelTarget)} onClose={() => setCancelTarget(null)} title="Cancel this lesson?">
+        <p className="text-sm text-sand-600">
+          {cancelTarget?.studentName ? `${cancelTarget.studentName}'s` : 'The'} lesson at{' '}
+          <strong className="text-sand-900">{cancelTarget?.time}</strong> will be cancelled. The student
+          gets an email and the slot opens up for other students.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setCancelTarget(null)}>Keep lesson</Button>
+          <Button
+            variant="danger"
+            loading={cancelBooking.isPending}
+            onClick={() => cancelTarget && cancelBooking.mutate(cancelTarget.bookingId)}
+          >
+            Cancel lesson
+          </Button>
+        </div>
+      </Modal>
     </Card>
   );
 }

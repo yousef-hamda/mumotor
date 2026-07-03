@@ -31,6 +31,7 @@ import { consumeMagicToken, generateMagicToken } from '../services/auth/magicLin
 import { createNotification } from '../services/notifications/notificationService.js';
 import {
   sendBulkCustomEmail,
+  sendBookingCancelled,
   sendBookingConfirmation,
   sendMagicLink,
   sendWelcomeEnrollment,
@@ -58,6 +59,28 @@ const requireOwnership = asyncHandler(async (req: Request, res: Response, next: 
 const teacher = [verifyToken, requireOwnership];
 
 const normalizeEmail = (e: string) => e.trim().toLowerCase();
+
+const STUDENT_CANCEL_CUTOFF_MINUTES = 120; // students can cancel up to 2h before the lesson
+
+/** Email + enrollment-code identity proof for public student actions (anti-IDOR).
+ *  Same generic-error pattern as self-deactivate. */
+async function proveStudentIdentity(websiteId: string, rawEmail: string, enrollmentCode: string) {
+  const email = normalizeEmail(rawEmail);
+  const enrollment = await prisma.clientEnrollment.findUnique({
+    where: { websiteId_studentEmail: { websiteId, studentEmail: email } },
+  });
+  if (!enrollment || !verifyEnrollmentCode(enrollmentCode.trim(), enrollment.enrollmentCode)) {
+    throw unauthorized('Email or code is incorrect', 'BAD_IDENTITY');
+  }
+  return { email, enrollment };
+}
+
+/** Minutes until a booking starts, in the app timezone wall-clock (negative = already started). */
+function minutesUntilLesson(bookingDate: Date, bookingTime: string): number {
+  const { ymd, hhmm } = nowInZone(env.APP_TIMEZONE);
+  const dayDiff = diffDaysUtc(toUtcMidnight(ymd), bookingDate);
+  return dayDiff * 24 * 60 + (parseTimeToMinutes(bookingTime) - parseTimeToMinutes(hhmm));
+}
 
 // get-or-create the single "Driving Lesson" service
 async function getOrCreateLessonService(
@@ -802,6 +825,32 @@ router.delete(
   })
 );
 
+// POST /driving-school/:websiteId/bookings/:bookingId/cancel — teacher cancels a lesson
+router.post(
+  '/:websiteId/bookings/:bookingId/cancel',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const booking = await prisma.booking.findUnique({ where: { id: req.params.bookingId } });
+    if (!booking || booking.websiteId !== website.id) throw notFound('Booking not found');
+    if (booking.status !== 'CONFIRMED' && booking.status !== 'PENDING') {
+      throw badRequest('This lesson is not active', 'NOT_ACTIVE');
+    }
+
+    await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+
+    void sendBookingCancelled(booking.customerEmail, {
+      recipientName: booking.customerName,
+      date: booking.bookingDate.toISOString().slice(0, 10),
+      time: booking.bookingTime,
+      cancelledBy: 'teacher',
+      brand: siteBrand(website),
+    });
+
+    res.json({ cancelled: true });
+  })
+);
+
 // GET /driving-school/:websiteId/daily-report  (today's full schedule)
 router.get(
   '/:websiteId/daily-report',
@@ -831,6 +880,87 @@ router.get(
       })),
       totals: { booked: schedule.bookedCount, empty: schedule.emptyCount, total: schedule.total },
     });
+  })
+);
+
+// POST /driving-school/:websiteId/my-bookings — student lists their upcoming
+// lessons. POST (not GET) so the enrollment code never lands in URLs/logs.
+router.post(
+  '/:websiteId/my-bookings',
+  rateLimit({ keyPrefix: 'my-bookings', windowSeconds: 60, max: 10 }),
+  asyncHandler(async (req, res) => {
+    const data = z
+      .object({ email: z.string().email(), enrollmentCode: z.string().min(1) })
+      .parse(req.body);
+    const { email } = await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        websiteId: req.params.websiteId,
+        customerEmail: email,
+        status: 'CONFIRMED',
+        bookingDate: { gte: todayUtcMidnight() },
+      },
+      orderBy: [{ bookingDate: 'asc' }, { bookingTime: 'asc' }],
+      select: { id: true, bookingDate: true, bookingTime: true, duration: true },
+    });
+
+    res.json({
+      bookings: bookings.map((b) => ({
+        id: b.id,
+        date: b.bookingDate.toISOString().slice(0, 10),
+        time: b.bookingTime,
+        duration: b.duration,
+        cancellable: minutesUntilLesson(b.bookingDate, b.bookingTime) > STUDENT_CANCEL_CUTOFF_MINUTES,
+      })),
+    });
+  })
+);
+
+// POST /driving-school/:websiteId/bookings/:bookingId/cancel-by-student
+router.post(
+  '/:websiteId/bookings/:bookingId/cancel-by-student',
+  rateLimit({ keyPrefix: 'cancel-booking', windowSeconds: 60, max: 10 }),
+  asyncHandler(async (req, res) => {
+    const data = z
+      .object({ email: z.string().email(), enrollmentCode: z.string().min(1) })
+      .parse(req.body);
+    const { email } = await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.bookingId },
+      include: { website: { include: { user: { select: { email: true, name: true } } } } },
+    });
+    // Anti-IDOR: the booking must belong to this site AND to the proven student.
+    if (!booking || booking.websiteId !== req.params.websiteId || booking.customerEmail !== email) {
+      throw notFound('Booking not found');
+    }
+    if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
+    if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
+      throw badRequest(
+        'Lessons can be cancelled up to 2 hours before they start. Please contact your instructor directly.',
+        'CANCEL_TOO_LATE'
+      );
+    }
+
+    await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+
+    const date = booking.bookingDate.toISOString().slice(0, 10);
+    void sendBookingCancelled(booking.website.user.email, {
+      recipientName: booking.website.user.name,
+      date,
+      time: booking.bookingTime,
+      cancelledBy: 'student',
+      studentName: booking.customerName,
+      brand: siteBrand(booking.website),
+    });
+    void createNotification(booking.website.userId, {
+      type: 'BOOKING',
+      title: 'Lesson cancelled by student',
+      body: `${booking.customerName} cancelled ${date} at ${booking.bookingTime} — the slot is free again`,
+    });
+
+    res.json({ cancelled: true });
   })
 );
 

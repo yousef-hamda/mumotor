@@ -225,6 +225,8 @@ export const drivingSchoolApi = {
     api.delete<{ deleted: boolean }>(`/driving-school/${websiteId}/students/${enrollmentId}`).then((r) => r.data),
   getDailyReport: (websiteId: string) =>
     api.get<DailyReport>(`/driving-school/${websiteId}/daily-report`).then((r) => r.data),
+  cancelBooking: (websiteId: string, bookingId: string) =>
+    api.post<{ cancelled: boolean }>(`/driving-school/${websiteId}/bookings/${bookingId}/cancel`).then((r) => r.data),
   getDailyCode: (websiteId: string) =>
     api.get<DailyCode>(`/driving-school/${websiteId}/daily-code`).then((r) => r.data),
   sendBulkEmail: (websiteId: string, data: { subject: string; body: string; targetGroup: 'all' | 'active' | 'inactive' }) =>
@@ -269,6 +271,17 @@ export const drivingSchoolApi = {
     api.post<{ valid: boolean }>(`/driving-school/${websiteId}/daily-code/validate`, data).then((r) => r.data),
   selfDeactivate: (data: { email: string; websiteId: string; enrollmentCode: string }) =>
     api.post<{ status: string; message: string }>('/driving-school/self-deactivate', data).then((r) => r.data),
+  myBookings: (websiteId: string, data: { email: string; enrollmentCode: string }) =>
+    api
+      .post<{ bookings: { id: string; date: string; time: string; duration: number; cancellable: boolean }[] }>(
+        `/driving-school/${websiteId}/my-bookings`,
+        data
+      )
+      .then((r) => r.data.bookings),
+  cancelMyBooking: (websiteId: string, bookingId: string, data: { email: string; enrollmentCode: string }) =>
+    api
+      .post<{ cancelled: boolean }>(`/driving-school/${websiteId}/bookings/${bookingId}/cancel-by-student`, data)
+      .then((r) => r.data),
   requestMagicLink: (websiteId: string, email: string) =>
     api.post<{ sent: boolean }>(`/driving-school/${websiteId}/request-magic-link`, { email }).then((r) => r.data),
 };
