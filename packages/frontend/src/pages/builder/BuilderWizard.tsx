@@ -105,6 +105,11 @@ export default function BuilderWizard() {
   }, [config, user?.id, restorePrompt]);
   const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
 
+  // Each wizard step is the same route with different content, so ScrollToTop
+  // (which fires on route change) can't see it — reset to the top on step change
+  // so a step never opens scrolled halfway down (e.g. the Templates gallery).
+  useEffect(() => { window.scrollTo(0, 0); }, [step]);
+
   const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'design' : step) as Step));
   const showStepper = step !== 'welcome' && step !== 'done' && step !== 'customize';
   const wide = step === 'design' || step === 'browse';
@@ -823,10 +828,9 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
 }
 
 function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard: () => void }) {
-  // In production each teacher gets their own subdomain ({slug}.mumotor.com, served
-  // by wildcard DNS); elsewhere (dev) fall back to the working /p/:slug path.
-  const onMumotor = window.location.hostname.endsWith('mumotor.com');
-  const liveUrl = onMumotor ? `https://${result.slug}.mumotor.com` : `${window.location.origin}/p/${result.slug}`;
+  // The real, working site URL. (Per-teacher subdomains would need wildcard DNS,
+  // which isn't set up — showing one here would hand teachers a dead link.)
+  const liveUrl = `${window.location.origin}/p/${result.slug}`;
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900"><Check className="h-8 w-8 text-white" strokeWidth={1.75} /></div>
