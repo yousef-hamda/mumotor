@@ -355,6 +355,10 @@ model Booking {
   @@index([customerEmail])
   @@index([reminderSent])
   @@index([reviewRequestSent])
+  // NOTE: a PARTIAL unique index "Booking_slot_unique" on
+  // (websiteId, bookingDate, bookingTime) WHERE status <> 'CANCELLED' enforces
+  // no-double-booking at the DB level. Prisma can't express partial uniques, so
+  // it lives in migration 20260704114405_booking_slot_unique — do not drop it.
 }
 
 // ---------------------------------------------------------------------------

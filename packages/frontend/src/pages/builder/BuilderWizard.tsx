@@ -823,9 +823,10 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
 }
 
 function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard: () => void }) {
-  const liveUrl = `${window.location.origin}/p/${result.slug}`;
-  // Show the REAL working URL — per-teacher subdomains need wildcard DNS that
-  // isn't live yet, so displaying result.subdomain would hand teachers a dead link.
+  // In production each teacher gets their own subdomain ({slug}.mumotor.com, served
+  // by wildcard DNS); elsewhere (dev) fall back to the working /p/:slug path.
+  const onMumotor = window.location.hostname.endsWith('mumotor.com');
+  const liveUrl = onMumotor ? `https://${result.slug}.mumotor.com` : `${window.location.origin}/p/${result.slug}`;
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900"><Check className="h-8 w-8 text-white" strokeWidth={1.75} /></div>

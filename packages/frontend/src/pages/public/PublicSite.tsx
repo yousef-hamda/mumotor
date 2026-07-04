@@ -1,5 +1,6 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTenantSlug } from '../../lib/tenant';
 import { drivingSchoolApi, reviewsApi } from '../../lib/api';
 import { CenteredSpinner } from '../../components/ui';
 import { LogoMark } from '../../components/Logo';
@@ -13,7 +14,7 @@ import { useSeo } from '../../lib/seo';
  * builder, populated with their real data (logo, info, links, hours).
  */
 export default function PublicSite() {
-  const { websiteSlug = '' } = useParams();
+  const websiteSlug = useTenantSlug();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['public-settings', websiteSlug],
     queryFn: () => drivingSchoolApi.getPublicSettings(websiteSlug),

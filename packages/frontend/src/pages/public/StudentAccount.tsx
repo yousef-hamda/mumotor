@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CalendarDays, MessageSquare, User, LogOut, ArrowRight, Send } from 'lucide-react';
@@ -19,7 +20,7 @@ import {
 type Tab = 'lessons' | 'chat' | 'profile';
 
 export default function StudentAccount() {
-  const { websiteSlug = '' } = useParams();
+  const websiteSlug = useTenantSlug();
   const qc = useQueryClient();
 
   const { data: settings, isLoading: settingsLoading } = useQuery({

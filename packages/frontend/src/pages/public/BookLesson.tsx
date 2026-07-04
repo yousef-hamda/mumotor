@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
@@ -36,7 +37,7 @@ const hhmmToMin = (s: string) => {
 };
 
 export default function BookLesson() {
-  const { websiteSlug = '' } = useParams();
+  const websiteSlug = useTenantSlug();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
 

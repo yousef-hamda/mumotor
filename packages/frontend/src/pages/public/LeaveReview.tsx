@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CheckCircle2, Star } from 'lucide-react';
@@ -47,7 +48,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (n: number) 
 }
 
 export default function LeaveReview() {
-  const { websiteSlug = '' } = useParams();
+  const websiteSlug = useTenantSlug();
   const { data: settings, isLoading, isError } = useQuery({
     queryKey: ['public-settings', websiteSlug],
     queryFn: () => drivingSchoolApi.getPublicSettings(websiteSlug),

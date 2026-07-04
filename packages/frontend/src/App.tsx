@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { getTenantSlug } from './lib/tenant';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import Landing from './pages/Landing';
@@ -32,7 +33,36 @@ function EditorRedirect() {
   return <Navigate to={`/customize/${id}`} replace />;
 }
 
+/**
+ * On a teacher's own subdomain (`{slug}.mumotor.com`) the app IS that teacher's
+ * site: `/` is their published site and the student flows live at short paths.
+ * The `/p/:websiteSlug/*` routes stay mounted too, so any absolute link the
+ * templates emit still resolves on the subdomain. Marketing + dashboard + auth
+ * live only on the apex host.
+ */
+function TenantApp() {
+  return (
+    <Routes>
+      <Route path="/" element={<PublicSite />} />
+      <Route path="/enroll" element={<Enroll />} />
+      <Route path="/book-lesson" element={<BookLesson />} />
+      <Route path="/account" element={<StudentAccount />} />
+      <Route path="/review" element={<LeaveReview />} />
+      {/* absolute links from templates (/p/:slug/...) still work on the subdomain */}
+      <Route path="/p/:websiteSlug" element={<PublicSite />} />
+      <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
+      <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
+      <Route path="/p/:websiteSlug/account" element={<StudentAccount />} />
+      <Route path="/p/:websiteSlug/review" element={<LeaveReview />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 export default function App() {
+  // Per-teacher subdomain → serve that teacher's site + student flows only.
+  if (getTenantSlug()) return <TenantApp />;
+
   return (
     <Routes>
       {/* Marketing + auth */}
