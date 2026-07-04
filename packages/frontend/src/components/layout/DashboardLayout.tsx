@@ -2,7 +2,7 @@ import { type ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, GraduationCap, Star, Rocket, CreditCard, Settings as SettingsIcon, LogOut, MailWarning, Menu, X } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, Star, MessageSquare, Rocket, CreditCard, Settings as SettingsIcon, LogOut, MailWarning, Menu, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { apiError, authApi } from '../../lib/api';
 import { cn } from '../../lib/utils';
@@ -51,6 +51,7 @@ const nav = [
   { to: '/dashboard', labelKey: 'common.overview', icon: LayoutDashboard, exact: true },
   { to: '/dashboard/driving-school', labelKey: 'common.drivingTeacher', icon: GraduationCap },
   { to: '/dashboard/reviews', labelKey: 'common.reviews', icon: Star },
+  { to: '/dashboard/messages', labelKey: 'common.messages', icon: MessageSquare },
   { to: '/dashboard/publishing', labelKey: 'common.publishing', icon: Rocket },
   { to: '/dashboard/billing', labelKey: 'common.billing', icon: CreditCard },
   { to: '/dashboard/settings', labelKey: 'common.settings', icon: SettingsIcon },

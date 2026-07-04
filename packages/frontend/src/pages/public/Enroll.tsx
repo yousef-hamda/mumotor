@@ -4,9 +4,16 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiError, drivingSchoolApi } from '../../lib/api';
-import { Button, Card, CenteredSpinner, Field, Input } from '../../components/ui';
-import { PublicShell } from '../../components/PublicShell';
-import { FadeUp } from '../../components/motion';
+import { TEMPLATES } from '../../templates/registry';
+import { dirForLocale } from '../../lib/templateTheme';
+import {
+  TemplatedShell,
+  BookButton,
+  BookCard,
+  BookField,
+  BookInput,
+  BookSpinner,
+} from '../../components/public/TemplatedShell';
 
 export default function Enroll() {
   const { websiteSlug = '' } = useParams();
@@ -40,97 +47,110 @@ export default function Enroll() {
     },
   });
 
-  if (isLoading) return <PublicShell><CenteredSpinner label="Loading…" /></PublicShell>;
+  const slug =
+    settings?.template && TEMPLATES.some((t) => t.slug === settings.template) ? settings.template : TEMPLATES[0].slug;
+  const shellProps = {
+    slug,
+    theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
+    dir: dirForLocale(settings?.locale),
+    schoolName: settings?.name,
+    logoSrc: settings?.logoSrc,
+    publicSlug: websiteSlug,
+  };
+
+  if (isLoading)
+    return (
+      <TemplatedShell slug={slug} publicSlug={websiteSlug}>
+        <BookSpinner label="Loading…" />
+      </TemplatedShell>
+    );
   if (isError || !settings)
     return (
-      <PublicShell>
-        <Card className="text-center">
-          <h1 className="text-lg font-semibold text-sand-900">School not found</h1>
-          <p className="mt-1 text-sm text-sand-600">This enrollment link may be incorrect or no longer active.</p>
-        </Card>
-      </PublicShell>
+      <TemplatedShell slug={slug} publicSlug={websiteSlug}>
+        <BookCard>
+          <h1 className="book-title">School not found</h1>
+          <p className="book-sub">This enrollment link may be incorrect or no longer active.</p>
+        </BookCard>
+      </TemplatedShell>
     );
 
   const bookHref = `/p/${websiteSlug}/book-lesson`;
+  const accountHref = `/p/${websiteSlug}/account`;
 
   if (done || alreadyEnrolled)
     return (
-      <PublicShell schoolName={settings.name} slug={websiteSlug}>
-        <FadeUp>
-          <Card className="text-center">
-            <div className="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-              <CheckCircle2 className="h-9 w-9 text-emerald-600" strokeWidth={1.75} />
-            </div>
-            <h1 className="mt-4 text-xl font-semibold tracking-tight text-sand-900">
-              {alreadyEnrolled ? "You're already enrolled" : "You're enrolled"}
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-sand-600">
-              {alreadyEnrolled
-                ? 'This email is already registered. You can go straight to booking your next lesson.'
-                : `Welcome to ${settings.name}. You can book a lesson online whenever it suits you.`}
-            </p>
-            <Link to={bookHref} className="btn-primary mt-6 w-full">
-              Book a lesson <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Card>
-        </FadeUp>
-      </PublicShell>
+      <TemplatedShell {...shellProps}>
+        <BookCard>
+          <div className="book-check">
+            <CheckCircle2 style={{ height: '2.2rem', width: '2.2rem' }} strokeWidth={1.75} />
+          </div>
+          <h1 className="book-title" style={{ marginTop: '1rem', textAlign: 'center' }}>
+            {alreadyEnrolled ? "You're already enrolled" : "You're enrolled"}
+          </h1>
+          <p className="book-sub" style={{ textAlign: 'center' }}>
+            {alreadyEnrolled
+              ? 'This email is already registered. You can go straight to booking your next lesson.'
+              : `Welcome to ${settings.name}. You can book a lesson online whenever it suits you.`}
+          </p>
+          <Link to={bookHref} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.4rem' }}>
+            Book a lesson <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+          </Link>
+          <Link to={accountHref} className="book-btn book-btn-secondary book-btn-block" style={{ marginTop: '0.6rem' }}>
+            Go to my account
+          </Link>
+        </BookCard>
+      </TemplatedShell>
     );
 
   return (
-    <PublicShell schoolName={settings.name} slug={websiteSlug}>
-      <FadeUp>
-        <Card>
-          <p className="section-eyebrow">Student enrollment</p>
-          <h1 className="mt-3 text-xl font-semibold tracking-tight text-sand-900">
-            Enroll at {settings.name}
-          </h1>
-          <p className="mt-1 text-sm text-sand-600">
-            Enter your details and the code your instructor gave you to get started.
-          </p>
+    <TemplatedShell {...shellProps}>
+      <BookCard>
+        <p className="book-eyebrow">Student enrollment</p>
+        <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
+          Enroll at {settings.name}
+        </h1>
+        <p className="book-sub">Enter your details and the code your instructor gave you to get started.</p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
-              if (!/^[+\d][\d\s-]{6,18}$/.test(form.studentPhone.trim()))
-                return toast.error('Please enter a valid phone number');
-              if (form.enrollmentCode.trim().length < 4) return toast.error('Enrollment code looks too short');
-              enroll.mutate();
-            }}
-            className="mt-6 space-y-4"
-          >
-            <Field label="Full name">
-              <Input value={form.studentName} onChange={set('studentName')} placeholder="Jane Doe" required />
-            </Field>
-            <Field label="Email">
-              <Input type="email" value={form.studentEmail} onChange={set('studentEmail')} placeholder="jane@example.com" required />
-            </Field>
-            <Field label="Phone">
-              <Input type="tel" value={form.studentPhone} onChange={set('studentPhone')} placeholder="+972 50 123 4567" required />
-            </Field>
-            <Field label="Enrollment code">
-              <Input
-                value={form.enrollmentCode}
-                onChange={set('enrollmentCode')}
-                placeholder="e.g. DRIVE2026"
-                className="font-mono tracking-widest"
-                required
-              />
-            </Field>
-            <Button variant="primary" type="submit" loading={enroll.isPending} className="w-full">
-              Enroll
-            </Button>
-          </form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
+            if (!/^[+\d][\d\s-]{6,18}$/.test(form.studentPhone.trim())) return toast.error('Please enter a valid phone number');
+            if (form.enrollmentCode.trim().length < 4) return toast.error('Enrollment code looks too short');
+            enroll.mutate();
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
+        >
+          <BookField label="Full name">
+            <BookInput value={form.studentName} onChange={set('studentName')} placeholder="Jane Doe" required />
+          </BookField>
+          <BookField label="Email">
+            <BookInput type="email" value={form.studentEmail} onChange={set('studentEmail')} placeholder="jane@example.com" required />
+          </BookField>
+          <BookField label="Phone">
+            <BookInput type="tel" value={form.studentPhone} onChange={set('studentPhone')} placeholder="+972 50 123 4567" required />
+          </BookField>
+          <BookField label="Enrollment code">
+            <BookInput
+              value={form.enrollmentCode}
+              onChange={set('enrollmentCode')}
+              placeholder="e.g. DRIVE2026"
+              style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }}
+              required
+            />
+          </BookField>
+          <BookButton variant="primary" type="submit" loading={enroll.isPending} className="book-btn-block">
+            Enroll
+          </BookButton>
+        </form>
 
-          <p className="mt-5 text-center text-sm text-sand-600">
-            Already enrolled?{' '}
-            <Link to={bookHref} className="link-underline">
-              Book a lesson
-            </Link>
-          </p>
-        </Card>
-      </FadeUp>
-    </PublicShell>
+        <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+          Already enrolled?{' '}
+          <Link to={bookHref} className="book-link">
+            Book a lesson
+          </Link>
+        </p>
+      </BookCard>
+    </TemplatedShell>
   );
 }

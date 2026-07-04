@@ -10,6 +10,7 @@ import VerifyEmail from './pages/auth/VerifyEmail';
 import DashboardHome from './pages/dashboard/Dashboard';
 import DrivingSchool from './pages/dashboard/DrivingSchool';
 import Reviews from './pages/dashboard/Reviews';
+import Messages from './pages/dashboard/Messages';
 import Publishing from './pages/dashboard/Publishing';
 import Billing from './pages/dashboard/Billing';
 import Settings from './pages/dashboard/Settings';
@@ -20,6 +21,7 @@ import PublicSite from './pages/public/PublicSite';
 import Enroll from './pages/public/Enroll';
 import BookLesson from './pages/public/BookLesson';
 import LeaveReview from './pages/public/LeaveReview';
+import StudentAccount from './pages/public/StudentAccount';
 import TemplatesGallery from './pages/templates/TemplatesGallery';
 import TemplatePreview from './pages/templates/TemplatePreview';
 import NotFound from './pages/NotFound';
@@ -87,6 +89,16 @@ export default function App() {
         }
       />
       <Route
+        path="/dashboard/messages"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Messages />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/publishing"
         element={
           <ProtectedRoute>
@@ -121,6 +133,7 @@ export default function App() {
       <Route path="/p/:websiteSlug" element={<PublicSite />} />
       <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
       <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
+      <Route path="/p/:websiteSlug/account" element={<StudentAccount />} />
       <Route path="/p/:websiteSlug/review" element={<LeaveReview />} />
 
       <Route

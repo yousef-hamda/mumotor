@@ -253,7 +253,7 @@ export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
     transmission: c.transmission,
     plans: c.plans,
     experienceLevel: c.experienceLevel,
-    advanceBookingDays: 14,
+    advanceBookingDays: 1,
     bookingCutoffHour: Number((c.reportTime || '18:00').split(':')[0]) || 18,
     dailyCodeEnabled: true,
     restMinutes: c.restEnabled ? c.restMinutes : 0,

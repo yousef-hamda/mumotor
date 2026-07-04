@@ -83,6 +83,12 @@ enum NotificationType {
   REVIEW
   BILLING
   SYSTEM
+  MESSAGE
+}
+
+enum MessageSender {
+  STUDENT
+  TEACHER
 }
 
 enum MediaType {
@@ -179,6 +185,7 @@ model Website {
   media       Media[]
   domain      Domain?
   versions    WebsiteVersion[]
+  messages    Message[]
 
   @@index([userId])
   @@index([slug])
@@ -264,11 +271,32 @@ model ClientEnrollment {
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
   website        Website                @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  messages       Message[]
 
   @@unique([websiteId, studentEmail])
   @@unique([websiteId, enrollmentCode])
   @@index([websiteId])
   @@index([status])
+}
+
+// Teacher <-> student chat (polling-based). Multi-tenant: every row carries a
+// websiteId + enrollmentId FK with onDelete: Cascade so a site's threads never
+// bleed into another site and vanish when the site or student is removed.
+model Message {
+  id            String        @id @default(uuid()) @db.Uuid
+  websiteId     String        @db.Uuid
+  enrollmentId  String        @db.Uuid
+  sender        MessageSender
+  body          String
+  readByTeacher Boolean       @default(false)
+  readByStudent Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+
+  website    Website          @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  enrollment ClientEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+  @@index([enrollmentId])
 }
 
 model DailyCode {

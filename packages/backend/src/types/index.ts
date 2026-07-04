@@ -4,12 +4,22 @@ declare global {
   namespace Express {
     interface Request {
       user?: { id: string; email: string };
+      student?: { enrollmentId: string; websiteId: string; email: string };
     }
   }
 }
 
 export interface AuthPayload {
   id: string;
+  email: string;
+}
+
+/** Student portal session token payload. `kind: 'student'` keeps it from ever
+ *  satisfying a teacher route (verifyToken rejects kind==='student'). */
+export interface StudentAuthPayload {
+  sub: string; // enrollment id
+  kind: 'student';
+  websiteId: string;
   email: string;
 }
 

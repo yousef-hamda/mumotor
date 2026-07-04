@@ -4,35 +4,44 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CheckCircle2, Star } from 'lucide-react';
 import { apiError, drivingSchoolApi, reviewsApi } from '../../lib/api';
-import { Button, Card, CenteredSpinner, Field, Input, Textarea } from '../../components/ui';
-import { PublicShell } from '../../components/PublicShell';
-import { FadeUp } from '../../components/motion';
-import { cn } from '../../lib/utils';
+import { TEMPLATES } from '../../templates/registry';
+import { dirForLocale } from '../../lib/templateTheme';
+import {
+  TemplatedShell,
+  BookButton,
+  BookCard,
+  BookField,
+  BookInput,
+  BookSpinner,
+  BookTextarea,
+} from '../../components/public/TemplatedShell';
 
 function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const [hover, setHover] = useState(0);
   return (
-    <div className="flex gap-1" role="radiogroup" aria-label="Rating">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          role="radio"
-          aria-checked={value === n}
-          aria-label={`${n} star${n > 1 ? 's' : ''}`}
-          onClick={() => onChange(n)}
-          onMouseEnter={() => setHover(n)}
-          onMouseLeave={() => setHover(0)}
-          className="rounded-md p-1 transition-transform hover:scale-110"
-        >
-          <Star
-            className={cn(
-              'h-7 w-7 transition-colors',
-              n <= (hover || value) ? 'fill-amber-400 text-amber-400' : 'text-sand-300'
-            )}
-          />
-        </button>
-      ))}
+    <div style={{ display: 'flex', gap: '0.25rem' }} role="radiogroup" aria-label="Rating">
+      {[1, 2, 3, 4, 5].map((n) => {
+        const on = n <= (hover || value);
+        return (
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={value === n}
+            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+            onClick={() => onChange(n)}
+            onMouseEnter={() => setHover(n)}
+            onMouseLeave={() => setHover(0)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.15rem' }}
+          >
+            <Star
+              style={{ height: '1.7rem', width: '1.7rem' }}
+              fill={on ? 'var(--book-accent)' : 'none'}
+              color={on ? 'var(--book-accent)' : 'var(--book-muted)'}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -60,80 +69,92 @@ export default function LeaveReview() {
     onError: (e) => toast.error(apiError(e).message),
   });
 
-  if (isLoading) return <PublicShell><CenteredSpinner label="Loading…" /></PublicShell>;
+  const slug =
+    settings?.template && TEMPLATES.some((t) => t.slug === settings.template) ? settings.template : TEMPLATES[0].slug;
+  const shellProps = {
+    slug,
+    theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
+    dir: dirForLocale(settings?.locale),
+    schoolName: settings?.name,
+    logoSrc: settings?.logoSrc,
+    publicSlug: websiteSlug,
+  };
+
+  if (isLoading)
+    return (
+      <TemplatedShell slug={slug} publicSlug={websiteSlug}>
+        <BookSpinner label="Loading…" />
+      </TemplatedShell>
+    );
   if (isError || !settings)
     return (
-      <PublicShell>
-        <Card className="text-center">
-          <h1 className="text-lg font-semibold text-sand-900">School not found</h1>
-          <p className="mt-1 text-sm text-sand-600">This review link may be incorrect or no longer active.</p>
-        </Card>
-      </PublicShell>
+      <TemplatedShell slug={slug} publicSlug={websiteSlug}>
+        <BookCard>
+          <h1 className="book-title">School not found</h1>
+          <p className="book-sub">This review link may be incorrect or no longer active.</p>
+        </BookCard>
+      </TemplatedShell>
     );
 
   if (done)
     return (
-      <PublicShell schoolName={settings.name} slug={websiteSlug}>
-        <FadeUp>
-          <Card className="text-center">
-            <div className="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-              <CheckCircle2 className="h-9 w-9 text-emerald-600" strokeWidth={1.75} />
-            </div>
-            <h1 className="mt-4 text-xl font-semibold tracking-tight text-sand-900">Thank you!</h1>
-            <p className="mt-2 text-sm leading-relaxed text-sand-600">
-              Your review was sent to {settings.name} and will appear on the site once it's approved.
-            </p>
-            <Link to={`/p/${websiteSlug}`} className="btn-primary mt-6 w-full">
-              Back to the site
-            </Link>
-          </Card>
-        </FadeUp>
-      </PublicShell>
+      <TemplatedShell {...shellProps}>
+        <BookCard>
+          <div className="book-check">
+            <CheckCircle2 style={{ height: '2.2rem', width: '2.2rem' }} strokeWidth={1.75} />
+          </div>
+          <h1 className="book-title" style={{ marginTop: '1rem', textAlign: 'center' }}>
+            Thank you!
+          </h1>
+          <p className="book-sub" style={{ textAlign: 'center' }}>
+            Your review was sent to {settings.name} and will appear on the site once it's approved.
+          </p>
+          <Link to={`/p/${websiteSlug}`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.4rem' }}>
+            Back to the site
+          </Link>
+        </BookCard>
+      </TemplatedShell>
     );
 
   return (
-    <PublicShell schoolName={settings.name} slug={websiteSlug}>
-      <FadeUp>
-        <Card>
-          <p className="section-eyebrow">Student review</p>
-          <h1 className="mt-3 text-xl font-semibold tracking-tight text-sand-900">
-            How was your experience with {settings.name}?
-          </h1>
-          <p className="mt-1 text-sm text-sand-600">
-            Your review helps other learners choose their instructor.
-          </p>
+    <TemplatedShell {...shellProps}>
+      <BookCard>
+        <p className="book-eyebrow">Student review</p>
+        <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
+          How was your experience with {settings.name}?
+        </h1>
+        <p className="book-sub">Your review helps other learners choose their instructor.</p>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
-              if (form.comment.trim().length < 5) return toast.error('Please write a few words about your experience');
-              submit.mutate();
-            }}
-            className="mt-6 space-y-4"
-          >
-            <Field label="Your name">
-              <Input value={form.studentName} onChange={(e) => setForm((f) => ({ ...f, studentName: e.target.value }))} placeholder="Jane Doe" required />
-            </Field>
-            <Field label="Rating">
-              <StarPicker value={form.rating} onChange={(rating) => setForm((f) => ({ ...f, rating }))} />
-            </Field>
-            <Field label="Your review">
-              <Textarea
-                rows={4}
-                value={form.comment}
-                onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
-                placeholder="What was learning to drive here like?"
-                maxLength={1000}
-                required
-              />
-            </Field>
-            <Button variant="primary" type="submit" loading={submit.isPending} className="w-full">
-              Send review
-            </Button>
-          </form>
-        </Card>
-      </FadeUp>
-    </PublicShell>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
+            if (form.comment.trim().length < 5) return toast.error('Please write a few words about your experience');
+            submit.mutate();
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
+        >
+          <BookField label="Your name">
+            <BookInput value={form.studentName} onChange={(e) => setForm((f) => ({ ...f, studentName: e.target.value }))} placeholder="Jane Doe" required />
+          </BookField>
+          <BookField label="Rating">
+            <StarPicker value={form.rating} onChange={(rating) => setForm((f) => ({ ...f, rating }))} />
+          </BookField>
+          <BookField label="Your review">
+            <BookTextarea
+              rows={4}
+              value={form.comment}
+              onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
+              placeholder="What was learning to drive here like?"
+              maxLength={1000}
+              required
+            />
+          </BookField>
+          <BookButton variant="primary" type="submit" loading={submit.isPending} className="book-btn-block">
+            Send review
+          </BookButton>
+        </form>
+      </BookCard>
+    </TemplatedShell>
   );
 }

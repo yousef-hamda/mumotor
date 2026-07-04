@@ -229,7 +229,7 @@ export default function BuilderWizard() {
       });
       await drivingSchoolApi.updateSettings(website.id, {
         classDuration: config.classDuration,
-        advanceBookingDays: 14,
+        advanceBookingDays: 1,
         bookingCutoffHour: Number((config.reportTime || '18:00').split(':')[0]) || 18,
         dailyCodeEnabled: true,
         restMinutes: config.restEnabled ? config.restMinutes : 0,

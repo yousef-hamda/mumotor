@@ -114,6 +114,8 @@ export interface TemplateData {
   bookingUrl?: string;
   /** Real enrollment URL (set on the published site). */
   enrollUrl?: string;
+  /** Student account/portal URL (set on the published site). */
+  accountUrl?: string;
   /** Lesson length in minutes (for any time copy). */
   classDuration?: number;
   /** Editable button labels (Customize mode). Falls back to per-template defaults. */

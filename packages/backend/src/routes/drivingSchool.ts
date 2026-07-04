@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { Prisma, Website, SiteSettings } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, requireStudent, signStudentToken } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
@@ -256,7 +256,7 @@ router.get(
       name: website.name,
       slug: website.slug,
       tagline: website.tagline,
-      advanceBookingDays: cfg.advanceBookingDays ?? 14, // public default 14
+      advanceBookingDays: cfg.advanceBookingDays ?? 1, // students book for the next day only
       bookingCutoffHour: cfg.bookingCutoffHour ?? 18,
       bookingWindowStart: cfg.bookingWindowStart,
       bookingWindowEnd: cfg.bookingWindowEnd,
@@ -964,6 +964,318 @@ router.post(
     });
 
     res.json({ cancelled: true });
+  })
+);
+
+// ===========================================================================
+// STUDENT PORTAL — a per-site account space. Auth = a short student session
+// token (email + enrollment code → JWT with kind:'student', scoped to the site).
+// ===========================================================================
+
+/** Load the enrollment behind a valid student session (scoped to its site). */
+async function loadStudentEnrollment(req: Request) {
+  const s = req.student!;
+  const enrollment = await prisma.clientEnrollment.findFirst({
+    where: { id: s.enrollmentId, websiteId: s.websiteId },
+  });
+  if (!enrollment) throw unauthorized('Your session has expired', 'BAD_IDENTITY');
+  return enrollment;
+}
+
+const studentSummary = (e: {
+  id: string;
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string | null;
+  status: string;
+  classCount: number;
+}) => ({
+  id: e.id,
+  name: e.studentName,
+  email: e.studentEmail,
+  phone: e.studentPhone,
+  status: e.status,
+  classCount: e.classCount,
+});
+
+// POST /driving-school/:websiteId/student/login — email + code → session token.
+router.post(
+  '/:websiteId/student/login',
+  rateLimit({ keyPrefix: 'student-login', windowSeconds: 60, max: 8 }),
+  asyncHandler(async (req, res) => {
+    const data = z
+      .object({ email: z.string().email(), enrollmentCode: z.string().min(1).max(64) })
+      .parse(req.body);
+    const { enrollment } = await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
+    const token = signStudentToken({
+      sub: enrollment.id,
+      kind: 'student',
+      websiteId: req.params.websiteId,
+      email: enrollment.studentEmail,
+    });
+    res.json({ token, student: studentSummary(enrollment) });
+  })
+);
+
+// GET /driving-school/:websiteId/student/me — account summary.
+router.get(
+  '/:websiteId/student/me',
+  requireStudent,
+  asyncHandler(async (req, res) => {
+    const enrollment = await loadStudentEnrollment(req);
+    res.json({ student: studentSummary(enrollment) });
+  })
+);
+
+// PATCH /driving-school/:websiteId/student/profile — student edits their phone.
+router.patch(
+  '/:websiteId/student/profile',
+  requireStudent,
+  rateLimit({ keyPrefix: 'student-profile', windowSeconds: 60, max: 10 }),
+  asyncHandler(async (req, res) => {
+    const data = z
+      .object({
+        studentPhone: z
+          .string()
+          .regex(/^[+\d][\d\s-]{6,18}$/, 'Invalid phone')
+          .optional()
+          .or(z.literal('').transform(() => undefined)),
+      })
+      .parse(req.body);
+    const enrollment = await loadStudentEnrollment(req);
+    const updated = await prisma.clientEnrollment.update({
+      where: { id: enrollment.id },
+      data: { studentPhone: data.studentPhone ?? null },
+    });
+    res.json({ student: studentSummary(updated) });
+  })
+);
+
+// GET /driving-school/:websiteId/student/lessons — upcoming lessons (session auth).
+router.get(
+  '/:websiteId/student/lessons',
+  requireStudent,
+  asyncHandler(async (req, res) => {
+    const enrollment = await loadStudentEnrollment(req);
+    const bookings = await prisma.booking.findMany({
+      where: {
+        websiteId: req.params.websiteId,
+        customerEmail: enrollment.studentEmail,
+        status: 'CONFIRMED',
+        bookingDate: { gte: todayUtcMidnight() },
+      },
+      orderBy: [{ bookingDate: 'asc' }, { bookingTime: 'asc' }],
+      select: { id: true, bookingDate: true, bookingTime: true, duration: true },
+    });
+    res.json({
+      lessons: bookings.map((b) => ({
+        id: b.id,
+        date: b.bookingDate.toISOString().slice(0, 10),
+        time: b.bookingTime,
+        duration: b.duration,
+        cancellable: minutesUntilLesson(b.bookingDate, b.bookingTime) > STUDENT_CANCEL_CUTOFF_MINUTES,
+      })),
+    });
+  })
+);
+
+// POST /driving-school/:websiteId/student/lessons/:bookingId/cancel (session auth).
+router.post(
+  '/:websiteId/student/lessons/:bookingId/cancel',
+  requireStudent,
+  rateLimit({ keyPrefix: 'student-cancel', windowSeconds: 60, max: 10 }),
+  asyncHandler(async (req, res) => {
+    const enrollment = await loadStudentEnrollment(req);
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.bookingId },
+      include: { website: { include: { user: { select: { email: true, name: true } } } } },
+    });
+    if (!booking || booking.websiteId !== req.params.websiteId || booking.customerEmail !== enrollment.studentEmail) {
+      throw notFound('Booking not found');
+    }
+    if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
+    if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
+      throw badRequest(
+        'Lessons can be cancelled up to 2 hours before they start. Please contact your instructor directly.',
+        'CANCEL_TOO_LATE'
+      );
+    }
+    await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
+    const date = booking.bookingDate.toISOString().slice(0, 10);
+    void sendBookingCancelled(booking.website.user.email, {
+      recipientName: booking.website.user.name,
+      date,
+      time: booking.bookingTime,
+      cancelledBy: 'student',
+      studentName: booking.customerName,
+      brand: siteBrand(booking.website),
+    });
+    void createNotification(booking.website.userId, {
+      type: 'BOOKING',
+      title: 'Lesson cancelled by student',
+      body: `${booking.customerName} cancelled ${date} at ${booking.bookingTime} — the slot is free again`,
+    });
+    res.json({ cancelled: true });
+  })
+);
+
+// GET /driving-school/:websiteId/student/messages?after=<iso> — student's chat thread.
+router.get(
+  '/:websiteId/student/messages',
+  requireStudent,
+  asyncHandler(async (req, res) => {
+    const enrollment = await loadStudentEnrollment(req);
+    const after = typeof req.query.after === 'string' ? new Date(req.query.after) : null;
+    const messages = await prisma.message.findMany({
+      where: {
+        enrollmentId: enrollment.id,
+        ...(after && !isNaN(after.getTime()) ? { createdAt: { gt: after } } : {}),
+      },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, sender: true, body: true, createdAt: true },
+    });
+    // mark inbound (teacher → student) as read
+    await prisma.message.updateMany({
+      where: { enrollmentId: enrollment.id, sender: 'TEACHER', readByStudent: false },
+      data: { readByStudent: true },
+    });
+    res.json({
+      messages: messages.map((m) => ({
+        id: m.id,
+        sender: m.sender,
+        body: m.body,
+        createdAt: m.createdAt.toISOString(),
+      })),
+    });
+  })
+);
+
+// POST /driving-school/:websiteId/student/messages — student sends a message.
+router.post(
+  '/:websiteId/student/messages',
+  requireStudent,
+  rateLimit({ keyPrefix: 'student-message', windowSeconds: 60, max: 20 }),
+  asyncHandler(async (req, res) => {
+    const data = z.object({ body: z.string().trim().min(1).max(2000) }).parse(req.body);
+    const enrollment = await loadStudentEnrollment(req);
+    const website = await prisma.website.findUnique({
+      where: { id: req.params.websiteId },
+      select: { userId: true },
+    });
+    if (!website) throw notFound('Driving school not found');
+    const message = await prisma.message.create({
+      data: {
+        websiteId: req.params.websiteId,
+        enrollmentId: enrollment.id,
+        sender: 'STUDENT',
+        body: data.body,
+        readByStudent: true,
+      },
+      select: { id: true, sender: true, body: true, createdAt: true },
+    });
+    void createNotification(website.userId, {
+      type: 'MESSAGE',
+      title: `New message from ${enrollment.studentName}`,
+      body: data.body.slice(0, 120),
+    });
+    res.status(201).json({
+      message: { id: message.id, sender: message.sender, body: message.body, createdAt: message.createdAt.toISOString() },
+    });
+  })
+);
+
+// ===========================================================================
+// TEACHER — chat inbox
+// ===========================================================================
+
+// GET /driving-school/:websiteId/conversations — one row per student with a thread.
+router.get(
+  '/:websiteId/conversations',
+  ...teacher,
+  asyncHandler(async (_req, res) => {
+    const website = getWebsite(res);
+    const messages = await prisma.message.findMany({
+      where: { websiteId: website.id },
+      orderBy: { createdAt: 'asc' },
+      select: { enrollmentId: true, sender: true, body: true, readByTeacher: true, createdAt: true },
+    });
+    const byEnrollment = new Map<string, { last: (typeof messages)[number]; unread: number }>();
+    for (const m of messages) {
+      let c = byEnrollment.get(m.enrollmentId);
+      if (!c) { c = { last: m, unread: 0 }; byEnrollment.set(m.enrollmentId, c); }
+      c.last = m; // asc order → last iteration wins = latest
+      if (m.sender === 'STUDENT' && !m.readByTeacher) c.unread++;
+    }
+    const ids = [...byEnrollment.keys()];
+    const enrollments = ids.length
+      ? await prisma.clientEnrollment.findMany({
+          where: { id: { in: ids }, websiteId: website.id },
+          select: { id: true, studentName: true, studentEmail: true, status: true },
+        })
+      : [];
+    const conversations = enrollments
+      .map((e) => {
+        const c = byEnrollment.get(e.id)!;
+        return {
+          enrollmentId: e.id,
+          studentName: e.studentName,
+          studentEmail: e.studentEmail,
+          status: e.status,
+          lastMessage: c.last.body,
+          lastSender: c.last.sender,
+          lastAt: c.last.createdAt.toISOString(),
+          unread: c.unread,
+        };
+      })
+      .sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+    res.json({ conversations });
+  })
+);
+
+// GET /driving-school/:websiteId/students/:enrollmentId/messages — a thread.
+router.get(
+  '/:websiteId/students/:enrollmentId/messages',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);
+    const messages = await prisma.message.findMany({
+      where: { enrollmentId: enrollment.id },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, sender: true, body: true, createdAt: true },
+    });
+    await prisma.message.updateMany({
+      where: { enrollmentId: enrollment.id, sender: 'STUDENT', readByTeacher: false },
+      data: { readByTeacher: true },
+    });
+    res.json({
+      student: { id: enrollment.id, name: enrollment.studentName, email: enrollment.studentEmail, status: enrollment.status },
+      messages: messages.map((m) => ({ id: m.id, sender: m.sender, body: m.body, createdAt: m.createdAt.toISOString() })),
+    });
+  })
+);
+
+// POST /driving-school/:websiteId/students/:enrollmentId/messages — teacher replies.
+router.post(
+  '/:websiteId/students/:enrollmentId/messages',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);
+    const data = z.object({ body: z.string().trim().min(1).max(2000) }).parse(req.body);
+    const message = await prisma.message.create({
+      data: {
+        websiteId: website.id,
+        enrollmentId: enrollment.id,
+        sender: 'TEACHER',
+        body: data.body,
+        readByTeacher: true,
+      },
+      select: { id: true, sender: true, body: true, createdAt: true },
+    });
+    res.status(201).json({
+      message: { id: message.id, sender: message.sender, body: message.body, createdAt: message.createdAt.toISOString() },
+    });
   })
 );
 

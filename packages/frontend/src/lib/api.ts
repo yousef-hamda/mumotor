@@ -51,6 +51,90 @@ api.interceptors.response.use(
   }
 );
 
+// ---------------------------------------------------------------------------
+// Student portal — a SEPARATE axios instance so the teacher's Bearer token
+// (attached by `api`'s interceptor) never leaks onto student endpoints, and the
+// student's own session token is attached instead. Scoped per website slug.
+// ---------------------------------------------------------------------------
+let activeStudentToken: string | null = null;
+const studentKey = (slug: string) => `mumotor_student_token:${slug}`;
+
+export const studentTokenStore = {
+  get: (slug: string) => localStorage.getItem(studentKey(slug)),
+  /** Persist + make active for subsequent studentApi calls. */
+  set: (slug: string, t: string) => {
+    localStorage.setItem(studentKey(slug), t);
+    activeStudentToken = t;
+  },
+  clear: (slug: string) => {
+    localStorage.removeItem(studentKey(slug));
+    activeStudentToken = null;
+  },
+  /** Load a stored token for this site and make it active; returns it (or null). */
+  activate: (slug: string) => {
+    activeStudentToken = localStorage.getItem(studentKey(slug));
+    return activeStudentToken;
+  },
+};
+
+// No cookies (withCredentials:false) so the teacher session cookie is never sent.
+export const studentApi = axios.create({ baseURL, withCredentials: false });
+studentApi.interceptors.request.use((config) => {
+  if (activeStudentToken) config.headers.Authorization = `Bearer ${activeStudentToken}`;
+  return config;
+});
+
+export interface StudentSummary {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  status: string;
+  classCount: number;
+}
+export interface ChatMessage {
+  id: string;
+  sender: 'STUDENT' | 'TEACHER';
+  body: string;
+  createdAt: string;
+}
+export interface StudentLesson {
+  id: string;
+  date: string;
+  time: string;
+  duration: number;
+  cancellable: boolean;
+}
+
+export const studentPortalApi = {
+  login: (websiteId: string, data: { email: string; enrollmentCode: string }) =>
+    studentApi
+      .post<{ token: string; student: StudentSummary }>(`/driving-school/${websiteId}/student/login`, data)
+      .then((r) => r.data),
+  me: (websiteId: string) =>
+    studentApi.get<{ student: StudentSummary }>(`/driving-school/${websiteId}/student/me`).then((r) => r.data.student),
+  updateProfile: (websiteId: string, data: { studentPhone?: string }) =>
+    studentApi
+      .patch<{ student: StudentSummary }>(`/driving-school/${websiteId}/student/profile`, data)
+      .then((r) => r.data.student),
+  lessons: (websiteId: string) =>
+    studentApi.get<{ lessons: StudentLesson[] }>(`/driving-school/${websiteId}/student/lessons`).then((r) => r.data.lessons),
+  cancelLesson: (websiteId: string, bookingId: string) =>
+    studentApi
+      .post<{ cancelled: boolean }>(`/driving-school/${websiteId}/student/lessons/${bookingId}/cancel`)
+      .then((r) => r.data),
+  messages: (websiteId: string, after?: string) =>
+    studentApi
+      .get<{ messages: ChatMessage[] }>(`/driving-school/${websiteId}/student/messages`, {
+        params: after ? { after } : undefined,
+      })
+      .then((r) => r.data.messages),
+  sendMessage: (websiteId: string, body: string) =>
+    studentApi
+      .post<{ message: ChatMessage }>(`/driving-school/${websiteId}/student/messages`, { body })
+      .then((r) => r.data.message),
+};
+
 /** Extract a friendly error message from an axios error. */
 export function apiError(err: unknown): { message: string; code?: string; status?: number } {
   if (axios.isAxiosError(err)) {
@@ -308,4 +392,31 @@ export const drivingSchoolApi = {
       .then((r) => r.data),
   requestMagicLink: (websiteId: string, email: string) =>
     api.post<{ sent: boolean }>(`/driving-school/${websiteId}/request-magic-link`, { email }).then((r) => r.data),
+
+  // --- Teacher chat inbox ---
+  listConversations: (websiteId: string) =>
+    api
+      .get<{ conversations: Conversation[] }>(`/driving-school/${websiteId}/conversations`)
+      .then((r) => r.data.conversations),
+  listMessages: (websiteId: string, enrollmentId: string) =>
+    api
+      .get<{ student: { id: string; name: string; email: string; status: string }; messages: ChatMessage[] }>(
+        `/driving-school/${websiteId}/students/${enrollmentId}/messages`
+      )
+      .then((r) => r.data),
+  sendMessage: (websiteId: string, enrollmentId: string, body: string) =>
+    api
+      .post<{ message: ChatMessage }>(`/driving-school/${websiteId}/students/${enrollmentId}/messages`, { body })
+      .then((r) => r.data.message),
 };
+
+export interface Conversation {
+  enrollmentId: string;
+  studentName: string;
+  studentEmail: string;
+  status: string;
+  lastMessage: string;
+  lastSender: 'STUDENT' | 'TEACHER';
+  lastAt: string;
+  unread: number;
+}

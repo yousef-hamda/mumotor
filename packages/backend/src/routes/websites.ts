@@ -92,7 +92,7 @@ router.post(
         locale: data.locale ?? 'HE',
         configuration: {
           classDuration: DEFAULTS.classDuration,
-          advanceBookingDays: 14,
+          advanceBookingDays: 1, // students book for the next day only
           bookingCutoffHour: DEFAULTS.bookingCutoffHour,
           dailyCodeEnabled: true,
           breakTimes: [],

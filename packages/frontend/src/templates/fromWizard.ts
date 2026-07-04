@@ -98,6 +98,7 @@ interface CoreInput {
   hours: Hour[];
   bookingUrl?: string;
   enrollUrl?: string;
+  accountUrl?: string;
   reviews?: Review[];
   customization?: Customization;
 }
@@ -179,6 +180,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
     classDuration: c.duration,
     bookingUrl: c.bookingUrl,
     enrollUrl: c.enrollUrl,
+    accountUrl: c.accountUrl,
   };
 
   return applyOverrides(base, c.customization);
@@ -280,6 +282,7 @@ export function publicToTemplateData(p: PublicSiteData): TemplateData {
     hours,
     bookingUrl: slug ? `/p/${slug}/book-lesson` : undefined,
     enrollUrl: slug ? `/p/${slug}/enroll` : undefined,
+    accountUrl: slug ? `/p/${slug}/account` : undefined,
     reviews: p.reviews || undefined,
     customization: p.customization || undefined,
   });
