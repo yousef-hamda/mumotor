@@ -20,6 +20,8 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp, usePrefersReducedMotion,
 } from '../shared';
+import { fmt } from '../strings';
+import { giStrings, type GiStrings } from './strings';
 import './grid-ink.css';
 
 // ── Primitives ───────────────────────────────────────────────────────────────
@@ -75,24 +77,25 @@ function ClipReveal({ text, className }: { text: string; className?: string }) {
 
 // ── Nav ──────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about, label: 'About' },
-  { id: SECTION_IDS.areas, label: 'Areas' },
-  { id: SECTION_IDS.reviews, label: 'Reviews' },
-  { id: SECTION_IDS.faq, label: 'FAQ' },
+const NAV_LINKS = (s: GiStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about, label: s.navAbout },
+  { id: SECTION_IDS.areas, label: s.navAreas },
+  { id: SECTION_IDS.reviews, label: s.navReviews },
+  { id: SECTION_IDS.faq, label: s.navFaq },
 ];
 
 function GINav({ data, activeSection }: { data: TemplateData; activeSection: string }) {
+  const s = giStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const navLinks = NAV_LINKS.filter(
+  const navLinks = NAV_LINKS(s).filter(
     ({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0,
   );
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
-    <nav className="gi-nav" role="navigation" aria-label="Main navigation">
+    <nav className="gi-nav" role="navigation" aria-label={s.ariaMainNav}>
       <div className="gi-nav-inner">
-        <button className="gi-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label="Go to top" style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+        <button className="gi-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.ariaGoTop} style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={30} bg="#111111" fg="#FAFAF7" radius={6} />
           </span>
@@ -117,7 +120,7 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
           <button
             className="gi-menu-btn"
             onClick={() => setOpen(!open)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? s.ariaCloseMenu : s.ariaOpenMenu}
             aria-expanded={open}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -159,6 +162,7 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
 // ── Hero ─────────────────────────────────────────────────────────────────────
 
 function GIHero({ data }: { data: TemplateData }) {
+  const s = giStrings(data.locale);
   const { hero } = data;
   return (
     <section id={SECTION_IDS.hero} className="gi-hero">
@@ -179,7 +183,7 @@ function GIHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="gi-hero-img-wrap">
-          <img src={hero.image} alt="Driving lesson in progress" className="gi-hero-img" data-edit="hero.image" data-edit-type="image" />
+          <img src={hero.image} alt={s.heroImageAlt} className="gi-hero-img" data-edit="hero.image" data-edit-type="image" />
         </div>
       </div>
     </section>
@@ -220,19 +224,21 @@ function GIStats({ stats }: { stats: TemplateData['stats'] }) {
 // ── Packages ─────────────────────────────────────────────────────────────────
 
 function GIPackages({
-  packages, selectedPkg, onSelect, labels, copy,
+  packages, selectedPkg, onSelect, labels, copy, locale,
 }: {
   packages: TemplateData['packages'];
   selectedPkg: string | null;
   onSelect: (id: string) => void;
   labels?: TemplateData['labels'];
   copy?: TemplateData['copy'];
+  locale?: TemplateData['locale'];
 }) {
+  const s = giStrings(locale);
   return (
     <section id={SECTION_IDS.packages} className="gi-section">
       <div className="gi-container">
-        <Reveal><SectionLabel n="01" label={copy?.packagesEyebrow ?? 'Packages'} editKey="packagesEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.packagesHeading" data-edit-type="text">{copy?.packagesHeading ?? 'Pick your lesson plan.'}</h2>
+        <Reveal><SectionLabel n="01" label={copy?.packagesEyebrow ?? s.navPackages} editKey="packagesEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.packagesHeading" data-edit-type="text">{copy?.packagesHeading ?? s.packagesHeadingGi}</h2>
         <div className="gi-pkg-grid">
           {packages.map((pkg, i) => (
             <Reveal key={pkg.id} delay={i * 0.08}>
@@ -255,7 +261,7 @@ function GIPackages({
                     {pkg.unit && <span className="gi-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                 </div>
-                <ul className="gi-pkg-features" aria-label={`${pkg.name} features`}>
+                <ul className="gi-pkg-features" aria-label={fmt(s.ariaPkgFeatures, { name: pkg.name })}>
                   {pkg.features.map((f, fi) => (
                     <li key={fi} className="gi-pkg-feature">
                       <Check size={13} className="gi-check" aria-hidden="true" />
@@ -271,8 +277,8 @@ function GIPackages({
                   tabIndex={-1}
                 >
                   {pkg.popular
-                    ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan')
-                    : (labels?.packageCta ?? 'Book this plan')}{' '}
+                    ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan)
+                    : (labels?.packageCta ?? s.bookThisPlan)}{' '}
                   <ArrowRight size={13} aria-hidden="true" />
                 </button>
               </div>
@@ -286,20 +292,21 @@ function GIPackages({
 
 // ── About ────────────────────────────────────────────────────────────────────
 
-function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; instructor: TemplateData['instructor']; copy?: TemplateData['copy'] }) {
+function GIAbout({ about, instructor, copy, locale }: { about: TemplateData['about']; instructor: TemplateData['instructor']; copy?: TemplateData['copy']; locale?: TemplateData['locale'] }) {
+  const s = giStrings(locale);
   return (
     <section id={SECTION_IDS.about} className="gi-section gi-section--dark">
       <div className="gi-container gi-about-grid">
         <div className="gi-about-img-col">
           <Reveal>
-            <img src={about.image} alt="Instructor with learner driver in car" className="gi-about-img" data-edit="about.image" data-edit-type="image" />
+            <img src={about.image} alt={s.aboutImageAlt} className="gi-about-img" data-edit="about.image" data-edit-type="image" />
           </Reveal>
           <Reveal delay={0.12} className="gi-instructor-card">
             <img src={instructor.photo} alt={instructor.name} className="gi-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
             <div>
               <p className="gi-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p>
               <p className="gi-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p>
-              <ul className="gi-credentials" aria-label="Credentials">
+              <ul className="gi-credentials" aria-label={s.ariaCredentials}>
                 {instructor.credentials.map((c, i) => (
                   <li key={i} className="gi-credential" data-edit-item={`instructor.credentials.${i}`}>
                     <Check size={11} aria-hidden="true" /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
@@ -310,7 +317,7 @@ function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; in
           </Reveal>
         </div>
         <div className="gi-about-copy">
-          <Reveal><SectionLabel n="02" label={copy?.aboutEyebrow ?? 'About'} editKey="aboutEyebrow" /></Reveal>
+          <Reveal><SectionLabel n="02" label={copy?.aboutEyebrow ?? s.aboutEyebrow} editKey="aboutEyebrow" /></Reveal>
           <h2 className="gi-h2 gi-h2--light" data-edit="about.heading" data-edit-type="text">
             <ClipReveal text={about.heading} />
           </h2>
@@ -320,7 +327,7 @@ function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; in
             </Reveal>
           ))}
           <Reveal delay={0.22}>
-            <ul className="gi-checklist" aria-label="Key benefits">
+            <ul className="gi-checklist" aria-label={s.ariaBenefits}>
               {about.checklist.map((item, i) => (
                 <li key={i} className="gi-checklist-item" data-edit-item={`about.checklist.${i}`}>
                   <Check size={14} aria-hidden="true" />
@@ -337,14 +344,15 @@ function GIAbout({ about, instructor, copy }: { about: TemplateData['about']; in
 
 // ── Areas ────────────────────────────────────────────────────────────────────
 
-function GIAreas({ areas, copy }: { areas: TemplateData['areas']; copy?: TemplateData['copy'] }) {
+function GIAreas({ areas, copy, locale }: { areas: TemplateData['areas']; copy?: TemplateData['copy']; locale?: TemplateData['locale'] }) {
+  const s = giStrings(locale);
   return (
     <section id={SECTION_IDS.areas} className="gi-section">
       <div className="gi-container">
-        <Reveal><SectionLabel n="03" label={copy?.areasEyebrow ?? 'Areas covered'} editKey="areasEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.areasHeading" data-edit-type="text">{copy?.areasHeading ?? 'We come to you.'}</h2>
+        <Reveal><SectionLabel n="03" label={copy?.areasEyebrow ?? s.areasEyebrowGi} editKey="areasEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.areasHeading" data-edit-type="text">{copy?.areasHeading ?? s.areasHeadingGi}</h2>
         <Reveal delay={0.1}>
-          <ul className="gi-areas-grid" aria-label="Service areas">
+          <ul className="gi-areas-grid" aria-label={s.ariaServiceAreas}>
             {areas.map((area, i) => (
               <li key={i} className="gi-area-item" data-edit-item={`areas.${i}`}>
                 <span className="gi-area-name" data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
@@ -360,12 +368,13 @@ function GIAreas({ areas, copy }: { areas: TemplateData['areas']; copy?: Templat
 
 // ── Reviews ──────────────────────────────────────────────────────────────────
 
-function GIReviews({ reviews, copy }: { reviews: TemplateData['reviews']; copy?: TemplateData['copy'] }) {
+function GIReviews({ reviews, copy, locale }: { reviews: TemplateData['reviews']; copy?: TemplateData['copy']; locale?: TemplateData['locale'] }) {
+  const s = giStrings(locale);
   return (
     <section id={SECTION_IDS.reviews} className="gi-section gi-section--ruled">
       <div className="gi-container">
-        <Reveal><SectionLabel n="04" label={copy?.reviewsEyebrow ?? 'Reviews'} editKey="reviewsEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{copy?.reviewsHeading ?? 'What learners say.'}</h2>
+        <Reveal><SectionLabel n="04" label={copy?.reviewsEyebrow ?? s.reviewsEyebrow} editKey="reviewsEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{copy?.reviewsHeading ?? s.reviewsHeadingGi}</h2>
         <div className="gi-reviews-grid">
           {reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.1}>
@@ -390,12 +399,13 @@ function GIReviews({ reviews, copy }: { reviews: TemplateData['reviews']; copy?:
 
 // ── Gallery ──────────────────────────────────────────────────────────────────
 
-function GIGallery({ gallery, copy }: { gallery: TemplateData['gallery']; copy?: TemplateData['copy'] }) {
+function GIGallery({ gallery, copy, locale }: { gallery: TemplateData['gallery']; copy?: TemplateData['copy']; locale?: TemplateData['locale'] }) {
+  const s = giStrings(locale);
   return (
     <section className="gi-section gi-gallery">
       <div className="gi-container">
-        <Reveal><SectionLabel n="" label={copy?.galleryEyebrow ?? 'Gallery'} editKey="galleryEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.galleryHeading" data-edit-type="text">{copy?.galleryHeading ?? 'From the driving seat.'}</h2>
+        <Reveal><SectionLabel n="" label={copy?.galleryEyebrow ?? s.galleryEyebrow} editKey="galleryEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.galleryHeading" data-edit-type="text">{copy?.galleryHeading ?? s.galleryHeadingGi}</h2>
         <div className="gi-gallery-grid">
           {gallery.map((src, i) => (
             <Reveal key={i} delay={(i % 3) * 0.06}>
@@ -456,12 +466,13 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
   );
 }
 
-function GIFaq({ faqs, copy }: { faqs: TemplateData['faqs']; copy?: TemplateData['copy'] }) {
+function GIFaq({ faqs, copy, locale }: { faqs: TemplateData['faqs']; copy?: TemplateData['copy']; locale?: TemplateData['locale'] }) {
+  const s = giStrings(locale);
   return (
     <section id={SECTION_IDS.faq} className="gi-section">
       <div className="gi-container">
-        <Reveal><SectionLabel n="05" label={copy?.faqEyebrow ?? 'FAQ'} editKey="faqEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.faqHeading" data-edit-type="text">{copy?.faqHeading ?? 'Common questions.'}</h2>
+        <Reveal><SectionLabel n="05" label={copy?.faqEyebrow ?? s.faqEyebrow} editKey="faqEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.faqHeading" data-edit-type="text">{copy?.faqHeading ?? s.faqHeadingGi}</h2>
         <div className="gi-faq-list">
           {faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 0.04}>
@@ -477,14 +488,15 @@ function GIFaq({ faqs, copy }: { faqs: TemplateData['faqs']; copy?: TemplateData
 // ── Booking ──────────────────────────────────────────────────────────────────
 
 function GIBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = giStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="gi-section gi-section--book">
       <div className="gi-container">
-        <Reveal><SectionLabel n="06" label={data.copy?.bookEyebrow ?? 'Book a lesson'} editKey="bookEyebrow" /></Reveal>
-        <h2 className="gi-h2" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Reserve your slot.'}</h2>
+        <Reveal><SectionLabel n="06" label={data.copy?.bookEyebrow ?? s.bookEyebrow} editKey="bookEyebrow" /></Reveal>
+        <h2 className="gi-h2" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingGi}</h2>
         <Reveal as="p" className="gi-body gi-book-line" delay={0.05}>
-          <span data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? "Ready to get on the road? Pick a time that works for you and we'll take it from there."}</span>
+          <span data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? s.bookBodyGi}</span>
         </Reveal>
         <Reveal className="gi-book-cta-row" delay={0.12}>
           {data.bookingUrl ? (
@@ -508,7 +520,7 @@ function GIBook({ data }: { data: TemplateData }) {
             </button>
           )}
           {data.enrollUrl && (
-            <a href={data.enrollUrl} className="gi-btn-ghost" data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</a>
+            <a href={data.enrollUrl} className="gi-btn-ghost" data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</a>
           )}
         </Reveal>
       </div>
@@ -519,6 +531,7 @@ function GIBook({ data }: { data: TemplateData }) {
 // ── Contact / Footer ─────────────────────────────────────────────────────────
 
 function GIContact({ data }: { data: TemplateData }) {
+  const s = giStrings(data.locale);
   const { contact, hours } = data;
   const socials = contact.socials ?? [];
   return (
@@ -526,7 +539,7 @@ function GIContact({ data }: { data: TemplateData }) {
       <div className="gi-container">
         <div className="gi-contact-grid">
           <div className="gi-contact-col">
-            <Reveal><SectionLabel n="07" label={data.copy?.contactEyebrow ?? 'Contact'} editKey="contactEyebrow" /></Reveal>
+            <Reveal><SectionLabel n="07" label={data.copy?.contactEyebrow ?? s.contactEyebrow} editKey="contactEyebrow" /></Reveal>
             <Reveal delay={0.06} className="gi-contact-info">
               <a href={`tel:${contact.phone}`} className="gi-contact-link">
                 <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /><span data-edit="contact.phone" data-edit-type="text">{contact.phone}</span>
@@ -556,7 +569,7 @@ function GIContact({ data }: { data: TemplateData }) {
           </div>
 
           <div className="gi-hours-col">
-            <Reveal><p className="gi-section-label"><span className="gi-section-n">— </span><span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening hours'}</span></p></Reveal>
+            <Reveal><p className="gi-section-label"><span className="gi-section-n">— </span><span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursLabel}</span></p></Reveal>
             <Reveal delay={0.06}>
               <table className="gi-hours-table">
                 <tbody>
@@ -564,7 +577,7 @@ function GIContact({ data }: { data: TemplateData }) {
                     <tr key={h.day} className={h.closed ? 'gi-hours-closed' : ''}>
                       <td className="gi-hours-day">{h.day}</td>
                       <td className="gi-hours-time">
-                        {h.closed ? 'Closed' : `${h.open} – ${h.close}`}
+                        {h.closed ? s.closedLabel : `${h.open} – ${h.close}`}
                       </td>
                     </tr>
                   ))}
@@ -576,7 +589,7 @@ function GIContact({ data }: { data: TemplateData }) {
 
         <Reveal className="gi-footer-bottom">
           <p className="gi-footer-copy gi-mono">© {new Date().getFullYear()} {/* Built with Mumotor */}</p>
-          <p className="gi-footer-copy gi-mono" data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'Built with Mumotor'}</p>
+          <p className="gi-footer-copy gi-mono" data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCredit}</p>
         </Reveal>
       </div>
     </footer>
@@ -611,12 +624,12 @@ export default function GridInk({ data = sampleData }: { data?: TemplateData }) 
       <main>
         <GIHero data={data} />
         <GIStats stats={data.stats} />
-        <GIPackages packages={data.packages} selectedPkg={selectedPkg} onSelect={handleSelectPkg} labels={data.labels} copy={data.copy} />
-        <GIAbout about={data.about} instructor={data.instructor} copy={data.copy} />
-        <GIAreas areas={data.areas} copy={data.copy} />
-        {data.reviews.length > 0 && <GIReviews reviews={data.reviews} copy={data.copy} />}
-        {data.gallery.length > 0 && <GIGallery gallery={data.gallery} copy={data.copy} />}
-        <GIFaq faqs={data.faqs} copy={data.copy} />
+        <GIPackages packages={data.packages} selectedPkg={selectedPkg} onSelect={handleSelectPkg} labels={data.labels} copy={data.copy} locale={data.locale} />
+        <GIAbout about={data.about} instructor={data.instructor} copy={data.copy} locale={data.locale} />
+        <GIAreas areas={data.areas} copy={data.copy} locale={data.locale} />
+        {data.reviews.length > 0 && <GIReviews reviews={data.reviews} copy={data.copy} locale={data.locale} />}
+        {data.gallery.length > 0 && <GIGallery gallery={data.gallery} copy={data.copy} locale={data.locale} />}
+        <GIFaq faqs={data.faqs} copy={data.copy} locale={data.locale} />
         <GIBook data={data} />
         <GIContact data={data} />
       </main>

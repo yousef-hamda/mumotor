@@ -1411,3 +1411,13 @@
   outline: 2px solid var(--ns-cyan);
   outline-offset: 2px;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* RTL OVERRIDES (HE/AR)                                                       */
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* The burger is pinned to the far end of the nav with a physical margin-left:
+   auto; mirror it so it sits at the far (left) edge under dir=rtl too. */
+[dir='rtl'] .tmpl-night-shift .ns-burger {
+  margin-left: 0;
+  margin-right: auto;
+}

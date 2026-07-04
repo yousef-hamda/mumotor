@@ -974,3 +974,17 @@
   .tmpl-open-road .or-badge-number { font-size: 2rem; }
   .tmpl-open-road .or-book-widget { padding: 1.5rem; }
 }
+
+/* ── 17. RTL OVERRIDES (HE/AR) ──────────────────────────── */
+.tmpl-open-road[dir='rtl'] .or-hamburger {
+  margin-left: 0;
+  margin-right: auto;
+}
+.tmpl-open-road[dir='rtl'] .or-instructor-card {
+  right: auto;
+  left: -1.25rem;
+}
+.tmpl-open-road[dir='rtl'] .or-hours-day {
+  padding-right: 0;
+  padding-left: 1.5rem;
+}

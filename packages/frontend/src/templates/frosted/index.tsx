@@ -18,6 +18,7 @@ import {
   Reveal, useCountUp, useMouseTilt, useScrollParallax,
   usePrefersReducedMotion, useGsapScrollTrigger,
 } from '../shared';
+import { frStrings, type FrStrings } from './strings';
 import './frosted.css';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
@@ -66,18 +67,19 @@ function Stars({ n }: { n: number }) {
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about,    label: 'About'    },
-  { id: SECTION_IDS.areas,    label: 'Areas'    },
-  { id: SECTION_IDS.reviews,  label: 'Reviews'  },
-  { id: SECTION_IDS.faq,      label: 'FAQ'      },
+const NAV_LINKS = (s: FrStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about,    label: s.navAbout    },
+  { id: SECTION_IDS.areas,    label: s.navAreas    },
+  { id: SECTION_IDS.reviews,  label: s.navReviews  },
+  { id: SECTION_IDS.faq,      label: s.navFaq      },
 ];
 
 function FrNav({ data, active }: { data: TemplateData; active: string }) {
   const [open, setOpen] = useState(false);
-  const links = NAV_LINKS.filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const s = frStrings(data.locale);
+  const links = NAV_LINKS(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
     <nav className="fr-nav" aria-label="Main navigation">
       <div className="fr-nav-pill">
@@ -120,6 +122,7 @@ function FrNav({ data, active }: { data: TemplateData; active: string }) {
 
 function FrHero({ data }: { data: TemplateData }) {
   const { hero } = data;
+  const s = frStrings(data.locale);
   // Counter-parallax: glass card drifts up slightly while BG photo moves down (GSAP)
   const { ref: sectionRef, y: cardY } = useScrollParallax(22, ['start start', 'end start']);
   return (
@@ -127,7 +130,7 @@ function FrHero({ data }: { data: TemplateData }) {
       {/* Photo — GSAP targets .tmpl-frosted .fr-hero-bg-photo */}
       <img
         src={hero.image}
-        alt="Driving lesson in progress"
+        alt={s.heroImageAlt}
         className="fr-hero-bg-photo"
         data-edit="hero.image"
         data-edit-type="image"
@@ -213,28 +216,29 @@ function FrStats({ stats }: { stats: TemplateData['stats'] }) {
 
 // ── Why ───────────────────────────────────────────────────────────────────────
 
-const FEATURES = [
-  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: 'Calm, one-to-one lessons',        body: 'Never doubled-up. Patient, steady guidance paced exactly to you.'         },
-  { icon: 'ShieldCheck',    titleKey: 'feature1Title', bodyKey: 'feature1Body', title: 'Dual-control, fully insured',     body: 'A modern dual-control car that quietly does the worrying for you.'        },
-  { icon: 'MapPin',         titleKey: 'feature2Title', bodyKey: 'feature2Body', title: 'Door-to-door pickup',             body: 'Picked up from home, work or college — at no extra cost.'                },
+const FEATURES = (s: FrStrings) => [
+  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: s.feature0Title, body: s.feature0Body },
+  { icon: 'ShieldCheck',    titleKey: 'feature1Title', bodyKey: 'feature1Body', title: s.feature1Title, body: s.feature1Body },
+  { icon: 'MapPin',         titleKey: 'feature2Title', bodyKey: 'feature2Body', title: s.feature2Title, body: s.feature2Body },
 ];
 
 function FrWhy({ data }: { data: TemplateData }) {
+  const s = frStrings(data.locale);
   return (
     <section className="fr-section">
       <div className="fr-container">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.whyEyebrow" data-edit-type="text">{data.copy?.whyEyebrow ?? 'Why learners choose us'}</span>
+            <span data-edit="copy.whyEyebrow" data-edit-type="text">{data.copy?.whyEyebrow ?? s.whyEyebrowFr}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.whyHeading" data-edit-type="text">
-            {data.copy?.whyHeading ?? 'Everything feels calmer here.'}
+            {data.copy?.whyHeading ?? s.whyHeadingFr}
           </h2>
         </Reveal>
         <div className="fr-why-grid">
-          {FEATURES.map((f, i) => (
+          {FEATURES(s).map((f, i) => (
             <Reveal key={i} delay={0.08 * i}>
               <FrGlass tilt className="fr-why-card">
                 <span className="fr-why-icon">
@@ -259,22 +263,23 @@ function FrWhy({ data }: { data: TemplateData }) {
 
 function FrPackages({ data }: { data: TemplateData }) {
   const { packages, labels } = data;
+  const s = frStrings(data.locale);
   return (
     <section id={SECTION_IDS.packages} className="fr-section">
       <div className="fr-container">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? 'Packages'}</span>
+            <span data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? s.navPackages}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.packagesHeading" data-edit-type="text">
-            {data.copy?.packagesHeading ?? 'Pick a plan that fits.'}
+            {data.copy?.packagesHeading ?? s.packagesHeadingFr}
           </h2>
         </Reveal>
         <Reveal as="p" className="fr-section-sub" delay={0.1}>
           <span data-edit="copy.packagesSub" data-edit-type="text">
-            {data.copy?.packagesSub ?? 'Transparent pricing, no hidden fees, change your mind any time.'}
+            {data.copy?.packagesSub ?? s.packagesSubFr}
           </span>
         </Reveal>
         <div className="fr-pkg-grid">
@@ -283,7 +288,7 @@ function FrPackages({ data }: { data: TemplateData }) {
               <FrGlass tilt className={cx('fr-pkg', pkg.popular && 'is-popular')} style={{ height: '100%' }}>
                 <div data-edit-item={`packages.${i}`}>
                   {pkg.popular && (
-                    <span className="fr-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
+                    <span className="fr-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? s.badgePopular}</span>
                   )}
                   <p className="fr-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                   <p className="fr-pkg-price">
@@ -304,7 +309,7 @@ function FrPackages({ data }: { data: TemplateData }) {
                     data-edit-type="text"
                     onClick={() => scrollToSection(SECTION_IDS.book)}
                   >
-                    {pkg.popular ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan') : (labels?.packageCta ?? 'Choose plan')}
+                    {pkg.popular ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan) : (labels?.packageCta ?? s.packageCta)}
                   </button>
                 </div>
               </FrGlass>
@@ -320,6 +325,7 @@ function FrPackages({ data }: { data: TemplateData }) {
 
 function FrAbout({ data }: { data: TemplateData }) {
   const { about, instructor } = data;
+  const s = frStrings(data.locale);
   return (
     <section id={SECTION_IDS.about} className="fr-about fr-section">
       <div className="fr-container">
@@ -329,7 +335,7 @@ function FrAbout({ data }: { data: TemplateData }) {
             <div className="fr-about-photo-wrap">
               <img
                 src={about.image}
-                alt="Instructor with a learner driver"
+                alt={s.aboutImageAlt}
                 className="fr-about-bg-photo"
                 loading="lazy"
                 data-edit="about.image"
@@ -357,7 +363,7 @@ function FrAbout({ data }: { data: TemplateData }) {
           <div className="fr-about-copy-col" style={{ paddingTop: '24px' }}>
             <Reveal>
               <p className="fr-eyebrow fr-eyebrow-dark">
-                <span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? 'About'}</span>
+                <span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? s.aboutEyebrow}</span>
               </p>
             </Reveal>
             <Reveal delay={0.05}>
@@ -385,17 +391,18 @@ function FrAbout({ data }: { data: TemplateData }) {
 // ── Areas ──────────────────────────────────────────────────────────────────────
 
 function FrAreas({ data }: { data: TemplateData }) {
+  const s = frStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="fr-section">
       <div className="fr-container">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? 'Areas covered'}</span>
+            <span data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? s.areasEyebrowFr}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.areasHeading" data-edit-type="text">
-            {data.copy?.areasHeading ?? 'We come to you.'}
+            {data.copy?.areasHeading ?? s.areasHeadingFr}
           </h2>
         </Reveal>
         <div className="fr-areas-grid">
@@ -417,17 +424,18 @@ function FrAreas({ data }: { data: TemplateData }) {
 // ── Reviews ───────────────────────────────────────────────────────────────────
 
 function FrReviews({ data }: { data: TemplateData }) {
+  const s = frStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="fr-section">
       <div className="fr-container">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? 'Reviews'}</span>
+            <span data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? s.reviewsEyebrow}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.reviewsHeading" data-edit-type="text">
-            {data.copy?.reviewsHeading ?? 'Loved by learners.'}
+            {data.copy?.reviewsHeading ?? s.reviewsHeadingFr}
           </h2>
         </Reveal>
         <div className="fr-reviews-grid">
@@ -457,17 +465,18 @@ function FrReviews({ data }: { data: TemplateData }) {
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
 function FrGallery({ data }: { data: TemplateData }) {
+  const s = frStrings(data.locale);
   return (
     <section className="fr-section">
       <div className="fr-container">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? 'Gallery'}</span>
+            <span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? s.galleryEyebrow}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.galleryHeading" data-edit-type="text">
-            {data.copy?.galleryHeading ?? 'From the driving seat.'}
+            {data.copy?.galleryHeading ?? s.galleryHeadingFr}
           </h2>
         </Reveal>
         <div className="fr-gallery-grid">
@@ -519,17 +528,18 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
 }
 
 function FrFaq({ data }: { data: TemplateData }) {
+  const s = frStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="fr-section">
       <div className="fr-container fr-faq-wrap">
         <Reveal>
           <p className="fr-eyebrow fr-eyebrow-dark">
-            <span data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? 'FAQ'}</span>
+            <span data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? s.faqEyebrow}</span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="fr-h2 fr-ink-h2" data-edit="copy.faqHeading" data-edit-type="text">
-            {data.copy?.faqHeading ?? 'Common questions.'}
+            {data.copy?.faqHeading ?? s.faqHeadingFr}
           </h2>
         </Reveal>
         <div className="fr-faq-list">
@@ -547,7 +557,8 @@ function FrFaq({ data }: { data: TemplateData }) {
 // ── Book CTA — photo-backed ───────────────────────────────────────────────────
 
 function FrBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = frStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   const bookBg = data.gallery[0] ?? data.about.image;
   return (
     <section id={SECTION_IDS.book} className="fr-book">
@@ -558,10 +569,10 @@ function FrBook({ data }: { data: TemplateData }) {
           <Reveal>
             <FrGlassDark className="fr-book-card">
               <h2 className="fr-h1 fr-book-h" data-edit="copy.bookHeading" data-edit-type="text">
-                {data.copy?.bookHeading ?? 'Ready when you are.'}
+                {data.copy?.bookHeading ?? s.bookHeadingFr}
               </h2>
               <p className="fr-book-body" data-edit="copy.bookBody" data-edit-type="text">
-                {data.copy?.bookBody ?? "Pick a time that works for you and we'll take it from there."}
+                {data.copy?.bookBody ?? s.bookBodyFr}
               </p>
               <div className="fr-book-ctas">
                 {data.bookingUrl ? (
@@ -575,7 +586,7 @@ function FrBook({ data }: { data: TemplateData }) {
                 )}
                 {data.enrollUrl && (
                   <a href={data.enrollUrl} className="fr-btn fr-btn-ghost-dark fr-btn-lg">
-                    <span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</span>
+                    <span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span>
                   </a>
                 )}
               </div>
@@ -590,6 +601,7 @@ function FrBook({ data }: { data: TemplateData }) {
 // ── Contact / Footer ──────────────────────────────────────────────────────────
 
 function FrContact({ data }: { data: TemplateData }) {
+  const st = frStrings(data.locale);
   const { contact, hours } = data;
   const socials = contact.socials ?? [];
   return (
@@ -599,7 +611,7 @@ function FrContact({ data }: { data: TemplateData }) {
           <div className="fr-footer-grid">
             <div>
               <p className="fr-eyebrow fr-eyebrow-dark">
-                <span data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? 'Get in touch'}</span>
+                <span data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? st.contactHeading}</span>
               </p>
               <div className="fr-contact-info">
                 <a href={`tel:${contact.phone}`} className="fr-contact-link">
@@ -625,14 +637,14 @@ function FrContact({ data }: { data: TemplateData }) {
             </div>
             <div>
               <p className="fr-eyebrow fr-eyebrow-dark">
-                <span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening hours'}</span>
+                <span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? st.hoursLabel}</span>
               </p>
               <table className="fr-hours">
                 <tbody>
                   {hours.map((h) => (
                     <tr key={h.day} className={h.closed ? 'is-closed' : ''}>
                       <td>{h.day}</td>
-                      <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                      <td>{h.closed ? st.closedLabel : `${h.open} – ${h.close}`}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -641,7 +653,7 @@ function FrContact({ data }: { data: TemplateData }) {
           </div>
           <div className="fr-footer-bottom">
             <span>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span></span>
-            <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'Built with Mumotor'}</span>
+            <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? st.footerCredit}</span>
           </div>
         </FrGlass>
       </div>

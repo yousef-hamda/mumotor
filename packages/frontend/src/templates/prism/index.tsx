@@ -33,6 +33,7 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp, useScrollParallax,
 } from '../shared';
+import { prStrings, type PrStrings } from './strings';
 import './prism.css';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
@@ -57,18 +58,19 @@ function Stars({ n }: { n: number }) {
 
 // ── Nav ──────────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about,    label: 'About'    },
-  { id: SECTION_IDS.areas,    label: 'Areas'    },
-  { id: SECTION_IDS.reviews,  label: 'Reviews'  },
-  { id: SECTION_IDS.faq,      label: 'FAQ'      },
+const navLinks = (s: PrStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about,    label: s.navAbout    },
+  { id: SECTION_IDS.areas,    label: s.navAreas    },
+  { id: SECTION_IDS.reviews,  label: s.navReviews  },
+  { id: SECTION_IDS.faq,      label: s.navFaq      },
 ];
 
 function PrNav({ data, active }: { data: TemplateData; active: string }) {
   const [open, setOpen] = useState(false);
-  const links = NAV_LINKS.filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const s = prStrings(data.locale);
+  const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
 
   return (
     <nav className="pr-nav" aria-label="Main navigation">
@@ -153,6 +155,7 @@ function PrNav({ data, active }: { data: TemplateData; active: string }) {
 
 function PrHero({ data }: { data: TemplateData }) {
   const { hero } = data;
+  const s = prStrings(data.locale);
   const { ref: filmRef, y: filmY } = useScrollParallax(36);
   const stat = data.stats[0];
 
@@ -208,7 +211,7 @@ function PrHero({ data }: { data: TemplateData }) {
         <motion.div style={{ y: filmY }} className="pr-hero-film-track">
           <img
             src={hero.image}
-            alt="Driving lesson in progress"
+            alt={s.heroImageAlt}
             className="pr-hero-film-img"
             data-edit="hero.image"
             data-edit-type="image"
@@ -261,30 +264,31 @@ function PrStats({ stats }: { stats: TemplateData['stats'] }) {
 
 // ── Why (numbered product highlights) ──────────────────────────────────────────
 
-const FEATURES = [
-  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: 'Calm, one-to-one lessons',    body: 'Never doubled-up. Patient, steady guidance paced exactly to you.'  },
-  { icon: 'ShieldCheck',    titleKey: 'feature1Title', bodyKey: 'feature1Body', title: 'Dual-control, fully insured', body: 'A modern dual-control car that quietly does the worrying for you.'   },
-  { icon: 'MapPin',         titleKey: 'feature2Title', bodyKey: 'feature2Body', title: 'Door-to-door pickup',         body: 'Picked up from home, work or college — at no extra cost.'            },
+const FEATURES = (s: PrStrings) => [
+  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: s.feature0Title, body: s.feature0Body },
+  { icon: 'ShieldCheck',    titleKey: 'feature1Title', bodyKey: 'feature1Body', title: s.feature1Title, body: s.feature1Body },
+  { icon: 'MapPin',         titleKey: 'feature2Title', bodyKey: 'feature2Body', title: s.feature2Title, body: s.feature2Body },
 ];
 
 function PrWhy({ data }: { data: TemplateData }) {
+  const s = prStrings(data.locale);
   return (
     <section className="pr-section">
       <div className="pr-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.whyEyebrow" data-edit-type="text">
-              {data.copy?.whyEyebrow ?? 'Why learners choose us'}
+              {data.copy?.whyEyebrow ?? s.whyEyebrowPr}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.whyHeading" data-edit-type="text">
-            {data.copy?.whyHeading ?? 'Everything feels calmer here.'}
+            {data.copy?.whyHeading ?? s.whyHeadingPr}
           </h2>
         </Reveal>
         <div className="pr-features-grid">
-          {FEATURES.map((f, i) => (
+          {FEATURES(s).map((f, i) => (
             <Reveal key={i} delay={0.08 * i} className="pr-feature">
               <span className="pr-feature-num" aria-hidden="true">0{i + 1}</span>
               <span className="pr-feature-icon">
@@ -314,24 +318,25 @@ function PrWhy({ data }: { data: TemplateData }) {
 
 function PrPackages({ data }: { data: TemplateData }) {
   const { packages, labels } = data;
+  const s = prStrings(data.locale);
   return (
     <section id={SECTION_IDS.packages} className="pr-section pr-section-alt">
       <div className="pr-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.packagesEyebrow" data-edit-type="text">
-              {data.copy?.packagesEyebrow ?? 'Packages'}
+              {data.copy?.packagesEyebrow ?? s.navPackages}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.packagesHeading" data-edit-type="text">
-            {data.copy?.packagesHeading ?? 'Pick a plan that fits.'}
+            {data.copy?.packagesHeading ?? s.packagesHeadingPr}
           </h2>
         </Reveal>
         <Reveal as="p" className="pr-section-sub" delay={0.1}>
           <span data-edit="copy.packagesSub" data-edit-type="text">
-            {data.copy?.packagesSub ?? 'Transparent pricing, no hidden fees, change your mind any time.'}
+            {data.copy?.packagesSub ?? s.packagesSubPr}
           </span>
         </Reveal>
 
@@ -340,7 +345,7 @@ function PrPackages({ data }: { data: TemplateData }) {
             <Reveal key={pkg.id} delay={i * 0.08}>
               <div className={cx('pr-plan', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
                 {pkg.popular && (
-                  <span className="pr-plan-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
+                  <span className="pr-plan-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? s.badgePopular}</span>
                 )}
                 <p className="pr-plan-name" data-edit={`packages.${i}.name`} data-edit-type="text">
                   {pkg.name}
@@ -366,8 +371,8 @@ function PrPackages({ data }: { data: TemplateData }) {
                   onClick={() => scrollToSection(SECTION_IDS.book)}
                 >
                   {pkg.popular
-                    ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan')
-                    : (labels?.packageCta ?? 'Choose plan')}
+                    ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan)
+                    : (labels?.packageCta ?? s.packageCta)}
                 </button>
               </div>
             </Reveal>
@@ -382,13 +387,14 @@ function PrPackages({ data }: { data: TemplateData }) {
 
 function PrAbout({ data }: { data: TemplateData }) {
   const { about, instructor } = data;
+  const s = prStrings(data.locale);
   return (
     <section id={SECTION_IDS.about} className="pr-section">
       <div className="pr-wrap pr-about-grid">
         <Reveal className="pr-about-media" y={24}>
           <img
             src={about.image}
-            alt="Instructor with a learner driver"
+            alt={s.aboutImageAlt}
             className="pr-about-img"
             data-edit="about.image"
             data-edit-type="image"
@@ -416,7 +422,7 @@ function PrAbout({ data }: { data: TemplateData }) {
           <Reveal>
             <p className="pr-eyebrow">
               <span data-edit="copy.aboutEyebrow" data-edit-type="text">
-                {data.copy?.aboutEyebrow ?? 'About'}
+                {data.copy?.aboutEyebrow ?? s.aboutEyebrow}
               </span>
             </p>
           </Reveal>
@@ -449,19 +455,20 @@ function PrAbout({ data }: { data: TemplateData }) {
 // ── Areas (calm coverage chips) ──────────────────────────────────────────────────
 
 function PrAreas({ data }: { data: TemplateData }) {
+  const s = prStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="pr-section pr-section-alt">
       <div className="pr-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.areasEyebrow" data-edit-type="text">
-              {data.copy?.areasEyebrow ?? 'Areas covered'}
+              {data.copy?.areasEyebrow ?? s.areasEyebrowPr}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.areasHeading" data-edit-type="text">
-            {data.copy?.areasHeading ?? 'We come to you.'}
+            {data.copy?.areasHeading ?? s.areasHeadingPr}
           </h2>
         </Reveal>
         <div className="pr-areas-wrap">
@@ -481,19 +488,20 @@ function PrAreas({ data }: { data: TemplateData }) {
 // ── Reviews (large quiet pull-quotes) ───────────────────────────────────────────
 
 function PrReviews({ data }: { data: TemplateData }) {
+  const s = prStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="pr-section">
       <div className="pr-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.reviewsEyebrow" data-edit-type="text">
-              {data.copy?.reviewsEyebrow ?? 'Reviews'}
+              {data.copy?.reviewsEyebrow ?? s.reviewsEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.reviewsHeading" data-edit-type="text">
-            {data.copy?.reviewsHeading ?? 'Loved by learners.'}
+            {data.copy?.reviewsHeading ?? s.reviewsHeadingPr}
           </h2>
         </Reveal>
         <div className="pr-quotes-grid">
@@ -523,19 +531,20 @@ function PrReviews({ data }: { data: TemplateData }) {
 // ── Gallery ─────────────────────────────────────────────────────────────────────
 
 function PrGallery({ data }: { data: TemplateData }) {
+  const s = prStrings(data.locale);
   return (
     <section className="pr-section pr-section-alt">
       <div className="pr-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.galleryEyebrow" data-edit-type="text">
-              {data.copy?.galleryEyebrow ?? 'Gallery'}
+              {data.copy?.galleryEyebrow ?? s.galleryEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.galleryHeading" data-edit-type="text">
-            {data.copy?.galleryHeading ?? 'From the driving seat.'}
+            {data.copy?.galleryHeading ?? s.galleryHeadingPr}
           </h2>
         </Reveal>
         <div className="pr-gallery-grid">
@@ -593,19 +602,20 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
 }
 
 function PrFaq({ data }: { data: TemplateData }) {
+  const s = prStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="pr-section">
       <div className="pr-wrap pr-accord-wrap">
         <Reveal>
           <p className="pr-eyebrow">
             <span data-edit="copy.faqEyebrow" data-edit-type="text">
-              {data.copy?.faqEyebrow ?? 'FAQ'}
+              {data.copy?.faqEyebrow ?? s.faqEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="pr-h2" data-edit="copy.faqHeading" data-edit-type="text">
-            {data.copy?.faqHeading ?? 'Common questions.'}
+            {data.copy?.faqHeading ?? s.faqHeadingPr}
           </h2>
         </Reveal>
         <div className="pr-accord-list">
@@ -623,7 +633,8 @@ function PrFaq({ data }: { data: TemplateData }) {
 // ── Booking CTA (dramatic full-bleed shader band) ───────────────────────────────
 
 function PrBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = prStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="pr-book-section">
       <div className="pr-hero-bg" aria-hidden="true">
@@ -637,10 +648,10 @@ function PrBook({ data }: { data: TemplateData }) {
       </div>
       <Reveal className="pr-book-inner">
         <h2 className="pr-h2 pr-book-h" data-edit="copy.bookHeading" data-edit-type="text">
-          {data.copy?.bookHeading ?? 'Ready when you are.'}
+          {data.copy?.bookHeading ?? s.bookHeadingPr}
         </h2>
         <p className="pr-book-sub" data-edit="copy.bookBody" data-edit-type="text">
-          {data.copy?.bookBody ?? "Pick a time that works for you and we'll take it from there."}
+          {data.copy?.bookBody ?? s.bookBodyPr}
         </p>
         <div className="pr-book-ctas">
           {data.bookingUrl ? (
@@ -666,7 +677,7 @@ function PrBook({ data }: { data: TemplateData }) {
           {data.enrollUrl && (
             <a href={data.enrollUrl} className="pr-btn pr-btn-ghost pr-btn-lg">
               <span data-edit="copy.enrollCta" data-edit-type="text">
-                {data.copy?.enrollCta ?? 'Enroll'}
+                {data.copy?.enrollCta ?? s.enrollLabel}
               </span>
             </a>
           )}
@@ -680,6 +691,7 @@ function PrBook({ data }: { data: TemplateData }) {
 
 function PrContact({ data }: { data: TemplateData }) {
   const { contact, hours } = data;
+  const s = prStrings(data.locale);
   const socials = contact.socials ?? [];
 
   return (
@@ -688,7 +700,7 @@ function PrContact({ data }: { data: TemplateData }) {
         <div>
           <p className="pr-eyebrow">
             <span data-edit="copy.contactHeading" data-edit-type="text">
-              {data.copy?.contactHeading ?? 'Get in touch'}
+              {data.copy?.contactHeading ?? s.contactHeading}
             </span>
           </p>
           <div className="pr-contact-info">
@@ -743,7 +755,7 @@ function PrContact({ data }: { data: TemplateData }) {
         <div>
           <p className="pr-eyebrow">
             <span data-edit="copy.hoursLabel" data-edit-type="text">
-              {data.copy?.hoursLabel ?? 'Opening hours'}
+              {data.copy?.hoursLabel ?? s.hoursLabel}
             </span>
           </p>
           <table className="pr-hours">
@@ -751,7 +763,7 @@ function PrContact({ data }: { data: TemplateData }) {
               {hours.map((h) => (
                 <tr key={h.day} className={h.closed ? 'is-closed' : ''}>
                   <td>{h.day}</td>
-                  <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                  <td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                 </tr>
               ))}
             </tbody>
@@ -765,7 +777,7 @@ function PrContact({ data }: { data: TemplateData }) {
           <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>
         </span>
         <span data-edit="copy.footerCredit" data-edit-type="text">
-          {data.copy?.footerCredit ?? 'Built with Mumotor'}
+          {data.copy?.footerCredit ?? s.footerCredit}
         </span>
       </div>
     </footer>

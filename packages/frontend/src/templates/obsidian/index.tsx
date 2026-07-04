@@ -19,6 +19,7 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp, useMouseTilt, useScrollParallax, usePrefersReducedMotion,
 } from '../shared';
+import { obStrings, type ObStrings } from './strings';
 import './obsidian.css';
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ');
@@ -102,20 +103,21 @@ function GridFloor() {
 
 // ── Nav ────────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about,    label: 'About'    },
-  { id: SECTION_IDS.areas,    label: 'Areas'    },
-  { id: SECTION_IDS.reviews,  label: 'Reviews'  },
-  { id: SECTION_IDS.faq,      label: 'FAQ'      },
+const navLinks = (s: ObStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about,    label: s.navAbout    },
+  { id: SECTION_IDS.areas,    label: s.navAreas    },
+  { id: SECTION_IDS.reviews,  label: s.navReviews  },
+  { id: SECTION_IDS.faq,      label: s.navFaq      },
 ];
 
 function ObNav({ data, active }: { data: TemplateData; active: string }) {
+  const s = obStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const links = NAV_LINKS.filter(
+  const links = navLinks(s).filter(
     ({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0
   );
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
 
   return (
     <nav className="ob-nav" aria-label="Main navigation">
@@ -195,6 +197,7 @@ function ObNav({ data, active }: { data: TemplateData; active: string }) {
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 function ObHero({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   const { hero } = data;
   return (
     <section id={SECTION_IDS.hero} className="ob-hero">
@@ -247,7 +250,7 @@ function ObHero({ data }: { data: TemplateData }) {
           <Glass tilt className="ob-hero-card">
             <img
               src={hero.image}
-              alt="Driving lesson in progress"
+              alt={s.heroImageAlt}
               className="ob-hero-img"
               data-edit="hero.image"
               data-edit-type="image"
@@ -315,45 +318,46 @@ function ObStats({ stats }: { stats: TemplateData['stats'] }) {
 
 // ── Why / Features ─────────────────────────────────────────────────────────────
 
-const FEATURES = [
+const features = (s: ObStrings) => [
   {
     icon: 'HeartHandshake',
     titleKey: 'feature0Title', bodyKey: 'feature0Body',
-    title: 'Calm, one-to-one lessons',
-    body:  'Never doubled-up. Patient, steady guidance paced exactly to you.',
+    title: s.feature0Title,
+    body:  s.feature0Body,
   },
   {
     icon: 'ShieldCheck',
     titleKey: 'feature1Title', bodyKey: 'feature1Body',
-    title: 'Dual-control, fully insured',
-    body:  'A modern dual-control car that quietly does the worrying for you.',
+    title: s.feature1Title,
+    body:  s.feature1Body,
   },
   {
     icon: 'MapPin',
     titleKey: 'feature2Title', bodyKey: 'feature2Body',
-    title: 'Door-to-door pickup',
-    body:  'Picked up from home, work or college — at no extra cost.',
+    title: s.feature2Title,
+    body:  s.feature2Body,
   },
 ];
 
 function ObWhy({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   return (
     <section className="ob-section">
       <div className="ob-container">
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.whyEyebrow" data-edit-type="text">
-              {data.copy?.whyEyebrow ?? 'Why learners choose us'}
+              {data.copy?.whyEyebrow ?? s.whyEyebrowOb}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.whyHeading" data-edit-type="text">
-            {data.copy?.whyHeading ?? 'Everything feels calmer here.'}
+            {data.copy?.whyHeading ?? s.whyHeadingOb}
           </h2>
         </Reveal>
         <div className="ob-why-grid">
-          {FEATURES.map((f, i) => (
+          {features(s).map((f, i) => (
             <Reveal key={i} delay={0.08 * i}>
               <Glass tilt className="ob-why-card">
                 <span className="ob-why-icon">
@@ -391,6 +395,7 @@ function ObWhy({ data }: { data: TemplateData }) {
 // ── Packages ──────────────────────────────────────────────────────────────────
 
 function ObPackages({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   const { packages, labels } = data;
   return (
     <section id={SECTION_IDS.packages} className="ob-section">
@@ -398,18 +403,18 @@ function ObPackages({ data }: { data: TemplateData }) {
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.packagesEyebrow" data-edit-type="text">
-              {data.copy?.packagesEyebrow ?? 'Packages'}
+              {data.copy?.packagesEyebrow ?? s.navPackages}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.packagesHeading" data-edit-type="text">
-            {data.copy?.packagesHeading ?? 'Pick a plan that fits.'}
+            {data.copy?.packagesHeading ?? s.packagesHeadingOb}
           </h2>
         </Reveal>
         <Reveal as="p" className="ob-section-sub" delay={0.1}>
           <span data-edit="copy.packagesSub" data-edit-type="text">
-            {data.copy?.packagesSub ?? 'Transparent pricing, no hidden fees, change your mind any time.'}
+            {data.copy?.packagesSub ?? s.packagesSubOb}
           </span>
         </Reveal>
         <div className="ob-pkg-grid">
@@ -422,7 +427,7 @@ function ObPackages({ data }: { data: TemplateData }) {
               >
                 <div data-edit-item={`packages.${i}`}>
                   {pkg.popular && (
-                    <span className="ob-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>
+                    <span className="ob-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? s.badgePopular}</span>
                   )}
                   <p
                     className="ob-pkg-name"
@@ -465,8 +470,8 @@ function ObPackages({ data }: { data: TemplateData }) {
                     onClick={() => scrollToSection(SECTION_IDS.book)}
                   >
                     {pkg.popular
-                      ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan')
-                      : (labels?.packageCta ?? 'Choose plan')}
+                      ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan)
+                      : (labels?.packageCta ?? s.packageCta)}
                   </button>
                 </div>
               </Glass>
@@ -481,6 +486,7 @@ function ObPackages({ data }: { data: TemplateData }) {
 // ── About ──────────────────────────────────────────────────────────────────────
 
 function ObAbout({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   const { about, instructor } = data;
   return (
     <section id={SECTION_IDS.about} className="ob-section">
@@ -489,7 +495,7 @@ function ObAbout({ data }: { data: TemplateData }) {
           <Glass tilt className="ob-about-card">
             <img
               src={about.image}
-              alt="Instructor with a learner driver"
+              alt={s.aboutImageAlt}
               className="ob-about-img"
               data-edit="about.image"
               data-edit-type="image"
@@ -520,7 +526,7 @@ function ObAbout({ data }: { data: TemplateData }) {
           <Reveal>
             <p className="ob-eyebrow">
               <span data-edit="copy.aboutEyebrow" data-edit-type="text">
-                {data.copy?.aboutEyebrow ?? 'About'}
+                {data.copy?.aboutEyebrow ?? s.aboutEyebrow}
               </span>
             </p>
           </Reveal>
@@ -553,19 +559,20 @@ function ObAbout({ data }: { data: TemplateData }) {
 // ── Areas ──────────────────────────────────────────────────────────────────────
 
 function ObAreas({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="ob-section">
       <div className="ob-container">
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.areasEyebrow" data-edit-type="text">
-              {data.copy?.areasEyebrow ?? 'Areas covered'}
+              {data.copy?.areasEyebrow ?? s.areasEyebrowOb}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.areasHeading" data-edit-type="text">
-            {data.copy?.areasHeading ?? 'We come to you.'}
+            {data.copy?.areasHeading ?? s.areasHeadingOb}
           </h2>
         </Reveal>
         <div className="ob-areas-grid">
@@ -595,19 +602,20 @@ function ObAreas({ data }: { data: TemplateData }) {
 // ── Reviews ────────────────────────────────────────────────────────────────────
 
 function ObReviews({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="ob-section">
       <div className="ob-container">
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.reviewsEyebrow" data-edit-type="text">
-              {data.copy?.reviewsEyebrow ?? 'Reviews'}
+              {data.copy?.reviewsEyebrow ?? s.reviewsEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.reviewsHeading" data-edit-type="text">
-            {data.copy?.reviewsHeading ?? 'Loved by learners.'}
+            {data.copy?.reviewsHeading ?? s.reviewsHeadingOb}
           </h2>
         </Reveal>
         <div className="ob-reviews-grid">
@@ -639,19 +647,20 @@ function ObReviews({ data }: { data: TemplateData }) {
 // ── Gallery ────────────────────────────────────────────────────────────────────
 
 function ObGallery({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   return (
     <section className="ob-section">
       <div className="ob-container">
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.galleryEyebrow" data-edit-type="text">
-              {data.copy?.galleryEyebrow ?? 'Gallery'}
+              {data.copy?.galleryEyebrow ?? s.galleryEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.galleryHeading" data-edit-type="text">
-            {data.copy?.galleryHeading ?? 'From the driving seat.'}
+            {data.copy?.galleryHeading ?? s.galleryHeadingOb}
           </h2>
         </Reveal>
         <div className="ob-gallery-grid">
@@ -717,19 +726,20 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
 }
 
 function ObFaq({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="ob-section">
       <div className="ob-container ob-faq-wrap">
         <Reveal>
           <p className="ob-eyebrow">
             <span data-edit="copy.faqEyebrow" data-edit-type="text">
-              {data.copy?.faqEyebrow ?? 'FAQ'}
+              {data.copy?.faqEyebrow ?? s.faqEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="ob-h2" data-edit="copy.faqHeading" data-edit-type="text">
-            {data.copy?.faqHeading ?? 'Common questions.'}
+            {data.copy?.faqHeading ?? s.faqHeadingOb}
           </h2>
         </Reveal>
         <div className="ob-faq-list">
@@ -747,7 +757,8 @@ function ObFaq({ data }: { data: TemplateData }) {
 // ── Booking CTA ────────────────────────────────────────────────────────────────
 
 function ObBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = obStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="ob-section ob-book">
       <div className="ob-container">
@@ -758,14 +769,14 @@ function ObBook({ data }: { data: TemplateData }) {
               data-edit="copy.bookHeading"
               data-edit-type="text"
             >
-              {data.copy?.bookHeading ?? 'Ready when you are.'}
+              {data.copy?.bookHeading ?? s.bookHeadingOb}
             </h2>
             <p
               className="ob-body ob-book-body"
               data-edit="copy.bookBody"
               data-edit-type="text"
             >
-              {data.copy?.bookBody ?? "Pick a time that works for you and we'll take it from there."}
+              {data.copy?.bookBody ?? s.bookBodyOb}
             </p>
             <div className="ob-book-ctas">
               {data.bookingUrl ? (
@@ -791,7 +802,7 @@ function ObBook({ data }: { data: TemplateData }) {
               {data.enrollUrl && (
                 <a href={data.enrollUrl} className="ob-btn ob-btn-ghost ob-btn-lg">
                   <span data-edit="copy.enrollCta" data-edit-type="text">
-                    {data.copy?.enrollCta ?? 'Enroll'}
+                    {data.copy?.enrollCta ?? s.enrollLabel}
                   </span>
                 </a>
               )}
@@ -806,6 +817,7 @@ function ObBook({ data }: { data: TemplateData }) {
 // ── Contact / Footer ───────────────────────────────────────────────────────────
 
 function ObContact({ data }: { data: TemplateData }) {
+  const s = obStrings(data.locale);
   const { contact, hours } = data;
   const socials = contact.socials ?? [];
   return (
@@ -816,7 +828,7 @@ function ObContact({ data }: { data: TemplateData }) {
             <div>
               <p className="ob-eyebrow">
                 <span data-edit="copy.contactHeading" data-edit-type="text">
-                  {data.copy?.contactHeading ?? 'Get in touch'}
+                  {data.copy?.contactHeading ?? s.contactHeading}
                 </span>
               </p>
               <div className="ob-contact-info">
@@ -871,7 +883,7 @@ function ObContact({ data }: { data: TemplateData }) {
             <div>
               <p className="ob-eyebrow">
                 <span data-edit="copy.hoursLabel" data-edit-type="text">
-                  {data.copy?.hoursLabel ?? 'Opening hours'}
+                  {data.copy?.hoursLabel ?? s.hoursLabel}
                 </span>
               </p>
               <table className="ob-hours">
@@ -879,7 +891,7 @@ function ObContact({ data }: { data: TemplateData }) {
                   {hours.map((h) => (
                     <tr key={h.day} className={h.closed ? 'is-closed' : ''}>
                       <td>{h.day}</td>
-                      <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                      <td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -895,7 +907,7 @@ function ObContact({ data }: { data: TemplateData }) {
               </span>
             </span>
             <span data-edit="copy.footerCredit" data-edit-type="text">
-              {data.copy?.footerCredit ?? 'Built with Mumotor'}
+              {data.copy?.footerCredit ?? s.footerCredit}
             </span>
           </div>
         </Glass>

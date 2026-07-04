@@ -923,3 +923,10 @@
   .tmpl-full-throttle .ft-hero-title  { font-size: 2.5rem; }
   .tmpl-full-throttle .ft-heading     { font-size: 2rem; }
 }
+
+/* ── RTL OVERRIDES (HE/AR) ─────────────────────────────────────────────────── */
+/* Full-width text buttons hard-code `text-align: left`, which pins Hebrew/Arabic
+   copy to the wrong side under dir="rtl". Everything else is flex/grid-safe. */
+.tmpl-full-throttle[dir='rtl'] .ft-nav-mobile-link,
+.tmpl-full-throttle[dir='rtl'] .ft-faq-q { text-align: right; }
+.tmpl-full-throttle[dir='rtl'] .ft-hours-table td:first-child { padding-right: 0; padding-left: 1.5rem; }

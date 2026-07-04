@@ -495,3 +495,7 @@
   .tmpl-frosted .fr-btn:hover,
   .tmpl-frosted .fr-social:hover { transform: none; }
 }
+
+/* ── RTL overrides (dir="rtl" — Hebrew / Arabic) ── */
+/* margin-left:auto pushes the area note to the row end in LTR only; flip it. */
+.tmpl-frosted[dir='rtl'] .fr-area-note { margin-left: 0; margin-right: auto; }

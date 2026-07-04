@@ -756,3 +756,6 @@
   .tmpl-obsidian .ob-btn:hover     { transform: none; }
   .tmpl-obsidian .ob-social:hover  { transform: none; }
 }
+
+/* ── RTL fixes ──────────────────────────────────────────────────────────────── */
+.tmpl-obsidian[dir='rtl'] .ob-area-note { margin-left: 0; margin-right: auto; }

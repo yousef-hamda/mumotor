@@ -13,6 +13,8 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy,
   useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
 } from '../shared';
+import { fmt } from '../strings';
+import { ftStrings } from './strings';
 import './full-throttle.css';
 
 // Framer whileTap "press depth" — translates to shadow offset then snaps back
@@ -21,14 +23,15 @@ const TAP_T = { duration: 0.08 };
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function Nav({ data, active }: { data: TemplateData; active: string }) {
+  const s = ftStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const bookLabel = data.labels?.bookCta ?? 'Book Now';
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
   const links = [
-    { label: 'Packages', id: SECTION_IDS.packages },
-    { label: 'About',    id: SECTION_IDS.about    },
-    { label: 'Areas',    id: SECTION_IDS.areas    },
-    ...(data.reviews.length > 0 ? [{ label: 'Reviews', id: SECTION_IDS.reviews }] : []),
-    { label: 'FAQ',      id: SECTION_IDS.faq      },
+    { label: s.navPackages, id: SECTION_IDS.packages },
+    { label: s.navAbout,    id: SECTION_IDS.about    },
+    { label: s.navAreas,    id: SECTION_IDS.areas    },
+    ...(data.reviews.length > 0 ? [{ label: s.navReviews, id: SECTION_IDS.reviews }] : []),
+    { label: s.navFaq,      id: SECTION_IDS.faq      },
   ];
   const go = (id: string) => { scrollToSection(id); setOpen(false); };
   return (
@@ -37,7 +40,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
         <motion.button
           className="ft-logo"
           onClick={() => go(SECTION_IDS.hero)}
-          aria-label="Back to top"
+          aria-label={s.backToTop}
           whileTap={TAP} transition={TAP_T}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}
         >
@@ -71,7 +74,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
 
         <button
           className="ft-hamburger"
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? s.closeMenu : s.openMenu}
           aria-expanded={open}
           onClick={() => setOpen(o => !o)}
         >
@@ -110,6 +113,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
 
 // ── HERO ──────────────────────────────────────────────────────────────────────
 function Hero({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   return (
     <section id={SECTION_IDS.hero} className="ft-hero">
       <div className="ft-hero-inner">
@@ -149,11 +153,11 @@ function Hero({ data }: { data: TemplateData }) {
           <div className="ft-hero-img-wrap">
             <img
               src={data.hero.image}
-              alt="Driving lesson in progress"
+              alt={s.heroImageAlt}
               className="ft-hero-img"
               data-edit="hero.image" data-edit-type="image"
             />
-            <span className="ft-hero-tag" data-edit="copy.heroTag" data-edit-type="text">{data.copy?.heroTag ?? '96% Pass Rate'}</span>
+            <span className="ft-hero-tag" data-edit="copy.heroTag" data-edit-type="text">{data.copy?.heroTag ?? s.heroTag}</span>
           </div>
         </Reveal>
       </div>
@@ -194,13 +198,14 @@ function Stats({ data }: { data: TemplateData }) {
 function Packages({
   data, selectedId, onSelect,
 }: { data: TemplateData; selectedId: string | null; onSelect: (id: string) => void }) {
+  const s = ftStrings(data.locale);
   const go = (id: string) => { onSelect(id); scrollToSection(SECTION_IDS.book); };
   return (
     <section id={SECTION_IDS.packages} className="ft-packages">
       <div className="ft-section-inner">
         <Reveal>
-          <h2 className="ft-heading" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Lesson Packages'}</h2>
-          <p className="ft-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? 'Transparent pricing. No hidden fees. Change your mind any time.'}</p>
+          <h2 className="ft-heading" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingFt}</h2>
+          <p className="ft-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? s.packagesSubFt}</p>
         </Reveal>
         <div className="ft-packages-grid">
           {data.packages.map((pkg, i) => (
@@ -227,8 +232,8 @@ function Packages({
                 {pkg.duration && (
                   <p className="ft-pkg-detail">
                     <Clock size={11} aria-hidden="true" />
-                    {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}-min
-                    {(pkg.lessons ?? 1) !== 1 ? ' lessons' : ' lesson'}
+                    {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}{s.minSuffix}
+                    {(pkg.lessons ?? 1) !== 1 ? s.lessonsPlural : s.lessonSingular}
                   </p>
                 )}
                 <ul className="ft-pkg-features">
@@ -248,10 +253,10 @@ function Packages({
                   data-edit="labels.packageCta" data-edit-type="text"
                 >
                   {selectedId === pkg.id
-                    ? 'Selected ✓'
+                    ? s.selectedLabel
                     : pkg.popular
-                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? 'Book This Package')
-                      : (data.labels?.packageCta ?? 'Book This Package')}
+                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.bookThisPackage)
+                      : (data.labels?.packageCta ?? s.bookThisPackage)}
                 </motion.button>
               </motion.div>
             </Reveal>
@@ -264,6 +269,7 @@ function Packages({
 
 // ── ABOUT ─────────────────────────────────────────────────────────────────────
 function About({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   return (
     <section id={SECTION_IDS.about} className="ft-about">
       <div className="ft-about-grid">
@@ -271,7 +277,7 @@ function About({ data }: { data: TemplateData }) {
           <div>
             <img
               src={data.about.image}
-              alt="Lesson in progress"
+              alt={s.aboutImageAlt}
               className="ft-about-img"
               data-edit="about.image" data-edit-type="image"
             />
@@ -331,13 +337,14 @@ function About({ data }: { data: TemplateData }) {
 
 // ── AREAS ─────────────────────────────────────────────────────────────────────
 function Areas({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="ft-areas">
       <div className="ft-areas-wrap">
         <Reveal>
-          <h2 className="ft-heading" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'Areas Covered'}</h2>
+          <h2 className="ft-heading" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingFt}</h2>
           <p className="ft-sub" data-edit="copy.areasSub" data-edit-type="text">
-            {data.copy?.areasSub ?? 'Pick-up and drop-off across all these areas — at no extra cost.'}
+            {data.copy?.areasSub ?? s.areasSubFt}
           </p>
         </Reveal>
         <div className="ft-areas-grid">
@@ -357,17 +364,18 @@ function Areas({ data }: { data: TemplateData }) {
 
 // ── REVIEWS ───────────────────────────────────────────────────────────────────
 function Reviews({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="ft-reviews">
       <div className="ft-section-inner">
         <Reveal>
-          <h2 className="ft-heading ft-heading--white" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'What Learners Say'}</h2>
+          <h2 className="ft-heading ft-heading--white" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingFt}</h2>
         </Reveal>
         <div className="ft-reviews-grid">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.1}>
               <div className="ft-review-card" data-edit-item={`reviews.${i}`}>
-                <div className="ft-stars" aria-label={`${r.rating} out of 5 stars`}>
+                <div className="ft-stars" aria-label={fmt(s.starsAria, { n: r.rating })}>
                   {Array.from({ length: 5 }, (_, j) => (
                     <Star
                       key={j} size={14}
@@ -396,13 +404,14 @@ function Reviews({ data }: { data: TemplateData }) {
 
 // ── GALLERY ───────────────────────────────────────────────────────────────────
 function Gallery({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   if (data.gallery.length === 0) return null;
   return (
     <section className="ft-gallery">
       <div className="ft-section-inner">
         <Reveal>
-          <h2 className="ft-heading" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'In The Driving Seat'}</h2>
-          <p className="ft-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? 'A look at lessons, test passes, and the road ahead.'}</p>
+          <h2 className="ft-heading" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingFt}</h2>
+          <p className="ft-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? s.gallerySubFt}</p>
         </Reveal>
         <div className="ft-gallery-grid">
           {data.gallery.map((src, i) => (
@@ -453,12 +462,13 @@ function FaqItem({
 }
 
 function FAQ({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   return (
     <section id={SECTION_IDS.faq} className="ft-faq">
       <div className="ft-section-inner--narrow">
         <Reveal>
-          <h2 className="ft-heading" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Frequently Asked'}</h2>
+          <h2 className="ft-heading" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingFt}</h2>
         </Reveal>
         <div className="ft-faq-list">
           {data.faqs.map((faq, i) => (
@@ -479,14 +489,15 @@ function FAQ({ data }: { data: TemplateData }) {
 
 // ── BOOK ──────────────────────────────────────────────────────────────────────
 function Book({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = ftStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="ft-book">
       <div className="ft-book-inner ft-book-cta">
         <Reveal>
-          <h2 className="ft-heading ft-heading--white" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Ready to Hit the Road?'}</h2>
+          <h2 className="ft-heading ft-heading--white" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingFt}</h2>
           <p className="ft-sub ft-sub--white" data-edit="copy.bookBody" data-edit-type="text">
-            {data.copy?.bookBody ?? 'No account needed — tap below and lock in your first lesson.'}
+            {data.copy?.bookBody ?? s.bookBodyFt}
           </p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -511,7 +522,7 @@ function Book({ data }: { data: TemplateData }) {
             )}
             {data.enrollUrl && (
               <a href={data.enrollUrl} className="ft-btn ft-btn--outline ft-btn--lg" data-edit="copy.enrollCta" data-edit-type="text">
-                {data.copy?.enrollCta ?? 'Enroll'}
+                {data.copy?.enrollCta ?? s.enrollLabel}
               </a>
             )}
           </div>
@@ -523,6 +534,7 @@ function Book({ data }: { data: TemplateData }) {
 
 // ── CONTACT / FOOTER ──────────────────────────────────────────────────────────
 function Contact({ data }: { data: TemplateData }) {
+  const s = ftStrings(data.locale);
   return (
     <footer id={SECTION_IDS.contact} className="ft-contact">
       <div className="ft-contact-grid">
@@ -533,10 +545,10 @@ function Contact({ data }: { data: TemplateData }) {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="ft-contact-list">
-              <a href={`tel:${data.contact.phone}`} className="ft-contact-item" aria-label="Call us">
+              <a href={`tel:${data.contact.phone}`} className="ft-contact-item" aria-label={s.callCta}>
                 <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> {data.contact.phone}
               </a>
-              <a href={`mailto:${data.contact.email}`} className="ft-contact-item" aria-label="Email us">
+              <a href={`mailto:${data.contact.email}`} className="ft-contact-item" aria-label={s.emailUs}>
                 <DynamicIcon name={data.icons?.email ?? 'Mail'} size={14} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> {data.contact.email}
               </a>
               <span className="ft-contact-item">
@@ -567,13 +579,13 @@ function Contact({ data }: { data: TemplateData }) {
 
         <div>
           <Reveal delay={0.05}>
-            <h3 className="ft-hours-heading" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening Hours'}</h3>
-            <table className="ft-hours-table" aria-label="Opening hours">
+            <h3 className="ft-hours-heading" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursLabelFt}</h3>
+            <table className="ft-hours-table" aria-label={s.hoursLabel}>
               <tbody>
                 {data.hours.map(h => (
                   <tr key={h.day} className={h.closed ? 'ft-hours-closed' : ''}>
                     <td>{h.day}</td>
-                    <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                    <td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                   </tr>
                 ))}
               </tbody>
@@ -583,7 +595,7 @@ function Contact({ data }: { data: TemplateData }) {
       </div>
 
       <div className="ft-footer-bar">
-        © {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
+        © {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerRights}</span>
       </div>
     </footer>
   );

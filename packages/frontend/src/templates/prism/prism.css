@@ -924,3 +924,32 @@
   .tmpl-prism .pr-area-tag        { transition: none; }
   .tmpl-prism .pr-gallery-cell img { transition: none; }
 }
+
+/* ── RTL overrides (dir="rtl" — Hebrew / Arabic) ──
+   Only the physical-property rules that visibly break under dir="rtl":
+   the hero stat caption, the spec-row hairline dividers, the area-note gap,
+   and the divider/padding rhythm of the features + quotes grids. */
+.tmpl-prism[dir='rtl'] .pr-hero-film-cap { left: auto; right: clamp(24px, 5vw, 80px); }
+.tmpl-prism[dir='rtl'] .pr-spec { border-right: none; border-left: 1px solid var(--pr-line); }
+.tmpl-prism[dir='rtl'] .pr-spec:first-child { padding-left: clamp(24px, 3vw, 48px); padding-right: 0; }
+.tmpl-prism[dir='rtl'] .pr-spec:last-child { border-left: none; }
+.tmpl-prism[dir='rtl'] .pr-area-note { margin-left: 0; margin-right: 4px; }
+
+@media (min-width: 600px) and (max-width: 939.98px) {
+  .tmpl-prism[dir='rtl'] .pr-quote { border-right: none; border-left: 1px solid var(--pr-line); }
+  .tmpl-prism[dir='rtl'] .pr-quote:last-child { border-left: none; }
+  .tmpl-prism[dir='rtl'] .pr-quote:nth-child(2n)   { padding-left: 0; padding-right: 32px; }
+  .tmpl-prism[dir='rtl'] .pr-quote:nth-child(2n+1) { padding-right: 0; padding-left: 32px; }
+}
+
+@media (min-width: 768px) {
+  .tmpl-prism[dir='rtl'] .pr-feature { border-right: none; border-left: 1px solid var(--pr-line); padding: 56px 0 56px 48px; }
+  .tmpl-prism[dir='rtl'] .pr-feature:not(:first-child) { padding-right: 48px; }
+  .tmpl-prism[dir='rtl'] .pr-feature:last-child { border-left: none; padding-left: 0; padding-right: 48px; }
+}
+
+@media (min-width: 940px) {
+  .tmpl-prism[dir='rtl'] .pr-quote { border-right: none; border-left: 1px solid var(--pr-line); padding-left: 40px; padding-right: 40px; }
+  .tmpl-prism[dir='rtl'] .pr-quote:first-child { padding-right: 0; }
+  .tmpl-prism[dir='rtl'] .pr-quote:last-child { border-left: none; padding-left: 0; }
+}

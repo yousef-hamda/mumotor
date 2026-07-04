@@ -10,6 +10,8 @@ import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { ChevronDown, Check, Star, Menu, X, ArrowRight, MapPin } from 'lucide-react';
 import type { TemplateData } from '../types';
+import { fmt } from '../strings';
+import { bnStrings, type BnStrings } from './strings';
 import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
@@ -79,9 +81,9 @@ function Tile({
   );
 }
 
-function Stars({ n }: { n: number }) {
+function Stars({ n, s }: { n: number; s: BnStrings }) {
   return (
-    <span className="bn-stars" aria-label={`${n} out of 5 stars`}>
+    <span className="bn-stars" aria-label={fmt(s.starsAria, { n })}>
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
@@ -96,27 +98,28 @@ function Stars({ n }: { n: number }) {
 
 // ── Nav ─────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about,    label: 'About' },
-  { id: SECTION_IDS.areas,    label: 'Areas' },
-  { id: SECTION_IDS.reviews,  label: 'Reviews' },
-  { id: SECTION_IDS.faq,      label: 'FAQ' },
+const navLinks = (s: BnStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about,    label: s.navAbout },
+  { id: SECTION_IDS.areas,    label: s.navAreas },
+  { id: SECTION_IDS.reviews,  label: s.navReviews },
+  { id: SECTION_IDS.faq,      label: s.navFaq },
 ];
 
 function BnNav({ data, active }: { data: TemplateData; active: string }) {
+  const s = bnStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const links = NAV_LINKS.filter(
+  const links = navLinks(s).filter(
     ({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0,
   );
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
-    <nav className="bn-nav" aria-label="Main navigation">
+    <nav className="bn-nav" aria-label={s.mainNavAria}>
       <div className="bn-nav-inner">
         <button
           className="bn-logo"
           onClick={() => scrollToSection(SECTION_IDS.hero)}
-          aria-label="Go to top"
+          aria-label={s.goToTopAria}
         >
           <span
             data-edit="business.logoSrc"
@@ -163,7 +166,7 @@ function BnNav({ data, active }: { data: TemplateData; active: string }) {
           <button
             className="bn-menu-btn"
             onClick={() => setOpen(!open)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? s.closeMenu : s.openMenu}
             aria-expanded={open}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -222,6 +225,7 @@ function BnHeroStat({ stat }: { stat: TemplateData['stats'][number] }) {
 }
 
 function BnHero({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   const { hero } = data;
   const firstStat = data.stats[0];
   return (
@@ -291,7 +295,7 @@ function BnHero({ data }: { data: TemplateData }) {
           <Tile className="bn-hero-img-tile">
             <img
               src={hero.image}
-              alt="Driving lesson in progress"
+              alt={s.heroImageAlt}
               className="bn-hero-img"
               data-edit="hero.image"
               data-edit-type="image"
@@ -366,48 +370,49 @@ function BnStats({ stats }: { stats: TemplateData['stats'] }) {
 
 // ── Why / Features ───────────────────────────────────────────────────────────
 
-const FEATURES = [
+const features = (s: BnStrings) => [
   {
     icon: 'HeartHandshake',
     titleKey: 'feature0Title',
     bodyKey: 'feature0Body',
-    title: 'Calm, one-to-one lessons',
-    body: 'Never doubled-up. Patient, steady guidance paced exactly to you.',
+    title: s.feature0Title,
+    body: s.feature0Body,
   },
   {
     icon: 'ShieldCheck',
     titleKey: 'feature1Title',
     bodyKey: 'feature1Body',
-    title: 'Dual-control, fully insured',
-    body: 'A modern dual-control car that quietly does the worrying for you.',
+    title: s.feature1Title,
+    body: s.feature1Body,
   },
   {
     icon: 'MapPin',
     titleKey: 'feature2Title',
     bodyKey: 'feature2Body',
-    title: 'Door-to-door pickup',
-    body: 'Picked up from home, work or college — at no extra cost.',
+    title: s.feature2Title,
+    body: s.feature2Body,
   },
 ];
 
 function BnWhy({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   return (
     <section className="bn-section">
       <div className="bn-container">
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.whyEyebrow" data-edit-type="text">
-              {data.copy?.whyEyebrow ?? 'Why learners choose us'}
+              {data.copy?.whyEyebrow ?? s.whyEyebrowBn}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="bn-h2" data-edit="copy.whyHeading" data-edit-type="text">
-            {data.copy?.whyHeading ?? 'Everything feels calmer here.'}
+            {data.copy?.whyHeading ?? s.whyHeadingBn}
           </h2>
         </Reveal>
         <div className="bn-why-grid">
-          {FEATURES.map((f, i) => (
+          {features(s).map((f, i) => (
             <Reveal key={i} delay={0.08 * i}>
               <Tile tilt className="bn-feature-tile">
                 <span className="bn-feature-icon">
@@ -445,6 +450,7 @@ function BnWhy({ data }: { data: TemplateData }) {
 // ── Packages ─────────────────────────────────────────────────────────────────
 
 function BnPackages({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   const { packages, labels } = data;
   return (
     <section id={SECTION_IDS.packages} className="bn-section">
@@ -452,19 +458,18 @@ function BnPackages({ data }: { data: TemplateData }) {
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.packagesEyebrow" data-edit-type="text">
-              {data.copy?.packagesEyebrow ?? 'Packages'}
+              {data.copy?.packagesEyebrow ?? s.navPackages}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="bn-h2" data-edit="copy.packagesHeading" data-edit-type="text">
-            {data.copy?.packagesHeading ?? 'Pick a plan that fits.'}
+            {data.copy?.packagesHeading ?? s.packagesHeadingBn}
           </h2>
         </Reveal>
         <Reveal as="p" className="bn-section-sub" delay={0.1}>
           <span data-edit="copy.packagesSub" data-edit-type="text">
-            {data.copy?.packagesSub ??
-              'Transparent pricing, no hidden fees, change your mind any time.'}
+            {data.copy?.packagesSub ?? s.packagesSubBn}
           </span>
         </Reveal>
         <div className="bn-pkg-grid">
@@ -482,7 +487,7 @@ function BnPackages({ data }: { data: TemplateData }) {
                       data-edit={`packages.${i}.badge`}
                       data-edit-type="text"
                     >
-                      {pkg.badge ?? 'Most popular'}
+                      {pkg.badge ?? s.badgePopular}
                     </span>
                   )}
                   <p
@@ -534,8 +539,8 @@ function BnPackages({ data }: { data: TemplateData }) {
                     onClick={() => scrollToSection(SECTION_IDS.book)}
                   >
                     {pkg.popular
-                      ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan')
-                      : (labels?.packageCta ?? 'Choose plan')}
+                      ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan)
+                      : (labels?.packageCta ?? s.packageCta)}
                   </button>
                 </div>
               </Tile>
@@ -550,6 +555,7 @@ function BnPackages({ data }: { data: TemplateData }) {
 // ── About + Instructor bento ──────────────────────────────────────────────────
 
 function BnAbout({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   const { about, instructor } = data;
   return (
     <section id={SECTION_IDS.about} className="bn-section">
@@ -557,7 +563,7 @@ function BnAbout({ data }: { data: TemplateData }) {
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.aboutEyebrow" data-edit-type="text">
-              {data.copy?.aboutEyebrow ?? 'About'}
+              {data.copy?.aboutEyebrow ?? s.aboutEyebrow}
             </span>
           </p>
         </Reveal>
@@ -577,7 +583,7 @@ function BnAbout({ data }: { data: TemplateData }) {
             <Tile className="bn-about-img-tile" style={{ height: '100%' }}>
               <img
                 src={about.image}
-                alt="Instructor with a learner"
+                alt={s.aboutImageAlt}
                 className="bn-about-img"
                 data-edit="about.image"
                 data-edit-type="image"
@@ -669,19 +675,20 @@ function BnAbout({ data }: { data: TemplateData }) {
 // pins that highlight on hover. Calm and alive without being loud.
 
 function BnAreas({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="bn-section">
       <div className="bn-container">
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.areasEyebrow" data-edit-type="text">
-              {data.copy?.areasEyebrow ?? 'Areas covered'}
+              {data.copy?.areasEyebrow ?? s.areasEyebrowBn}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="bn-h2" data-edit="copy.areasHeading" data-edit-type="text">
-            {data.copy?.areasHeading ?? 'We come to you.'}
+            {data.copy?.areasHeading ?? s.areasHeadingBn}
           </h2>
         </Reveal>
         <Reveal delay={0.1}>
@@ -693,7 +700,7 @@ function BnAreas({ data }: { data: TemplateData }) {
                 <span className="bn-areas-radar-dot" />
               </div>
               <span className="bn-areas-meta">
-                {data.areas.length} locations covered
+                {fmt(s.locationsCovered, { n: data.areas.length })}
               </span>
             </div>
             {/* Area chips — pins on the dot-grid map */}
@@ -733,13 +740,14 @@ function BnAreas({ data }: { data: TemplateData }) {
 // ── Reviews ───────────────────────────────────────────────────────────────────
 
 function BnReviews({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="bn-section">
       <div className="bn-container">
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.reviewsEyebrow" data-edit-type="text">
-              {data.copy?.reviewsEyebrow ?? 'Reviews'}
+              {data.copy?.reviewsEyebrow ?? s.reviewsEyebrow}
             </span>
           </p>
         </Reveal>
@@ -749,7 +757,7 @@ function BnReviews({ data }: { data: TemplateData }) {
             data-edit="copy.reviewsHeading"
             data-edit-type="text"
           >
-            {data.copy?.reviewsHeading ?? 'Loved by learners.'}
+            {data.copy?.reviewsHeading ?? s.reviewsHeadingBn}
           </h2>
         </Reveal>
         <div className="bn-reviews-grid">
@@ -757,7 +765,7 @@ function BnReviews({ data }: { data: TemplateData }) {
             <Reveal key={r.id} delay={i * 0.08}>
               <Tile tilt className="bn-review-tile">
                 <div data-edit-item={`reviews.${i}`}>
-                  <Stars n={r.rating} />
+                  <Stars n={r.rating} s={s} />
                   <blockquote className="bn-review-text">
                     "<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"
                   </blockquote>
@@ -803,13 +811,14 @@ function BnReviews({ data }: { data: TemplateData }) {
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
 function BnGallery({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   return (
     <section className="bn-section">
       <div className="bn-container">
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.galleryEyebrow" data-edit-type="text">
-              {data.copy?.galleryEyebrow ?? 'Gallery'}
+              {data.copy?.galleryEyebrow ?? s.galleryEyebrow}
             </span>
           </p>
         </Reveal>
@@ -819,7 +828,7 @@ function BnGallery({ data }: { data: TemplateData }) {
             data-edit="copy.galleryHeading"
             data-edit-type="text"
           >
-            {data.copy?.galleryHeading ?? 'From the driving seat.'}
+            {data.copy?.galleryHeading ?? s.galleryHeadingBn}
           </h2>
         </Reveal>
         <div className="bn-gallery-grid">
@@ -900,19 +909,20 @@ function FaqItem({
 }
 
 function BnFaq({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="bn-section">
       <div className="bn-container bn-faq-wrap">
         <Reveal>
           <p className="bn-eyebrow">
             <span data-edit="copy.faqEyebrow" data-edit-type="text">
-              {data.copy?.faqEyebrow ?? 'FAQ'}
+              {data.copy?.faqEyebrow ?? s.faqEyebrow}
             </span>
           </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="bn-h2" data-edit="copy.faqHeading" data-edit-type="text">
-            {data.copy?.faqHeading ?? 'Common questions.'}
+            {data.copy?.faqHeading ?? s.faqHeadingBn}
           </h2>
         </Reveal>
         <div className="bn-faq-list">
@@ -930,7 +940,8 @@ function BnFaq({ data }: { data: TemplateData }) {
 // ── Booking CTA — bold indigo tile ────────────────────────────────────────────
 
 function BnBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = bnStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="bn-section">
       <div className="bn-container">
@@ -941,15 +952,14 @@ function BnBook({ data }: { data: TemplateData }) {
               data-edit="copy.bookHeading"
               data-edit-type="text"
             >
-              {data.copy?.bookHeading ?? 'Ready when you are.'}
+              {data.copy?.bookHeading ?? s.bookHeadingBn}
             </h2>
             <p
               className="bn-book-body"
               data-edit="copy.bookBody"
               data-edit-type="text"
             >
-              {data.copy?.bookBody ??
-                "Pick a time that works for you and we'll take it from there."}
+              {data.copy?.bookBody ?? s.bookBodyBn}
             </p>
             <div className="bn-book-ctas">
               {data.bookingUrl ? (
@@ -965,7 +975,7 @@ function BnBook({ data }: { data: TemplateData }) {
                 <button
                   type="button"
                   className="bn-btn bn-btn-book-primary bn-btn-lg"
-                  title="Available once your site is published"
+                  title={s.publishNote}
                   data-edit="labels.bookCta"
                   data-edit-type="text"
                 >
@@ -978,7 +988,7 @@ function BnBook({ data }: { data: TemplateData }) {
                   className="bn-btn bn-btn-book-ghost bn-btn-lg"
                 >
                   <span data-edit="copy.enrollCta" data-edit-type="text">
-                    {data.copy?.enrollCta ?? 'Enroll'}
+                    {data.copy?.enrollCta ?? s.enrollLabel}
                   </span>
                 </a>
               )}
@@ -993,6 +1003,7 @@ function BnBook({ data }: { data: TemplateData }) {
 // ── Contact / Footer ──────────────────────────────────────────────────────────
 
 function BnContact({ data }: { data: TemplateData }) {
+  const s = bnStrings(data.locale);
   const { contact, hours } = data;
   const socials = contact.socials ?? [];
   return (
@@ -1006,7 +1017,7 @@ function BnContact({ data }: { data: TemplateData }) {
                   data-edit="copy.contactHeading"
                   data-edit-type="text"
                 >
-                  {data.copy?.contactHeading ?? 'Get in touch'}
+                  {data.copy?.contactHeading ?? s.contactHeading}
                 </span>
               </p>
               <div className="bn-contact-info">
@@ -1070,7 +1081,7 @@ function BnContact({ data }: { data: TemplateData }) {
                   data-edit="copy.hoursLabel"
                   data-edit-type="text"
                 >
-                  {data.copy?.hoursLabel ?? 'Opening hours'}
+                  {data.copy?.hoursLabel ?? s.hoursLabel}
                 </span>
               </p>
               <table className="bn-hours">
@@ -1079,7 +1090,7 @@ function BnContact({ data }: { data: TemplateData }) {
                     <tr key={h.day} className={h.closed ? 'is-closed' : ''}>
                       <td>{h.day}</td>
                       <td>
-                        {h.closed ? 'Closed' : `${h.open} – ${h.close}`}
+                        {h.closed ? s.closedLabel : `${h.open} – ${h.close}`}
                       </td>
                     </tr>
                   ))}
@@ -1096,7 +1107,7 @@ function BnContact({ data }: { data: TemplateData }) {
               </span>
             </span>
             <span data-edit="copy.footerCredit" data-edit-type="text">
-              {data.copy?.footerCredit ?? 'Built with Mumotor'}
+              {data.copy?.footerCredit ?? s.footerCredit}
             </span>
           </div>
         </Tile>

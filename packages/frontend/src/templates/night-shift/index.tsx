@@ -18,12 +18,14 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy,
   useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
 } from '../shared';
+import { fmt } from '../strings';
+import { nsStrings, type NsStrings } from './strings';
 import './night-shift.css';
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
-function Stars({ n }: { n: number }) {
+function Stars({ n, s }: { n: number; s: NsStrings }) {
   return (
-    <span className="ns-stars" aria-label={`${n} out of 5 stars`}>
+    <span className="ns-stars" aria-label={fmt(s.ariaStars, { n })}>
       {Array.from({ length: 5 }, (_, i) => (
         <Star key={i} size={13} fill={i < n ? 'currentColor' : 'none'} strokeWidth={1.5} />
       ))}
@@ -84,6 +86,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
     'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap',
   ]);
 
+  const s = nsStrings(data.locale);
   const reduced = usePrefersReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
@@ -100,14 +103,14 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
   const hasGallery = data.gallery.length > 0;
   const socials = data.contact.socials ?? [];
 
-  const bookCta = data.labels?.bookCta ?? 'Book a lesson';
+  const bookCta = data.labels?.bookCta ?? s.bookCta;
 
   const navLinks = [
-    { id: SECTION_IDS.packages, label: 'Packages' },
-    { id: SECTION_IDS.about, label: 'About' },
-    { id: SECTION_IDS.areas, label: 'Areas' },
-    ...(hasReviews ? [{ id: SECTION_IDS.reviews, label: 'Reviews' }] : []),
-    { id: SECTION_IDS.faq, label: 'FAQ' },
+    { id: SECTION_IDS.packages, label: s.navPackages },
+    { id: SECTION_IDS.about, label: s.navAbout },
+    { id: SECTION_IDS.areas, label: s.navAreas },
+    ...(hasReviews ? [{ id: SECTION_IDS.reviews, label: s.navReviews }] : []),
+    { id: SECTION_IDS.faq, label: s.navFaq },
   ];
 
   return (
@@ -120,19 +123,19 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
     >
 
       {/* ── NAV ── */}
-      <nav className="ns-nav" aria-label="Site navigation">
+      <nav className="ns-nav" aria-label={s.ariaSiteNav}>
         <div className="ns-nav-inner">
           <button
             className="ns-logo"
             onClick={() => scrollToSection(SECTION_IDS.hero)}
-            aria-label={`${data.business.name} — back to top`}
+            aria-label={fmt(s.ariaBackToTop, { name: data.business.name })}
           >
             {data.business.logoSrc
               ? <img src={data.business.logoSrc} alt="" data-edit="business.logoSrc" data-edit-type="image" style={{ width: '2.1rem', height: '2.1rem', borderRadius: 9, objectFit: 'cover' }} />
               : <span className="ns-logo-mark" data-edit="business.logoSrc" data-edit-type="image">{data.business.logoText.charAt(0)}</span>}
             <span className="ns-logo-text" data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
           </button>
-          <div className="ns-nav-links" role="list" aria-label="Page sections">
+          <div className="ns-nav-links" role="list" aria-label={s.ariaPageSections}>
             {navLinks.map(({ id, label }) => (
               <button
                 key={id}
@@ -155,7 +158,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           <button
             className="ns-burger"
             onClick={() => setMobileOpen(v => !v)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileOpen ? s.ariaCloseMenu : s.ariaOpenMenu}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -248,9 +251,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {/* ── PACKAGES ── */}
       <section id={SECTION_IDS.packages} className="ns-section">
         <div className="ns-container">
-          <Reveal><h2 className="ns-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Packages & Pricing'}</h2></Reveal>
+          <Reveal><h2 className="ns-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingNs}</h2></Reveal>
           <Reveal delay={0.1}>
-            <p className="ns-section-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? 'Flat prices, no hidden extras. Pick the plan that fits your schedule.'}</p>
+            <p className="ns-section-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? s.packagesSubNs}</p>
           </Reveal>
           <div className="ns-packages-grid">
             {data.packages.map((pkg, i) => (
@@ -265,10 +268,10 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   {pkg.duration && (
                     <p className="ns-pkg-meta">
                       <Clock size={12} aria-hidden="true" />
-                      {' '}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? '-minute lessons'}</span>
+                      {' '}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? s.lessonDurationSuffix}</span>
                     </p>
                   )}
-                  <ul className="ns-pkg-features" aria-label="Features included">
+                  <ul className="ns-pkg-features" aria-label={s.ariaFeatures}>
                     {pkg.features.map((f, j) => (
                       <li key={f} data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
                         <Check size={12} className="ns-check-icon" aria-hidden="true" />
@@ -284,8 +287,8 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                     onClick={() => scrollToSection(SECTION_IDS.book)}
                   >
                     {pkg.popular
-                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? 'Get started')
-                      : (data.labels?.packageCta ?? 'Select package')}
+                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.packageCtaPopular)
+                      : (data.labels?.packageCta ?? s.packageCtaNs)}
                   </button>
                 </div>
               </Reveal>
@@ -342,7 +345,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           </div>
           <Reveal className="ns-about-img-col" delay={0.18}>
             <div className="ns-about-img-wrap">
-              <img src={data.about.image} alt="Driving lesson in progress" className="ns-about-img" data-edit="about.image" data-edit-type="image" />
+              <img src={data.about.image} alt={s.aboutImageAlt} className="ns-about-img" data-edit="about.image" data-edit-type="image" />
               <div className="ns-about-img-scrim" aria-hidden="true" />
             </div>
           </Reveal>
@@ -352,9 +355,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {/* ── AREAS ── */}
       <section id={SECTION_IDS.areas} className="ns-section">
         <div className="ns-container">
-          <Reveal><h2 className="ns-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'Areas We Cover'}</h2></Reveal>
+          <Reveal><h2 className="ns-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingNs}</h2></Reveal>
           <Reveal delay={0.1}>
-            <p className="ns-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? 'Door-to-door pickup — no extra charge, anywhere below.'}</p>
+            <p className="ns-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? s.areasSubNs}</p>
           </Reveal>
           <Reveal delay={0.2}>
             <div className="ns-areas-grid">
@@ -374,15 +377,15 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {hasReviews && (
         <section id={SECTION_IDS.reviews} className="ns-section">
           <div className="ns-container">
-            <Reveal><h2 className="ns-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'What Learners Say'}</h2></Reveal>
+            <Reveal><h2 className="ns-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingNs}</h2></Reveal>
             <Reveal delay={0.1}>
-              <p className="ns-section-sub" data-edit="copy.reviewsSub" data-edit-type="text">{data.copy?.reviewsSub ?? 'Real stories from real drivers who passed their test.'}</p>
+              <p className="ns-section-sub" data-edit="copy.reviewsSub" data-edit-type="text">{data.copy?.reviewsSub ?? s.reviewsSubNs}</p>
             </Reveal>
             <div className="ns-reviews-grid">
               {data.reviews.map((r, i) => (
                 <Reveal key={r.id} delay={i * 0.1}>
                   <div className="ns-review-card" data-edit-item={`reviews.${i}`}>
-                    <Stars n={r.rating} />
+                    <Stars n={r.rating} s={s} />
                     <p className="ns-review-text">&#8220;<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>&#8221;</p>
                     <div className="ns-reviewer">
                       {r.avatar
@@ -406,9 +409,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {hasGallery && (
         <section className="ns-section ns-gallery-section">
           <div className="ns-container">
-            <Reveal><h2 className="ns-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'From the Road'}</h2></Reveal>
+            <Reveal><h2 className="ns-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingNs}</h2></Reveal>
             <Reveal delay={0.1}>
-              <p className="ns-section-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? 'A look at lessons, learners and passes.'}</p>
+              <p className="ns-section-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? s.gallerySubNs}</p>
             </Reveal>
             <div className="ns-gallery-grid">
               {data.gallery.map((src, i) => (
@@ -426,7 +429,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {/* ── FAQ ── */}
       <section id={SECTION_IDS.faq} className="ns-section">
         <div className="ns-container ns-faq-container">
-          <Reveal><h2 className="ns-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Frequently Asked'}</h2></Reveal>
+          <Reveal><h2 className="ns-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingNs}</h2></Reveal>
           <div className="ns-faq-list">
             {data.faqs.map((faq, i) => (
               <Reveal key={faq.q} delay={i * 0.06}>
@@ -446,9 +449,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {/* ── BOOK ── */}
       <section id={SECTION_IDS.book} className="ns-section ns-book-section">
         <div className="ns-container ns-book-cta-band">
-          <Reveal><h2 className="ns-section-title" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Book Your Lesson'}</h2></Reveal>
+          <Reveal><h2 className="ns-section-title" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingNs}</h2></Reveal>
           <Reveal delay={0.1}>
-            <p className="ns-section-sub" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? 'Ready to hit the road? Reserve your spot and start driving.'}</p>
+            <p className="ns-section-sub" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? s.bookBodyNs}</p>
           </Reveal>
           <Reveal delay={0.18}>
             <div className="ns-hero-ctas ns-book-actions">
@@ -460,21 +463,21 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                     data-edit="labels.bookCta"
                     data-edit-type="text"
                   >
-                    {data.labels?.bookCta ?? 'Book a lesson'}
+                    {data.labels?.bookCta ?? s.bookCta}
                   </a>
                   {data.enrollUrl && (
-                    <a href={data.enrollUrl} className="ns-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</span> &rarr;</a>
+                    <a href={data.enrollUrl} className="ns-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> &rarr;</a>
                   )}
                 </>
               ) : (
                 <button
                   type="button"
-                  title="Available once your site is published"
+                  title={s.publishTooltip}
                   className="ns-btn-primary ns-glow-pulse"
                   data-edit="labels.bookCta"
                   data-edit-type="text"
                 >
-                  {data.labels?.bookCta ?? 'Book a lesson'}
+                  {data.labels?.bookCta ?? s.bookCta}
                 </button>
               )}
             </div>
@@ -486,7 +489,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       <footer id={SECTION_IDS.contact} className="ns-footer">
         <div className="ns-container ns-footer-grid">
           <div>
-            <Reveal><h2 className="ns-section-title" data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? 'Get in Touch'}</h2></Reveal>
+            <Reveal><h2 className="ns-section-title" data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? s.contactHeadingNs}</h2></Reveal>
             <Reveal delay={0.1}>
               <ul className="ns-contact-list">
                 <li>
@@ -522,7 +525,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           </div>
           <Reveal delay={0.15}>
             <div className="ns-hours-panel">
-              <h3 className="ns-hours-title" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening Hours'}</h3>
+              <h3 className="ns-hours-title" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursLabelNs}</h3>
               <table className="ns-hours-table">
                 <tbody>
                   {data.hours.map(h => (
@@ -530,7 +533,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                       <td>{h.day}</td>
                       <td className="tabular-nums">
                         {h.closed
-                          ? <span data-edit="copy.closedLabel" data-edit-type="text">{data.copy?.closedLabel ?? '— Closed —'}</span>
+                          ? <span data-edit="copy.closedLabel" data-edit-type="text">{data.copy?.closedLabel ?? s.closedLabelNs}</span>
                           : `${h.open} – ${h.close}`}
                       </td>
                     </tr>
@@ -541,7 +544,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           </Reveal>
         </div>
         <div className="ns-footer-bottom">
-          <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
+          <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCreditNs}</span></p>
           <p className="ns-tagline-small" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
         </div>
       </footer>

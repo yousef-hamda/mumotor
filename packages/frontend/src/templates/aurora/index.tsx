@@ -16,6 +16,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import { ShaderBackground } from '../webgl/ShaderBackground';
 import { SHADER_AURORA } from '../webgl/shaders';
+import { auStrings, type AuStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp,
@@ -37,18 +38,19 @@ function Stars({ n }: { n: number }) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
-  { id: SECTION_IDS.packages, label: 'Packages' },
-  { id: SECTION_IDS.about, label: 'About' },
-  { id: SECTION_IDS.areas, label: 'Areas' },
-  { id: SECTION_IDS.reviews, label: 'Reviews' },
-  { id: SECTION_IDS.faq, label: 'FAQ' },
+const navLinks = (s: AuStrings) => [
+  { id: SECTION_IDS.packages, label: s.navPackages },
+  { id: SECTION_IDS.about, label: s.navAbout },
+  { id: SECTION_IDS.areas, label: s.navAreas },
+  { id: SECTION_IDS.reviews, label: s.navReviews },
+  { id: SECTION_IDS.faq, label: s.navFaq },
 ];
 
 function AuNav({ data, active }: { data: TemplateData; active: string }) {
+  const s = auStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const links = NAV_LINKS.filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
-  const bookLabel = data.labels?.bookCta ?? 'Book now';
+  const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
+  const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
     <nav className="au-nav" aria-label="Main navigation">
       <div className="au-nav-inner">
@@ -82,6 +84,7 @@ function AuNav({ data, active }: { data: TemplateData; active: string }) {
 // ── Hero (centered + product slab) ───────────────────────────────────────────
 
 function AuHero({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   const { hero } = data;
   const stat = data.stats[0];
   return (
@@ -100,7 +103,7 @@ function AuHero({ data }: { data: TemplateData }) {
       </div>
       <Reveal className="au-hero-slab" delay={0.1} y={36}>
         <div className="au-slab">
-          <img src={hero.image} alt="Driving lesson in progress" className="au-slab-img" data-edit="hero.image" data-edit-type="image" />
+          <img src={hero.image} alt={s.heroImageAlt} className="au-slab-img" data-edit="hero.image" data-edit-type="image" />
           {stat && (
             <div className="au-slab-badge">
               <p className="au-slab-num" data-edit="stats.0.value" data-edit-type="text">{stat.prefix}{stat.value}{stat.suffix}</p>
@@ -138,20 +141,21 @@ function AuStats({ stats }: { stats: TemplateData['stats'] }) {
 
 // ── Why ─────────────────────────────────────────────────────────────────────
 
-const FEATURES = [
-  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: 'Calm, one-to-one lessons', body: 'Never doubled-up. Patient, steady guidance paced exactly to you.' },
-  { icon: 'ShieldCheck', titleKey: 'feature1Title', bodyKey: 'feature1Body', title: 'Dual-control, fully insured', body: 'A modern dual-control car that quietly does the worrying for you.' },
-  { icon: 'MapPin', titleKey: 'feature2Title', bodyKey: 'feature2Body', title: 'Door-to-door pickup', body: 'Picked up from home, work or college — at no extra cost.' },
+const features = (s: AuStrings) => [
+  { icon: 'HeartHandshake', titleKey: 'feature0Title', bodyKey: 'feature0Body', title: s.feature0Title, body: s.feature0Body },
+  { icon: 'ShieldCheck', titleKey: 'feature1Title', bodyKey: 'feature1Body', title: s.feature1Title, body: s.feature1Body },
+  { icon: 'MapPin', titleKey: 'feature2Title', bodyKey: 'feature2Body', title: s.feature2Title, body: s.feature2Body },
 ];
 
 function AuWhy({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   return (
     <section className="au-section au-center">
       <div className="au-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.whyEyebrow" data-edit-type="text">{data.copy?.whyEyebrow ?? 'Why learners choose us'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.whyHeading" data-edit-type="text">{data.copy?.whyHeading ?? 'Everything feels calmer here.'}</h2></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.whyEyebrow" data-edit-type="text">{data.copy?.whyEyebrow ?? s.whyEyebrowAu}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.whyHeading" data-edit-type="text">{data.copy?.whyHeading ?? s.whyHeadingAu}</h2></Reveal>
         <div className="au-why-grid">
-          {FEATURES.map((f, i) => (
+          {features(s).map((f, i) => (
             <Reveal key={i} delay={0.08 * i} className="au-why">
               <span className="au-why-icon"><DynamicIcon name={data.icons?.[`feature${i}`] ?? f.icon} size={24} aria-hidden="true" data-edit={`icons.feature${i}`} data-edit-type="icon" /></span>
               <h3 className="au-why-title" data-edit={`copy.${f.titleKey}`} data-edit-type="text">{data.copy?.[f.titleKey] ?? f.title}</h3>
@@ -167,25 +171,26 @@ function AuWhy({ data }: { data: TemplateData }) {
 // ── Packages (Apple pricing) ─────────────────────────────────────────────────
 
 function AuPackages({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   const { packages, labels } = data;
   return (
     <section id={SECTION_IDS.packages} className="au-section au-center">
       <div className="au-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? 'Packages'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Pick a plan that fits.'}</h2></Reveal>
-        <Reveal as="p" className="au-lead" delay={0.1}><span data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? 'Transparent pricing, no hidden fees, change your mind any time.'}</span></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? s.navPackages}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingAu}</h2></Reveal>
+        <Reveal as="p" className="au-lead" delay={0.1}><span data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? s.packagesSubAu}</span></Reveal>
         <div className="au-pkg-grid">
           {packages.map((pkg, i) => (
             <Reveal key={pkg.id} delay={i * 0.08}>
               <div className={cx('au-pkg', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
-                {pkg.popular && <span className="au-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? 'Most popular'}</span>}
+                {pkg.popular && <span className="au-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? s.badgePopular}</span>}
                 <p className="au-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                 <p className="au-pkg-price"><span className="au-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="au-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}</p>
                 <ul className="au-pkg-features">
                   {pkg.features.map((f, fi) => <li key={fi}><Check size={15} className="au-check" aria-hidden="true" /><span data-edit={`packages.${i}.features.${fi}`} data-edit-type="text">{f}</span></li>)}
                 </ul>
                 <button className={cx('au-btn', pkg.popular ? 'au-btn-primary' : 'au-btn-ghost', 'au-btn-block')} data-edit="labels.packageCta" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.book)}>
-                  {pkg.popular ? (labels?.packageCtaPopular ?? labels?.packageCta ?? 'Book this plan') : (labels?.packageCta ?? 'Choose plan')}
+                  {pkg.popular ? (labels?.packageCtaPopular ?? labels?.packageCta ?? s.bookThisPlan) : (labels?.packageCta ?? s.packageCta)}
                 </button>
               </div>
             </Reveal>
@@ -199,19 +204,20 @@ function AuPackages({ data }: { data: TemplateData }) {
 // ── About ──────────────────────────────────────────────────────────────────────
 
 function AuAbout({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   const { about, instructor } = data;
   return (
     <section id={SECTION_IDS.about} className="au-section">
       <div className="au-wrap au-about">
         <Reveal className="au-about-media" y={30}>
-          <div className="au-about-frame"><img src={about.image} alt="Instructor with a learner driver" className="au-about-img" data-edit="about.image" data-edit-type="image" /></div>
+          <div className="au-about-frame"><img src={about.image} alt={s.aboutImageAlt} className="au-about-img" data-edit="about.image" data-edit-type="image" /></div>
           <div className="au-instructor">
             <img src={instructor.photo} alt={instructor.name} className="au-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
             <div><p className="au-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="au-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p></div>
           </div>
         </Reveal>
         <div className="au-about-copy">
-          <Reveal><p className="au-eyebrow"><span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? 'About'}</span></p></Reveal>
+          <Reveal><p className="au-eyebrow"><span data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? s.aboutEyebrow}</span></p></Reveal>
           <Reveal delay={0.05}><h2 className="au-h2 au-h2-left" data-edit="about.heading" data-edit-type="text">{about.heading}</h2></Reveal>
           {about.body.map((p, i) => <Reveal key={i} as="p" className="au-body" delay={0.1 + i * 0.06}><span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span></Reveal>)}
           <Reveal delay={0.22}><ul className="au-checklist">{about.checklist.map((item, i) => <li key={i} data-edit-item={`about.checklist.${i}`}><Check size={16} aria-hidden="true" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>)}</ul></Reveal>
@@ -224,11 +230,12 @@ function AuAbout({ data }: { data: TemplateData }) {
 // ── Areas ────────────────────────────────────────────────────────────────────
 
 function AuAreas({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="au-section au-center">
       <div className="au-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? 'Areas covered'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'We come to you.'}</h2></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? s.areasEyebrowAu}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingAu}</h2></Reveal>
         <div className="au-areas">
           {data.areas.map((area, i) => (
             <Reveal key={i} delay={(i % 4) * 0.04} as="span" className="au-area" data-edit-item={`areas.${i}`}>
@@ -245,11 +252,12 @@ function AuAreas({ data }: { data: TemplateData }) {
 // ── Reviews ────────────────────────────────────────────────────────────────────
 
 function AuReviews({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="au-section au-center">
       <div className="au-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? 'Reviews'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'Loved by learners.'}</h2></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? s.reviewsEyebrow}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingAu}</h2></Reveal>
         <div className="au-reviews">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.08} className="au-review" data-edit-item={`reviews.${i}`}>
@@ -270,11 +278,12 @@ function AuReviews({ data }: { data: TemplateData }) {
 // ── Gallery ────────────────────────────────────────────────────────────────────
 
 function AuGallery({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   return (
     <section className="au-section au-center">
       <div className="au-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? 'Gallery'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'From the driving seat.'}</h2></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? s.galleryEyebrow}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingAu}</h2></Reveal>
         <div className="au-gallery">{data.gallery.map((src, i) => <Reveal key={i} delay={(i % 3) * 0.06} className="au-gallery-cell" data-edit-item={`gallery.${i}`}><img src={src} alt="" loading="lazy" data-edit={`gallery.${i}`} data-edit-type="image" /></Reveal>)}</div>
       </div>
     </section>
@@ -299,11 +308,12 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
 }
 
 function AuFaq({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="au-section au-center">
       <div className="au-wrap au-faq-wrap">
-        <Reveal><p className="au-eyebrow"><span data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? 'FAQ'}</span></p></Reveal>
-        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Common questions.'}</h2></Reveal>
+        <Reveal><p className="au-eyebrow"><span data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? s.faqEyebrow}</span></p></Reveal>
+        <Reveal delay={0.05}><h2 className="au-h2" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingAu}</h2></Reveal>
         <div className="au-faq-list">{data.faqs.map((faq, i) => <Reveal key={i} delay={i * 0.04}><FaqItem faq={faq} index={i} /></Reveal>)}</div>
       </div>
     </section>
@@ -313,20 +323,21 @@ function AuFaq({ data }: { data: TemplateData }) {
 // ── Book ─────────────────────────────────────────────────────────────────────
 
 function AuBook({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = auStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="au-section au-book">
       <div className="au-book-bg" aria-hidden="true"><ShaderBackground frag={SHADER_AURORA} colorVars={AU_VARS} paletteKey={JSON.stringify(data.theme ?? {})} speed={0.7} className="au-shader" /></div>
       <Reveal className="au-book-inner">
-        <h2 className="au-h2" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Ready when you are.'}</h2>
-        <p className="au-lead" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? 'Pick a time that works for you and we’ll take it from there.'}</p>
+        <h2 className="au-h2" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingAu}</h2>
+        <p className="au-lead" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? s.bookBodyAu}</p>
         <div className="au-book-ctas">
           {data.bookingUrl ? (
             <a href={data.bookingUrl} className="au-btn au-btn-primary au-btn-lg" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></a>
           ) : (
             <button type="button" className="au-btn au-btn-primary au-btn-lg" title="Available once your site is published" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></button>
           )}
-          {data.enrollUrl && <a href={data.enrollUrl} className="au-btn au-btn-ghost au-btn-lg"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</span></a>}
+          {data.enrollUrl && <a href={data.enrollUrl} className="au-btn au-btn-ghost au-btn-lg"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span></a>}
         </div>
       </Reveal>
     </section>
@@ -336,13 +347,14 @@ function AuBook({ data }: { data: TemplateData }) {
 // ── Contact / Footer ───────────────────────────────────────────────────────────
 
 function AuContact({ data }: { data: TemplateData }) {
+  const s = auStrings(data.locale);
   const { contact, hours } = data;
   const socials = contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="au-footer">
       <div className="au-wrap au-footer-grid">
         <div>
-          <p className="au-eyebrow"><span data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? 'Get in touch'}</span></p>
+          <p className="au-eyebrow"><span data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? s.contactHeading}</span></p>
           <div className="au-contact-info">
             <a href={`tel:${contact.phone}`} className="au-contact-link"><DynamicIcon name={data.icons?.phone ?? 'Phone'} size={16} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /><span data-edit="contact.phone" data-edit-type="text">{contact.phone}</span></a>
             <a href={`mailto:${contact.email}`} className="au-contact-link"><DynamicIcon name={data.icons?.email ?? 'Mail'} size={16} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /><span data-edit="contact.email" data-edit-type="text">{contact.email}</span></a>
@@ -357,13 +369,13 @@ function AuContact({ data }: { data: TemplateData }) {
           </div>
         </div>
         <div>
-          <p className="au-eyebrow"><span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening hours'}</span></p>
-          <table className="au-hours"><tbody>{hours.map((h) => <tr key={h.day} className={h.closed ? 'is-closed' : ''}><td>{h.day}</td><td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td></tr>)}</tbody></table>
+          <p className="au-eyebrow"><span data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursLabel}</span></p>
+          <table className="au-hours"><tbody>{hours.map((h) => <tr key={h.day} className={h.closed ? 'is-closed' : ''}><td>{h.day}</td><td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td></tr>)}</tbody></table>
         </div>
       </div>
       <div className="au-wrap au-footer-bottom">
         <span>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span></span>
-        <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'Built with Mumotor'}</span>
+        <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCredit}</span>
       </div>
     </footer>
   );

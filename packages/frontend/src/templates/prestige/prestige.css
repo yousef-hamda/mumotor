@@ -1042,3 +1042,24 @@
   .tmpl-prestige .pd-pkg-card { padding: 32px 22px; }
   .tmpl-prestige .pd-footer-grid { padding-top: 56px; padding-bottom: 44px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RTL OVERRIDES (dir="rtl" — Hebrew / Arabic)
+   Only physical left/right rules that visibly break under RTL are mirrored.
+   ════════════════════════════════════════════════════════════════════════════ */
+.tmpl-prestige[dir='rtl'] .pd-burger { margin-left: 0; margin-right: auto; }
+.tmpl-prestige[dir='rtl'] .pd-mobile-link { text-align: right; }
+.tmpl-prestige[dir='rtl'] .pd-faq-q { text-align: right; }
+.tmpl-prestige[dir='rtl'] .pd-cred-item { border-right: none; border-left: 1px solid var(--gold-border); }
+.tmpl-prestige[dir='rtl'] .pd-cred-item:last-child { border-left: none; }
+.tmpl-prestige[dir='rtl'] .pd-stat { border-right: none; border-left: 1px solid var(--gold-border); }
+.tmpl-prestige[dir='rtl'] .pd-stat:last-child { border-left: none; }
+.tmpl-prestige[dir='rtl'] .pd-pkg-badge { left: auto; right: 34px; }
+.tmpl-prestige[dir='rtl'] .pd-instructor-card { border-left: none; border-right: 2px solid var(--gold); }
+.tmpl-prestige[dir='rtl'] .pd-area-note { margin-left: 0; margin-right: 2px; }
+.tmpl-prestige[dir='rtl'] .pd-hours-table td:last-child { text-align: left; }
+
+@media (max-width: 1024px) {
+  .tmpl-prestige[dir='rtl'] .pd-stat { border-left: none; }
+  .tmpl-prestige[dir='rtl'] .pd-stat:nth-child(odd) { border-right: none; border-left: 1px solid var(--gold-border); }
+}

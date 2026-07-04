@@ -18,6 +18,7 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy,
   useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
 } from '../shared';
+import { pgStrings } from './strings';
 import './prestige.css';
 
 // ── Stars ──────────────────────────────────────────────────────────────────────
@@ -100,15 +101,16 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
   const aboutImgY = useTransform(aboutProgress, [0, 1], ['-9%', '9%']);
 
   const activeSection = useScrollSpy(Object.values(SECTION_IDS));
+  const s = pgStrings(data.locale);
   const hasReviews = data.reviews.length > 0;
   const hasGallery = data.gallery.length > 0;
-  const bookCta = data.labels?.bookCta ?? 'Book a lesson';
+  const bookCta = data.labels?.bookCta ?? s.bookCta;
   const navLinks = [
-    { id: SECTION_IDS.packages, label: 'Packages' },
-    { id: SECTION_IDS.about, label: 'About' },
-    { id: SECTION_IDS.areas, label: 'Areas' },
-    ...(hasReviews ? [{ id: SECTION_IDS.reviews, label: 'Reviews' }] : []),
-    { id: SECTION_IDS.faq, label: 'FAQ' },
+    { id: SECTION_IDS.packages, label: s.navPackages },
+    { id: SECTION_IDS.about, label: s.navAbout },
+    { id: SECTION_IDS.areas, label: s.navAreas },
+    ...(hasReviews ? [{ id: SECTION_IDS.reviews, label: s.navReviews }] : []),
+    { id: SECTION_IDS.faq, label: s.navFaq },
   ];
 
   return (
@@ -141,7 +143,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             {bookCta}
           </button>
           <button className="pd-burger" onClick={() => setMobileOpen(v => !v)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
+            aria-label={mobileOpen ? s.closeMenu : s.openMenu} aria-expanded={mobileOpen}>
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
@@ -223,8 +225,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <section id={SECTION_IDS.packages} className="pd-section">
         <div className="pd-container">
           <Reveal>
-            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? 'Packages & Pricing'}</p>
-            <h2 className="pd-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Invest in your independence.'}</h2>
+            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.packagesEyebrow" data-edit-type="text">{data.copy?.packagesEyebrow ?? s.packagesEyebrowPg}</p>
+            <h2 className="pd-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingPg}</h2>
           </Reveal>
           <div className="pd-packages-grid">
             {data.packages.map((pkg, i) => (
@@ -238,7 +240,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   </div>
                   {pkg.duration && (
                     <p className="pd-pkg-meta">
-                      <Clock size={11} aria-hidden="true" /> <span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? '-minute lessons'}</span>
+                      <Clock size={11} aria-hidden="true" /> <span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? s.lessonDurationSuffix}</span>
                     </p>
                   )}
                   <div className="pd-pkg-rule" aria-hidden="true" />
@@ -252,8 +254,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                     data-edit="labels.packageCta" data-edit-type="text"
                     onClick={() => scrollToSection(SECTION_IDS.book)}>
                     {pkg.popular
-                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? 'Get started')
-                      : (data.labels?.packageCta ?? 'Select package')}
+                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.packageCtaPopular)
+                      : (data.labels?.packageCta ?? s.packageCtaPg)}
                   </button>
                 </div>
               </Reveal>
@@ -267,7 +269,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
         <div className="pd-container pd-about-grid">
           <div className="pd-about-copy">
             <Reveal>
-              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? 'About the instructor'}</p>
+              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.aboutEyebrow" data-edit-type="text">{data.copy?.aboutEyebrow ?? s.aboutEyebrowPg}</p>
               <h2 className="pd-section-title" data-edit="about.heading" data-edit-type="text">{data.about.heading}</h2>
             </Reveal>
             {data.about.body.map((p, i) => (
@@ -298,10 +300,10 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           <Reveal className="pd-about-img-col" delay={0.2}>
             <div className="pd-about-img-wrap" ref={aboutImgRef}>
               {!reduced
-                ? <motion.img src={data.about.image} alt="Driving lesson in progress"
+                ? <motion.img src={data.about.image} alt={s.aboutImageAlt}
                     className="pd-about-img" style={{ y: aboutImgY }}
                     data-edit="about.image" data-edit-type="image" />
-                : <img src={data.about.image} alt="Driving lesson in progress" className="pd-about-img"
+                : <img src={data.about.image} alt={s.aboutImageAlt} className="pd-about-img"
                     data-edit="about.image" data-edit-type="image" />
               }
               <div className="pd-about-img-overlay" aria-hidden="true" />
@@ -314,10 +316,10 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <section id={SECTION_IDS.areas} className="pd-section pd-areas-section">
         <div className="pd-container">
           <Reveal>
-            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? 'Coverage'}</p>
-            <h2 className="pd-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'Areas we serve.'}</h2>
+            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.areasEyebrow" data-edit-type="text">{data.copy?.areasEyebrow ?? s.areasEyebrow}</p>
+            <h2 className="pd-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingPg}</h2>
           </Reveal>
-          <Reveal delay={0.1}><p className="pd-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? 'Door-to-door pickup at no extra charge.'}</p></Reveal>
+          <Reveal delay={0.1}><p className="pd-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? s.areasSubPg}</p></Reveal>
           <Reveal delay={0.2}>
             <div className="pd-areas-grid">
               {data.areas.map((area, i) => (
@@ -337,8 +339,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
         <section id={SECTION_IDS.reviews} className="pd-section">
           <div className="pd-container">
             <Reveal>
-              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? 'Testimonials'}</p>
-              <h2 className="pd-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'What our drivers say.'}</h2>
+              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.reviewsEyebrow" data-edit-type="text">{data.copy?.reviewsEyebrow ?? s.reviewsEyebrowPg}</p>
+              <h2 className="pd-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingPg}</h2>
             </Reveal>
             <div className="pd-reviews-grid">
               {data.reviews.map((r, i) => (
@@ -369,8 +371,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
         <section className="pd-section pd-gallery-section">
           <div className="pd-container">
             <Reveal>
-              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? 'Gallery'}</p>
-              <h2 className="pd-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'Moments on the road.'}</h2>
+              <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.galleryEyebrow" data-edit-type="text">{data.copy?.galleryEyebrow ?? s.galleryEyebrow}</p>
+              <h2 className="pd-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingPg}</h2>
             </Reveal>
             <div className="pd-gallery-grid">
               {data.gallery.map((src, i) => (
@@ -389,8 +391,8 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <section id={SECTION_IDS.faq} className="pd-section pd-faq-section">
         <div className="pd-container pd-faq-wrap">
           <Reveal>
-            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? 'Questions'}</p>
-            <h2 className="pd-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Frequently asked.'}</h2>
+            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.faqEyebrow" data-edit-type="text">{data.copy?.faqEyebrow ?? s.faqEyebrowPg}</p>
+            <h2 className="pd-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingPg}</h2>
           </Reveal>
           <div className="pd-faq-list">
             {data.faqs.map((faq, i) => (
@@ -408,27 +410,27 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <section id={SECTION_IDS.book} className="pd-section pd-book-section">
         <div className="pd-container pd-book-cta">
           <Reveal>
-            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.bookEyebrow" data-edit-type="text">{data.copy?.bookEyebrow ?? 'Reservations'}</p>
-            <h2 className="pd-section-title" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Book your lesson.'}</h2>
+            <p className="pd-eyebrow pd-eyebrow-section" data-edit="copy.bookEyebrow" data-edit-type="text">{data.copy?.bookEyebrow ?? s.bookEyebrowPg}</p>
+            <h2 className="pd-section-title" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingPg}</h2>
           </Reveal>
-          <Reveal delay={0.12}><p className="pd-section-sub" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? 'Reserve your spot and start driving.'}</p></Reveal>
+          <Reveal delay={0.12}><p className="pd-section-sub" data-edit="copy.bookBody" data-edit-type="text">{data.copy?.bookBody ?? s.bookBodyPg}</p></Reveal>
           <Reveal delay={0.18}><div className="pd-book-rule" aria-hidden="true" /></Reveal>
           <Reveal delay={0.24}>
             <div className="pd-book-actions">
               {data.bookingUrl ? (
                 <a href={data.bookingUrl} className="pd-btn-primary pd-shimmer"
                   data-edit="labels.bookCta" data-edit-type="text">
-                  {data.labels?.bookCta ?? 'Book a lesson'}
+                  {data.labels?.bookCta ?? s.bookCta}
                 </a>
               ) : (
                 <button type="button" className="pd-btn-primary pd-shimmer"
                   title="Available once your site is published"
                   data-edit="labels.bookCta" data-edit-type="text">
-                  {data.labels?.bookCta ?? 'Book a lesson'}
+                  {data.labels?.bookCta ?? s.bookCta}
                 </button>
               )}
               {data.enrollUrl && (
-                <a href={data.enrollUrl} className="pd-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? 'Enroll'}</span> &rarr;</a>
+                <a href={data.enrollUrl} className="pd-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> &rarr;</a>
               )}
             </div>
           </Reveal>
@@ -439,7 +441,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <footer id={SECTION_IDS.contact} className="pd-footer">
         <div className="pd-container pd-footer-grid">
           <div>
-            <Reveal><h2 className="pd-footer-heading" data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? 'Get in touch'}</h2></Reveal>
+            <Reveal><h2 className="pd-footer-heading" data-edit="copy.contactHeading" data-edit-type="text">{data.copy?.contactHeading ?? s.contactHeading}</h2></Reveal>
             <Reveal delay={0.1}>
               <ul className="pd-contact-list">
                 <li><DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" />
@@ -462,13 +464,13 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           </div>
           <Reveal delay={0.14}>
             <div className="pd-hours-panel">
-              <h3 className="pd-hours-title" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening hours'}</h3>
+              <h3 className="pd-hours-title" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursLabel}</h3>
               <table className="pd-hours-table">
                 <tbody>
                   {data.hours.map(h => (
                     <tr key={h.day} className={h.closed ? 'pd-closed' : ''}>
                       <td>{h.day}</td>
-                      <td className="tabular-nums">{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                      <td className="tabular-nums">{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -478,7 +480,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
         </div>
         <div className="pd-container">
           <div className="pd-footer-bottom">
-            <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span></p>
+            <p>© {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCreditPg}</span></p>
             <p className="pd-footer-tagline" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
   SECTION_IDS, scrollToSection, useScrollSpy,
   useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
 } from '../shared';
+import { elStrings, type ElStrings } from './strings';
 import './easy-lane.css';
 
 // ── Spring transition preset ──────────────────────────────────────────────────
@@ -18,24 +19,25 @@ const spring = { type: 'spring', stiffness: 220, damping: 16 } as const;
 const springFast = { type: 'spring', stiffness: 380, damping: 20 } as const;
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-const NAV_LINKS = [
-  { label: 'Packages', id: SECTION_IDS.packages },
-  { label: 'About',    id: SECTION_IDS.about    },
-  { label: 'Areas',    id: SECTION_IDS.areas    },
-  { label: 'Reviews',  id: SECTION_IDS.reviews  },
-  { label: 'FAQ',      id: SECTION_IDS.faq      },
+const NAV_LINKS = (s: ElStrings) => [
+  { label: s.navPackages, id: SECTION_IDS.packages },
+  { label: s.navAbout,    id: SECTION_IDS.about    },
+  { label: s.navAreas,    id: SECTION_IDS.areas    },
+  { label: s.navReviews,  id: SECTION_IDS.reviews  },
+  { label: s.navFaq,      id: SECTION_IDS.faq      },
 ];
 
 function Nav({ data, active }: { data: TemplateData; active: string }) {
+  const s = elStrings(data.locale);
   const [open, setOpen] = useState(false);
-  const bookLabel = data.labels?.bookCta ?? 'Book a Lesson';
+  const bookLabel = data.labels?.bookCta ?? s.bookCtaEl;
   const navLinks = data.reviews.length > 0
-    ? NAV_LINKS
-    : NAV_LINKS.filter(l => l.id !== SECTION_IDS.reviews);
+    ? NAV_LINKS(s)
+    : NAV_LINKS(s).filter(l => l.id !== SECTION_IDS.reviews);
   return (
-    <nav className="el-nav" role="navigation" aria-label="Main navigation">
+    <nav className="el-nav" role="navigation" aria-label={s.mainNavAria}>
       <div className="el-nav-inner">
-        <button className="el-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label="Back to top">
+        <button className="el-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.backToTop}>
           {data.business.logoSrc
             ? <img src={data.business.logoSrc} alt="" style={{ width: '2.2rem', height: '2.2rem', borderRadius: 12, objectFit: 'cover' }} data-edit="business.logoSrc" data-edit-type="image" />
             : <span className="el-logo-mark" aria-hidden="true" data-edit="business.logoSrc" data-edit-type="image">{data.business.logoText[0]}</span>}
@@ -58,7 +60,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
         </button>
         <button
           className="el-hamburger"
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? s.closeMenu : s.openMenu}
           aria-expanded={open}
           onClick={() => setOpen(o => !o)}
         >
@@ -93,6 +95,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
 
 // ── HERO ──────────────────────────────────────────────────────────────────────
 function Hero({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   const reduced = usePrefersReducedMotion();
   return (
     <section id={SECTION_IDS.hero} className="el-hero">
@@ -129,7 +132,7 @@ function Hero({ data }: { data: TemplateData }) {
         </div>
         <Reveal delay={0.3} x={30} y={0}>
           <div className="el-hero-img-wrap">
-            <img src={data.hero.image} alt="Driving lesson in progress" className="el-hero-img" loading="lazy" data-edit="hero.image" data-edit-type="image" />
+            <img src={data.hero.image} alt={s.heroImageAlt} className="el-hero-img" loading="lazy" data-edit="hero.image" data-edit-type="image" />
           </div>
         </Reveal>
       </div>
@@ -175,26 +178,27 @@ function Stats({ data }: { data: TemplateData }) {
 }
 
 // ── YOUR JOURNEY ──────────────────────────────────────────────────────────────
-const JOURNEY_STEPS = [
-  { icon: 'Car',    label: 'Book',      sub: 'Pick your slot'  },
-  { icon: 'Zap',    label: 'Learn',     sub: 'At your pace'    },
-  { icon: 'Award',  label: 'Mock Test', sub: 'Feel ready'      },
-  { icon: 'Trophy', label: 'Pass!',     sub: 'You\'ve got this' },
+const JOURNEY_STEPS = (s: ElStrings) => [
+  { icon: 'Car',    label: s.journey0Label, sub: s.journey0Sub },
+  { icon: 'Zap',    label: s.journey1Label, sub: s.journey1Sub },
+  { icon: 'Award',  label: s.journey2Label, sub: s.journey2Sub },
+  { icon: 'Trophy', label: s.journey3Label, sub: s.journey3Sub },
 ];
 
 function Journey({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   const reduced = usePrefersReducedMotion();
   return (
-    <section className="el-journey-section" aria-label="Your learning journey">
+    <section className="el-journey-section" aria-label={s.journeyAria}>
       <div className="el-container">
         <Reveal>
-          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.journeyHeading" data-edit-type="text">{data.copy?.journeyHeading ?? 'Your Journey'}</h2>
+          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.journeyHeading" data-edit-type="text">{data.copy?.journeyHeading ?? s.journeyHeading}</h2>
           <p className="el-section-sub" style={{ textAlign: 'center', maxWidth: '460px', margin: '0 auto 2.5rem' }} data-edit="copy.journeyBody" data-edit-type="text">
-            {data.copy?.journeyBody ?? 'Every great driver starts at the same place — and we\'ll be with you every step.'}
+            {data.copy?.journeyBody ?? s.journeyBody}
           </p>
         </Reveal>
         <div className="el-journey-track" role="list">
-          {JOURNEY_STEPS.map(({ icon, label, sub }, i) => (
+          {JOURNEY_STEPS(s).map(({ icon, label, sub }, i) => (
             <Reveal key={label} delay={i * 0.13}>
               <div className="el-journey-step" role="listitem">
                 <motion.div
@@ -217,8 +221,8 @@ function Journey({ data }: { data: TemplateData }) {
 
 // ── PACKAGES ──────────────────────────────────────────────────────────────────
 function PackageCard({
-  pkg, i, selected, onSelect, ctaLabel,
-}: { pkg: TemplateData['packages'][number]; i: number; selected: boolean; onSelect: () => void; ctaLabel: string }) {
+  pkg, i, selected, onSelect, ctaLabel, s,
+}: { pkg: TemplateData['packages'][number]; i: number; selected: boolean; onSelect: () => void; ctaLabel: string; s: ElStrings }) {
   return (
     <motion.div
       className={`el-pkg-card${pkg.popular ? ' el-pkg-card--popular' : ''}${selected ? ' el-pkg-card--selected' : ''}`}
@@ -235,7 +239,7 @@ function PackageCard({
       {pkg.duration && (
         <p className="el-pkg-detail">
           <Clock size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-          {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}-min lesson{(pkg.lessons ?? 1) !== 1 ? 's' : ''}
+          {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}{(pkg.lessons ?? 1) !== 1 ? s.minLessonsSuffix : s.minLessonSuffix}
         </p>
       )}
       <ul className="el-pkg-features">
@@ -249,7 +253,7 @@ function PackageCard({
         onClick={() => { onSelect(); scrollToSection(SECTION_IDS.book); }}
         aria-pressed={selected}
       >
-        {selected ? 'Selected ✓' : <span data-edit="labels.packageCta" data-edit-type="text">{ctaLabel}</span>}
+        {selected ? s.selectedLabel : <span data-edit="labels.packageCta" data-edit-type="text">{ctaLabel}</span>}
       </button>
     </motion.div>
   );
@@ -258,21 +262,22 @@ function PackageCard({
 function Packages({
   data, selectedId, onSelect,
 }: { data: TemplateData; selectedId: string | null; onSelect: (id: string) => void }) {
+  const s = elStrings(data.locale);
   return (
     <section id={SECTION_IDS.packages} className="el-packages-section">
       <div className="el-blob el-blob-3" aria-hidden="true" />
       <div className="el-container">
         <Reveal>
-          <h2 className="el-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Lesson Packages'}</h2>
-          <p className="el-section-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? 'Transparent pricing. No hidden fees. Change your mind any time.'}</p>
+          <h2 className="el-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingEl}</h2>
+          <p className="el-section-sub" data-edit="copy.packagesSub" data-edit-type="text">{data.copy?.packagesSub ?? s.packagesSubEl}</p>
         </Reveal>
         <div className="el-packages-grid">
           {data.packages.map((pkg, i) => {
-            const baseCta = data.labels?.packageCta ?? 'Book This Package';
+            const baseCta = data.labels?.packageCta ?? s.packageCtaEl;
             const ctaLabel = pkg.popular ? (data.labels?.packageCtaPopular ?? baseCta) : baseCta;
             return (
               <Reveal key={pkg.id} delay={i * 0.1}>
-                <PackageCard pkg={pkg} i={i} selected={selectedId === pkg.id} onSelect={() => onSelect(pkg.id)} ctaLabel={ctaLabel} />
+                <PackageCard pkg={pkg} i={i} selected={selectedId === pkg.id} onSelect={() => onSelect(pkg.id)} ctaLabel={ctaLabel} s={s} />
               </Reveal>
             );
           })}
@@ -284,6 +289,7 @@ function Packages({
 
 // ── ABOUT ─────────────────────────────────────────────────────────────────────
 function About({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   return (
     <section id={SECTION_IDS.about} className="el-about-section">
       <div className="el-container">
@@ -291,7 +297,7 @@ function About({ data }: { data: TemplateData }) {
           <Reveal x={-26} y={0}>
             <div className="el-about-img-col">
               <div className="el-about-img-wrap">
-                <img src={data.about.image} alt="Driving lesson in progress" className="el-about-img" loading="lazy" data-edit="about.image" data-edit-type="image" />
+                <img src={data.about.image} alt={s.aboutImageAlt} className="el-about-img" loading="lazy" data-edit="about.image" data-edit-type="image" />
               </div>
               <motion.div className="el-instructor-card" whileHover={{ y: -4 }} transition={spring}>
                 <img src={data.instructor.photo} alt={data.instructor.name} className="el-instructor-photo" loading="lazy" data-edit="instructor.photo" data-edit-type="image" />
@@ -332,13 +338,14 @@ function About({ data }: { data: TemplateData }) {
 
 // ── AREAS ─────────────────────────────────────────────────────────────────────
 function Areas({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="el-areas-section">
       <div className="el-blob el-blob-4" aria-hidden="true" />
       <div className="el-container">
         <Reveal>
-          <h2 className="el-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'Areas Covered'}</h2>
-          <p className="el-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? 'Pick-up and drop-off at no extra cost across all these areas.'}</p>
+          <h2 className="el-section-title" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingEl}</h2>
+          <p className="el-section-sub" data-edit="copy.areasSub" data-edit-type="text">{data.copy?.areasSub ?? s.areasSubEl}</p>
         </Reveal>
         <div className="el-areas-grid">
           {data.areas.map((area, i) => (
@@ -373,10 +380,11 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 function Reviews({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews} className="el-reviews-section">
       <div className="el-container">
-        <Reveal><h2 className="el-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'What Learners Say'}</h2></Reveal>
+        <Reveal><h2 className="el-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingEl}</h2></Reveal>
         <div className="el-reviews-grid">
           {data.reviews.map((r, i) => (
             <Reveal key={r.id} delay={i * 0.1}>
@@ -406,14 +414,15 @@ function Reviews({ data }: { data: TemplateData }) {
 
 // ── GALLERY ───────────────────────────────────────────────────────────────────
 function Gallery({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   if (data.gallery.length === 0) return null;
   return (
-    <section className="el-gallery-section" aria-label="Gallery">
+    <section className="el-gallery-section" aria-label={s.galleryEyebrow}>
       <div className="el-container">
         <Reveal>
-          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'A Look Around'}</h2>
+          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingEl}</h2>
           <p className="el-section-sub" style={{ textAlign: 'center', maxWidth: '480px', margin: '0 auto 2.5rem' }} data-edit="copy.gallerySub" data-edit-type="text">
-            {data.copy?.gallerySub ?? 'Lessons, passes and happy faces — straight from the driver\'s seat.'}
+            {data.copy?.gallerySub ?? s.gallerySubEl}
           </p>
         </Reveal>
         <div className="el-gallery-grid">
@@ -467,11 +476,12 @@ function FaqItem({
 }
 
 function FAQ({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   return (
     <section id={SECTION_IDS.faq} className="el-faq-section">
       <div className="el-container el-container--narrow">
-        <Reveal><h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Questions? We\'ve got you.'}</h2></Reveal>
+        <Reveal><h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingEl}</h2></Reveal>
         <div className="el-faq-list">
           {data.faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 0.06}>
@@ -486,16 +496,17 @@ function FAQ({ data }: { data: TemplateData }) {
 
 // ── BOOK ──────────────────────────────────────────────────────────────────────
 function Book({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = elStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   const btnClass = 'el-btn el-btn-primary el-btn-lg';
   return (
     <section id={SECTION_IDS.book} className="el-book-section">
       <div className="el-blob el-blob-5" aria-hidden="true" />
       <div className="el-container el-container--narrow">
         <Reveal>
-          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Ready to get started?'}</h2>
+          <h2 className="el-section-title" style={{ textAlign: 'center' }} data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingEl}</h2>
           <p className="el-section-sub" style={{ textAlign: 'center', maxWidth: '480px', margin: '0 auto 2rem' }} data-edit="copy.bookBody" data-edit-type="text">
-            {data.copy?.bookBody ?? 'Book your first lesson today — we\'ll be in touch to confirm your slot.'}
+            {data.copy?.bookBody ?? s.bookBodyEl}
           </p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -504,7 +515,7 @@ function Book({ data }: { data: TemplateData }) {
               <>
                 <a href={data.bookingUrl} className={btnClass} data-edit="labels.bookCta" data-edit-type="text">{bookLabel}</a>
                 {data.enrollUrl && (
-                  <a href={data.enrollUrl} className="el-btn el-btn-ghost el-btn-lg" data-edit="copy.enrollLabel" data-edit-type="text">{data.copy?.enrollLabel ?? 'Enroll'}</a>
+                  <a href={data.enrollUrl} className="el-btn el-btn-ghost el-btn-lg" data-edit="copy.enrollLabel" data-edit-type="text">{data.copy?.enrollLabel ?? s.enrollLabel}</a>
                 )}
               </>
             ) : (
@@ -519,6 +530,7 @@ function Book({ data }: { data: TemplateData }) {
 
 // ── CONTACT / FOOTER ──────────────────────────────────────────────────────────
 function Contact({ data }: { data: TemplateData }) {
+  const s = elStrings(data.locale);
   const socials = data.contact.socials ?? [];
   return (
     <footer id={SECTION_IDS.contact} className="el-contact-section" style={{ paddingBottom: '7rem' }}>
@@ -531,10 +543,10 @@ function Contact({ data }: { data: TemplateData }) {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="el-contact-list">
-                <a href={`tel:${data.contact.phone}`} className="el-contact-item" aria-label="Call us">
+                <a href={`tel:${data.contact.phone}`} className="el-contact-item" aria-label={s.callCta}>
                   <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /><span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span>
                 </a>
-                <a href={`mailto:${data.contact.email}`} className="el-contact-item" aria-label="Email us">
+                <a href={`mailto:${data.contact.email}`} className="el-contact-item" aria-label={s.emailUs}>
                   <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /><span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span>
                 </a>
                 <span className="el-contact-item">
@@ -562,13 +574,13 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
           <div>
             <Reveal>
-              <h3 className="el-hours-heading" data-edit="copy.hoursHeading" data-edit-type="text">{data.copy?.hoursHeading ?? 'Opening Hours'}</h3>
-              <table className="el-hours-table" aria-label="Opening hours">
+              <h3 className="el-hours-heading" data-edit="copy.hoursHeading" data-edit-type="text">{data.copy?.hoursHeading ?? s.hoursHeadingEl}</h3>
+              <table className="el-hours-table" aria-label={s.hoursLabel}>
                 <tbody>
                   {data.hours.map(h => (
                     <tr key={h.day} className={h.closed ? 'el-hours-closed' : ''}>
                       <td className="el-hours-day">{h.day}</td>
-                      <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                      <td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -577,7 +589,7 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
         </div>
         <div className="el-footer-bar">
-          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
+          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCreditEl}</span>
         </div>
       </div>
     </footer>

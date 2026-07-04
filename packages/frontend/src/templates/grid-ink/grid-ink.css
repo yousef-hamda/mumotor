@@ -1244,3 +1244,11 @@
   .tmpl-grid-ink .gi-stats-grid { grid-template-columns: 1fr; }
   .tmpl-grid-ink .gi-stat { border-inline-end: none; }
 }
+
+/* ── RTL overrides ─────────────────────────────────────────────────────────── */
+/* The nav underline grows from the reading-start edge; everything else in this
+   file already uses logical properties (inset-inline, margin-inline-*, start/end). */
+[dir='rtl'] .tmpl-grid-ink .gi-nav-link::after,
+.tmpl-grid-ink[dir='rtl'] .gi-nav-link::after {
+  transform-origin: right;
+}

@@ -5,6 +5,8 @@ import {
   Clock, Award, Car,
 } from 'lucide-react';
 import type { TemplateData } from '../types';
+import { fmt } from '../strings';
+import { orStrings, type OrStrings } from './strings';
 import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
@@ -29,18 +31,19 @@ function RoadDivider() {
 // ── NAV ──────────────────────────────────────────────────────────────────────
 function Nav({ data, active }: { data: TemplateData; active: string }) {
   const [open, setOpen] = useState(false);
-  const bookLabel = data.labels?.bookCta ?? 'Book a Lesson';
+  const s = orStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCtaNav;
   const links = [
-    { label: 'Packages', id: SECTION_IDS.packages },
-    { label: 'About',    id: SECTION_IDS.about    },
-    { label: 'Areas',    id: SECTION_IDS.areas    },
-    ...(data.reviews.length > 0 ? [{ label: 'Reviews', id: SECTION_IDS.reviews }] : []),
-    { label: 'FAQ',      id: SECTION_IDS.faq      },
+    { label: s.navPackages, id: SECTION_IDS.packages },
+    { label: s.navAbout,    id: SECTION_IDS.about    },
+    { label: s.navAreas,    id: SECTION_IDS.areas    },
+    ...(data.reviews.length > 0 ? [{ label: s.navReviews, id: SECTION_IDS.reviews }] : []),
+    { label: s.navFaq,      id: SECTION_IDS.faq      },
   ];
   return (
-    <nav className="or-nav" role="navigation" aria-label="Main navigation">
+    <nav className="or-nav" role="navigation" aria-label={s.mainNavAria}>
       <div className="or-nav-inner">
-        <button className="or-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label="Back to top" style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+        <button className="or-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.backToTop} style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={34} bg="#D2691E" fg="#F4E9D8" radius="34%" />
           </span>
@@ -62,7 +65,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
         </button>
         <button
           className="or-hamburger"
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? s.closeMenu : s.openMenu}
           aria-expanded={open}
           onClick={() => setOpen(o => !o)}
         >
@@ -98,6 +101,7 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
 // ── HERO ─────────────────────────────────────────────────────────────────────
 function Hero({ data }: { data: TemplateData }) {
   const reduced = usePrefersReducedMotion();
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.hero} className="or-hero">
       <motion.div
@@ -135,7 +139,7 @@ function Hero({ data }: { data: TemplateData }) {
         </div>
         <Reveal delay={0.28} x={28} y={0}>
           <div className="or-hero-img-frame">
-            <img src={data.hero.image} alt="Driving lesson" className="or-hero-img" data-edit="hero.image" data-edit-type="image" />
+            <img src={data.hero.image} alt={s.heroImageAlt} className="or-hero-img" data-edit="hero.image" data-edit-type="image" />
           </div>
         </Reveal>
       </div>
@@ -182,13 +186,14 @@ function Stats({ data }: { data: TemplateData }) {
 function Packages({
   data, selectedId, onSelect,
 }: { data: TemplateData; selectedId: string | null; onSelect: (id: string) => void }) {
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.packages} className="or-bg-orange">
       <div className="or-section-inner">
         <Reveal>
-          <h2 className="or-section-title or-title-cream" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? 'Lesson Packages'}</h2>
+          <h2 className="or-section-title or-title-cream" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingOr}</h2>
           <p className="or-section-sub or-text-cream-muted" data-edit="copy.packagesSub" data-edit-type="text">
-            {data.copy?.packagesSub ?? 'Transparent pricing. No hidden fees. Change your mind any time.'}
+            {data.copy?.packagesSub ?? s.packagesSubOr}
           </p>
         </Reveal>
         <div className="or-packages-grid">
@@ -209,7 +214,7 @@ function Packages({
                 {pkg.duration && (
                   <p className="or-package-detail">
                     <Clock size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                    {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}-min lesson{(pkg.lessons ?? 1) !== 1 ? 's' : ''}
+                    {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}{(pkg.lessons ?? 1) !== 1 ? s.minLessonMany : s.minLessonOne}
                   </p>
                 )}
                 <ul className="or-package-features">
@@ -227,10 +232,10 @@ function Packages({
                   aria-pressed={selectedId === pkg.id}
                 >
                   {selectedId === pkg.id
-                    ? 'Selected ✓'
+                    ? s.selectedLabel
                     : pkg.popular
-                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? 'Book This Package')
-                      : (data.labels?.packageCta ?? 'Book This Package')}
+                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.packageCtaOr)
+                      : (data.labels?.packageCta ?? s.packageCtaOr)}
                 </button>
               </motion.div>
             </Reveal>
@@ -243,6 +248,7 @@ function Packages({
 
 // ── ABOUT ─────────────────────────────────────────────────────────────────────
 function About({ data }: { data: TemplateData }) {
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.about}>
       <div className="or-section-inner">
@@ -250,7 +256,7 @@ function About({ data }: { data: TemplateData }) {
           <Reveal x={-28} y={0}>
             <div className="or-about-img-col">
               <div className="or-about-img-frame">
-                <img src={data.about.image} alt="Lesson in progress" className="or-about-img" data-edit="about.image" data-edit-type="image" />
+                <img src={data.about.image} alt={s.aboutImageAlt} className="or-about-img" data-edit="about.image" data-edit-type="image" />
               </div>
               <div className="or-instructor-card">
                 <img src={data.instructor.photo} alt={data.instructor.name} className="or-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
@@ -297,13 +303,14 @@ function About({ data }: { data: TemplateData }) {
 
 // ── AREAS ─────────────────────────────────────────────────────────────────────
 function Areas({ data }: { data: TemplateData }) {
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.areas} className="or-bg-teal">
       <div className="or-section-inner">
         <Reveal>
-          <h2 className="or-section-title or-title-cream" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? 'Areas Covered'}</h2>
+          <h2 className="or-section-title or-title-cream" data-edit="copy.areasHeading" data-edit-type="text">{data.copy?.areasHeading ?? s.areasHeadingOr}</h2>
           <p className="or-section-sub or-text-cream-muted" data-edit="copy.areasSub" data-edit-type="text">
-            {data.copy?.areasSub ?? 'Pick-up and drop-off across all these areas — at no extra cost.'}
+            {data.copy?.areasSub ?? s.areasSubOr}
           </p>
         </Reveal>
         <div className="or-areas-grid">
@@ -322,9 +329,9 @@ function Areas({ data }: { data: TemplateData }) {
 }
 
 // ── REVIEWS ───────────────────────────────────────────────────────────────────
-function StarRow({ rating }: { rating: number }) {
+function StarRow({ rating, s }: { rating: number; s: OrStrings }) {
   return (
-    <div className="or-stars" aria-label={`${rating} out of 5 stars`}>
+    <div className="or-stars" aria-label={fmt(s.starsAria, { n: rating })}>
       {Array.from({ length: 5 }, (_, i) => (
         <Star key={i} size={15} className={i < rating ? 'or-star-filled' : 'or-star-empty'} />
       ))}
@@ -333,11 +340,12 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 function Reviews({ data }: { data: TemplateData }) {
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.reviews}>
       <div className="or-section-inner">
         <Reveal>
-          <h2 className="or-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? 'What Learners Say'}</h2>
+          <h2 className="or-section-title" data-edit="copy.reviewsHeading" data-edit-type="text">{data.copy?.reviewsHeading ?? s.reviewsHeadingOr}</h2>
         </Reveal>
         <div className="or-reviews-grid">
           {data.reviews.map((r, i) => (
@@ -349,7 +357,7 @@ function Reviews({ data }: { data: TemplateData }) {
                 whileHover={{ rotate: 0, scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               >
-                <StarRow rating={r.rating} />
+                <StarRow rating={r.rating} s={s} />
                 <p className="or-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
                 <div className="or-review-author">
                   {r.avatar && (
@@ -371,11 +379,12 @@ function Reviews({ data }: { data: TemplateData }) {
 
 // ── GALLERY ───────────────────────────────────────────────────────────────────
 function Gallery({ data }: { data: TemplateData }) {
+  const s = orStrings(data.locale);
   return (
     <section id="gallery" className="or-section-inner">
       <Reveal>
-        <h2 className="or-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? 'On the Road'}</h2>
-        <p className="or-section-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? 'Snapshots from lessons, test days, and big wins.'}</p>
+        <h2 className="or-section-title" data-edit="copy.galleryHeading" data-edit-type="text">{data.copy?.galleryHeading ?? s.galleryHeadingOr}</h2>
+        <p className="or-section-sub" data-edit="copy.gallerySub" data-edit-type="text">{data.copy?.gallerySub ?? s.gallerySubOr}</p>
       </Reveal>
       <div className="or-gallery-grid">
         {data.gallery.map((src, i) => (
@@ -423,11 +432,12 @@ function FaqItem({ faq, index, open, toggle }: { faq: TemplateData['faqs'][numbe
 
 function FAQ({ data }: { data: TemplateData }) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="or-bg-mustard">
       <div className="or-section-inner or-section-inner--narrow">
         <Reveal>
-          <h2 className="or-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? 'Frequently Asked Questions'}</h2>
+          <h2 className="or-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingOr}</h2>
         </Reveal>
         <div className="or-faq-list">
           {data.faqs.map((faq, i) => (
@@ -448,14 +458,15 @@ function FAQ({ data }: { data: TemplateData }) {
 
 // ── BOOK ──────────────────────────────────────────────────────────────────────
 function Book({ data }: { data: TemplateData }) {
-  const bookLabel = data.labels?.bookCta ?? 'Book a lesson';
+  const s = orStrings(data.locale);
+  const bookLabel = data.labels?.bookCta ?? s.bookCta;
   return (
     <section id={SECTION_IDS.book} className="or-bg-teal">
       <div className="or-section-inner or-section-inner--narrow" style={{ textAlign: 'center' }}>
         <Reveal>
-          <h2 className="or-section-title or-title-cream" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? 'Ready to Hit the Road?'}</h2>
+          <h2 className="or-section-title or-title-cream" data-edit="copy.bookHeading" data-edit-type="text">{data.copy?.bookHeading ?? s.bookHeadingOr}</h2>
           <p className="or-section-sub or-text-cream-muted" style={{ marginLeft: 'auto', marginRight: 'auto' }} data-edit="copy.bookBody" data-edit-type="text">
-            {data.copy?.bookBody ?? "Book your first lesson and let's get you driving — confidently and at your own pace."}
+            {data.copy?.bookBody ?? s.bookBodyOr}
           </p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -473,7 +484,7 @@ function Book({ data }: { data: TemplateData }) {
               <button
                 type="button"
                 className="or-btn or-btn-primary or-btn-lg"
-                title="Available once your site is published"
+                title={s.bookUnpublishedTitle}
                 data-edit="labels.bookCta"
                 data-edit-type="text"
               >
@@ -482,7 +493,7 @@ function Book({ data }: { data: TemplateData }) {
             )}
             {data.enrollUrl && (
               <a href={data.enrollUrl} className="or-btn or-btn-ghost-cream or-btn-lg" data-edit="copy.enrollCta" data-edit-type="text">
-                {data.copy?.enrollCta ?? 'Enroll'}
+                {data.copy?.enrollCta ?? s.enrollLabel}
               </a>
             )}
           </div>
@@ -494,6 +505,7 @@ function Book({ data }: { data: TemplateData }) {
 
 // ── CONTACT / FOOTER ──────────────────────────────────────────────────────────
 function Contact({ data }: { data: TemplateData }) {
+  const s = orStrings(data.locale);
   return (
     <footer id={SECTION_IDS.contact} className="or-bg-brown" style={{ paddingBottom: '7rem' }}>
       <div className="or-section-inner or-contact">
@@ -507,10 +519,10 @@ function Contact({ data }: { data: TemplateData }) {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="or-contact-list">
-                <a href={`tel:${data.contact.phone}`} className="or-contact-item" aria-label="Call us">
+                <a href={`tel:${data.contact.phone}`} className="or-contact-item" aria-label={s.callCta}>
                   <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={15} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> <span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span>
                 </a>
-                <a href={`mailto:${data.contact.email}`} className="or-contact-item" aria-label="Email us">
+                <a href={`mailto:${data.contact.email}`} className="or-contact-item" aria-label={s.emailUs}>
                   <DynamicIcon name={data.icons?.email ?? 'Mail'} size={15} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> <span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span>
                 </a>
                 <span className="or-contact-item">
@@ -538,15 +550,15 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
           <div>
             <Reveal>
-              <h3 className="or-hours-heading" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? 'Opening Hours'}</h3>
+              <h3 className="or-hours-heading" data-edit="copy.hoursLabel" data-edit-type="text">{data.copy?.hoursLabel ?? s.hoursHeadingOr}</h3>
             </Reveal>
             <Reveal delay={0.1}>
-              <table className="or-hours-table" aria-label="Opening hours">
+              <table className="or-hours-table" aria-label={s.hoursLabel}>
                 <tbody>
                   {data.hours.map(h => (
                     <tr key={h.day} className={h.closed ? 'or-hours-closed' : ''}>
                       <td className="or-hours-day">{h.day}</td>
-                      <td>{h.closed ? 'Closed' : `${h.open} – ${h.close}`}</td>
+                      <td>{h.closed ? s.closedLabel : `${h.open} – ${h.close}`}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -555,7 +567,7 @@ function Contact({ data }: { data: TemplateData }) {
           </div>
         </div>
         <div className="or-footer-bar">
-          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? 'All rights reserved.'}</span>
+          © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.allRightsReserved}</span>
         </div>
       </div>
     </footer>
