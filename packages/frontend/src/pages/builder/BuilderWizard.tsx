@@ -108,7 +108,13 @@ export default function BuilderWizard() {
   // Each wizard step is the same route with different content, so ScrollToTop
   // (which fires on route change) can't see it — reset to the top on step change
   // so a step never opens scrolled halfway down (e.g. the Templates gallery).
-  useEffect(() => { window.scrollTo(0, 0); }, [step]);
+  // The rAF re-scroll guards against entrance animations settling the layout
+  // after the first paint and nudging the scroll position.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const id = requestAnimationFrame(() => window.scrollTo(0, 0));
+    return () => cancelAnimationFrame(id);
+  }, [step]);
 
   const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'design' : step) as Step));
   const showStepper = step !== 'welcome' && step !== 'done' && step !== 'customize';

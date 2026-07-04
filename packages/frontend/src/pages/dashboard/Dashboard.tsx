@@ -1,56 +1,28 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 import { Users, CalendarCheck, ExternalLink, ArrowRight, Plus, Pencil, GraduationCap } from 'lucide-react';
-import { apiError, websiteApi } from '../../lib/api';
+import { websiteApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
-import { Button, Card, CenteredSpinner, Field, Input, StatusBadge } from '../../components/ui';
+import { Card, CenteredSpinner, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import type { Website } from '../../lib/types';
 
+/** Empty state: send the teacher into the full guided builder (same flow as the
+ *  landing hero's "Build your site"), not a bare inline create. */
 function CreateWebsite() {
-  const qc = useQueryClient();
-  const [name, setName] = useState('');
-  const [tagline, setTagline] = useState('Your Road to Confidence');
-
-  const create = useMutation({
-    mutationFn: () => websiteApi.create({ name, tagline }),
-    onSuccess: () => {
-      toast.success('Your driving school is ready');
-      qc.invalidateQueries({ queryKey: ['websites'] });
-    },
-    onError: (e) => toast.error(apiError(e).message),
-  });
-
   return (
     <div className="mx-auto max-w-lg">
-      <Card className="p-8">
-        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
-          <GraduationCap strokeWidth={1.75} className="h-5 w-5" />
+      <Card className="p-8 text-center">
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-sand-100 text-sand-700">
+          <GraduationCap strokeWidth={1.75} className="h-6 w-6" />
         </span>
-        <h2 className="mt-5 text-2xl font-semibold tracking-tight text-sand-900">Set up your driving school</h2>
-        <p className="mb-6 mt-2 text-sm text-sand-600">
-          This creates your public booking page and student roster. You can fine-tune everything afterwards.
+        <h2 className="mt-5 text-2xl font-semibold tracking-tight text-sand-900">Create your website</h2>
+        <p className="mx-auto mb-7 mt-2 max-w-sm text-sm text-sand-600">
+          Build your driving-school website in a few guided steps — pick a design, add your details, then publish your public booking page.
         </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!name.trim()) return toast.error('Please enter a name');
-            create.mutate();
-          }}
-          className="space-y-4"
-        >
-          <Field label="School / business name">
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="David's Driving School" required />
-          </Field>
-          <Field label="Tagline (optional)">
-            <Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Your Road to Confidence" />
-          </Field>
-          <Button type="submit" loading={create.isPending} className="w-full">
-            <Plus className="h-4 w-4" /> Create driving school
-          </Button>
-        </form>
+        <Link to="/builder" className="btn-primary w-full">
+          <Plus className="h-4 w-4" /> Create your website
+        </Link>
       </Card>
     </div>
   );
