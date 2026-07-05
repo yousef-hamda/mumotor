@@ -5,8 +5,9 @@ import toast from 'react-hot-toast';
 import { websiteApi } from '../../lib/api';
 import { CenteredSpinner } from '../../components/ui';
 import CustomizeMode from '../../components/customize/CustomizeMode';
-import { publicToTemplateData, type PublicSiteData } from '../../templates/fromWizard';
+import { publicToTemplateData, syncPackageOverrideToPlans, type PublicSiteData } from '../../templates/fromWizard';
 import { TEMPLATES } from '../../templates/registry';
+import type { PlanInput } from '../../lib/wizard';
 import type { Customization } from '../../templates/customize/overrides';
 
 /** Dashboard live editor for an existing website (post-publish). */
@@ -27,6 +28,8 @@ export default function CustomizePage() {
       pricePerClass: (cfg.pricePerClass as number) ?? null,
       experienceLevel: (cfg.experienceLevel as string) || '5-10',
       classDuration: (cfg.classDuration as number) ?? 45,
+      transmission: (cfg.transmission as string) || null,
+      plans: (cfg.plans as PlanInput[]) || null,
       locale: website.locale,
       template: website.selectedPreset ?? (cfg.templateChoice as string) ?? null,
       logoSrc: (cfg.logoSrc as string) || null,
@@ -38,7 +41,7 @@ export default function CustomizePage() {
       socialLinks: (cfg.socialLinks as Record<string, string>) ?? null,
     };
     const slug = input.template && TEMPLATES.some((t) => t.slug === input.template) ? input.template : TEMPLATES[0].slug;
-    return { baseData: publicToTemplateData(input), slug, value: (cfg.customization as Customization) ?? undefined };
+    return { baseData: publicToTemplateData(input), slug, value: (cfg.customization as Customization) ?? undefined, plans: input.plans ?? undefined };
   }, [website]);
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
@@ -49,7 +52,11 @@ export default function CustomizePage() {
 
   const save = async (c: Customization) => {
     try {
-      await websiteApi.update(id, { configuration: { customization: c } as Record<string, unknown> });
+      // Fold Customize package edits into `plans` so the two never diverge; persist both.
+      const { plans, customization } = syncPackageOverrideToPlans(c, built?.plans);
+      const configuration: Record<string, unknown> = { customization };
+      if (plans) configuration.plans = plans;
+      await websiteApi.update(id, { configuration });
       // Bottom-center so it never covers the top-right Save/Done buttons.
       toast.success('Saved', { position: 'bottom-center' });
     } catch {

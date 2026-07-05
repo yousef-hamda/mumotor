@@ -212,11 +212,13 @@ booking/enroll/account.
 package cards while the wizard had 1 plan**. Root cause: Customize "add" clones a package card and stores a full-array
 `customization.fields.packages` snapshot; editing plans in the wizard afterwards left that snapshot stale, and
 `applyOverrides` (`fromWizard.ts`) let it REPLACE the plans-derived packages on the published site. Fixes: (a) at render,
-`reconcilePackageOverride` (`fromWizard.ts`) drops a `fields.packages` override that STRUCTURALLY desyncs from the plans
-(different card count / out-of-range index) — so packages always come from the **wizard PlansEditor (single source of
-truth)**; same-length inline text tweaks are kept; this **auto-fixes already-broken live sites** on next load, no republish.
-(b) Customize no longer offers add/remove/reorder on package cards (`CustomizeMode.tsx` guards `onCanvasMove` + `listOp`
-for `packages`) so the desync can't recur — packages are edited only in the wizard. Also made the English default instructor
+on **save**, `syncPackageOverrideToPlans` (`fromWizard.ts`) folds any Customize `packages` edit (add/delete/rename/reorder)
+back INTO `plans` and clears the override — so `plans` (the wizard **PlansEditor**) is the SINGLE source of truth and the
+two can never diverge. Wired into BOTH save paths: the builder (`BuilderWizard.tsx onSave` → `setConfig`) and the dashboard
+editor (`CustomizePage.tsx save` → sends `configuration.{customization,plans}`; also FIXED to load the real `plans`/`transmission`
+into its base, which it previously ignored). `reconcilePackageOverride` stays as a SAFETY NET: at render it drops a
+`fields.packages` override that STRUCTURALLY desyncs from the plans (count/out-of-range) — this **auto-fixes already-broken
+live sites** on next load, no republish. So Customize keeps add/delete on package cards, but they sync to plans. Also made the English default instructor
 **credentials honest** ("Certified driving instructor / Patient & professional" — were false UK certs "DVSA Approved (ADI)"
 / "Pass Plus registered") and dropped the invented "helped over 1,200 people" claim from the about-body default (HE/AR were
 already generic). NOTE (design, not a bug): templates still fill genuinely-empty sections with tasteful starter content

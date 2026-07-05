@@ -236,7 +236,9 @@ function buildTemplateData(c: CoreInput): TemplateData {
 
 /** Drop a Customize package-content override (`fields['packages']` / `fields['packages.N…']`)
  *  only when it STRUCTURALLY desyncs from the plans (different card count or an
- *  out-of-range index). Same-length overrides + all style/theme overrides are kept. */
+ *  out-of-range index). Same-length overrides + all style/theme overrides are kept.
+ *  This is a SAFETY NET — normally `syncPackageOverrideToPlans` folds edits into plans
+ *  on save so no packages override survives. */
 export function reconcilePackageOverride(c?: Customization | null, planCount = 0): Customization | null | undefined {
   if (!c?.fields) return c;
   const arr = c.fields['packages'];
@@ -248,6 +250,34 @@ export function reconcilePackageOverride(c?: Customization | null, planCount = 0
   if (!lenMismatch && !outOfRange) return c;
   const fields = Object.fromEntries(Object.entries(c.fields).filter(([k]) => !/^packages(\.|$)/.test(k)));
   return { ...c, fields };
+}
+
+/** Inverse of `plansToPackages`: turn a (possibly Customize-edited) packages array back
+ *  into PlanInputs, dropping render-only fields (duration/badge). Lets Customize
+ *  add/delete/rename/reorder sync INTO the wizard's plans. */
+export function packagesToPlans(packages: Array<Partial<Package>> | undefined): PlanInput[] {
+  if (!Array.isArray(packages)) return [];
+  return packages.map((pk, i) => ({
+    id: (typeof pk.id === 'string' && pk.id) || `plan-${i}`,
+    name: typeof pk.name === 'string' ? pk.name : '',
+    price: Number(pk.price) || 0,
+    unit: typeof pk.unit === 'string' ? pk.unit : '',
+    features: Array.isArray(pk.features) ? pk.features.filter((f): f is string => typeof f === 'string') : [],
+    popular: !!pk.popular,
+  }));
+}
+
+/** On save, fold any Customize `packages` override into `plans` and strip it, so `plans`
+ *  stays the SINGLE source of truth and the two can never diverge (the 3-cards-vs-1 bug).
+ *  If there's no packages override, plans + customization pass through untouched. */
+export function syncPackageOverrideToPlans(
+  c: Customization | null | undefined,
+  currentPlans: PlanInput[] | undefined,
+): { plans: PlanInput[] | undefined; customization: Customization | null | undefined } {
+  const override = c?.fields?.['packages'];
+  if (!Array.isArray(override)) return { plans: currentPlans, customization: c };
+  const fields = Object.fromEntries(Object.entries(c!.fields!).filter(([k]) => !/^packages(\.|$)/.test(k)));
+  return { plans: packagesToPlans(override as Array<Partial<Package>>), customization: { ...c!, fields } };
 }
 
 /** Builder wizard config → live TemplateData for preview & publish. */

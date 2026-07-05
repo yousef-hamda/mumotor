@@ -151,12 +151,12 @@ try {
   await page.waitForTimeout(250);
   ok('area removed via hover trash', (await page.locator('[data-edit-item^="areas."]').count()) === beforeRemove - 1);
 
-  // packages must NOT expose add/remove in Customize (PlansEditor is the source of truth)
+  // packages ARE add/removable in Customize (edits fold back into `plans` on save)
   await page.evaluate(() => document.querySelector('[data-edit-item^="packages."]')?.scrollIntoView({ block: 'center' }));
   await page.waitForTimeout(300);
   await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="packages."]'); if (el) { const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); } });
   await page.waitForTimeout(250);
-  ok('packages have no add/remove controls (PlansEditor-owned)', (await page.locator('button[title="Add item"]').count()) === 0);
+  ok('packages expose add control (synced to plans on save)', (await page.locator('button[title="Add item"]').count()) > 0);
 
   // ── new: social icons + credentials are deletable/draggable items ──
   ok('social icons are deletable items', (await page.locator('[data-edit-item^="contact.socials."]').count()) >= 1);
@@ -260,11 +260,15 @@ try {
   await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Save/.test(x.textContent || '')); b?.click(); });
   await page.waitForTimeout(300);
   ok('Save persists text + colour + list + image overrides', await page.evaluate(() => {
-    const c = JSON.parse(localStorage.getItem('mumotor_wizard') || '{}').customization || {};
+    const w = JSON.parse(localStorage.getItem('mumotor_wizard') || '{}');
+    const c = w.customization || {};
     return c.fields?.['hero.headline'] === 'E2E HEADLINE'
       && (c.styles?.['hero.headline']?.color || '').toLowerCase() === '#ff0000'
       && (c.fields?.['hero.image'] || '').startsWith('data:image')
-      && Array.isArray(c.fields?.['packages']) && c.fields['packages'][0]?.name === 'E2E PLAN';
+      // package edits are FOLDED INTO plans on save (single source of truth), and the
+      // packages override is cleared — so no fields.packages, and plans holds the edit.
+      && !c.fields?.['packages']
+      && Array.isArray(w.plans) && w.plans[0]?.name === 'E2E PLAN';
   }));
   ok('Save persists copy + icon + button-fill overrides (#3)', await page.evaluate(() => {
     const c = JSON.parse(localStorage.getItem('mumotor_wizard') || '{}').customization || {};

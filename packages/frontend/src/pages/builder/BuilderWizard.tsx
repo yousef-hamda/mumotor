@@ -10,7 +10,7 @@ import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
-import { wizardToTemplateData } from '../../templates/fromWizard';
+import { wizardToTemplateData, syncPackageOverrideToPlans } from '../../templates/fromWizard';
 import { TemplateRender } from '../../templates/TemplateRender';
 import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
 import CustomizeMode from '../../components/customize/CustomizeMode';
@@ -138,7 +138,15 @@ export default function BuilderWizard() {
         baseData={wizardToTemplateData({ ...config, customization: undefined })}
         templateSlug={config.templateChoice || TEMPLATES[0].slug}
         value={config.customization}
-        onSave={(c: Customization) => { set('customization', c); toast.success(t('builder.changesSaved'), { position: 'bottom-center' }); }}
+        onSave={(c: Customization) => {
+          // Fold any Customize package edits (add/delete/rename/reorder) INTO the plans
+          // so the wizard PlansEditor stays the single source of truth (no desync).
+          setConfig((cfg) => {
+            const { plans, customization } = syncPackageOverrideToPlans(c, cfg.plans);
+            return { ...cfg, plans: plans ?? cfg.plans, customization: customization ?? undefined };
+          });
+          toast.success(t('builder.changesSaved'), { position: 'bottom-center' });
+        }}
         onDone={() => setStep('design')}
       />
     );
