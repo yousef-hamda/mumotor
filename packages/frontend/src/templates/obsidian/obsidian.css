@@ -72,13 +72,16 @@
   background-size: 200px 200px;
 }
 
+/* Translate-only drift: animating scale on the blur(100px) orbs re-rasterizes them
+   every frame (scroll jank). Translate is a cheap compositor op, so the drift looks
+   the same but scrolling stays smooth. */
 @keyframes ob-drift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(5%, 7%) scale(1.07); }
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(5%, 7%); }
 }
 @keyframes ob-drift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(-6%, -5%) scale(1.1); }
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-6%, -5%); }
 }
 
 .tmpl-obsidian .ob-content { position: relative; z-index: 1; }

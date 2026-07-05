@@ -33,9 +33,12 @@
 /* ── 2. FILM GRAIN OVERLAY ─────────────────────────────── */
 .tmpl-open-road::before {
   content: '';
-  position: absolute;
-  /* Inset slightly OUTWARD so the small translate never exposes a bare edge. */
-  inset: -6px;
+  /* Fixed + viewport-sized (not absolute over the whole page height): the grain is
+     uniform noise so a fixed layer looks identical, but composites a small viewport
+     layer instead of a full-page-tall one — the difference that smooths scrolling.
+     Inset outward so the small drift never exposes a bare edge. */
+  position: fixed;
+  inset: -8px;
   pointer-events: none;
   z-index: 9998;
   opacity: 0.038;

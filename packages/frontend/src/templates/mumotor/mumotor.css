@@ -28,8 +28,11 @@
 .tmpl-mumotor .mm-orb-1 { width: 38rem; height: 38rem; top: -10rem; left: -8rem; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 34%, transparent), transparent 70%); animation: mm-drift1 24s ease-in-out infinite; }
 .tmpl-mumotor .mm-orb-2 { width: 32rem; height: 32rem; top: -4rem; right: -7rem; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 22%, transparent), transparent 70%); animation: mm-drift2 28s ease-in-out infinite; }
 .tmpl-mumotor .mm-orb-3 { width: 28rem; height: 28rem; top: 44rem; left: 30%; opacity: 0.6; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 16%, transparent), transparent 70%); animation: mm-drift1 32s ease-in-out infinite; }
-@keyframes mm-drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(5%,7%) scale(1.08); } }
-@keyframes mm-drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-6%,5%) scale(1.1); } }
+/* Translate-only drift: animating scale on a blur() layer re-rasterizes it every
+   frame (scroll jank). Translating a pre-rasterized blurred orb is a cheap compositor
+   op, so the drift looks the same but scrolling stays smooth. */
+@keyframes mm-drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(5%,7%); } }
+@keyframes mm-drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-6%,5%); } }
 
 .tmpl-mumotor .mm-content { position: relative; z-index: 1; }
 .tmpl-mumotor .mm-container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 24px; }

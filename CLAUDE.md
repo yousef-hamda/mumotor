@@ -208,6 +208,17 @@ submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) ·
 account + chat** (see the student-experience section above) · **double-booking closed at the DB level** · themed
 booking/enroll/account.
 
+**July 5 (template scroll performance):** Published-site scroll jank ("laggy / must scroll twice") fixed on the
+effect-heavy templates WITHOUT changing the visuals. Root causes + fixes (all effect-preserving): (a) **mumotor**
+(`.mm-orb`, blur 72px) and **obsidian** (`.ob-orb`, blur 100px) animated `scale` in their drift keyframes — animating
+`scale` on a `blur()` layer **re-rasterizes it every frame**; changed the keyframes to **translate-only** (the orbs still
+drift + blur + recolor, just no imperceptible size-pulse). (b) **open-road** ("retro automotive") film-grain `::before`
+was `position:absolute` over the **whole page height** (a huge composited layer); made it `position:fixed` (viewport-sized
+— uniform noise looks identical). Verified with a real frame-time trace: all 12 templates now scroll at **~16.6ms/frame
+(60fps), 0 janky frames** (measured open-road/mumotor/obsidian/aurora/night-shift/prism/full-throttle). REUSABLE RULE for
+template backgrounds: never animate `scale`/`filter` on a large blurred layer (re-raster) and never put a full-page-tall
+animated overlay — animate `transform: translate` only and keep big decorative layers `position:fixed` (viewport-sized).
+
 **July 5 (whole-app i18n batch):** The ENTIRE Mumotor app now follows the language switcher (react-i18next,
 `lib/i18n.ts`, localStorage `mumotor_lang`), not just the landing: `builder.*` (the wizard — all steps/fields),
 `dashboard.*` (overview, DrivingSchool 5 tabs, Reviews/Publishing/Billing/Settings/Messages, DashboardLayout banner),
