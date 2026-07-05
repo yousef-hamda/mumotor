@@ -152,10 +152,10 @@ export default function Landing() {
             <p className="mt-5 text-xl leading-relaxed text-sand-600">{t('landing.featuresLead')}</p>
           </FadeUp>
           <Stagger className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => {
+            {features.map((f, i) => {
               const Icon = f.icon;
               return (
-                <Stagger.Item key={f.title}>
+                <Stagger.Item key={i}>
                   <div className="glass h-full rounded-3xl p-7 shadow-card transition-transform duration-300 hover:-translate-y-1">
                     <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/70 shadow-sm ring-1 ring-black/5">
                       <Icon className="h-6 w-6 text-sand-900" strokeWidth={1.75} aria-hidden />
@@ -182,10 +182,10 @@ export default function Landing() {
             </p>
           </FadeUp>
           <Stagger className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {included.map((f) => {
+            {included.map((f, i) => {
               const Icon = f.icon;
               return (
-                <Stagger.Item key={f.title}>
+                <Stagger.Item key={i}>
                   <div className="h-full">
                     <Icon className="h-7 w-7 text-white" strokeWidth={1.75} aria-hidden />
                     <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">{f.title}</h3>
@@ -229,8 +229,8 @@ export default function Landing() {
               {t('landing.showcaseLead')}
             </p>
             <ul className="mt-9 space-y-6">
-              {benefits.map((row) => (
-                <li key={row.t} className="flex gap-4">
+              {benefits.map((row, i) => (
+                <li key={i} className="flex gap-4">
                   <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sand-900 text-white">
                     <Check className="h-3.5 w-3.5" strokeWidth={3} />
                   </span>
@@ -317,7 +317,7 @@ export default function Landing() {
             {faqs.map((f, i) => {
               const open = openFaq === i;
               return (
-                <div key={f.q}>
+                <div key={i}>
                   <button
                     onClick={() => setOpenFaq(open ? null : i)}
                     className="flex w-full cursor-pointer items-center justify-between gap-4 py-6 text-start"

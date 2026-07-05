@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { apiError, drivingSchoolApi, websiteApi, wizardDraftApi, type PublishResult } from '../../lib/api';
@@ -31,11 +32,11 @@ import {
   type WizardConfig,
 } from '../../lib/wizard';
 import type { Customization } from '../../templates/customize/overrides';
-import { cn, titleCase } from '../../lib/utils';
+import { cn } from '../../lib/utils';
 
 type Step = 'welcome' | 'business' | 'setup' | 'browse' | 'design' | 'customize' | 'account' | 'done';
 const MAIN: Step[] = ['business', 'setup', 'browse', 'design'];
-const STEP_LABELS = ['Business', 'Setup', 'Templates', 'Design'];
+const STEP_KEYS = ['business', 'setup', 'templates', 'design'] as const;
 
 /** Minutes from time `a` ("HH:MM") to time `b`; negative if b is earlier. */
 function minutesAfter(a: string, b: string): number {
@@ -53,6 +54,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 export default function BuilderWizard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('welcome');
@@ -127,7 +129,7 @@ export default function BuilderWizard() {
         baseData={wizardToTemplateData({ ...config, customization: undefined })}
         templateSlug={config.templateChoice || TEMPLATES[0].slug}
         value={config.customization}
-        onSave={(c: Customization) => { set('customization', c); toast.success('Changes saved'); }}
+        onSave={(c: Customization) => { set('customization', c); toast.success(t('builder.changesSaved')); }}
         onDone={() => setStep('design')}
       />
     );
@@ -137,13 +139,13 @@ export default function BuilderWizard() {
     <div className="flex min-h-screen flex-col bg-sand-50">
       <header className="glass sticky top-0 z-30 border-b border-white/50">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
-          <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
+          <Link to="/" aria-label={t('builder.mumotorHome')}><Logo size="sm" /></Link>
           <div className="text-sm text-sand-600">
             {user ? (
               <span className="font-medium text-sand-700">{user.name}</span>
             ) : (
               <Link to="/login" className="font-semibold text-sand-700 transition-colors hover:text-sand-900 hover:underline">
-                Sign in
+                {t('common.signIn')}
               </Link>
             )}
           </div>
@@ -158,16 +160,16 @@ export default function BuilderWizard() {
       <main className={cn('mx-auto flex w-full flex-1 flex-col py-10', wide ? 'max-w-[1320px] px-4' : 'max-w-3xl px-5')}>
         {restorePrompt && (
           <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-sand-200 bg-white px-4 py-3 text-sm text-sand-700 shadow-sm">
-            <span>We found a saved setup from another session. Continue where you left off?</span>
+            <span>{t('builder.restoreTitle')}</span>
             <div className="ms-auto flex gap-2">
               <button
-                onClick={() => { setConfig(restorePrompt); setRestorePrompt(null); toast.success('Draft restored'); }}
+                onClick={() => { setConfig(restorePrompt); setRestorePrompt(null); toast.success(t('builder.draftRestored')); }}
                 className="btn-primary !py-1.5 text-xs"
               >
-                Restore draft
+                {t('builder.restoreCta')}
               </button>
               <button onClick={() => setRestorePrompt(null)} className="btn-secondary !py-1.5 text-xs">
-                Start fresh
+                {t('builder.startFresh')}
               </button>
             </div>
           </div>
@@ -177,10 +179,10 @@ export default function BuilderWizard() {
           <BusinessStep
             config={config}
             set={set}
-            onAuto={() => { setConfig((c) => sampleWizardConfig(c)); toast.success('Sample details filled in — edit anything you like'); }}
+            onAuto={() => { setConfig((c) => sampleWizardConfig(c)); toast.success(t('builder.toastSampleFilled')); }}
             onBack={() => setStep('welcome')}
             onNext={() => {
-              if (!config.businessName.trim()) return toast.error('Please enter your business name');
+              if (!config.businessName.trim()) return toast.error(t('builder.toastEnterName'));
               track('wizard_step_completed', { step: 'business' });
               setStep('setup');
             }}
@@ -265,13 +267,15 @@ export default function BuilderWizard() {
 // ── Shared chrome ────────────────────────────────────────────────────────────
 
 function Stepper({ current }: { current: number }) {
+  const { t } = useTranslation();
+  const labels = STEP_KEYS.map((k) => t(`builder.steps.${k}`));
   return (
-    <nav aria-label="Progress" className="mx-auto max-w-3xl px-5 py-3">
+    <nav aria-label={t('builder.progress')} className="mx-auto max-w-3xl px-5 py-3">
       <ol className="flex items-center">
-        {STEP_LABELS.map((label, i) => {
+        {labels.map((label, i) => {
           const state = i < current ? 'complete' : i === current ? 'current' : 'upcoming';
           return (
-            <li key={label} className={cn('flex items-center', i < STEP_LABELS.length - 1 && 'flex-1')}>
+            <li key={label} className={cn('flex items-center', i < labels.length - 1 && 'flex-1')}>
               <div className="flex items-center gap-2">
                 <span
                   aria-current={state === 'current' ? 'step' : undefined}
@@ -288,7 +292,7 @@ function Stepper({ current }: { current: number }) {
                   {label}
                 </span>
               </div>
-              {i < STEP_LABELS.length - 1 && <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sand-400' : 'bg-sand-200')} />}
+              {i < labels.length - 1 && <span className={cn('mx-2 h-px flex-1', i < current ? 'bg-sand-400' : 'bg-sand-200')} />}
             </li>
           );
         })}
@@ -298,9 +302,10 @@ function Stepper({ current }: { current: number }) {
 }
 
 function BackLink({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <button onClick={onClick} className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
-      <ArrowLeft className="h-4 w-4" /> Back
+      <ArrowLeft className="h-4 w-4" /> {t('builder.back')}
     </button>
   );
 }
@@ -318,12 +323,13 @@ function SectionCard({ title, hint, children }: { title: string; hint?: string; 
 // ── Image uploads (data URLs — used directly in the templates) ───────────────
 
 function ImageDrop({ value, onChange, label, hint, max = 2, className }: { value?: string; onChange: (v: string) => void; label: string; hint?: string; max?: number; className?: string }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
   const take = async (f?: File) => {
     if (!f) return;
-    if (!/^image\//.test(f.type)) { toast.error('Please choose an image'); return; }
-    if (f.size > max * 1_000_000) { toast.error(`Image must be under ${max} MB`); return; }
+    if (!/^image\//.test(f.type)) { toast.error(t('builder.image.chooseImage')); return; }
+    if (f.size > max * 1_000_000) { toast.error(t('builder.image.tooLarge', { max })); return; }
     onChange(await readFileAsDataUrl(f));
   };
   return (
@@ -341,8 +347,8 @@ function ImageDrop({ value, onChange, label, hint, max = 2, className }: { value
           <div className="grid h-16 w-16 place-items-center rounded-xl bg-white text-sand-400 ring-1 ring-sand-200"><Upload className="h-5 w-5" /></div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-sand-600">{hint || 'Drag & drop, or'} <button onClick={() => ref.current?.click()} className="font-semibold text-sun-600 hover:underline">browse</button></p>
-          {value && <button onClick={() => onChange('')} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-sand-400 hover:text-ember-600"><Trash2 className="h-3 w-3" /> Remove</button>}
+          <p className="text-sm text-sand-600">{hint || t('builder.image.dragDrop')} <button onClick={() => ref.current?.click()} className="font-semibold text-sun-600 hover:underline">{t('builder.image.browse')}</button></p>
+          {value && <button onClick={() => onChange('')} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-sand-400 hover:text-ember-600"><Trash2 className="h-3 w-3" /> {t('builder.image.remove')}</button>}
         </div>
         <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => take(e.target.files?.[0])} />
       </div>
@@ -351,6 +357,7 @@ function ImageDrop({ value, onChange, label, hint, max = 2, className }: { value
 }
 
 function GalleryUpload({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLInputElement>(null);
   const add = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -363,12 +370,12 @@ function GalleryUpload({ value, onChange }: { value: string[]; onChange: (v: str
   };
   return (
     <div>
-      <p className="label mb-1.5">Gallery photos (optional)</p>
+      <p className="label mb-1.5">{t('builder.gallery.label')}</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {value.map((u, i) => (
           <div key={i} className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-sand-200">
             <img src={u} alt="" className="h-full w-full object-cover" />
-            <button onClick={() => onChange(value.filter((_, j) => j !== i))} aria-label="Remove photo" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+            <button onClick={() => onChange(value.filter((_, j) => j !== i))} aria-label={t('builder.gallery.removePhoto')} className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
           </div>
         ))}
         <button onClick={() => ref.current?.click()} className="grid aspect-square place-items-center rounded-xl border border-dashed border-sand-300 bg-sand-50 text-sand-400 transition-colors hover:border-sun-400 hover:text-sun-600">
@@ -383,27 +390,28 @@ function GalleryUpload({ value, onChange }: { value: string[]; onChange: (v: str
 const TimeInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => <Input type="time" step={300} {...props} />;
 
 function PlansEditor({ plans, onChange }: { plans: PlanInput[]; onChange: (v: PlanInput[]) => void }) {
+  const { t } = useTranslation();
   const upd = (i: number, patch: Partial<PlanInput>) => onChange(plans.map((p, j) => (j === i ? { ...p, ...patch } : p)));
-  const add = () => onChange([...plans, { id: `plan-${Date.now()}`, name: 'New plan', price: 0, unit: 'package', features: [] }]);
+  const add = () => onChange([...plans, { id: `plan-${Date.now()}`, name: t('builder.plans.newPlanName'), price: 0, unit: t('builder.plans.packageUnit'), features: [] }]);
   return (
     <div className="space-y-3">
       {plans.map((p, i) => (
         <div key={p.id} className="rounded-xl border border-sand-200 p-3">
           <div className="flex items-center gap-2">
-            <Input value={p.name} onChange={(e) => upd(i, { name: e.target.value })} placeholder="Plan name (e.g. Single lesson)" />
+            <Input value={p.name} onChange={(e) => upd(i, { name: e.target.value })} placeholder={t('builder.plans.namePlaceholder')} />
             {plans.length > 1 && (
-              <button onClick={() => onChange(plans.filter((_, j) => j !== i))} aria-label="Remove plan" className="shrink-0 text-sand-400 transition-colors hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => onChange(plans.filter((_, j) => j !== i))} aria-label={t('builder.plans.removePlan')} className="shrink-0 text-sand-400 transition-colors hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
             )}
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <NumberInput min={0} value={p.price} onValueChange={(n) => upd(i, { price: n })} placeholder="Price (₪)" />
-            <Input value={p.unit} onChange={(e) => upd(i, { unit: e.target.value })} placeholder="/ lesson · 10 lessons · package" />
+            <NumberInput min={0} value={p.price} onValueChange={(n) => upd(i, { price: n })} placeholder={t('builder.plans.pricePlaceholder')} />
+            <Input value={p.unit} onChange={(e) => upd(i, { unit: e.target.value })} placeholder={t('builder.plans.unitPlaceholder')} />
           </div>
-          <Textarea rows={2} className="mt-2" value={(p.features ?? []).join('\n')} onChange={(e) => upd(i, { features: e.target.value.split('\n') })} placeholder="What's included — one per line" />
-          <label className="mt-2 flex items-center gap-1.5 text-xs text-sand-600"><input type="checkbox" checked={!!p.popular} onChange={(e) => upd(i, { popular: e.target.checked })} /> Mark as most popular</label>
+          <Textarea rows={2} className="mt-2" value={(p.features ?? []).join('\n')} onChange={(e) => upd(i, { features: e.target.value.split('\n') })} placeholder={t('builder.plans.featuresPlaceholder')} />
+          <label className="mt-2 flex items-center gap-1.5 text-xs text-sand-600"><input type="checkbox" checked={!!p.popular} onChange={(e) => upd(i, { popular: e.target.checked })} /> {t('builder.plans.markPopular')}</label>
         </div>
       ))}
-      <button onClick={add} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> Add plan</button>
+      <button onClick={add} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> {t('builder.plans.addPlan')}</button>
     </div>
   );
 }
@@ -411,15 +419,16 @@ function PlansEditor({ plans, onChange }: { plans: PlanInput[]; onChange: (v: Pl
 // ── Welcome ──────────────────────────────────────────────────────────────────
 
 function Welcome({ onStart }: { onStart: () => void }) {
+  const { t } = useTranslation();
   return (
     <FadeUp className="mx-auto max-w-xl py-12 text-center">
       <div className="mb-8 flex justify-center"><LogoMark size="lg" /></div>
-      <span className="section-eyebrow justify-center">Mumotor builder</span>
-      <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">Let's build your driving website</h1>
-      <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">Tell us about your school, pick a design, customise it, and publish a complete bookable website in minutes.</p>
+      <span className="section-eyebrow justify-center">{t('builder.welcome.eyebrow')}</span>
+      <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-sand-900 sm:text-5xl">{t('builder.welcome.title')}</h1>
+      <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-sand-600">{t('builder.welcome.lead')}</p>
       <div className="mt-10 flex flex-col items-center gap-3">
-        <Button variant="primary" onClick={onStart} className="px-8 py-3.5 text-base">Start building <ArrowRight className="h-4 w-4" /></Button>
-        <p className="text-sm text-sand-500">No design skills needed · Free to start</p>
+        <Button variant="primary" onClick={onStart} className="px-8 py-3.5 text-base">{t('builder.welcome.start')} <ArrowRight className="h-4 w-4" /></Button>
+        <p className="text-sm text-sand-500">{t('builder.welcome.note')}</p>
       </div>
     </FadeUp>
   );
@@ -428,40 +437,41 @@ function Welcome({ onStart }: { onStart: () => void }) {
 // ── Step 2: Business Info (Part 1) ───────────────────────────────────────────
 
 function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardConfig; set: <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => void; onAuto: () => void; onBack: () => void; onNext: () => void }) {
+  const { t } = useTranslation();
   return (
     <FadeUp className="mx-auto w-full max-w-2xl">
       <BackLink onClick={onBack} />
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Tell us about you</h1>
-          <p className="mt-2 text-sand-600">This builds the top of your site — name, story, contact and logo.</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('builder.business.title')}</h1>
+          <p className="mt-2 text-sand-600">{t('builder.business.lead')}</p>
         </div>
-        <Button variant="secondary" onClick={onAuto} className="shrink-0"><Wand2 className="h-4 w-4" /> Auto-fill sample</Button>
+        <Button variant="secondary" onClick={onAuto} className="shrink-0"><Wand2 className="h-4 w-4" /> {t('builder.business.autofill')}</Button>
       </div>
 
       <div className="space-y-5">
-        <SectionCard title="Business">
-          <Field label="Business name" hint="Required">
-            <Input value={config.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder="Northgate Driving School" />
+        <SectionCard title={t('builder.business.sectionBusiness')}>
+          <Field label={t('builder.business.name')} hint={t('builder.business.nameHint')}>
+            <Input value={config.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder={t('builder.business.namePlaceholder')} />
           </Field>
-          <Field label="Business description" hint="Required — what makes you special, your teaching style, pass rate">
-            <Textarea rows={4} value={config.businessDescription} onChange={(e) => set('businessDescription', e.target.value)} placeholder="Calm, patient one-to-one lessons with a 96% first-time pass rate…" />
+          <Field label={t('builder.business.description')} hint={t('builder.business.descriptionHint')}>
+            <Textarea rows={4} value={config.businessDescription} onChange={(e) => set('businessDescription', e.target.value)} placeholder={t('builder.business.descriptionPlaceholder')} />
           </Field>
-          <Field label="Tagline / slogan">
-            <Input value={config.tagline} onChange={(e) => set('tagline', e.target.value)} placeholder="Your road to confidence" />
+          <Field label={t('builder.business.tagline')}>
+            <Input value={config.tagline} onChange={(e) => set('tagline', e.target.value)} placeholder={t('builder.business.taglinePlaceholder')} />
           </Field>
         </SectionCard>
 
-        <SectionCard title="Contact">
+        <SectionCard title={t('builder.business.sectionContact')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Phone"><Input value={config.phone} onChange={(e) => set('phone', e.target.value)} placeholder="054-321-0987" inputMode="tel" /></Field>
-            <Field label="Email"><Input type="email" value={config.email} onChange={(e) => set('email', e.target.value)} placeholder="you@example.com" /></Field>
+            <Field label={t('builder.business.phone')}><Input value={config.phone} onChange={(e) => set('phone', e.target.value)} placeholder={t('builder.business.phonePlaceholder')} inputMode="tel" /></Field>
+            <Field label={t('builder.business.email')}><Input type="email" value={config.email} onChange={(e) => set('email', e.target.value)} placeholder={t('builder.business.emailPlaceholder')} /></Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Address"><Input value={config.address} onChange={(e) => set('address', e.target.value)} placeholder="22 Jabotinsky Street" /></Field>
-            <Field label="City"><Input value={config.city} onChange={(e) => set('city', e.target.value)} placeholder="Netanya" /></Field>
+            <Field label={t('builder.business.address')}><Input value={config.address} onChange={(e) => set('address', e.target.value)} placeholder={t('builder.business.addressPlaceholder')} /></Field>
+            <Field label={t('builder.business.city')}><Input value={config.city} onChange={(e) => set('city', e.target.value)} placeholder={t('builder.business.cityPlaceholder')} /></Field>
           </div>
-          <Field label="Site language">
+          <Field label={t('builder.business.siteLanguage')}>
             <Select value={config.locale} onChange={(e) => set('locale', e.target.value as WizardConfig['locale'])}>
               <option value="EN">English</option>
               <option value="HE">עברית (Hebrew)</option>
@@ -470,13 +480,13 @@ function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardC
           </Field>
         </SectionCard>
 
-        <SectionCard title="Logo" hint="Optional — PNG/JPG/SVG, max 2 MB. We'll use a monogram of your name if you skip it.">
-          <ImageDrop value={config.logoSrc} onChange={(v) => set('logoSrc', v)} label="Your logo" max={2} />
+        <SectionCard title={t('builder.business.sectionLogo')} hint={t('builder.business.logoHint')}>
+          <ImageDrop value={config.logoSrc} onChange={(v) => set('logoSrc', v)} label={t('builder.business.logoLabel')} max={2} />
         </SectionCard>
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button variant="primary" onClick={onNext} className="px-7">Continue <ArrowRight className="h-4 w-4" /></Button>
+        <Button variant="primary" onClick={onNext} className="px-7">{t('builder.business.continue')} <ArrowRight className="h-4 w-4" /></Button>
       </div>
     </FadeUp>
   );
@@ -485,6 +495,7 @@ function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardC
 // ── Step 3: Driving Setup (Part 2) ───────────────────────────────────────────
 
 function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set: <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => void; onBack: () => void; onNext: () => void }) {
+  const { t } = useTranslation();
   const addBreak = () => set('breakTimes', [...config.breakTimes, { start: '12:00', end: '13:00' }]);
   const setBreak = (i: number, key: 'start' | 'end', v: string) => set('breakTimes', config.breakTimes.map((b, j) => (j === i ? { ...b, [key]: v } : b)));
   const toggleSocial = (p: SocialPlatform) => {
@@ -495,13 +506,13 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
   return (
     <FadeUp className="mx-auto w-full max-w-2xl">
       <BackLink onClick={onBack} />
-      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Set up your lessons</h1>
-      <p className="mt-2 text-sand-600">Your schedule, pricing and booking rules — this powers your booking system too.</p>
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('builder.setup.title')}</h1>
+      <p className="mt-2 text-sand-600">{t('builder.setup.lead')}</p>
 
       <div className="mt-6 space-y-5">
         {/* A — Schedule */}
-        <SectionCard title="Schedule & availability">
-          <Field label="Working days">
+        <SectionCard title={t('builder.setup.sectionSchedule')}>
+          <Field label={t('builder.setup.workingDays')}>
             <div className="flex flex-wrap gap-2">
               {WEEKDAYS.map((d) => {
                 const on = config.workingDays.includes(d);
@@ -509,26 +520,26 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
                   <button key={d} type="button" aria-pressed={on}
                     onClick={() => set('workingDays', on ? config.workingDays.filter((x) => x !== d) : [...config.workingDays, d])}
                     className={on ? 'rounded-lg border border-sand-900 bg-sand-900 px-4 py-1.5 text-sm font-semibold text-white' : 'rounded-lg border border-sand-200 bg-white px-4 py-1.5 text-sm font-medium text-sand-600 hover:border-sand-300 hover:bg-sand-50'}>
-                    {titleCase(d).slice(0, 3)}
+                    {t(`builder.days.${d}`)}
                   </button>
                 );
               })}
             </div>
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Shift start"><TimeInput value={config.shiftStart} onChange={(e) => set('shiftStart', e.target.value)} /></Field>
-            <Field label="Shift end"><TimeInput value={config.shiftEnd} onChange={(e) => set('shiftEnd', e.target.value)} /></Field>
+            <Field label={t('builder.setup.shiftStart')}><TimeInput value={config.shiftStart} onChange={(e) => set('shiftStart', e.target.value)} /></Field>
+            <Field label={t('builder.setup.shiftEnd')}><TimeInput value={config.shiftEnd} onChange={(e) => set('shiftEnd', e.target.value)} /></Field>
           </div>
-          <Toggle label="Customise hours per day" checked={config.customHoursPerDay} onChange={(v) => set('customHoursPerDay', v)} />
+          <Toggle label={t('builder.setup.customHours')} checked={config.customHoursPerDay} onChange={(v) => set('customHoursPerDay', v)} />
           {config.customHoursPerDay && (
             <div className="space-y-2 rounded-xl border border-sand-200 p-3">
               {WEEKDAYS.map((d) => {
                 const ph = config.perDayHours[d];
                 return (
                   <div key={d} className="flex items-center gap-3">
-                    <span className="w-10 text-sm font-medium text-sand-700">{titleCase(d).slice(0, 3)}</span>
+                    <span className="w-10 text-sm font-medium text-sand-700">{t(`builder.days.${d}`)}</span>
                     <label className="flex items-center gap-1.5 text-xs text-sand-500">
-                      <input type="checkbox" checked={!ph.closed} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, closed: !e.target.checked } })} /> Open
+                      <input type="checkbox" checked={!ph.closed} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, closed: !e.target.checked } })} /> {t('builder.setup.open')}
                     </label>
                     {!ph.closed && (
                       <>
@@ -542,93 +553,93 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
               })}
             </div>
           )}
-          <Field label="Break times">
+          <Field label={t('builder.setup.breakTimes')}>
             <div className="space-y-2">
               {config.breakTimes.map((b, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <TimeInput value={b.start} onChange={(e) => setBreak(i, 'start', e.target.value)} />
                   <span className="text-sand-400">–</span>
                   <TimeInput value={b.end} onChange={(e) => setBreak(i, 'end', e.target.value)} />
-                  <button onClick={() => set('breakTimes', config.breakTimes.filter((_, j) => j !== i))} aria-label="Remove break" className="text-sand-400 hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => set('breakTimes', config.breakTimes.filter((_, j) => j !== i))} aria-label={t('builder.setup.removeBreak')} className="text-sand-400 hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
-              <button onClick={addBreak} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> Add a break</button>
+              <button onClick={addBreak} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> {t('builder.setup.addBreak')}</button>
             </div>
           </Field>
-          <Toggle label="Rest between lessons" checked={config.restEnabled} onChange={(v) => set('restEnabled', v)} />
+          <Toggle label={t('builder.setup.restBetween')} checked={config.restEnabled} onChange={(v) => set('restEnabled', v)} />
           {config.restEnabled && (
-            <Field label="Rest minutes (5–30)"><NumberInput min={5} max={30} step={5} value={config.restMinutes} onValueChange={(n) => set('restMinutes', n)} /></Field>
+            <Field label={t('builder.setup.restMinutes')}><NumberInput min={5} max={30} step={5} value={config.restMinutes} onValueChange={(n) => set('restMinutes', n)} /></Field>
           )}
         </SectionCard>
 
         {/* B — Lessons & pricing */}
-        <SectionCard title="Lessons & pricing">
+        <SectionCard title={t('builder.setup.sectionLessons')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Class duration">
+            <Field label={t('builder.setup.classDuration')}>
               <Select value={config.classDuration} onChange={(e) => set('classDuration', Number(e.target.value))}>
-                {[20, 30, 40, 45, 60, 75, 90].map((d) => <option key={d} value={d}>{d} min</option>)}
+                {[20, 30, 40, 45, 60, 75, 90].map((d) => <option key={d} value={d}>{t('builder.setup.minutes', { n: d })}</option>)}
               </Select>
             </Field>
-            <Field label="Price per class (₪)"><NumberInput min={0} value={config.pricePerClass} onValueChange={(n) => set('pricePerClass', n)} /></Field>
+            <Field label={t('builder.setup.pricePerClass')}><NumberInput min={0} value={config.pricePerClass} onValueChange={(n) => set('pricePerClass', n)} /></Field>
           </div>
-          <Field label="Transmission" hint="What you teach — your site copy and FAQ adapt to this.">
+          <Field label={t('builder.setup.transmission')} hint={t('builder.setup.transmissionHint')}>
             <div className="flex gap-2">
-              {TRANSMISSIONS.map((t) => {
-                const on = config.transmission === t.value;
+              {TRANSMISSIONS.map((tr) => {
+                const on = config.transmission === tr.value;
                 return (
-                  <button key={t.value} type="button" aria-pressed={on} onClick={() => set('transmission', t.value)}
+                  <button key={tr.value} type="button" aria-pressed={on} onClick={() => set('transmission', tr.value)}
                     className={cn('flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors', on ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300')}>
-                    {t.label}
+                    {t(`builder.transmission.${tr.value}`)}
                   </button>
                 );
               })}
             </div>
           </Field>
-          <Field label="Plans / packages" hint="Your single lesson is here — add more plans (e.g. a 10-lesson block) with the + button. You set the name, price and what's included.">
+          <Field label={t('builder.setup.plansLabel')} hint={t('builder.setup.plansHint')}>
             <PlansEditor plans={config.plans} onChange={(v) => set('plans', v)} />
           </Field>
         </SectionCard>
 
         {/* C — Teacher profile */}
-        <SectionCard title="Teacher profile">
-          <Field label="Full name"><Input value={config.teacherName} onChange={(e) => set('teacherName', e.target.value)} placeholder="David Cohen" /></Field>
-          <Field label="Experience">
+        <SectionCard title={t('builder.setup.sectionTeacher')}>
+          <Field label={t('builder.setup.fullName')}><Input value={config.teacherName} onChange={(e) => set('teacherName', e.target.value)} placeholder={t('builder.setup.fullNamePlaceholder')} /></Field>
+          <Field label={t('builder.setup.experience')}>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {EXPERIENCE_LEVELS.map((lvl) => {
                 const on = config.experienceLevel === lvl.value;
                 return (
                   <button key={lvl.value} type="button" aria-pressed={on} onClick={() => set('experienceLevel', lvl.value)}
                     className={cn('rounded-xl border px-3 py-3 text-sm font-semibold transition-colors', on ? 'border-sand-900 bg-sand-900 text-white' : 'border-sand-200 bg-white text-sand-600 hover:border-sand-300')}>
-                    {lvl.label}
+                    {t(`builder.experience.${lvl.value}`)}
                   </button>
                 );
               })}
             </div>
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <ImageDrop value={config.instructorPhoto} onChange={(v) => set('instructorPhoto', v)} label="Your photo" hint="A photo of you (shown on the site) — drag & drop, or" max={5} />
-            <ImageDrop value={config.carPhoto} onChange={(v) => set('carPhoto', v)} label="Car photo" hint="A photo of your car — drag & drop, or" max={5} />
+            <ImageDrop value={config.instructorPhoto} onChange={(v) => set('instructorPhoto', v)} label={t('builder.setup.yourPhoto')} hint={t('builder.setup.yourPhotoHint')} max={5} />
+            <ImageDrop value={config.carPhoto} onChange={(v) => set('carPhoto', v)} label={t('builder.setup.carPhoto')} hint={t('builder.setup.carPhotoHint')} max={5} />
           </div>
         </SectionCard>
 
         {/* D — Booking rules */}
-        <SectionCard title="Booking rules" hint="When students can book tomorrow's lessons, and when you finalise the schedule.">
+        <SectionCard title={t('builder.setup.sectionBooking')} hint={t('builder.setup.bookingHint')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Booking window start"><TimeInput value={config.bookingWindowStart} onChange={(e) => set('bookingWindowStart', e.target.value)} /></Field>
-            <Field label="Booking window end"><TimeInput value={config.bookingWindowEnd} onChange={(e) => set('bookingWindowEnd', e.target.value)} /></Field>
+            <Field label={t('builder.setup.bookingStart')}><TimeInput value={config.bookingWindowStart} onChange={(e) => set('bookingWindowStart', e.target.value)} /></Field>
+            <Field label={t('builder.setup.bookingEnd')}><TimeInput value={config.bookingWindowEnd} onChange={(e) => set('bookingWindowEnd', e.target.value)} /></Field>
           </div>
-          <Field label="Report time" hint="When you finalise tomorrow's schedule — must be at least 30 min after the booking window ends">
+          <Field label={t('builder.setup.reportTime')} hint={t('builder.setup.reportTimeHint')}>
             <TimeInput value={config.reportTime} onChange={(e) => set('reportTime', e.target.value)} />
             {minutesAfter(config.bookingWindowEnd, config.reportTime) < 30 && (
-              <p className="mt-1.5 text-xs font-medium text-ember-600">Report time should be at least 30 minutes after the booking window ends ({config.bookingWindowEnd}).</p>
+              <p className="mt-1.5 text-xs font-medium text-ember-600">{t('builder.setup.reportTimeWarn', { end: config.bookingWindowEnd })}</p>
             )}
           </Field>
         </SectionCard>
 
         {/* E — Extras */}
-        <SectionCard title="Social media & gallery" hint="Optional — add the platforms you use and a few photos.">
+        <SectionCard title={t('builder.setup.sectionSocial')} hint={t('builder.setup.socialHint')}>
           <div>
-            <p className="label mb-1.5">Social media</p>
+            <p className="label mb-1.5">{t('builder.setup.socialMedia')}</p>
             <div className="flex flex-wrap gap-2">
               {SOCIAL_PLATFORMS.map((p) => {
                 const on = p in config.socialLinks;
@@ -654,7 +665,7 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button variant="primary" onClick={onNext} className="px-7">Choose a design <ArrowRight className="h-4 w-4" /></Button>
+        <Button variant="primary" onClick={onNext} className="px-7">{t('builder.setup.next')} <ArrowRight className="h-4 w-4" /></Button>
       </div>
     </FadeUp>
   );
@@ -675,20 +686,21 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 // ── Step 4: Browse templates (gallery) — pick one → Design step ──────────────
 
 function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: (id: string, accent?: string) => void; onBack: () => void }) {
+  const { t } = useTranslation();
   const selected = config.templateChoice;
   return (
     <FadeUp className="w-full">
       <BackLink onClick={onBack} />
       <div className="mx-auto max-w-2xl text-center">
-        <p className="section-eyebrow">Choose your look</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-sand-900 sm:text-5xl">Pick a design to start from</h1>
-        <p className="mt-4 text-lg text-sand-600">{TEMPLATES.length} genuinely different styles — your details are already inside each one. Click any to preview it live, then switch or customize anytime.</p>
+        <p className="section-eyebrow">{t('builder.browse.eyebrow')}</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-sand-900 sm:text-5xl">{t('builder.browse.title')}</h1>
+        <p className="mt-4 text-lg text-sand-600">{t('builder.browse.lead', { count: TEMPLATES.length })}</p>
       </div>
 
       <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" gap={0.04}>
-        {TEMPLATES.map((t) => (
-          <Stagger.Item key={t.slug}>
-            <BrowseCard t={t} sel={selected === t.slug} onPick={onPick} initialAccent={(config.customization?.theme?.['--mm-accent'] as string) || t.accent} />
+        {TEMPLATES.map((tpl) => (
+          <Stagger.Item key={tpl.slug}>
+            <BrowseCard t={tpl} sel={selected === tpl.slug} onPick={onPick} initialAccent={(config.customization?.theme?.['--mm-accent'] as string) || tpl.accent} />
           </Stagger.Item>
         ))}
       </Stagger>
@@ -696,10 +708,11 @@ function BrowseStep({ config, onPick, onBack }: { config: WizardConfig; onPick: 
   );
 }
 
-function BrowseCard({ t, sel, onPick, initialAccent }: { t: TemplateMeta; sel: boolean; onPick: (id: string, accent?: string) => void; initialAccent: string }) {
-  const isMumotor = t.slug === 'mumotor';
+function BrowseCard({ t: meta, sel, onPick, initialAccent }: { t: TemplateMeta; sel: boolean; onPick: (id: string, accent?: string) => void; initialAccent: string }) {
+  const { t } = useTranslation();
+  const isMumotor = meta.slug === 'mumotor';
   const [accent, setAccent] = useState(initialAccent);
-  const pick = () => onPick(t.slug, isMumotor ? accent : undefined);
+  const pick = () => onPick(meta.slug, isMumotor ? accent : undefined);
   return (
     <div
       role="button"
@@ -712,17 +725,17 @@ function BrowseCard({ t, sel, onPick, initialAccent }: { t: TemplateMeta; sel: b
         sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200'
       )}
     >
-      <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-        <TemplateConcept meta={t} accent={isMumotor ? accent : undefined} />
+      <div className="relative aspect-[16/10] overflow-hidden" style={{ background: meta.bg }}>
+        <TemplateConcept meta={meta} accent={isMumotor ? accent : undefined} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: t.accent }}>{t.style}</span>}
-        <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{t.name}</span>
+        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: meta.accent }}>{meta.style}</span>}
+        <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{meta.name}</span>
         {isMumotor && <MumotorAccentDots value={accent} onPick={setAccent} />}
       </div>
       <div className="p-5">
-        <p className="text-sm leading-relaxed text-sand-600">{t.blurb}</p>
+        <p className="text-sm leading-relaxed text-sand-600">{meta.blurb}</p>
         <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sun-600">
-          Preview live <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          {t('builder.browse.previewLive')} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
     </div>
@@ -732,30 +745,31 @@ function BrowseCard({ t, sel, onPick, initialAccent }: { t: TemplateMeta; sel: b
 // ── Step 5: Design + live preview (pick = instant live) ──────────────────────
 
 function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
+  const { t } = useTranslation();
   const data = useMemo(() => wizardToTemplateData(config), [config]);
   const selected = config.templateChoice || TEMPLATES[0].slug;
   return (
     <FadeUp className="w-full">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
-          <ArrowLeft className="h-4 w-4" /> Choose another template
+          <ArrowLeft className="h-4 w-4" /> {t('builder.design.chooseAnother')}
         </button>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> Customize</Button>
-          <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">Publish my site <ArrowRight className="h-4 w-4" /></Button>
+          <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> {t('builder.design.customize')}</Button>
+          <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">{t('builder.design.publish')} <ArrowRight className="h-4 w-4" /></Button>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
         <div className="flex items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
           <span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" />
-          <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">{data.business.name} · live preview</span>
+          <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">{data.business.name} · {t('builder.design.livePreview')}</span>
         </div>
         <div className="relative h-[78vh] overflow-y-auto overflow-x-hidden">
           <TemplateRender slug={selected} data={data} />
         </div>
       </div>
-      <p className="mt-3 text-center text-xs text-sand-500">Use <strong>Customize</strong> to change colours, text, icons and photos, or <strong>Choose another template</strong> to switch designs.</p>
+      <p className="mt-3 text-center text-xs text-sand-500"><Trans i18nKey="builder.design.caption" components={{ b: <strong /> }} /></p>
     </FadeUp>
   );
 }
@@ -763,6 +777,7 @@ function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing 
 // ── Account + Done ───────────────────────────────────────────────────────────
 
 function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; onBack: () => void; publishing: boolean }) {
+  const { t } = useTranslation();
   const { login, register } = useAuth();
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -785,24 +800,24 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
     <FadeUp className="mx-auto w-full max-w-md">
       <BackLink onClick={onBack} />
       <div className="card p-6 sm:p-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{mode === 'register' ? 'Create your account' : 'Sign in'}</h1>
-        <p className="mt-2 text-sand-600">One account to publish and manage your site.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{mode === 'register' ? t('builder.account.createTitle') : t('common.signIn')}</h1>
+        <p className="mt-2 text-sand-600">{t('builder.account.subtitle')}</p>
         <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
-          {mode === 'register' && <Field label="Full name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>}
-          <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
-          <Field label="Password" hint={mode === 'register' ? 'At least 8 characters' : undefined}>
+          {mode === 'register' && <Field label={t('builder.account.fullName')}><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>}
+          <Field label={t('builder.account.email')}><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
+          <Field label={t('builder.account.password')} hint={mode === 'register' ? t('builder.account.passwordHint') : undefined}>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className="pe-11" />
-              <button type="button" onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700">
+              <button type="button" onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? t('builder.account.hidePassword') : t('builder.account.showPassword')} className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </Field>
-          <Button type="submit" variant="primary" loading={busy || publishing} className="w-full">{mode === 'register' ? 'Create account & publish' : 'Sign in & publish'}</Button>
+          <Button type="submit" variant="primary" loading={busy || publishing} className="w-full">{mode === 'register' ? t('builder.account.createSubmit') : t('builder.account.signInSubmit')}</Button>
         </form>
         <p className="mt-6 text-center text-sm text-sand-600">
-          {mode === 'register' ? 'Already have an account?' : 'New here?'}{' '}
-          <button onClick={() => setMode(mode === 'register' ? 'login' : 'register')} className="font-medium text-sun-600 transition-colors hover:text-sun-700 hover:underline">{mode === 'register' ? 'Sign in' : 'Create one'}</button>
+          {mode === 'register' ? t('builder.account.haveAccount') : t('builder.account.newHere')}{' '}
+          <button onClick={() => setMode(mode === 'register' ? 'login' : 'register')} className="font-medium text-sun-600 transition-colors hover:text-sun-700 hover:underline">{mode === 'register' ? t('common.signIn') : t('builder.account.createLink')}</button>
         </p>
       </div>
     </FadeUp>
@@ -810,21 +825,22 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
 }
 
 function DoneStep({ result, onDashboard }: { result: PublishResult; onDashboard: () => void }) {
+  const { t } = useTranslation();
   // The real, working site URL. (Per-teacher subdomains would need wildcard DNS,
   // which isn't set up — showing one here would hand teachers a dead link.)
   const liveUrl = `${window.location.origin}/p/${result.slug}`;
   return (
     <FadeUp className="mx-auto max-w-lg py-12 text-center">
       <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-sand-900"><Check className="h-8 w-8 text-white" strokeWidth={1.75} /></div>
-      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Your site is live</h1>
-      <p className="mt-3 text-sand-600">Your driving website is published and ready to take bookings.</p>
+      <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('builder.done.title')}</h1>
+      <p className="mt-3 text-sand-600">{t('builder.done.subtitle')}</p>
       <div className="mt-7 flex items-center justify-between gap-2 rounded-xl border border-sand-200 bg-sand-50 p-4">
         <code className="truncate text-sm font-medium text-sand-700">{liveUrl.replace(/^https?:\/\//, '')}</code>
-        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary shrink-0 text-sm">Visit <ExternalLink className="h-4 w-4" /></a>
+        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary shrink-0 text-sm">{t('builder.done.visit')} <ExternalLink className="h-4 w-4" /></a>
       </div>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Button variant="primary" onClick={onDashboard} className="px-7">Go to dashboard <ArrowRight className="h-4 w-4" /></Button>
-        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">View live site</a>
+        <Button variant="primary" onClick={onDashboard} className="px-7">{t('common.dashboard')} <ArrowRight className="h-4 w-4" /></Button>
+        <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">{t('builder.done.viewLive')}</a>
       </div>
     </FadeUp>
   );
