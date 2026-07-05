@@ -548,6 +548,18 @@ const TRANS_CLAUSE: Record<Locale, Record<Trans, { about: string; credential: st
   },
 };
 
+// Localized weekday names for the hours/footer table (EN byte-matches the old
+// title-cased keys so English output is unchanged; digits/times stay as-is).
+const WEEKDAY_NAMES: Record<Locale, Record<string, string>> = {
+  en: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' },
+  he: { monday: 'שני', tuesday: 'שלישי', wednesday: 'רביעי', thursday: 'חמישי', friday: 'שישי', saturday: 'שבת', sunday: 'ראשון' },
+  ar: { monday: 'الإثنين', tuesday: 'الثلاثاء', wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت', sunday: 'الأحد' },
+};
+export function weekdayName(locale: Locale | undefined, dayKey: string): string {
+  const map = WEEKDAY_NAMES[locale ?? 'en'] ?? WEEKDAY_NAMES.en;
+  return map[dayKey.toLowerCase()] ?? (dayKey.charAt(0).toUpperCase() + dayKey.slice(1));
+}
+
 export function dataDefaults(locale?: Locale, transmission: Trans = 'both'): DataDefaults {
   const base = DATA_DEFAULTS[locale ?? 'en'] ?? DATA_DEFAULTS.en;
   const tc = (TRANS_CLAUSE[locale ?? 'en'] ?? TRANS_CLAUSE.en)[transmission];

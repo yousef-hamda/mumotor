@@ -127,7 +127,11 @@ classes never needed renaming.
   makes the About body + credential chip reflect the actual transmission (manual/automatic/both, localized); `fromWizard.ts`
   `plansToPackages` re-localizes any stored default transmission-feature line to the site locale + choice (custom text is
   left alone); `sampleWizardConfig(prev)` (in `lib/wizard.ts`) is per-locale so "Auto-fill sample" previews fully in-language;
-  the English `sampleData` `areas`/`bio` fallbacks were localized. **All prices are `₪` (shekel)** in every template (was `£`).
+  the English `sampleData` `areas`/`bio` fallbacks were localized. **Hours/footer weekday names are localized**
+  (`weekdayName(locale,key)` in `strings.ts`, was always English "Monday…"); the English pre-filled **default tagline**
+  ("Your road to confidence") and **default plan** text ("Single lesson"/"/ lesson"/"Door-to-door pickup"/"No commitment")
+  re-localize to the site language (EN byte-identical; custom text untouched). **All prices are `₪` (shekel)** (was `£`).
+  Teacher-typed free text (custom bio/tagline/name/city) still shows exactly as typed — no machine translation.
 - **Builder Design step (July 5)**: the 12-card horizontal concept-selector strip was **removed**; `DesignPreviewStep`
   (`BuilderWizard.tsx`) now shows just the live preview + a **"Choose another template"** button (→ browse/Templates gallery).
   Switch designs from the gallery, not an inline strip.

@@ -2,12 +2,11 @@ import type { TemplateData, Dir, Locale, Hour, Package, StatItem, Faq, Area, Rev
 import { sampleData } from './sampleData';
 import { EXPERIENCE_LEVELS, type PlanInput, type Transmission, type WizardConfig } from '../lib/wizard';
 import { applyOverrides, type Customization } from './customize/overrides';
-import { dataDefaults, defaultFaqs, fmt, strings, type TemplateStrings } from './strings';
+import { dataDefaults, defaultFaqs, fmt, strings, weekdayName, type TemplateStrings } from './strings';
 
 const WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const CUR = '₪';
 
-const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const localeDir = (l: Locale): Dir => (l === 'he' || l === 'ar' ? 'rtl' : 'ltr');
 const digits = (s?: string) => (s ? s.replace(/\D/g, '') : undefined);
 
@@ -44,22 +43,44 @@ const TRANSMISSION_PHRASES = new Set<string>([
   'يدوي أو أوتوماتيك', 'ناقل يدوي', 'ناقل أوتوماتيكي',
 ]);
 
+/** Re-localize the English app-DEFAULT plan strings (the pre-filled single-lesson
+ *  plan) so they render in the site language. EN output is unchanged because each
+ *  localized EN value equals the English literal. Custom text is left untouched. */
+function localizeDefaultPlanText(s: TemplateStrings, text: string): string {
+  switch (text.trim()) {
+    case 'Single lesson': return s.planSingleName;
+    case '/ lesson': return s.planPerLessonUnit;
+    case 'Door-to-door pickup': return s.planPickup;
+    case 'No commitment': return s.planNoCommitment;
+    default: return text;
+  }
+}
+
 /** Use the teacher's own plans → packages (no invented offerings). */
 function plansToPackages(s: TemplateStrings, plans: PlanInput[] | undefined, duration: number, price: number, transmission: Transmission): Package[] {
   const list = plans && plans.length ? plans : [{ id: 'single', name: s.planSingleName, price: price || 0, unit: s.planPerLessonUnit, features: [transmissionFeature(s, transmission), s.planPickup, s.planNoCommitment] }];
   return list.map((pl) => ({
     id: pl.id,
-    name: pl.name,
+    name: localizeDefaultPlanText(s, pl.name),
     price: pl.price,
-    unit: pl.unit,
+    unit: pl.unit ? localizeDefaultPlanText(s, pl.unit) : pl.unit,
     duration,
     popular: pl.popular,
     badge: pl.popular ? s.badgePopular : undefined,
     features: (pl.features ?? [])
       .filter((f) => f.trim().length > 0)
-      .map((f) => (TRANSMISSION_PHRASES.has(f.trim()) ? transmissionFeature(s, transmission) : f)),
+      .map((f) => (TRANSMISSION_PHRASES.has(f.trim()) ? transmissionFeature(s, transmission) : localizeDefaultPlanText(s, f))),
   }));
 }
+
+/** The English pre-filled default tagline, localized. Only substituted when the
+ *  teacher kept the exact default on a non-EN site (EN stays byte-identical). */
+const DEFAULT_TAGLINE_EN = 'Your road to confidence';
+const DEFAULT_TAGLINE: Record<Locale, string> = {
+  en: 'Your road to confidence',
+  he: 'הדרך שלך לביטחון בכביש',
+  ar: 'طريقك إلى الثقة في القيادة',
+};
 
 /** Honest stats built only from data the owner actually entered. */
 function buildStats(s: TemplateStrings, level: string, price: number, duration: number, daysPerWeek: number): StatItem[] {
@@ -85,11 +106,11 @@ function defaultAreas(s: TemplateStrings): Area[] {
   return [{ name: s.areaTestRoutes }, { name: s.areaEveningWeekend }, { name: s.areaPickup }];
 }
 
-function hoursFromMap(map: Record<string, { isOpen?: boolean; open?: string; close?: string }>): Hour[] {
+function hoursFromMap(map: Record<string, { isOpen?: boolean; open?: string; close?: string }>, locale: Locale): Hour[] {
   return WEEK.map((d) => {
     const h = map?.[d];
     const open = Boolean(h?.isOpen);
-    return { day: title(d), open: open ? h!.open ?? '' : '', close: open ? h!.close ?? '' : '', closed: !open };
+    return { day: weekdayName(locale, d), open: open ? h!.open ?? '' : '', close: open ? h!.close ?? '' : '', closed: !open };
   });
 }
 
@@ -128,6 +149,9 @@ function buildTemplateData(c: CoreInput): TemplateData {
   const d = dataDefaults(c.locale, c.transmission);
   const name = c.businessName || c.teacherName || 'Your Driving School';
   const teacher = c.teacherName || c.businessName || 'Your instructor';
+  // If the teacher kept the exact English pre-filled default tagline on a HE/AR
+  // site, localize it (EN is untouched); custom + empty taglines are unaffected.
+  const tagline = c.tagline.trim() === DEFAULT_TAGLINE_EN && c.locale !== 'en' ? DEFAULT_TAGLINE[c.locale] : c.tagline;
   const area = c.city || c.address.split(/[,/]/)[0]?.trim() || '';
   const addressFull = [c.address, c.city].filter(Boolean).join(', ');
   const heroImg = c.carPhoto || c.gallery[0] || sampleData.hero.image;
@@ -148,7 +172,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
     ...sampleData,
     business: {
       name,
-      tagline: c.tagline || s.taglineDefault,
+      tagline: tagline || s.taglineDefault,
       logoText: name,
       logoSrc: c.logoSrc || undefined,
     },
@@ -163,7 +187,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
     hero: {
       ...sampleData.hero,
       eyebrow: area ? fmt(s.heroEyebrowIn, { area }) : s.heroEyebrow,
-      headline: c.tagline || (c.locale === 'en' ? sampleData.hero.headline : s.taglineDefault),
+      headline: tagline || (c.locale === 'en' ? sampleData.hero.headline : s.taglineDefault),
       sub: c.description || fmt(area ? s.heroSubIn : s.heroSub, { teacher, area }),
       ctaPrimary: d.heroCtaPrimary,
       ctaSecondary: d.heroCtaSecondary,
@@ -212,10 +236,10 @@ export function wizardToTemplateData(w: WizardConfig): TemplateData {
     if (w.customHoursPerDay) {
       const ph = w.perDayHours[d];
       const open = ph && !ph.closed;
-      return { day: title(d), open: open ? ph.open : '', close: open ? ph.close : '', closed: !open };
+      return { day: weekdayName(locale, d), open: open ? ph.open : '', close: open ? ph.close : '', closed: !open };
     }
     const open = w.workingDays.includes(d);
-    return { day: title(d), open: open ? w.shiftStart : '', close: open ? w.shiftEnd : '', closed: !open };
+    return { day: weekdayName(locale, d), open: open ? w.shiftStart : '', close: open ? w.shiftEnd : '', closed: !open };
   });
   const daysPerWeek = hours.filter((h) => !h.closed).length;
 
@@ -274,7 +298,7 @@ export interface PublicSiteData {
 /** Published public-settings → TemplateData for the live React site. */
 export function publicToTemplateData(p: PublicSiteData): TemplateData {
   const locale = (String(p.locale ?? 'en').toLowerCase() as Locale) || 'en';
-  const hours = p.businessHours ? hoursFromMap(p.businessHours) : sampleData.hours;
+  const hours = p.businessHours ? hoursFromMap(p.businessHours, locale) : sampleData.hours.map((h, i) => ({ ...h, day: weekdayName(locale, WEEK[i]) }));
   const daysPerWeek = hours.filter((h) => !h.closed).length;
   const slug = p.slug || undefined;
   return buildTemplateData({
