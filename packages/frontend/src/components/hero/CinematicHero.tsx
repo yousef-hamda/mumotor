@@ -21,7 +21,7 @@ export function CinematicHero() {
 
         <FadeUp delay={0.05}>
           <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-semibold leading-[1.05] tracking-[-0.03em] text-sand-900 sm:text-6xl lg:text-[5.25rem]">
-            {t('landing.heroTitlePre')} online in minutes.
+            {t('landing.heroTitlePre')} {t('landing.heroTitleAccent')}
           </h1>
         </FadeUp>
 
@@ -75,15 +75,15 @@ export function CinematicHero() {
               <CalendarCheck className="h-5 w-5" strokeWidth={2} aria-hidden />
             </span>
             <div className="text-start">
-              <div className="text-sm font-semibold text-sand-900">New booking confirmed</div>
-              <div className="text-xs text-sand-500">Maya G. · Lesson 6 · just now</div>
+              <div className="text-sm font-semibold text-sand-900">{t('landing.heroCardBooking')}</div>
+              <div className="text-xs text-sand-500">Maya G. · {t('landing.heroCardLesson')} 6 · {t('landing.heroCardJustNow')}</div>
             </div>
           </div>
 
           {/* floating glass trust chip */}
           <div className="glass absolute end-5 top-5 hidden items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-sand-700 shadow-card sm:flex">
             <ShieldCheck className="h-4 w-4 text-sun-600" strokeWidth={2} aria-hidden />
-            No double-bookings
+            {t('landing.heroTrustChip')}
           </div>
         </div>
       </ScrollTilt>

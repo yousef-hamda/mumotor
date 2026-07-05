@@ -25,49 +25,49 @@ import { FadeUp, Stagger, ScrollTilt } from '../components/motion';
 import { Background } from '../components/Background';
 import { CinematicHero } from '../components/hero/CinematicHero';
 
-const features = [
-  { icon: LayoutTemplate, title: 'Nine professional templates', desc: 'Designs built for driving instructors, tailored in a visual editor — no code required.' },
-  { icon: KeyRound, title: 'Enrollment codes', desc: 'Share a code and students self-enroll. No accounts or passwords for you to manage.' },
-  { icon: CalendarCheck, title: 'Online booking', desc: 'Students book into your real availability, and your calendar updates the instant a lesson is taken.' },
-  { icon: Users, title: 'Student roster', desc: 'Every student, their lesson count and their progress — organised in one place.' },
-  { icon: Mail, title: 'Automatic reminders', desc: 'Booking confirmations and lesson reminders send on their own, so no one forgets.' },
-  { icon: ShieldCheck, title: 'No double-bookings', desc: 'Transactional booking keeps your schedule accurate and your slots honest.' },
-];
-
-const steps = [
-  { n: '1', title: 'Describe your school', desc: 'A short wizard covers your hours, pricing and teaching style.' },
-  { n: '2', title: 'Pick a template', desc: 'Choose one of nine designs and customise it in the editor.' },
-  { n: '3', title: 'Publish', desc: 'Go live at your own address in minutes — trilingual by default.' },
-  { n: '4', title: 'Take bookings', desc: 'Students enroll and book; you manage it all from one dashboard.' },
-];
-
-const included = [
-  { icon: Wallet, title: 'Lesson packages & pricing', desc: 'Show your single-lesson and package prices clearly, in the local currency.' },
-  { icon: Car, title: 'Manual & automatic', desc: 'List the gearbox types, vehicles and licence categories you teach.' },
-  { icon: MapPin, title: 'Areas you cover', desc: 'The towns and pickup points you serve, so students know you reach them.' },
-  { icon: Star, title: 'Student reviews', desc: 'Real reviews and pass stories build trust before a student ever calls.' },
-  { icon: CalendarCheck, title: 'Online booking', desc: 'Students book lessons into your real availability — no phone tag.' },
-  { icon: Phone, title: 'WhatsApp & contact', desc: 'One tap to message you, call, or get directions to your meeting point.' },
-];
-
-const benefits = [
-  { t: 'Clean, credible design', d: 'Professional templates that look like a real business — not a generic template kit.' },
-  { t: 'Your real availability', d: 'The booking calendar reflects exactly when you teach and updates instantly on every booking.' },
-  { t: 'Trilingual, out of the box', d: 'Hebrew, Arabic and English with full right-to-left support — students read it in their own language.' },
-];
-
-const faqs = [
-  { q: 'Do I need any design or tech skills?', a: 'None. You answer a few questions, Mumotor builds the site, and you can fine-tune anything in a visual editor — no code, ever.' },
-  { q: 'Which languages are supported?', a: 'Every site is built trilingual — Hebrew, Arabic and English — with full right-to-left support. Students see it in their language automatically.' },
-  { q: 'How do students book lessons?', a: 'They enroll with a code you share, then book straight into your real availability. You are notified and your calendar updates instantly.' },
-  { q: 'Can I change my site after publishing?', a: 'Yes. Edit text, photos, colours and layout anytime in the editor, then re-publish in one click. Your booking data is never affected.' },
-  { q: 'How much does it cost?', a: 'One simple plan — ₪199 per month — with everything included: your website, unlimited students, online booking, a fresh daily code, and the automatic emails to students and to you. Cancel anytime.' },
-];
-
 export default function Landing() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const features = [
+    { icon: LayoutTemplate, title: t('landing.feature1Title'), desc: t('landing.feature1Desc') },
+    { icon: KeyRound, title: t('landing.feature2Title'), desc: t('landing.feature2Desc') },
+    { icon: CalendarCheck, title: t('landing.feature3Title'), desc: t('landing.feature3Desc') },
+    { icon: Users, title: t('landing.feature4Title'), desc: t('landing.feature4Desc') },
+    { icon: Mail, title: t('landing.feature5Title'), desc: t('landing.feature5Desc') },
+    { icon: ShieldCheck, title: t('landing.feature6Title'), desc: t('landing.feature6Desc') },
+  ];
+
+  const steps = [
+    { n: '1', title: t('landing.step1Title'), desc: t('landing.step1Desc') },
+    { n: '2', title: t('landing.step2Title'), desc: t('landing.step2Desc') },
+    { n: '3', title: t('landing.step3Title'), desc: t('landing.step3Desc') },
+    { n: '4', title: t('landing.step4Title'), desc: t('landing.step4Desc') },
+  ];
+
+  const included = [
+    { icon: Wallet, title: t('landing.included1Title'), desc: t('landing.included1Desc') },
+    { icon: Car, title: t('landing.included2Title'), desc: t('landing.included2Desc') },
+    { icon: MapPin, title: t('landing.included3Title'), desc: t('landing.included3Desc') },
+    { icon: Star, title: t('landing.included4Title'), desc: t('landing.included4Desc') },
+    { icon: CalendarCheck, title: t('landing.included5Title'), desc: t('landing.included5Desc') },
+    { icon: Phone, title: t('landing.included6Title'), desc: t('landing.included6Desc') },
+  ];
+
+  const benefits = [
+    { t: t('landing.benefit1Title'), d: t('landing.benefit1Desc') },
+    { t: t('landing.benefit2Title'), d: t('landing.benefit2Desc') },
+    { t: t('landing.benefit3Title'), d: t('landing.benefit3Desc') },
+  ];
+
+  const faqs = [
+    { q: t('landing.faq1Q'), a: t('landing.faq1A') },
+    { q: t('landing.faq2Q'), a: t('landing.faq2A') },
+    { q: t('landing.faq3Q'), a: t('landing.faq3A') },
+    { q: t('landing.faq4Q'), a: t('landing.faq4A') },
+    { q: t('landing.faq5Q'), a: t('landing.faq5A') },
+  ];
 
   useSeo({
     title: 'Mumotor — Website builder & booking for driving instructors',
@@ -115,10 +115,10 @@ export default function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
           <nav className="hidden items-center gap-9 text-sm text-sand-600 md:flex">
-            <Link to="/templates" className="transition-colors hover:text-sand-900">Templates</Link>
-            <a href="#features" className="transition-colors hover:text-sand-900">Features</a>
-            <a href="#how" className="transition-colors hover:text-sand-900">How it works</a>
-            <a href="#faq" className="transition-colors hover:text-sand-900">FAQ</a>
+            <Link to="/templates" className="transition-colors hover:text-sand-900">{t('common.navTemplates')}</Link>
+            <a href="#features" className="transition-colors hover:text-sand-900">{t('common.navFeatures')}</a>
+            <a href="#how" className="transition-colors hover:text-sand-900">{t('common.navHowItWorks')}</a>
+            <a href="#faq" className="transition-colors hover:text-sand-900">{t('common.navFaq')}</a>
           </nav>
           <div className="flex items-center gap-3">
             <LanguageSwitcher className="hidden sm:inline-flex" />
@@ -175,10 +175,10 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-6 py-24 sm:py-32">
           <FadeUp className="mx-auto max-w-3xl text-center">
             <h2 className="text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl">
-              Everything a driving instructor&apos;s site needs.
+              {t('landing.includedTitle')}
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-sand-400">
-              Each generated site is built for how driving lessons actually work — not a generic business template.
+              {t('landing.includedLead')}
             </p>
           </FadeUp>
           <Stagger className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
@@ -226,7 +226,7 @@ export default function Landing() {
             <p className="section-eyebrow">{t('landing.showcaseEyebrow')}</p>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight text-sand-900 sm:text-5xl">{t('landing.showcaseTitle')}</h2>
             <p className="mt-5 max-w-xl text-xl leading-relaxed text-sand-600">
-              Every template is tuned for driving instructors — clear typography, real availability and calm, considered motion.
+              {t('landing.showcaseLead')}
             </p>
             <ul className="mt-9 space-y-6">
               {benefits.map((row) => (
@@ -249,7 +249,7 @@ export default function Landing() {
               <div className="overflow-hidden rounded-3xl border border-white/60 shadow-elevated ring-1 ring-black/5">
                 <img
                   src="/img/hero-drive.jpg"
-                  alt="A learner driving during a lesson"
+                  alt={t('landing.showcaseImageAlt')}
                   loading="lazy"
                   className="aspect-[4/3] w-full object-cover"
                 />
@@ -257,9 +257,9 @@ export default function Landing() {
               {/* floating glass schedule card */}
               <div className="glass absolute -bottom-6 end-4 w-60 rounded-2xl p-4 shadow-elevated sm:end-[-1.5rem]">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-sand-900">Today&apos;s schedule</span>
+                  <span className="text-xs font-semibold text-sand-900">{t('landing.scheduleTitle')}</span>
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-sand-500">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden /> Live
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden /> {t('landing.scheduleLive')}
                   </span>
                 </div>
                 <div className="mt-3 space-y-2.5">
@@ -345,11 +345,11 @@ export default function Landing() {
         <div className="mx-auto max-w-3xl px-6 py-24 text-center sm:py-32">
           <FadeUp>
             <h2 className="text-4xl font-semibold tracking-tight text-sand-900 sm:text-6xl">
-              Put your driving school online today.
+              {t('landing.ctaTitle')}
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-xl leading-relaxed text-sand-600">{t('landing.ctaText')}</p>
             <p className="mx-auto mt-4 max-w-xl text-lg text-sand-900">
-              <span className="font-semibold">Everything for ₪199 / month</span> — cancel anytime.
+              <span className="font-semibold">{t('landing.ctaPrice')}</span> {t('landing.ctaCancel')}
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-x-7 gap-y-3 sm:flex-row">
               <Link to="/builder" className="btn-primary px-7 py-3 text-base">
@@ -359,7 +359,7 @@ export default function Landing() {
                 {t('common.signIn')}
               </Link>
             </div>
-            <p className="mt-8 text-sm text-sand-500">Because you asked, and we listened.</p>
+            <p className="mt-8 text-sm text-sand-500">{t('landing.ctaFootnote')}</p>
           </FadeUp>
         </div>
       </section>
@@ -371,20 +371,20 @@ export default function Landing() {
             <div>
               <Link to="/" aria-label="Mumotor home" className="inline-flex"><Logo size="sm" /></Link>
               <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-sand-500">
-                Professional websites and booking for independent driving instructors. Trilingual, no code.
+                {t('landing.footerBlurb')}
               </p>
             </div>
             <div>
-              <h4 className="text-[13px] font-semibold text-sand-900">Product</h4>
+              <h4 className="text-[13px] font-semibold text-sand-900">{t('landing.footerProduct')}</h4>
               <ul className="mt-3 space-y-2.5 text-[13px] text-sand-600">
-                <li><a href="#features" className="transition-colors hover:text-sand-900">Features</a></li>
-                <li><a href="#how" className="transition-colors hover:text-sand-900">How it works</a></li>
-                <li><a href="#faq" className="transition-colors hover:text-sand-900">FAQ</a></li>
+                <li><a href="#features" className="transition-colors hover:text-sand-900">{t('common.navFeatures')}</a></li>
+                <li><a href="#how" className="transition-colors hover:text-sand-900">{t('common.navHowItWorks')}</a></li>
+                <li><a href="#faq" className="transition-colors hover:text-sand-900">{t('common.navFaq')}</a></li>
                 <li><Link to="/builder" className="transition-colors hover:text-sand-900">{t('common.buildSite')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-[13px] font-semibold text-sand-900">Account</h4>
+              <h4 className="text-[13px] font-semibold text-sand-900">{t('landing.footerAccount')}</h4>
               <ul className="mt-3 space-y-2.5 text-[13px] text-sand-600">
                 <li><Link to="/login" className="transition-colors hover:text-sand-900">{t('common.signIn')}</Link></li>
                 <li><Link to="/register" className="transition-colors hover:text-sand-900">{t('common.getStarted')}</Link></li>
@@ -392,7 +392,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-sand-200 pt-6 sm:flex-row">
-            <p className="text-[13px] text-sand-500">© {new Date().getFullYear()} Mumotor. All rights reserved.</p>
+            <p className="text-[13px] text-sand-500">© {new Date().getFullYear()} Mumotor. {t('common.allRightsReserved')}</p>
             <LanguageSwitcher />
           </div>
         </div>

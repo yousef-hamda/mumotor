@@ -20,7 +20,9 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: passwordSchema,
   name: z.string().min(1),
-  phone: z.string().optional(),
+  // Phone is required at signup — the teacher's own contact number, same
+  // validation style as the public enroll form's studentPhone.
+  phone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required'),
 });
 
 const loginSchema = z.object({
@@ -56,7 +58,7 @@ router.post(
 
     const passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
     const user = await prisma.user.create({
-      data: { email, passwordHash, name: data.name.trim(), phone: data.phone?.trim() },
+      data: { email, passwordHash, name: data.name.trim(), phone: data.phone.trim() },
     });
 
     void sendVerification(user); // fire-and-forget; registration never blocks on email

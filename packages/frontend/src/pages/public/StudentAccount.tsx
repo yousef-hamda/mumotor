@@ -445,7 +445,7 @@ function ProfileTab({ me, websiteId, onSaved, L }: { me: StudentSummary; website
           loading={save.isPending}
           disabled={phone === null}
           onClick={() => {
-            if (phoneValue && !/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) return toast.error(bookT(L, 'errPhone'));
+            if (!/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) return toast.error(bookT(L, 'errPhone'));
             save.mutate();
           }}
         >

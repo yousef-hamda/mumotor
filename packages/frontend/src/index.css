@@ -167,16 +167,23 @@ body {
 }
 .aurora-orb {
   border-radius: 9999px;
-  filter: blur(80px);
+  filter: blur(64px);
   opacity: 0.5;
   will-change: transform;
 }
+/* Translate-only drift: the blurred layer is rasterized once and just moved by the
+   compositor (no per-frame re-raster from animating scale) — keeps scrolling smooth. */
 @keyframes aurora-drift {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(2.5rem, -1.75rem, 0) scale(1.12); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(2.5rem, -1.75rem, 0); }
 }
 .aurora-animate {
-  animation: aurora-drift 16s ease-in-out infinite;
+  animation: aurora-drift 18s ease-in-out infinite;
+}
+/* Staggered second orb so the two don't move in lockstep (replaces the old framer offset). */
+.aurora-animate-alt {
+  animation-duration: 22s;
+  animation-direction: alternate-reverse;
 }
 
 /* 3D scroll helpers */

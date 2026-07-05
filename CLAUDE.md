@@ -208,6 +208,18 @@ submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) ·
 account + chat** (see the student-experience section above) · **double-booking closed at the DB level** · themed
 booking/enroll/account.
 
+**July 5 (marketing-site + reports batch):** The **Mumotor landing page** is now fully trilingual — every section
+(nav links, hero accent, feature/step/checklist/FAQ arrays, dark section, footer) goes through i18n `t()` (keys in
+`lib/i18n.ts`; the module-level data arrays were moved inside `Landing()` so they resolve `t()`, and still feed the
+JSON-LD FAQ). Keep the brand word **"Mumotor" in English**. Landing **scroll lag fixed**: the aurora `Background`
+no longer scroll-parallaxes (framer `useScroll` removed) and the orbs drift via a **translate-only** CSS animation
+(`index.css` — no `scale`, so `blur()` layers aren't re-rasterized each frame) + reduced blur — this was the
+"must-scroll-twice" jank. **Phone is now REQUIRED** at teacher signup + dashboard add-student + student profile
+(same regex as public enroll, front + zod), so the daily report always has student numbers. The **teacher daily
+schedule report email** was **redesigned** (Apple-minimal Mumotor look, Apple-blue accent, per-lesson rows with the
+student name + a prominent tappable `tel:` phone). Removed the last "~2 hours before" wording from the booking email
++ the legacy generator. NOTE: the rest of the app chrome (builder wizard, dashboard, auth) i18n is the next pass.
+
 **July 5 (later) batch — 16 fixes:** builder Design step (no concept strip → "Choose another template"); templates fully
 honour locale + transmission + **₪** currency (auto-fill sample + About/credential/FAQ all localized); Customize (controls
 above short items, FAQ open + clean new-answer in editing, reliable window-level drag-reorder, Save toast bottom-center,

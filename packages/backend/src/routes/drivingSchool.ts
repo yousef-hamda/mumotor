@@ -716,11 +716,8 @@ router.get(
 const addStudentSchema = z.object({
   studentName: z.string().min(1).max(120),
   studentEmail: z.string().email(),
-  studentPhone: z
-    .string()
-    .regex(/^[+\d][\d\s-]{6,18}$/, 'Invalid phone')
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  // Phone is required — the teacher needs it for lesson coordination, same as self-enroll.
+  studentPhone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required'),
   notes: z.string().max(1000).optional(),
 });
 router.post(
@@ -1099,7 +1096,7 @@ router.post(
     if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
     if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
       throw badRequest(
-        'Lessons can be cancelled up to 2 hours before they start. Please contact your instructor directly.',
+        'Please contact your instructor to change or cancel a lesson.',
         'CANCEL_TOO_LATE'
       );
     }
@@ -1214,17 +1211,14 @@ router.patch(
   asyncHandler(async (req, res) => {
     const data = z
       .object({
-        studentPhone: z
-          .string()
-          .regex(/^[+\d][\d\s-]{6,18}$/, 'Invalid phone')
-          .optional()
-          .or(z.literal('').transform(() => undefined)),
+        // Phone is required — the teacher needs it for lesson coordination, same as self-enroll.
+        studentPhone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required'),
       })
       .parse(req.body);
     const enrollment = await loadStudentEnrollment(req);
     const updated = await prisma.clientEnrollment.update({
       where: { id: enrollment.id },
-      data: { studentPhone: data.studentPhone ?? null },
+      data: { studentPhone: data.studentPhone },
     });
     res.json({ student: studentSummary(updated) });
   })
@@ -1275,7 +1269,7 @@ router.post(
     if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
     if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
       throw badRequest(
-        'Lessons can be cancelled up to 2 hours before they start. Please contact your instructor directly.',
+        'Please contact your instructor to change or cancel a lesson.',
         'CANCEL_TOO_LATE'
       );
     }

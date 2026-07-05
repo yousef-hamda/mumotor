@@ -189,7 +189,7 @@ export function sendBookingConfirmation(
       ${data.duration ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Duration</strong> ${data.duration} min</p>` : ''}
       ${data.teacherName ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Instructor</strong> ${esc(data.teacherName)}</p>` : ''}
     `)}
-    <p style="color:#52525b">Please arrive 5 minutes early. We'll send a reminder about 2 hours before.</p>`;
+    <p style="color:#52525b">Please arrive 5 minutes early. We'll send you a reminder before your lesson.</p>`;
   return sendEmail({
     to,
     subject: `Lesson confirmed — ${data.date} at ${data.time}${subjectTag(data.brand)}`,
@@ -258,32 +258,48 @@ export function sendEnhancedDailyReport(
   }
 ) {
   const when = data.when ?? 'tomorrow';
+  const ACCENT = '#0071E3';
+  const INK = '#1D1D1F';
+  const MUTED = '#86868B';
+  const LINE = '#F0F0F2';
+
+  const stat = (n: number, label: string, accent?: string) =>
+    `<td style="width:33.33%;padding:0 4px" valign="top">
+      <div style="border:1px solid #EDEDF0;border-radius:14px;padding:14px 8px;text-align:center;background:#fff">
+        <div style="font-size:26px;font-weight:700;color:${accent || INK};letter-spacing:-0.5px;line-height:1">${n}</div>
+        <div style="font-size:12px;color:${MUTED};margin-top:5px">${label}</div>
+      </div>
+    </td>`;
+
   const rows = data.slots
-    .map(
-      (s) => `<tr>
-        <td style="padding:8px 10px;border-bottom:1px solid #f4f4f5;font-weight:600;font-family:monospace">${esc(s.time)}</td>
-        <td style="padding:8px 10px;border-bottom:1px solid #f4f4f5">
-          ${
-            s.booked
-              ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-right:6px"></span>${esc(s.studentName || 'Student')}${s.studentPhone ? ` · ${esc(s.studentPhone)}` : ''}`
-              : '<span style="color:#a1a1aa">Free</span>'
-          }
-        </td>
-      </tr>`
-    )
+    .map((s) => {
+      const timeBadge = `<span style="display:inline-block;font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:${s.booked ? ACCENT : MUTED};background:${s.booked ? 'rgba(0,113,227,0.08)' : '#F5F5F7'};border-radius:9px;padding:7px 10px;white-space:nowrap">${esc(s.time)}</span>`;
+      const tel = s.studentPhone ? s.studentPhone.replace(/[^\d+]/g, '') : '';
+      const detail = s.booked
+        ? `<div style="font-weight:600;color:${INK};font-size:15px;line-height:1.3">${esc(s.studentName || 'Student')}</div>` +
+          (s.studentPhone
+            ? `<a href="tel:${esc(tel)}" style="color:${ACCENT};text-decoration:none;font-size:14px;font-weight:500;font-family:'SF Mono',ui-monospace,Menlo,monospace">${esc(s.studentPhone)}</a>`
+            : `<span style="color:${MUTED};font-size:13px">No phone on file</span>`)
+        : `<span style="color:${MUTED};font-size:14px">Free</span>`;
+      return `<tr>
+        <td style="padding:13px 0;border-bottom:1px solid ${LINE};vertical-align:top;width:92px">${timeBadge}</td>
+        <td style="padding:13px 0 13px 14px;border-bottom:1px solid ${LINE};vertical-align:top">${detail}</td>
+      </tr>`;
+    })
     .join('');
+
+  const heading = when === 'today' ? "Today's schedule" : "Tomorrow's schedule";
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your schedule for ${esc(data.date)}</h1>
-    <p style="color:#52525b">Hi ${esc(data.teacherName)}, here's what ${when} looks like.</p>
-    <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin:16px -8px" role="presentation"><tr>
-      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.booked}</div><div style="font-size:12px;color:#71717a">Booked</div></td>
-      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.empty}</div><div style="font-size:12px;color:#71717a">Free</div></td>
-      <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.total}</div><div style="font-size:12px;color:#71717a">Total</div></td>
+    <h1 style="font-size:22px;margin:0 0 5px;font-weight:700;color:${INK};letter-spacing:-0.4px">${heading}</h1>
+    <p style="color:${MUTED};margin:0 0 20px;font-size:15px">Hi ${esc(data.teacherName)} — here's ${esc(data.date)}.</p>
+    <table role="presentation" style="width:100%;border-collapse:separate;border-spacing:0;margin:0 -4px 6px"><tr>
+      ${stat(data.booked, 'Booked', ACCENT)}${stat(data.empty, 'Free')}${stat(data.total, 'Total')}
     </tr></table>
-    <table style="width:100%;border-collapse:collapse;margin-top:8px">${rows || '<tr><td style="color:#a1a1aa;padding:8px 10px">No slots scheduled.</td></tr>'}</table>`;
+    <table style="width:100%;border-collapse:collapse;margin-top:14px">${rows || `<tr><td style="color:${MUTED};padding:14px 0">No lessons scheduled.</td></tr>`}</table>
+    ${data.booked > 0 ? `<p style="color:${MUTED};font-size:13px;margin-top:18px">Tap a student's number to call or message them.</p>` : ''}`;
   return sendEmail({
     to,
-    subject: `Your schedule for ${data.date} — ${data.booked} lesson(s)`,
+    subject: `${heading} — ${data.date} · ${data.booked} lesson(s)${subjectTag(data.brand)}`,
     html: layout('Daily report', body, data.brand),
     brand: data.brand,
   });

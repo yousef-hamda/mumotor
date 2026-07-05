@@ -204,7 +204,7 @@ function StudentsTab({ website }: { website: Website }) {
       drivingSchoolApi.addStudent(website.id, {
         studentName: addForm.studentName.trim(),
         studentEmail: addForm.studentEmail.trim(),
-        studentPhone: addForm.studentPhone.trim() || undefined,
+        studentPhone: addForm.studentPhone.trim(),
         notes: addForm.notes.trim() || undefined,
       }),
     onSuccess: () => {
@@ -383,6 +383,8 @@ function StudentsTab({ website }: { website: Website }) {
                 if (addForm.studentName.trim().length < 2) return toast.error('Please enter a name');
                 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addForm.studentEmail.trim()))
                   return toast.error('Please enter a valid email');
+                if (!/^[+\d][\d\s-]{6,18}$/.test(addForm.studentPhone.trim()))
+                  return toast.error('Please enter a valid phone number');
                 add.mutate();
               }}
             >
@@ -410,12 +412,13 @@ function StudentsTab({ website }: { website: Website }) {
               placeholder="jane@example.com"
             />
           </Field>
-          <Field label="Phone (optional)">
+          <Field label="Phone">
             <Input
               type="tel"
               value={addForm.studentPhone}
               onChange={(e) => setAddForm({ ...addForm, studentPhone: e.target.value })}
               placeholder="+972 50 123 4567"
+              required
             />
           </Field>
           <Field label="Notes (optional)">

@@ -21,6 +21,8 @@ export default function Register() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^[+\d][\d\s-]{6,18}$/.test(form.phone.trim()))
+      return toast.error('Please enter a valid phone number');
     if (form.password.length < 8) return toast.error('Password must be at least 8 characters');
     setLoading(true);
     try {
@@ -28,7 +30,7 @@ export default function Register() {
         name: form.name,
         email: form.email,
         password: form.password,
-        phone: form.phone || undefined,
+        phone: form.phone.trim(),
       });
       toast.success('Account created!');
       navigate('/dashboard', { replace: true });
@@ -64,8 +66,15 @@ export default function Register() {
               autoComplete="email"
             />
           </Field>
-          <Field label="Phone" hint="Optional">
-            <Input value={form.phone} onChange={set('phone')} placeholder="+972 50 123 4567" autoComplete="tel" />
+          <Field label="Phone" hint="So students and Mumotor can reach you">
+            <Input
+              type="tel"
+              value={form.phone}
+              onChange={set('phone')}
+              required
+              placeholder="+972 50 123 4567"
+              autoComplete="tel"
+            />
           </Field>
           <Field label="Password" hint="At least 8 characters">
             <div className="relative">
