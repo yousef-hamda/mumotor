@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
@@ -36,15 +37,15 @@ import {
   Textarea,
 } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
-import { WEEKDAYS, formatDate, formatDateLong, titleCase } from '../../lib/utils';
+import { WEEKDAYS, formatDate, formatDateLong } from '../../lib/utils';
 import type { BusinessHours, DrivingSettings, ScheduleDay, Student, Website } from '../../lib/types';
 
 const TABS = [
-  { key: 'code', label: 'Enrollment Code', icon: KeyRound },
-  { key: 'students', label: 'Students', icon: Users },
-  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { key: 'email', label: 'Email', icon: Mail },
-  { key: 'settings', label: 'Settings', icon: SettingsIcon },
+  { key: 'code', labelKey: 'dashboard.school.tabs.code', icon: KeyRound },
+  { key: 'students', labelKey: 'dashboard.school.tabs.students', icon: Users },
+  { key: 'schedule', labelKey: 'dashboard.school.tabs.schedule', icon: CalendarDays },
+  { key: 'email', labelKey: 'dashboard.school.tabs.email', icon: Mail },
+  { key: 'settings', labelKey: 'dashboard.school.tabs.settings', icon: SettingsIcon },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
 
@@ -63,6 +64,7 @@ function useCopy() {
 // Tab: Enrollment Code
 // ===========================================================================
 function CodeTab({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const { copied, copy } = useCopy();
   const { data, isLoading } = useQuery({
     queryKey: ['daily-code', website.id],
@@ -77,10 +79,10 @@ function CodeTab({ website }: { website: Website }) {
       {/* Daily code card */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Today's enrollment code
+          {t('dashboard.school.code.todayTitle')}
         </h3>
         <p className="mt-1 text-sm text-sand-600">
-          Share this code with a new student so they can enroll. It rotates every day.
+          {t('dashboard.school.code.todayDesc')}
         </p>
         <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-sand-200 bg-sand-50 p-8">
           <span className="font-mono text-5xl font-bold tracking-[0.3em] tabular-nums text-sand-900">{data?.code}</span>
@@ -90,28 +92,28 @@ function CodeTab({ website }: { website: Website }) {
             ) : (
               <Copy className="h-4 w-4" />
             )}
-            {copied === data?.code ? 'Copied' : 'Copy code'}
+            {copied === data?.code ? t('dashboard.school.code.copied') : t('dashboard.school.code.copyCode')}
           </Button>
         </div>
         <p className="mt-4 text-center text-xs text-sand-500">
-          Valid for {formatDate(new Date().toISOString())}
+          {t('dashboard.school.code.validFor', { date: formatDate(new Date().toISOString()) })}
         </p>
       </Card>
 
       {/* Enroll link card */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Public enroll link
+          {t('dashboard.school.code.linkTitle')}
         </h3>
         <p className="mt-1 text-sm text-sand-600">
-          Send this link — students enroll themselves with the code above.
+          {t('dashboard.school.code.linkDesc')}
         </p>
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-sand-200 bg-sand-50 px-3 py-2.5">
           <code className="flex-1 truncate text-sm text-sand-700">{enrollUrl}</code>
           <button
             onClick={() => copy(enrollUrl, 'link')}
             className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
-            aria-label="Copy enroll link"
+            aria-label={t('dashboard.school.code.copyEnrollLink')}
           >
             {copied === 'link' ? (
               <Check className="h-4 w-4 text-sand-900" />
@@ -126,12 +128,10 @@ function CodeTab({ website }: { website: Website }) {
           rel="noreferrer"
           className="btn-ghost mt-4 text-sm"
         >
-          Open enroll page <ExternalLink className="h-4 w-4" />
+          {t('dashboard.school.code.openEnrollPage')} <ExternalLink className="h-4 w-4" />
         </a>
         <div className="mt-6 rounded-xl border border-sand-200 bg-sand-50 p-4 text-sm text-sand-600">
-          You can also set a permanent static code in{' '}
-          <strong className="font-semibold text-sand-900">Settings</strong> if you prefer not to
-          rotate codes daily.
+          <Trans i18nKey="dashboard.school.code.staticHint" components={{ s: <strong className="font-semibold text-sand-900" /> }} />
         </div>
       </Card>
     </div>
@@ -142,6 +142,7 @@ function CodeTab({ website }: { website: Website }) {
 // Tab: Students
 // ===========================================================================
 function StudentsTab({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -177,7 +178,7 @@ function StudentsTab({ website }: { website: Website }) {
   const toggle = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.toggleStudentStatus(website.id, id),
     onSuccess: () => {
-      toast.success('Status updated');
+      toast.success(t('dashboard.school.students.statusUpdated'));
       invalidate();
     },
     onError: (e) => toast.error(apiError(e).message),
@@ -185,7 +186,7 @@ function StudentsTab({ website }: { website: Website }) {
   const finish = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.finishStudent(website.id, id),
     onSuccess: () => {
-      toast.success('Marked as completed');
+      toast.success(t('dashboard.school.students.markedCompleted'));
       invalidate();
     },
     onError: (e) => toast.error(apiError(e).message),
@@ -193,7 +194,7 @@ function StudentsTab({ website }: { website: Website }) {
   const remove = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.removeStudent(website.id, id),
     onSuccess: () => {
-      toast.success('Student deleted');
+      toast.success(t('dashboard.school.students.studentDeleted'));
       setToDelete(null);
       invalidate();
     },
@@ -208,7 +209,7 @@ function StudentsTab({ website }: { website: Website }) {
         notes: addForm.notes.trim() || undefined,
       }),
     onSuccess: () => {
-      toast.success('Student added');
+      toast.success(t('dashboard.school.students.studentAdded'));
       setAddOpen(false);
       setAddForm(emptyAdd);
       invalidate();
@@ -225,18 +226,18 @@ function StudentsTab({ website }: { website: Website }) {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
+            placeholder={t('dashboard.school.students.searchPlaceholder')}
             className="ps-9"
           />
         </div>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-auto">
-          <option value="">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-          <option value="COMPLETED">Completed</option>
+          <option value="">{t('dashboard.school.students.allStatuses')}</option>
+          <option value="ACTIVE">{t('dashboard.school.students.active')}</option>
+          <option value="INACTIVE">{t('dashboard.school.students.inactive')}</option>
+          <option value="COMPLETED">{t('dashboard.school.students.completed')}</option>
         </Select>
         <Button type="button" variant="primary" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" /> Add student
+          <Plus className="h-4 w-4" /> {t('dashboard.school.students.addStudent')}
         </Button>
       </div>
 
@@ -245,21 +246,21 @@ function StudentsTab({ website }: { website: Website }) {
       ) : !data || data.students.length === 0 ? (
         <EmptyState
           icon={<Users className="h-10 w-10" />}
-          title="No students yet"
-          description="Share your enrollment code to get your first student."
+          title={t('dashboard.school.students.emptyTitle')}
+          description={t('dashboard.school.students.emptyDesc')}
         />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sand-200 bg-sand-50 text-start text-xs uppercase tracking-wide text-sand-500">
-                <th className="px-4 py-3 font-semibold">Name</th>
-                <th className="px-4 py-3 font-semibold">Email</th>
-                <th className="px-4 py-3 font-semibold">Phone</th>
-                <th className="px-4 py-3 font-semibold">Classes</th>
-                <th className="px-4 py-3 font-semibold">Enrolled</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 text-end font-semibold">Actions</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colName')}</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEmail')}</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colPhone')}</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colClasses')}</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEnrolled')}</th>
+                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colStatus')}</th>
+                <th className="px-4 py-3 text-end font-semibold">{t('dashboard.school.students.colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -282,8 +283,8 @@ function StudentsTab({ website }: { website: Website }) {
                     <div className="flex items-center justify-end gap-1">
                       {s.status !== 'COMPLETED' && (
                         <button
-                          aria-label={s.status === 'ACTIVE' ? 'Pause student' : 'Activate student'}
-                          title={s.status === 'ACTIVE' ? 'Pause' : 'Activate'}
+                          aria-label={s.status === 'ACTIVE' ? t('dashboard.school.students.pauseStudent') : t('dashboard.school.students.activateStudent')}
+                          title={s.status === 'ACTIVE' ? t('dashboard.school.students.pause') : t('dashboard.school.students.activate')}
                           onClick={() => toggle.mutate(s.id)}
                           className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
@@ -296,8 +297,8 @@ function StudentsTab({ website }: { website: Website }) {
                       )}
                       {s.status !== 'COMPLETED' && (
                         <button
-                          aria-label="Mark student completed"
-                          title="Mark completed"
+                          aria-label={t('dashboard.school.students.markCompleted')}
+                          title={t('dashboard.school.students.markCompletedShort')}
                           onClick={() => finish.mutate(s.id)}
                           className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                         >
@@ -305,8 +306,8 @@ function StudentsTab({ website }: { website: Website }) {
                         </button>
                       )}
                       <button
-                        aria-label="Delete student"
-                        title="Delete"
+                        aria-label={t('dashboard.school.students.deleteStudent')}
+                        title={t('dashboard.school.students.deleteShort')}
                         onClick={() => setToDelete(s)}
                         className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700"
                       >
@@ -325,18 +326,18 @@ function StudentsTab({ website }: { website: Website }) {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-sand-200 p-4 text-sm">
           <span className="tabular-nums text-sand-600">
-            Page {data.page} of {data.totalPages} · {data.total} students
+            {t('dashboard.school.students.pagination', { page: data.page, totalPages: data.totalPages, total: data.total })}
           </span>
           <div className="flex gap-2">
             <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
+              {t('dashboard.school.students.previous')}
             </Button>
             <Button
               variant="secondary"
               disabled={page >= data.totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Next
+              {t('dashboard.school.students.next')}
             </Button>
           </div>
         </div>
@@ -345,87 +346,90 @@ function StudentsTab({ website }: { website: Website }) {
       <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title="Delete student?"
+        title={t('dashboard.school.students.deleteTitle')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setToDelete(null)}>
-              Cancel
+              {t('dashboard.common.cancel')}
             </Button>
             <Button
               variant="danger"
               loading={remove.isPending}
               onClick={() => toDelete && remove.mutate(toDelete.id)}
             >
-              Delete
+              {t('dashboard.common.delete')}
             </Button>
           </>
         }
       >
         <p className="text-sm text-sand-600">
-          This permanently removes <strong className="text-sand-900">{toDelete?.studentName}</strong> and
-          their enrollment. This cannot be undone.
+          <Trans
+            i18nKey="dashboard.school.students.deleteBody"
+            values={{ name: toDelete?.studentName }}
+            components={{ s: <strong className="text-sand-900" /> }}
+          />
         </p>
       </Modal>
 
       <Modal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Add a student"
+        title={t('dashboard.school.students.addTitle')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setAddOpen(false)}>
-              Cancel
+              {t('dashboard.common.cancel')}
             </Button>
             <Button
               variant="primary"
               loading={add.isPending}
               onClick={() => {
-                if (addForm.studentName.trim().length < 2) return toast.error('Please enter a name');
+                if (addForm.studentName.trim().length < 2) return toast.error(t('dashboard.school.students.errName'));
                 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addForm.studentEmail.trim()))
-                  return toast.error('Please enter a valid email');
+                  return toast.error(t('dashboard.school.students.errEmail'));
                 if (!/^[+\d][\d\s-]{6,18}$/.test(addForm.studentPhone.trim()))
-                  return toast.error('Please enter a valid phone number');
+                  return toast.error(t('dashboard.school.students.errPhone'));
                 add.mutate();
               }}
             >
-              Add student
+              {t('dashboard.school.students.addStudent')}
             </Button>
           </>
         }
       >
         <p className="mb-4 text-sm text-sand-600">
-          Add a student yourself — no code needed. They’ll get a welcome email and can book straight away.
+          {t('dashboard.school.students.addDesc')}
         </p>
         <div className="space-y-4">
-          <Field label="Full name">
+          <Field label={t('dashboard.school.students.fullName')}>
             <Input
               value={addForm.studentName}
               onChange={(e) => setAddForm({ ...addForm, studentName: e.target.value })}
-              placeholder="Jane Doe"
+              placeholder={t('dashboard.school.students.fullNamePlaceholder')}
             />
           </Field>
-          <Field label="Email">
+          <Field label={t('dashboard.school.students.email')}>
             <Input
               type="email"
               value={addForm.studentEmail}
               onChange={(e) => setAddForm({ ...addForm, studentEmail: e.target.value })}
-              placeholder="jane@example.com"
+              placeholder={t('dashboard.school.students.emailPlaceholder')}
             />
           </Field>
-          <Field label="Phone">
+          <Field label={t('dashboard.school.students.phone')}>
             <Input
               type="tel"
               value={addForm.studentPhone}
               onChange={(e) => setAddForm({ ...addForm, studentPhone: e.target.value })}
-              placeholder="+972 50 123 4567"
+              placeholder={t('dashboard.school.students.phonePlaceholder')}
               required
             />
           </Field>
-          <Field label="Notes (optional)">
+          <Field label={t('dashboard.school.students.notes')}>
             <Textarea
               value={addForm.notes}
               onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
-              placeholder="Anything useful about this student…"
+              placeholder={t('dashboard.school.students.notesPlaceholder')}
               rows={2}
             />
           </Field>
@@ -439,6 +443,7 @@ function StudentsTab({ website }: { website: Website }) {
 // Tab: Schedule (Today / Tomorrow)
 // ===========================================================================
 function ScheduleTab({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [day, setDay] = useState<ScheduleDay>('today');
   const { data, isLoading, refetch, isFetching } = useQuery({
@@ -450,11 +455,13 @@ function ScheduleTab({ website }: { website: Website }) {
   const [studentSearch, setStudentSearch] = useState('');
 
   const invalidateReport = () => qc.invalidateQueries({ queryKey: ['daily-report', website.id] });
+  const dayWord = (d: ScheduleDay) => t(d === 'today' ? 'dashboard.school.schedule.dayToday' : 'dashboard.school.schedule.dayTomorrow');
+  const dayTitle = (d: ScheduleDay) => t(d === 'today' ? 'dashboard.school.schedule.today' : 'dashboard.school.schedule.tomorrow');
 
   const cancelBooking = useMutation({
     mutationFn: (bookingId: string) => drivingSchoolApi.cancelBooking(website.id, bookingId),
     onSuccess: () => {
-      toast.success('Lesson cancelled — the student was emailed and the slot is free again');
+      toast.success(t('dashboard.school.schedule.lessonCancelledToast'));
       setCancelTarget(null);
       invalidateReport();
     },
@@ -465,7 +472,7 @@ function ScheduleTab({ website }: { website: Website }) {
     mutationFn: (enrollmentId: string) =>
       drivingSchoolApi.assignStudentToSlot(website.id, { enrollmentId, day, time: assignTime! }),
     onSuccess: () => {
-      toast.success('Student booked into the slot');
+      toast.success(t('dashboard.school.schedule.studentBookedToast'));
       setAssignTime(null);
       setStudentSearch('');
       invalidateReport();
@@ -475,7 +482,7 @@ function ScheduleTab({ website }: { website: Website }) {
 
   const emailMe = useMutation({
     mutationFn: () => drivingSchoolApi.emailMeSchedule(website.id, { day }),
-    onSuccess: () => toast.success(`The ${day}'s schedule was emailed to you`),
+    onSuccess: () => toast.success(t('dashboard.school.schedule.emailedToast', { day: dayWord(day) })),
     onError: (e) => toast.error(apiError(e).message),
   });
 
@@ -495,16 +502,16 @@ function ScheduleTab({ website }: { website: Website }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-            {data ? formatDateLong(data.date) : titleCase(day)}
+            {data ? formatDateLong(data.date) : dayTitle(day)}
           </h3>
           {data?.isOpen ? (
             <p className="mt-0.5 text-sm text-sand-600">
-              Open {data.open}–{data.close} ·{' '}
-              <span className="font-semibold tabular-nums text-sand-900">{data.totals.booked}</span> booked ·{' '}
-              <span className="font-semibold tabular-nums text-sand-900">{data.totals.empty}</span> free
+              {t('dashboard.school.schedule.openLabel')} {data.open}–{data.close} ·{' '}
+              <span className="font-semibold tabular-nums text-sand-900">{data.totals.booked}</span> {t('dashboard.school.schedule.booked')} ·{' '}
+              <span className="font-semibold tabular-nums text-sand-900">{data.totals.empty}</span> {t('dashboard.school.schedule.free')}
             </p>
           ) : (
-            <p className="mt-0.5 text-sm text-sand-600">Closed {day}</p>
+            <p className="mt-0.5 text-sm text-sand-600">{t('dashboard.school.schedule.closedDay', { day: dayWord(day) })}</p>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -522,15 +529,15 @@ function ScheduleTab({ website }: { website: Website }) {
                     : 'rounded-md px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:text-sand-900'
                 }
               >
-                {titleCase(d)}
+                {dayTitle(d)}
               </button>
             ))}
           </div>
           <Button variant="secondary" onClick={() => emailMe.mutate()} loading={emailMe.isPending}>
-            <Mail className="h-4 w-4" /> Email me the schedule
+            <Mail className="h-4 w-4" /> {t('dashboard.school.schedule.emailMe')}
           </Button>
           <Button variant="secondary" onClick={() => refetch()} loading={isFetching}>
-            <RefreshCw className="h-4 w-4" /> Refresh
+            <RefreshCw className="h-4 w-4" /> {t('dashboard.school.schedule.refresh')}
           </Button>
         </div>
       </div>
@@ -538,8 +545,8 @@ function ScheduleTab({ website }: { website: Website }) {
       {!data || data.slots.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-10 w-10" />}
-          title={data?.isOpen ? `No slots ${day}` : `Closed ${day}`}
-          description="Adjust your working hours in Settings."
+          title={data?.isOpen ? t('dashboard.school.schedule.noSlotsDay', { day: dayWord(day) }) : t('dashboard.school.schedule.closedDay', { day: dayWord(day) })}
+          description={t('dashboard.school.schedule.adjustHours')}
         />
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -555,9 +562,9 @@ function ScheduleTab({ website }: { website: Website }) {
               <div className="flex items-center justify-between">
                 <span className="font-mono text-lg font-bold tabular-nums text-sand-900">{slot.time}</span>
                 {slot.booked ? (
-                  <span className="chip bg-sand-900 text-white">Booked</span>
+                  <span className="chip bg-sand-900 text-white">{t('dashboard.school.schedule.bookedChip')}</span>
                 ) : (
-                  <span className="chip bg-sand-200 text-sand-600">Free</span>
+                  <span className="chip bg-sand-200 text-sand-600">{t('dashboard.school.schedule.freeChip')}</span>
                 )}
               </div>
               {slot.booked ? (
@@ -567,14 +574,14 @@ function ScheduleTab({ website }: { website: Website }) {
                     <p className="text-sm text-sand-500">{slot.studentPhone}</p>
                   )}
                   {typeof slot.classCount === 'number' && (
-                    <p className="mt-1 text-xs text-sand-500">Lesson #{slot.classCount}</p>
+                    <p className="mt-1 text-xs text-sand-500">{t('dashboard.school.schedule.lessonNum', { n: slot.classCount })}</p>
                   )}
                   {slot.bookingId && (
                     <button
                       onClick={() => setCancelTarget({ bookingId: slot.bookingId!, time: slot.time, studentName: slot.studentName })}
                       className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-ember-600 hover:underline"
                     >
-                      <X className="h-3.5 w-3.5" /> Cancel lesson
+                      <X className="h-3.5 w-3.5" /> {t('dashboard.school.schedule.cancelLesson')}
                     </button>
                   )}
                 </div>
@@ -584,7 +591,7 @@ function ScheduleTab({ website }: { website: Website }) {
                   onClick={() => setAssignTime(slot.time)}
                   className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sun-600 hover:underline"
                 >
-                  <UserPlus className="h-3.5 w-3.5" /> Add student
+                  <UserPlus className="h-3.5 w-3.5" /> {t('dashboard.school.schedule.addStudent')}
                 </button>
               )}
             </div>
@@ -592,20 +599,22 @@ function ScheduleTab({ website }: { website: Website }) {
         </div>
       )}
 
-      <Modal open={Boolean(cancelTarget)} onClose={() => setCancelTarget(null)} title="Cancel this lesson?">
+      <Modal open={Boolean(cancelTarget)} onClose={() => setCancelTarget(null)} title={t('dashboard.school.schedule.cancelTitle')}>
         <p className="text-sm text-sand-600">
-          {cancelTarget?.studentName ? `${cancelTarget.studentName}'s` : 'The'} lesson at{' '}
-          <strong className="text-sand-900">{cancelTarget?.time}</strong> will be cancelled. The student
-          gets an email and the slot opens up for other students.
+          <Trans
+            i18nKey={cancelTarget?.studentName ? 'dashboard.school.schedule.cancelBodyNamed' : 'dashboard.school.schedule.cancelBodyUnnamed'}
+            values={{ name: cancelTarget?.studentName, time: cancelTarget?.time }}
+            components={{ s: <strong className="text-sand-900" /> }}
+          />
         </p>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="secondary" onClick={() => setCancelTarget(null)}>Keep lesson</Button>
+          <Button variant="secondary" onClick={() => setCancelTarget(null)}>{t('dashboard.school.schedule.keepLesson')}</Button>
           <Button
             variant="danger"
             loading={cancelBooking.isPending}
             onClick={() => cancelTarget && cancelBooking.mutate(cancelTarget.bookingId)}
           >
-            Cancel lesson
+            {t('dashboard.school.schedule.cancelLesson')}
           </Button>
         </div>
       </Modal>
@@ -616,20 +625,20 @@ function ScheduleTab({ website }: { website: Website }) {
           setAssignTime(null);
           setStudentSearch('');
         }}
-        title={`Book a student at ${assignTime ?? ''}`}
+        title={t('dashboard.school.schedule.bookAt', { time: assignTime ?? '' })}
       >
         <div className="space-y-3">
           <Input
             value={studentSearch}
             onChange={(e) => setStudentSearch(e.target.value)}
-            placeholder="Search active students by name or email…"
+            placeholder={t('dashboard.school.schedule.searchActive')}
             autoFocus
           />
           <div className="max-h-72 overflow-y-auto rounded-lg border border-sand-200">
             {pickerLoading ? (
               <CenteredSpinner />
             ) : !pickerStudents || pickerStudents.students.length === 0 ? (
-              <p className="p-4 text-sm text-sand-500">No active students found.</p>
+              <p className="p-4 text-sm text-sand-500">{t('dashboard.school.schedule.noActive')}</p>
             ) : (
               pickerStudents.students.map((s) => (
                 <button
@@ -644,7 +653,7 @@ function ScheduleTab({ website }: { website: Website }) {
                     <span className="block text-xs text-sand-500">{s.studentEmail}</span>
                   </span>
                   {assign.isPending && assign.variables === s.id && (
-                    <span className="text-xs text-sand-400">Booking…</span>
+                    <span className="text-xs text-sand-400">{t('dashboard.school.schedule.booking')}</span>
                   )}
                 </button>
               ))
@@ -660,6 +669,7 @@ function ScheduleTab({ website }: { website: Website }) {
 // Tab: Email
 // ===========================================================================
 function EmailTab({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<'group' | 'specific'>('group');
   const [targetGroup, setTargetGroup] = useState<'all' | 'active' | 'inactive'>('active');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -682,7 +692,8 @@ function EmailTab({ website }: { website: Website }) {
       ),
     onSuccess: (res) => {
       toast.success(
-        `Sent to ${res.sentCount} student(s)${res.failedCount ? `, ${res.failedCount} failed` : ''}`
+        t('dashboard.school.email.sentToast', { n: res.sentCount }) +
+          (res.failedCount ? t('dashboard.school.email.failedSuffix', { failed: res.failedCount }) : '')
       );
       setSubject('');
       setBody('');
@@ -697,22 +708,22 @@ function EmailTab({ website }: { website: Website }) {
   return (
     <Card className="mx-auto max-w-2xl">
       <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-        Email your students
+        {t('dashboard.school.email.title')}
       </h3>
-      <p className="mt-1 text-sm text-sand-600">Send an announcement to a group, or pick specific students.</p>
+      <p className="mt-1 text-sm text-sand-600">{t('dashboard.school.email.subtitle')}</p>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (!subject.trim() || !body.trim()) return toast.error('Subject and message are required');
+          if (!subject.trim() || !body.trim()) return toast.error(t('dashboard.school.email.errRequired'));
           if (mode === 'specific' && selectedIds.length === 0) {
-            return toast.error('Select at least one student');
+            return toast.error(t('dashboard.school.email.errSelect'));
           }
           send.mutate();
         }}
         className="mt-6 space-y-4"
       >
-        <Field label="Send to">
+        <Field label={t('dashboard.school.email.sendTo')}>
           <div className="flex gap-1 rounded-lg border border-sand-200 bg-sand-100 p-1">
             {(['group', 'specific'] as const).map((m) => (
               <button
@@ -726,30 +737,30 @@ function EmailTab({ website }: { website: Website }) {
                     : 'flex-1 rounded-md px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:text-sand-900'
                 }
               >
-                {m === 'group' ? 'A group' : 'Specific students'}
+                {m === 'group' ? t('dashboard.school.email.aGroup') : t('dashboard.school.email.specific')}
               </button>
             ))}
           </div>
         </Field>
 
         {mode === 'group' ? (
-          <Field label="Group">
+          <Field label={t('dashboard.school.email.group')}>
             <Select
               value={targetGroup}
               onChange={(e) => setTargetGroup(e.target.value as typeof targetGroup)}
             >
-              <option value="all">All students</option>
-              <option value="active">Active students</option>
-              <option value="inactive">Inactive students</option>
+              <option value="all">{t('dashboard.school.email.allStudents')}</option>
+              <option value="active">{t('dashboard.school.email.activeStudents')}</option>
+              <option value="inactive">{t('dashboard.school.email.inactiveStudents')}</option>
             </Select>
           </Field>
         ) : (
-          <Field label={`Students (${selectedIds.length} selected)`}>
+          <Field label={t('dashboard.school.email.studentsSelected', { n: selectedIds.length })}>
             <div className="max-h-56 overflow-y-auto rounded-lg border border-sand-200">
               {pickerLoading ? (
                 <CenteredSpinner />
               ) : !pickerStudents || pickerStudents.students.length === 0 ? (
-                <p className="p-4 text-sm text-sand-500">No active students found.</p>
+                <p className="p-4 text-sm text-sand-500">{t('dashboard.school.email.noActive')}</p>
               ) : (
                 pickerStudents.students.map((s) => (
                   <label
@@ -773,25 +784,25 @@ function EmailTab({ website }: { website: Website }) {
           </Field>
         )}
 
-        <Field label="Subject">
+        <Field label={t('dashboard.school.email.subject')}>
           <Input
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Holiday schedule update"
+            placeholder={t('dashboard.school.email.subjectPlaceholder')}
             maxLength={200}
           />
         </Field>
-        <Field label="Message">
+        <Field label={t('dashboard.school.email.message')}>
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={8}
-            placeholder="Hi everyone, …"
+            placeholder={t('dashboard.school.email.messagePlaceholder')}
             maxLength={5000}
           />
         </Field>
         <Button type="submit" loading={send.isPending}>
-          <Send className="h-4 w-4" /> Send email
+          <Send className="h-4 w-4" /> {t('dashboard.school.email.sendEmail')}
         </Button>
       </form>
     </Card>
@@ -804,6 +815,7 @@ function EmailTab({ website }: { website: Website }) {
 const DURATIONS = [30, 45, 60, 90, 120];
 
 function SettingsTab({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { copied, copy } = useCopy();
   const { data, isLoading } = useQuery({
@@ -820,7 +832,7 @@ function SettingsTab({ website }: { website: Website }) {
     mutationFn: (payload: Partial<DrivingSettings>) =>
       drivingSchoolApi.updateSettings(website.id, payload),
     onSuccess: (res) => {
-      toast.success('Settings saved');
+      toast.success(t('dashboard.school.settings.savedToast'));
       setForm(res);
       qc.invalidateQueries({ queryKey: ['settings', website.id] });
       qc.invalidateQueries({ queryKey: ['daily-report', website.id] });
@@ -874,34 +886,34 @@ function SettingsTab({ website }: { website: Website }) {
       {/* Enrollment code */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Enrollment code
+          {t('dashboard.school.settings.codeTitle')}
         </h3>
         <p className="mt-1 text-sm text-sand-600">
-          Optional permanent code. Leave blank to rely only on the rotating daily code.
+          {t('dashboard.school.settings.codeDesc')}
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label="Static enrollment code" hint="At least 4 characters">
+          <Field label={t('dashboard.school.settings.staticCode')} hint={t('dashboard.school.settings.staticCodeHint')}>
             <div className="flex gap-2">
               <Input
                 value={form.enrollmentCode}
                 onChange={(e) =>
                   setForm({ ...form, enrollmentCode: e.target.value.toUpperCase() })
                 }
-                placeholder="e.g. DRIVE2026"
+                placeholder={t('dashboard.school.settings.staticCodePlaceholder')}
               />
-              <Button type="button" variant="secondary" onClick={randomCode} title="Generate">
+              <Button type="button" variant="secondary" onClick={randomCode} title={t('dashboard.school.settings.generate')}>
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
           </Field>
-          <Field label="Public enroll link">
+          <Field label={t('dashboard.school.settings.publicEnrollLink')}>
             <div className="flex items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-3 py-2.5">
               <code className="flex-1 truncate text-sm text-sand-600">{enrollUrl}</code>
               <button
                 type="button"
                 onClick={() => copy(enrollUrl, 'enroll')}
                 className="rounded-md p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
-                aria-label="Copy enroll link"
+                aria-label={t('dashboard.school.settings.copyEnrollLink')}
               >
                 {copied === 'enroll' ? (
                   <Check className="h-4 w-4 text-sand-900" />
@@ -919,29 +931,29 @@ function SettingsTab({ website }: { website: Website }) {
             onChange={(e) => setForm({ ...form, dailyCodeEnabled: e.target.checked })}
             className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
           />
-          <span className="text-sm text-sand-700">Enable rotating daily code</span>
+          <span className="text-sm text-sand-700">{t('dashboard.school.settings.enableDailyCode')}</span>
         </label>
       </Card>
 
       {/* Lesson settings */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Lesson settings
+          {t('dashboard.school.settings.lessonTitle')}
         </h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Lesson duration">
+          <Field label={t('dashboard.school.settings.lessonDuration')}>
             <Select
               value={form.classDuration}
               onChange={(e) => setForm({ ...form, classDuration: Number(e.target.value) })}
             >
               {DURATIONS.map((d) => (
                 <option key={d} value={d}>
-                  {d} min
+                  {t('dashboard.school.settings.minutes', { n: d })}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Advance booking (days)">
+          <Field label={t('dashboard.school.settings.advanceBooking')}>
             <NumberInput
               min={1}
               max={90}
@@ -949,7 +961,7 @@ function SettingsTab({ website }: { website: Website }) {
               onValueChange={(n) => setForm({ ...form, advanceBookingDays: n })}
             />
           </Field>
-          <Field label="Same-day cutoff hour" hint="0–23 (UTC)">
+          <Field label={t('dashboard.school.settings.sameDayCutoff')} hint={t('dashboard.school.settings.sameDayCutoffHint')}>
             <NumberInput
               min={0}
               max={23}
@@ -957,7 +969,7 @@ function SettingsTab({ website }: { website: Website }) {
               onValueChange={(n) => setForm({ ...form, bookingCutoffHour: n })}
             />
           </Field>
-          <Field label="Rest between (min)">
+          <Field label={t('dashboard.school.settings.restBetween')}>
             <NumberInput
               min={0}
               max={120}
@@ -971,29 +983,27 @@ function SettingsTab({ website }: { website: Website }) {
       {/* Booking window */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Booking window
+          {t('dashboard.school.settings.bookingWindowTitle')}
         </h3>
         <p className="mt-1 text-sm text-sand-600">
-          Each day, enrolled students get a “booking is open” email at the open time and can book their
-          next lesson until it closes. You’re emailed tomorrow’s full schedule at the report time. Times
-          are in Israel time.
+          {t('dashboard.school.settings.bookingWindowDesc')}
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <Field label="Booking opens" hint="Students notified + can book">
+          <Field label={t('dashboard.school.settings.bookingOpens')} hint={t('dashboard.school.settings.bookingOpensHint')}>
             <Input
               type="time"
               value={form.bookingWindowStart}
               onChange={(e) => setForm({ ...form, bookingWindowStart: e.target.value })}
             />
           </Field>
-          <Field label="Booking closes">
+          <Field label={t('dashboard.school.settings.bookingCloses')}>
             <Input
               type="time"
               value={form.bookingWindowEnd}
               onChange={(e) => setForm({ ...form, bookingWindowEnd: e.target.value })}
             />
           </Field>
-          <Field label="Daily report time" hint="Tomorrow’s schedule emailed to you">
+          <Field label={t('dashboard.school.settings.dailyReportTime')} hint={t('dashboard.school.settings.dailyReportTimeHint')}>
             <Input
               type="time"
               value={form.reportTime}
@@ -1006,7 +1016,7 @@ function SettingsTab({ website }: { website: Website }) {
       {/* Working hours */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Working hours
+          {t('dashboard.school.settings.workingHoursTitle')}
         </h3>
         <div className="mt-4 space-y-2">
           {WEEKDAYS.map((day) => {
@@ -1023,7 +1033,7 @@ function SettingsTab({ website }: { website: Website }) {
                     onChange={(e) => setDay(day, { isOpen: e.target.checked })}
                     className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
                   />
-                  <span className="font-medium text-sand-800">{titleCase(day)}</span>
+                  <span className="font-medium text-sand-800">{t(`dashboard.weekdays.${day}`)}</span>
                 </label>
                 {d.isOpen ? (
                   <div className="flex items-center gap-2">
@@ -1033,7 +1043,7 @@ function SettingsTab({ website }: { website: Website }) {
                       onChange={(e) => setDay(day, { open: e.target.value })}
                       className="w-32"
                     />
-                    <span className="text-sand-500">to</span>
+                    <span className="text-sand-500">{t('dashboard.common.to')}</span>
                     <Input
                       type="time"
                       value={d.close}
@@ -1042,7 +1052,7 @@ function SettingsTab({ website }: { website: Website }) {
                     />
                   </div>
                 ) : (
-                  <span className="text-sm text-sand-500">Closed</span>
+                  <span className="text-sm text-sand-500">{t('dashboard.common.closed')}</span>
                 )}
               </div>
             );
@@ -1055,7 +1065,7 @@ function SettingsTab({ website }: { website: Website }) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-              Break times
+              {t('dashboard.school.settings.breakTimesTitle')}
             </h3>
           </div>
           <Button
@@ -1068,7 +1078,7 @@ function SettingsTab({ website }: { website: Website }) {
               })
             }
           >
-            <Plus className="h-4 w-4" /> Add break
+            <Plus className="h-4 w-4" /> {t('dashboard.school.settings.addBreak')}
           </Button>
         </div>
         {form.breakTimes && form.breakTimes.length > 0 ? (
@@ -1088,7 +1098,7 @@ function SettingsTab({ website }: { website: Website }) {
                   }}
                   className="w-32"
                 />
-                <span className="text-sand-500">to</span>
+                <span className="text-sand-500">{t('dashboard.common.to')}</span>
                 <Input
                   type="time"
                   value={b.end}
@@ -1101,7 +1111,7 @@ function SettingsTab({ website }: { website: Website }) {
                 />
                 <button
                   type="button"
-                  aria-label="Remove break"
+                  aria-label={t('dashboard.school.settings.removeBreak')}
                   onClick={() =>
                     setForm({ ...form, breakTimes: form.breakTimes.filter((_, j) => j !== i) })
                   }
@@ -1113,24 +1123,24 @@ function SettingsTab({ website }: { website: Website }) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-sand-500">No breaks configured.</p>
+          <p className="mt-4 text-sm text-sand-500">{t('dashboard.school.settings.noBreaks')}</p>
         )}
       </Card>
 
       {/* Public profile */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-          Public profile
+          {t('dashboard.school.settings.publicProfileTitle')}
         </h3>
-        <p className="mt-1 text-sm text-sand-600">Shown on your public booking site.</p>
+        <p className="mt-1 text-sm text-sand-600">{t('dashboard.school.settings.publicProfileDesc')}</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Teacher name">
+          <Field label={t('dashboard.school.settings.teacherName')}>
             <Input
               value={form.teacherName}
               onChange={(e) => setForm({ ...form, teacherName: e.target.value })}
             />
           </Field>
-          <Field label="Price per lesson">
+          <Field label={t('dashboard.school.settings.pricePerLesson')}>
             <Input
               type="number"
               min={0}
@@ -1140,7 +1150,7 @@ function SettingsTab({ website }: { website: Website }) {
               }
             />
           </Field>
-          <Field label="Years of experience" hint='e.g. "10+"'>
+          <Field label={t('dashboard.school.settings.yearsExperience')} hint={t('dashboard.school.settings.yearsExperienceHint')}>
             <Input
               value={form.experienceYears ?? ''}
               onChange={(e) =>
@@ -1148,7 +1158,7 @@ function SettingsTab({ website }: { website: Website }) {
               }
             />
           </Field>
-          <Field label="Pass rate (%)">
+          <Field label={t('dashboard.school.settings.passRate')}>
             <Input
               type="number"
               min={0}
@@ -1165,7 +1175,7 @@ function SettingsTab({ website }: { website: Website }) {
       {/* Sticky save bar */}
       <div className="sticky bottom-4 flex justify-end">
         <Button type="submit" loading={save.isPending} className="shadow-elevated">
-          Save settings
+          {t('dashboard.school.settings.saveSettings')}
         </Button>
       </div>
     </form>
@@ -1176,6 +1186,7 @@ function SettingsTab({ website }: { website: Website }) {
 // Main
 // ===========================================================================
 export default function DrivingSchool() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabKey>('code');
   const [websiteId, setWebsiteId] = useState<string>('');
 
@@ -1193,14 +1204,14 @@ export default function DrivingSchool() {
     [websites, websiteId]
   );
 
-  if (isLoading) return <CenteredSpinner label="Loading…" />;
+  if (isLoading) return <CenteredSpinner label={t('dashboard.common.loading')} />;
 
   if (!websites || websites.length === 0) {
     return (
       <EmptyState
         icon={<GraduationCap className="h-12 w-12" />}
-        title="No driving school yet"
-        description="Create one from the Overview page to get started."
+        title={t('dashboard.school.emptyTitle')}
+        description={t('dashboard.school.emptyDesc')}
       />
     );
   }
@@ -1212,9 +1223,9 @@ export default function DrivingSchool() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-              Manage your school
+              {t('dashboard.school.title')}
             </h1>
-            <p className="mt-1 text-sand-600">Students, schedule, codes, and settings — all in one place.</p>
+            <p className="mt-1 text-sand-600">{t('dashboard.school.subtitle')}</p>
           </div>
           {websites.length > 1 && (
             <Select
@@ -1234,13 +1245,13 @@ export default function DrivingSchool() {
 
       {/* Tab bar */}
       <div className="flex gap-1 overflow-x-auto rounded-lg border border-sand-200 bg-sand-100 p-1">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          const active = tab === t.key;
+        {TABS.map((tb) => {
+          const Icon = tb.icon;
+          const active = tab === tb.key;
           return (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
               aria-current={active ? 'page' : undefined}
               className={
                 active
@@ -1249,7 +1260,7 @@ export default function DrivingSchool() {
               }
             >
               <Icon strokeWidth={1.75} className={`h-4 w-4 ${active ? 'text-sand-900' : 'text-sand-400'}`} />
-              {t.label}
+              {t(tb.labelKey)}
             </button>
           );
         })}

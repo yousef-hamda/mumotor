@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { KeyRound, Trash2, User } from 'lucide-react';
@@ -11,7 +11,7 @@ import type { Website } from '../../lib/types';
 
 export default function Settings() {
   const { user, updateUser } = useAuth();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const [profile, setProfile] = useState({
     name: user?.name ?? '',
@@ -25,14 +25,14 @@ export default function Settings() {
     onSuccess: (u) => {
       updateUser(u);
       i18n.changeLanguage(profile.preferredLanguage.toLowerCase());
-      toast.success('Profile saved');
+      toast.success(t('dashboard.account.profileSavedToast'));
     },
     onError: (e) => toast.error(apiError(e).message),
   });
 
   const changePw = useMutation({
     mutationFn: () => authApi.changePassword(pw),
-    onSuccess: () => { toast.success('Password changed'); setPw({ currentPassword: '', newPassword: '' }); },
+    onSuccess: () => { toast.success(t('dashboard.account.passwordChangedToast')); setPw({ currentPassword: '', newPassword: '' }); },
     onError: (e) => toast.error(apiError(e).message),
   });
 
@@ -43,7 +43,7 @@ export default function Settings() {
   const del = useMutation({
     mutationFn: () => websiteApi.remove(toDelete!.id, confirmText),
     onSuccess: () => {
-      toast.success('Website permanently deleted');
+      toast.success(t('dashboard.account.websiteDeletedToast'));
       qc.invalidateQueries({ queryKey: ['my-websites'] });
       setToDelete(null);
       setConfirmText('');
@@ -56,9 +56,9 @@ export default function Settings() {
       <FadeUp>
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-            Your account
+            {t('dashboard.account.title')}
           </h1>
-          <p className="mt-1 text-sand-600">Profile, language, and security settings.</p>
+          <p className="mt-1 text-sand-600">{t('dashboard.account.subtitle')}</p>
         </div>
       </FadeUp>
 
@@ -69,39 +69,39 @@ export default function Settings() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
               <User strokeWidth={1.75} className="h-5 w-5" />
             </span>
-            <h3 className="text-lg font-semibold tracking-tight text-sand-900">Profile</h3>
+            <h3 className="text-lg font-semibold tracking-tight text-sand-900">{t('dashboard.account.profile')}</h3>
           </div>
           <form
             onSubmit={(e) => { e.preventDefault(); saveProfile.mutate(); }}
             className="space-y-4"
           >
-            <Field label="Full name">
+            <Field label={t('dashboard.account.fullName')}>
               <Input
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
               />
             </Field>
-            <Field label="Email">
+            <Field label={t('dashboard.account.email')}>
               <Input value={user?.email ?? ''} disabled className="opacity-60" />
             </Field>
-            <Field label="Phone">
+            <Field label={t('dashboard.account.phone')}>
               <Input
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
               />
             </Field>
-            <Field label="Preferred language">
+            <Field label={t('dashboard.account.preferredLanguage')}>
               <Select
                 value={profile.preferredLanguage}
                 onChange={(e) => setProfile({ ...profile, preferredLanguage: e.target.value as 'HE' | 'AR' | 'EN' })}
               >
-                <option value="EN">English</option>
-                <option value="HE">עברית (Hebrew)</option>
-                <option value="AR">العربية (Arabic)</option>
+                <option value="EN">{t('dashboard.account.langEn')}</option>
+                <option value="HE">{t('dashboard.account.langHe')}</option>
+                <option value="AR">{t('dashboard.account.langAr')}</option>
               </Select>
             </Field>
             <Button type="submit" loading={saveProfile.isPending}>
-              Save profile
+              {t('dashboard.account.saveProfile')}
             </Button>
           </form>
         </Card>
@@ -114,17 +114,17 @@ export default function Settings() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sand-100 text-sand-700">
               <KeyRound strokeWidth={1.75} className="h-4 w-4" />
             </span>
-            <h3 className="text-lg font-semibold tracking-tight text-sand-900">Change password</h3>
+            <h3 className="text-lg font-semibold tracking-tight text-sand-900">{t('dashboard.account.changePassword')}</h3>
           </div>
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (pw.newPassword.length < 8) return toast.error('New password must be at least 8 characters');
+              if (pw.newPassword.length < 8) return toast.error(t('dashboard.account.errPasswordLength'));
               changePw.mutate();
             }}
             className="space-y-4"
           >
-            <Field label="Current password">
+            <Field label={t('dashboard.account.currentPassword')}>
               <Input
                 type="password"
                 value={pw.currentPassword}
@@ -132,7 +132,7 @@ export default function Settings() {
                 autoComplete="current-password"
               />
             </Field>
-            <Field label="New password" hint="At least 8 characters">
+            <Field label={t('dashboard.account.newPassword')} hint={t('dashboard.account.newPasswordHint')}>
               <Input
                 type="password"
                 value={pw.newPassword}
@@ -141,7 +141,7 @@ export default function Settings() {
               />
             </Field>
             <Button type="submit" loading={changePw.isPending}>
-              Change password
+              {t('dashboard.account.changePassword')}
             </Button>
           </form>
         </Card>
@@ -155,12 +155,12 @@ export default function Settings() {
               <Trash2 strokeWidth={1.75} className="h-4 w-4" />
             </span>
             <div>
-              <h3 className="text-lg font-semibold tracking-tight text-sand-900">Delete a website</h3>
-              <p className="text-sm text-sand-500">Permanently removes the site and all of its data — students, bookings, schedule and settings. This cannot be undone.</p>
+              <h3 className="text-lg font-semibold tracking-tight text-sand-900">{t('dashboard.account.deleteWebsite')}</h3>
+              <p className="text-sm text-sand-500">{t('dashboard.account.deleteWebsiteDesc')}</p>
             </div>
           </div>
           {sites.length === 0 ? (
-            <p className="text-sm text-sand-500">You haven't created any websites yet.</p>
+            <p className="text-sm text-sand-500">{t('dashboard.account.noWebsites')}</p>
           ) : (
             <ul className="divide-y divide-sand-100">
               {sites.map((s) => (
@@ -170,7 +170,7 @@ export default function Settings() {
                     <p className="truncate text-xs text-sand-500">/{s.slug} · {s.status}</p>
                   </div>
                   <Button variant="danger" onClick={() => { setToDelete(s); setConfirmText(''); }} className="shrink-0">
-                    <Trash2 className="h-4 w-4" /> Delete
+                    <Trash2 className="h-4 w-4" /> {t('dashboard.account.delete')}
                   </Button>
                 </li>
               ))}
@@ -182,21 +182,25 @@ export default function Settings() {
       <Modal
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        title="Delete this website?"
+        title={t('dashboard.account.deleteModalTitle')}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setToDelete(null)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setToDelete(null)}>{t('dashboard.account.cancel')}</Button>
             <Button variant="danger" disabled={confirmText.trim().toUpperCase() !== 'DELETE'} loading={del.isPending} onClick={() => del.mutate()}>
-              Delete permanently
+              {t('dashboard.account.deletePermanently')}
             </Button>
           </>
         }
       >
         <p className="text-sand-600">
-          This will permanently delete <strong className="text-sand-900">{toDelete?.name}</strong> and everything it contains — students, bookings, schedule, reviews and settings. This <strong>cannot be undone</strong>.
+          <Trans
+            i18nKey="dashboard.account.deleteModalBody"
+            values={{ name: toDelete?.name }}
+            components={{ s: <strong className="text-sand-900" />, b: <strong /> }}
+          />
         </p>
         <div className="mt-4">
-          <Field label='Type DELETE to confirm'>
+          <Field label={t('dashboard.account.typeDeleteConfirm')}>
             <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" autoFocus />
           </Field>
         </div>

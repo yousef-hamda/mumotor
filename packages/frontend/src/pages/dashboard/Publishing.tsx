@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Check, Copy, ExternalLink, Globe, Sparkles } from 'lucide-react';
@@ -9,6 +10,7 @@ import { FadeUp, Stagger } from '../../components/motion';
 import type { Website } from '../../lib/types';
 
 function SiteRow({ website }: { website: Website }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
   const live = website.status === 'PUBLISHED';
@@ -16,12 +18,12 @@ function SiteRow({ website }: { website: Website }) {
 
   const publish = useMutation({
     mutationFn: () => websiteApi.publish(website.id),
-    onSuccess: () => { toast.success('Published'); qc.invalidateQueries({ queryKey: ['websites'] }); },
+    onSuccess: () => { toast.success(t('dashboard.publishing.publishedToast')); qc.invalidateQueries({ queryKey: ['websites'] }); },
     onError: (e) => toast.error(apiError(e).message),
   });
   const unpublish = useMutation({
     mutationFn: () => websiteApi.unpublish(website.id),
-    onSuccess: () => { toast.success('Unpublished'); qc.invalidateQueries({ queryKey: ['websites'] }); },
+    onSuccess: () => { toast.success(t('dashboard.publishing.unpublishedToast')); qc.invalidateQueries({ queryKey: ['websites'] }); },
     onError: (e) => toast.error(apiError(e).message),
   });
 
@@ -40,7 +42,7 @@ function SiteRow({ website }: { website: Website }) {
               <button
                 onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
                 className="rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
-                aria-label="Copy site URL"
+                aria-label={t('dashboard.publishing.copySiteUrl')}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-sand-900" /> : <Copy className="h-3.5 w-3.5" />}
               </button>
@@ -48,20 +50,20 @@ function SiteRow({ website }: { website: Website }) {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link to={`/customize/${website.id}`} className="btn-primary">
-              <Sparkles className="h-4 w-4" /> Customize
+              <Sparkles className="h-4 w-4" /> {t('dashboard.publishing.customize')}
             </Link>
             {live && (
               <a href={url} target="_blank" rel="noreferrer" className="btn-secondary">
-                Visit <ExternalLink className="h-4 w-4" />
+                {t('dashboard.publishing.visit')} <ExternalLink className="h-4 w-4" />
               </a>
             )}
             {live ? (
               <Button variant="secondary" onClick={() => unpublish.mutate()} loading={unpublish.isPending}>
-                Unpublish
+                {t('dashboard.publishing.unpublish')}
               </Button>
             ) : (
               <Button variant="sun" onClick={() => publish.mutate()} loading={publish.isPending}>
-                Publish
+                {t('dashboard.publishing.publish')}
               </Button>
             )}
           </div>
@@ -72,6 +74,7 @@ function SiteRow({ website }: { website: Website }) {
 }
 
 export default function Publishing() {
+  const { t } = useTranslation();
   const { data: websites, isLoading } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
   if (isLoading) return <CenteredSpinner />;
 
@@ -81,12 +84,12 @@ export default function Publishing() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-              Your sites
+              {t('dashboard.publishing.title')}
             </h1>
-            <p className="mt-1 text-sand-600">Manage where your sites are live.</p>
+            <p className="mt-1 text-sand-600">{t('dashboard.publishing.subtitle')}</p>
           </div>
           <Link to="/builder" className="btn-secondary">
-            New site
+            {t('common.newSite')}
           </Link>
         </div>
       </FadeUp>
@@ -95,8 +98,8 @@ export default function Publishing() {
         <Card>
           <EmptyState
             icon={<Globe className="h-10 w-10 text-sand-300" />}
-            title="No sites yet"
-            description="Create your first site from the builder."
+            title={t('dashboard.publishing.emptyTitle')}
+            description={t('dashboard.publishing.emptyDesc')}
           />
         </Card>
       ) : (
@@ -110,7 +113,7 @@ export default function Publishing() {
       )}
 
       <p className="text-center text-xs text-sand-500">
-        Custom domains and per-teacher subdomains are configured at deploy time (wildcard DNS).
+        {t('dashboard.publishing.domainsNote')}
       </p>
     </div>
   );

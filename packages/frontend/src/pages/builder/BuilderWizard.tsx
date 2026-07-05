@@ -54,11 +54,20 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 export default function BuilderWizard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('welcome');
-  const [config, setConfig] = useState<WizardConfig>(loadWizard());
+  const [config, setConfig] = useState<WizardConfig>(() => {
+    const c = loadWizard();
+    // Fresh wizard (nothing saved yet): default the SITE language to the app
+    // language the teacher is using in Mumotor. They can still change it.
+    if (!localStorage.getItem('mumotor_wizard')) {
+      const lang = (i18n.language || '').toLowerCase();
+      c.locale = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
+    }
+    return c;
+  });
   const [publishing, setPublishing] = useState(false);
   const [result, setResult] = useState<PublishResult | null>(null);
   const [searchParams] = useSearchParams();
@@ -129,7 +138,7 @@ export default function BuilderWizard() {
         baseData={wizardToTemplateData({ ...config, customization: undefined })}
         templateSlug={config.templateChoice || TEMPLATES[0].slug}
         value={config.customization}
-        onSave={(c: Customization) => { set('customization', c); toast.success(t('builder.changesSaved')); }}
+        onSave={(c: Customization) => { set('customization', c); toast.success(t('builder.changesSaved'), { position: 'bottom-center' }); }}
         onDone={() => setStep('design')}
       />
     );

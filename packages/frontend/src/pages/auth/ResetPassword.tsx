@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { authApi, apiError } from '../../lib/api';
@@ -8,6 +9,7 @@ import { AuthShell } from '../../components/AuthShell';
 import { FadeUp } from '../../components/motion';
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
@@ -19,12 +21,12 @@ export default function ResetPassword() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return toast.error('Password must be at least 8 characters');
-    if (password !== confirm) return toast.error('Passwords do not match');
+    if (password.length < 8) return toast.error(t('auth.errPasswordLength'));
+    if (password !== confirm) return toast.error(t('auth.errPasswordMismatch'));
     setLoading(true);
     try {
       await authApi.resetPassword(token, password);
-      toast.success('Password updated — sign in with your new password');
+      toast.success(t('auth.passwordUpdatedToast'));
       navigate('/login', { replace: true });
     } catch (err) {
       toast.error(apiError(err).message);
@@ -35,28 +37,24 @@ export default function ResetPassword() {
 
   return (
     <AuthShell
-      points={[
-        'A complete trilingual website, generated for you',
-        'Students enroll with a code and book themselves',
-        'Reminders and daily codes run automatically',
-      ]}
+      points={[t('auth.point1'), t('auth.point2'), t('auth.point3')]}
     >
       <FadeUp>
-        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Choose a new password</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('auth.resetTitle')}</h1>
         {!token ? (
           <>
             <p className="mt-2 text-sm text-sand-600">
-              This reset link is missing its token. Request a fresh one and open the link from your email.
+              {t('auth.resetMissingToken')}
             </p>
             <p className="mt-6 text-center text-sm text-sand-600">
               <Link to="/forgot-password" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">
-                Request a new link
+                {t('auth.requestNewLink')}
               </Link>
             </p>
           </>
         ) : (
           <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
-            <Field label="New password">
+            <Field label={t('auth.newPassword')}>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
@@ -69,14 +67,14 @@ export default function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </Field>
-            <Field label="Confirm password">
+            <Field label={t('auth.confirmPassword')}>
               <Input
                 type={showPassword ? 'text' : 'password'}
                 value={confirm}
@@ -86,7 +84,7 @@ export default function ResetPassword() {
               />
             </Field>
             <Button type="submit" variant="primary" loading={loading} className="w-full">
-              Update password
+              {t('auth.updatePassword')}
             </Button>
           </form>
         )}

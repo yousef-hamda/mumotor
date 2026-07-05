@@ -587,8 +587,8 @@
   border-radius: 12px;
 }
 .tmpl-prism .pr-instructor-photo {
-  width: 76px;
-  height: 76px;
+  width: 152px;
+  height: 152px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

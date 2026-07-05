@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { authApi, apiError } from '../../lib/api';
 import { Button, Field, Input } from '../../components/ui';
@@ -7,6 +8,7 @@ import { AuthShell } from '../../components/AuthShell';
 import { FadeUp } from '../../components/motion';
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,50 +28,49 @@ export default function ForgotPassword() {
 
   return (
     <AuthShell
-      points={[
-        'A complete trilingual website, generated for you',
-        'Students enroll with a code and book themselves',
-        'Reminders and daily codes run automatically',
-      ]}
+      points={[t('auth.point1'), t('auth.point2'), t('auth.point3')]}
     >
       <FadeUp>
-        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Reset your password</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('auth.forgotTitle')}</h1>
         {sent ? (
           <>
             <p className="mt-2 text-sm text-sand-600">
-              If an account exists for <span className="font-medium text-sand-900">{email.trim()}</span>, a reset
-              link is on its way. The link works once and expires in 30 minutes.
+              <Trans
+                i18nKey="auth.forgotSent"
+                values={{ email: email.trim() }}
+                components={{ e: <span className="font-medium text-sand-900" /> }}
+              />
             </p>
             <p className="mt-6 text-center text-sm text-sand-600">
               <Link to="/login" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">
-                Back to sign in
+                {t('auth.backToSignIn')}
               </Link>
             </p>
           </>
         ) : (
           <>
             <p className="mt-2 text-sm text-sand-600">
-              Enter your account email and we'll send you a link to choose a new password.
+              {t('auth.forgotSubtitle')}
             </p>
             <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
-              <Field label="Email">
+              <Field label={t('auth.email')}>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                 />
               </Field>
               <Button type="submit" variant="primary" loading={loading} className="w-full">
-                Send reset link
+                {t('auth.sendResetLink')}
               </Button>
             </form>
             <p className="mt-6 text-center text-sm text-sand-600">
-              Remembered it?{' '}
+              {t('auth.rememberedIt')}{' '}
               <Link to="/login" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">
-                Sign in
+                {t('common.signIn')}
               </Link>
             </p>
           </>

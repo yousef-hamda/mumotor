@@ -208,6 +208,19 @@ submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) ·
 account + chat** (see the student-experience section above) · **double-booking closed at the DB level** · themed
 booking/enroll/account.
 
+**July 5 (whole-app i18n batch):** The ENTIRE Mumotor app now follows the language switcher (react-i18next,
+`lib/i18n.ts`, localStorage `mumotor_lang`), not just the landing: `builder.*` (the wizard — all steps/fields),
+`dashboard.*` (overview, DrivingSchool 5 tabs, Reviews/Publishing/Billing/Settings/Messages, DashboardLayout banner),
+`auth.*` (login/register/forgot/reset/verify + AuthShell), `customize.*` (the Customize toolbar + popovers). EN values
+byte-identical; "Mumotor" stays English. Fixes shipped with it: (a) the **builder "website language"** field now
+**defaults to the app language** on a fresh wizard (changeable; the auto-fill sample follows it); (b) the Customize
+**save toast is bottom-center** on BOTH entry points (dashboard + builder — the builder one was still top-right);
+(c) landing **feature/FAQ cards keyed by index** (were keyed by translated text → vanished on language switch);
+(d) **teacher instructor photo doubled again (2×)** in all 12 templates + open-road badge card widened;
+(e) Customize **hover controls stay alive** while the cursor crosses the gap to them (a `hoverRef` corridor check in
+`onCanvasMove` — they used to disappear). GOTCHA for future i18n: never use a **translated string as a React `key=`**
+(remount → whileInView reveals stick at opacity:0); key by index/id.
+
 **July 5 (marketing-site + reports batch):** The **Mumotor landing page** is now fully trilingual — every section
 (nav links, hero accent, feature/step/checklist/FAQ arrays, dark section, footer) goes through i18n `t()` (keys in
 `lib/i18n.ts`; the module-level data arrays were moved inside `Landing()` so they resolve `t()`, and still feed the

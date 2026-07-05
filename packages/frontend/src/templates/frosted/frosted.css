@@ -371,7 +371,7 @@
   padding: 12px 18px;
 }
 .tmpl-frosted .fr-instructor-badge .fr-glass-inner { display: flex; align-items: center; gap: 12px; }
-.tmpl-frosted .fr-instructor-photo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.tmpl-frosted .fr-instructor-photo { width: 144px; height: 144px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 .tmpl-frosted .fr-instructor-name  { font-weight: 700; font-size: 14.5px; margin: 0; color: var(--fr-ink); }
 .tmpl-frosted .fr-instructor-title { font-size: 12px; color: var(--fr-muted-dark); margin: 2px 0 0; }
 .tmpl-frosted .fr-checklist { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 11px; }

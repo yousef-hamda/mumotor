@@ -12,6 +12,7 @@ import { NotificationBell } from '../NotificationBell';
 
 /** Soft nudge to verify the account email — dismissible for the session, blocks nothing. */
 function VerifyEmailBanner() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [dismissed, setDismissed] = useState(() => sessionStorage.getItem('mm_verify_dismissed') === '1');
   const [sending, setSending] = useState(false);
@@ -21,7 +22,7 @@ function VerifyEmailBanner() {
     setSending(true);
     try {
       await authApi.resendVerification();
-      toast.success(`Verification email sent to ${user.email}`);
+      toast.success(t('dashboard.layout.verifySentToast', { email: user.email }));
     } catch (e) {
       toast.error(apiError(e).message);
     } finally {
@@ -32,14 +33,14 @@ function VerifyEmailBanner() {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 sm:px-6">
       <MailWarning className="h-4 w-4 shrink-0" />
-      <span>Please verify your email address — check your inbox for the link.</span>
+      <span>{t('dashboard.layout.verifyBanner')}</span>
       <button onClick={resend} disabled={sending} className="font-semibold underline underline-offset-2 hover:opacity-80 disabled:opacity-50">
-        {sending ? 'Sending…' : 'Resend link'}
+        {sending ? t('dashboard.layout.sending') : t('dashboard.layout.resendLink')}
       </button>
       <button
         onClick={() => { sessionStorage.setItem('mm_verify_dismissed', '1'); setDismissed(true); }}
         className="ms-auto rounded-md p-1 hover:bg-amber-100"
-        aria-label="Dismiss"
+        aria-label={t('dashboard.layout.dismiss')}
       >
         <X className="h-4 w-4" />
       </button>
@@ -71,7 +72,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const SidebarContent = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b border-sand-200 px-6">
-        <Link to="/" aria-label="Mumotor home">
+        <Link to="/" aria-label={t('dashboard.layout.mumotorHome')}>
           <Logo size="md" />
         </Link>
       </div>
@@ -143,11 +144,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <button
             onClick={() => setOpen((v) => !v)}
             className="rounded-lg p-2 text-sand-600 hover:bg-sand-100 lg:hidden"
-            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-label={open ? t('dashboard.layout.closeMenu') : t('dashboard.layout.openMenu')}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <Link to="/" aria-label="Mumotor home" className="lg:hidden">
+          <Link to="/" aria-label={t('dashboard.layout.mumotorHome')} className="lg:hidden">
             <Logo size="sm" />
           </Link>
           {current && (

@@ -586,8 +586,8 @@
   border:      2px solid var(--mint-soft);
 }
 .tmpl-easy-lane .el-instructor-photo {
-  width:      74px;
-  height:     74px;
+  width: 148px;
+  height: 148px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

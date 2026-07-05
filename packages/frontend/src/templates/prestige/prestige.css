@@ -634,8 +634,8 @@
   border-left: 2px solid var(--gold);
 }
 .tmpl-prestige .pd-instr-photo {
-  width: 108px;
-  height: 108px;
+  width: 216px;
+  height: 216px;
   object-fit: cover;
   object-position: top center;
   filter: grayscale(0) contrast(1.05);

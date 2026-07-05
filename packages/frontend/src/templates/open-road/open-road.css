@@ -552,11 +552,11 @@
   align-items: center;
   gap: 0.7rem;
   box-shadow: 4px 4px 0 var(--brown);
-  max-width: 300px;
+  max-width: 420px;
 }
 .tmpl-open-road .or-instructor-photo {
-  width: 76px;
-  height: 76px;
+  width: 152px;
+  height: 152px;
   border-radius: 50%;
   object-fit: cover;
   border: 2.5px solid var(--mustard);

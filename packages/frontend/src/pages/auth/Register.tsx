@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
@@ -9,6 +10,7 @@ import { AuthShell } from '../../components/AuthShell';
 import { FadeUp } from '../../components/motion';
 
 export default function Register() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -22,8 +24,8 @@ export default function Register() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^[+\d][\d\s-]{6,18}$/.test(form.phone.trim()))
-      return toast.error('Please enter a valid phone number');
-    if (form.password.length < 8) return toast.error('Password must be at least 8 characters');
+      return toast.error(t('auth.errPhone'));
+    if (form.password.length < 8) return toast.error(t('auth.errPasswordLength'));
     setLoading(true);
     try {
       await register({
@@ -32,7 +34,7 @@ export default function Register() {
         password: form.password,
         phone: form.phone.trim(),
       });
-      toast.success('Account created!');
+      toast.success(t('auth.accountCreatedToast'));
       navigate('/dashboard', { replace: true });
     } catch (err) {
       toast.error(apiError(err).message);
@@ -43,40 +45,36 @@ export default function Register() {
 
   return (
     <AuthShell
-      points={[
-        'Free to start — no card required',
-        'Your own web address, live in minutes',
-        'Manage everything from one dashboard',
-      ]}
+      points={[t('auth.regPoint1'), t('auth.regPoint2'), t('auth.regPoint3')]}
     >
       <FadeUp>
-        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">Create your account</h1>
-        <p className="mt-2 text-sm text-sand-600">Set up your driving school in a few minutes.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-sand-900">{t('auth.registerTitle')}</h1>
+        <p className="mt-2 text-sm text-sand-600">{t('auth.registerSubtitle')}</p>
         <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
-          <Field label="Full name">
-            <Input value={form.name} onChange={set('name')} required placeholder="David Cohen" autoComplete="name" />
+          <Field label={t('auth.fullName')}>
+            <Input value={form.name} onChange={set('name')} required placeholder={t('auth.fullNamePlaceholder')} autoComplete="name" />
           </Field>
-          <Field label="Email">
+          <Field label={t('auth.email')}>
             <Input
               type="email"
               value={form.email}
               onChange={set('email')}
               required
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               autoComplete="email"
             />
           </Field>
-          <Field label="Phone" hint="So students and Mumotor can reach you">
+          <Field label={t('auth.phone')} hint={t('auth.phoneHint')}>
             <Input
               type="tel"
               value={form.phone}
               onChange={set('phone')}
               required
-              placeholder="+972 50 123 4567"
+              placeholder={t('auth.phonePlaceholder')}
               autoComplete="tel"
             />
           </Field>
-          <Field label="Password" hint="At least 8 characters">
+          <Field label={t('auth.password')} hint={t('auth.passwordHint')}>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -89,7 +87,7 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 className="absolute inset-y-0 end-0 flex items-center pe-3 text-sand-400 transition-colors hover:text-sand-700"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -97,13 +95,13 @@ export default function Register() {
             </div>
           </Field>
           <Button type="submit" variant="primary" loading={loading} className="w-full">
-            Create account
+            {t('auth.createAccount')}
           </Button>
         </form>
         <p className="mt-6 text-center text-sm text-sand-600">
-          Already have an account?{' '}
+          {t('auth.haveAccount')}{' '}
           <Link to="/login" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">
-            Sign in
+            {t('common.signIn')}
           </Link>
         </p>
       </FadeUp>

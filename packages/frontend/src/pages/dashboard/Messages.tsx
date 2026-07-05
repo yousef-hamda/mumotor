@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Send, MessageSquare, ArrowLeft } from 'lucide-react';
@@ -7,6 +8,7 @@ import { Button, Card, CenteredSpinner, EmptyState, Input, Select } from '../../
 import { cn } from '../../lib/utils';
 
 export default function Messages() {
+  const { t } = useTranslation();
   const { data: websites } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
   const [wid, setWid] = useState('');
   useEffect(() => {
@@ -26,8 +28,8 @@ export default function Messages() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-sand-900">Messages</h1>
-          <p className="mt-1 text-sm text-sand-600">Chat with your students. Replies reach them in their account.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-sand-900">{t('common.messages')}</h1>
+          <p className="mt-1 text-sm text-sand-600">{t('dashboard.messages.subtitle')}</p>
         </div>
         {websites && websites.length > 1 && (
           <Select value={wid} onChange={(e) => { setWid(e.target.value); setActiveId(null); }} className="w-52">
@@ -41,12 +43,12 @@ export default function Messages() {
       </div>
 
       {!wid || conversations.isLoading ? (
-        <CenteredSpinner label="Loading…" />
+        <CenteredSpinner label={t('dashboard.common.loading')} />
       ) : !conversations.data || conversations.data.length === 0 ? (
         <EmptyState
           icon={<MessageSquare className="h-6 w-6" />}
-          title="No conversations yet"
-          description="When a student sends you a message from their account, it will appear here."
+          title={t('dashboard.messages.emptyTitle')}
+          description={t('dashboard.messages.emptyDesc')}
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -75,7 +77,7 @@ export default function Messages() {
                         )}
                       </div>
                       <p className="truncate text-xs text-sand-500">
-                        {c.lastSender === 'TEACHER' ? 'You: ' : ''}
+                        {c.lastSender === 'TEACHER' ? t('dashboard.messages.youPrefix') : ''}
                         {c.lastMessage}
                       </p>
                     </div>
@@ -91,7 +93,7 @@ export default function Messages() {
               <Thread websiteId={wid} enrollmentId={activeId} onBack={() => setActiveId(null)} />
             ) : (
               <Card className="flex h-full min-h-[24rem] items-center justify-center text-sm text-sand-500">
-                Select a conversation to read and reply.
+                {t('dashboard.messages.selectConversation')}
               </Card>
             )}
           </div>
@@ -102,6 +104,7 @@ export default function Messages() {
 }
 
 function Thread({ websiteId, enrollmentId, onBack }: { websiteId: string; enrollmentId: string; onBack: () => void }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -131,18 +134,18 @@ function Thread({ websiteId, enrollmentId, onBack }: { websiteId: string; enroll
   return (
     <Card className="flex h-full min-h-[24rem] flex-col p-0">
       <div className="flex items-center gap-2 border-b border-sand-100 px-4 py-3">
-        <button onClick={onBack} className="lg:hidden" aria-label="Back">
+        <button onClick={onBack} className="lg:hidden" aria-label={t('dashboard.messages.back')}>
           <ArrowLeft className="h-4 w-4 text-sand-500" />
         </button>
-        <span className="text-sm font-semibold text-sand-900">{thread.data?.student.name ?? 'Conversation'}</span>
+        <span className="text-sm font-semibold text-sand-900">{thread.data?.student.name ?? t('dashboard.messages.conversation')}</span>
         {thread.data?.student.email && <span className="text-xs text-sand-400">· {thread.data.student.email}</span>}
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4" style={{ maxHeight: '26rem' }}>
         {thread.isLoading ? (
-          <CenteredSpinner label="Loading…" />
+          <CenteredSpinner label={t('dashboard.common.loading')} />
         ) : !thread.data || thread.data.messages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-sand-500">No messages yet. Say hello 👋</p>
+          <p className="py-8 text-center text-sm text-sand-500">{t('dashboard.messages.noMessages')}</p>
         ) : (
           thread.data.messages.map((m) => (
             <div
@@ -172,8 +175,8 @@ function Thread({ websiteId, enrollmentId, onBack }: { websiteId: string; enroll
           send.mutate(body);
         }}
       >
-        <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Type a reply…" maxLength={2000} />
-        <Button variant="primary" type="submit" loading={send.isPending} aria-label="Send">
+        <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={t('dashboard.messages.replyPlaceholder')} maxLength={2000} />
+        <Button variant="primary" type="submit" loading={send.isPending} aria-label={t('dashboard.messages.send')}>
           <Send className="h-4 w-4" />
         </Button>
       </form>

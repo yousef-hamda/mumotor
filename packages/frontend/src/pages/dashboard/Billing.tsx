@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Check, CreditCard, Rocket, Zap } from 'lucide-react';
@@ -24,6 +25,7 @@ const planMeta: Record<string, { icon: ReactNode; accent: string }> = {
 };
 
 export default function Billing() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ['subscription'], queryFn: subscriptionApi.get });
   const checkout = useMutation({
@@ -33,7 +35,7 @@ export default function Billing() {
         window.location.href = res.url; // redirect to Stripe Checkout
         return;
       }
-      toast.success(`Switched to ${res.plan}`);
+      toast.success(t('dashboard.billing.switchedToast', { plan: res.plan }));
       qc.invalidateQueries({ queryKey: ['subscription'] });
     },
     onError: (e) => toast.error(apiError(e).message),
@@ -50,10 +52,10 @@ export default function Billing() {
       <FadeUp>
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-            Plans &amp; billing
+            {t('dashboard.billing.title')}
           </h1>
           <p className="mt-1 text-sand-600">
-            You're on the <span className="font-semibold text-sand-900">{current}</span> plan.
+            <Trans i18nKey="dashboard.billing.onPlan" values={{ plan: current }} components={{ s: <span className="font-semibold text-sand-900" /> }} />
           </p>
         </div>
       </FadeUp>
@@ -79,7 +81,7 @@ export default function Billing() {
               >
                 {isRecommended && (
                   <span className="absolute -top-3 start-1/2 -translate-x-1/2 chip bg-sand-900 text-white text-[10px] uppercase tracking-widest px-3 py-1">
-                    Recommended
+                    {t('dashboard.billing.recommended')}
                   </span>
                 )}
 
@@ -89,7 +91,7 @@ export default function Billing() {
                   </span>
                   {active && (
                     <span className="chip bg-sand-900 text-white text-[10px] uppercase tracking-wider">
-                      Current
+                      {t('dashboard.billing.current')}
                     </span>
                   )}
                 </div>
@@ -121,7 +123,7 @@ export default function Billing() {
                   onClick={() => checkout.mutate(p.id)}
                   className="mt-6 w-full"
                 >
-                  {active ? 'Current plan' : `Switch to ${p.name}`}
+                  {active ? t('dashboard.billing.currentPlan') : t('dashboard.billing.switchTo', { name: p.name })}
                 </Button>
               </div>
             </Stagger.Item>
@@ -130,7 +132,7 @@ export default function Billing() {
       </Stagger>
 
       <p className="text-center text-xs text-sand-500">
-        Demo mode: plans switch without payment. Set <code className="rounded bg-sand-100 px-1 py-0.5 text-sand-600">STRIPE_SECRET_KEY</code> to enable real checkout (Israeli cards / Bit / PayBox via Stripe).
+        <Trans i18nKey="dashboard.billing.demoNote" components={{ c: <code className="rounded bg-sand-100 px-1 py-0.5 text-sand-600" /> }} />
       </p>
     </div>
   );

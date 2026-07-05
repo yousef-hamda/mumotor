@@ -587,8 +587,8 @@
 }
 
 .tmpl-grid-ink .gi-instructor-photo {
-  width: 76px;
-  height: 76px;
+  width: 152px;
+  height: 152px;
   object-fit: cover;
   flex-shrink: 0;
 }

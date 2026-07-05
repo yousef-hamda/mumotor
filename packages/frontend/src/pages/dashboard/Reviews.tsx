@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Check, Star, Trash2, X, Reply, MessageSquare } from 'lucide-react';
@@ -22,6 +23,7 @@ function Stars({ n }: { n: number }) {
 }
 
 export default function Reviews() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data: websites } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
   const [wid, setWid] = useState('');
@@ -38,12 +40,12 @@ export default function Reviews() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ['reviews', wid] });
   const update = useMutation({
     mutationFn: ({ id, data }: { id: string; data: { status?: Review['status']; reply?: string } }) => reviewsApi.update(id, data),
-    onSuccess: () => { toast.success('Updated'); setReplyFor(null); invalidate(); },
+    onSuccess: () => { toast.success(t('dashboard.reviews.updatedToast')); setReplyFor(null); invalidate(); },
     onError: (e) => toast.error(apiError(e).message),
   });
   const remove = useMutation({
     mutationFn: (id: string) => reviewsApi.remove(id),
-    onSuccess: () => { toast.success('Deleted'); invalidate(); },
+    onSuccess: () => { toast.success(t('dashboard.reviews.deletedToast')); invalidate(); },
     onError: (e) => toast.error(apiError(e).message),
   });
 
@@ -53,9 +55,9 @@ export default function Reviews() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-sand-900">
-              Student reviews
+              {t('dashboard.reviews.title')}
             </h1>
-            <p className="mt-1 text-sand-600">Approve reviews to show them on your public site.</p>
+            <p className="mt-1 text-sand-600">{t('dashboard.reviews.subtitle')}</p>
           </div>
           {websites && websites.length > 1 && (
             <Select value={wid} onChange={(e) => setWid(e.target.value)} className="w-auto">
@@ -71,8 +73,8 @@ export default function Reviews() {
         <Card>
           <EmptyState
             icon={<Star className="h-10 w-10 text-sand-300" />}
-            title="No reviews yet"
-            description="Reviews submitted on your site will appear here for approval."
+            title={t('dashboard.reviews.emptyTitle')}
+            description={t('dashboard.reviews.emptyDesc')}
           />
         </Card>
       ) : (
@@ -94,7 +96,7 @@ export default function Reviews() {
                   <div className="flex items-center gap-0.5">
                     {r.status !== 'APPROVED' && (
                       <button
-                        aria-label="Approve review"
+                        aria-label={t('dashboard.reviews.approve')}
                         onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })}
                         className="rounded-lg p-2 text-sand-900 transition-colors hover:bg-sand-100"
                       >
@@ -103,7 +105,7 @@ export default function Reviews() {
                     )}
                     {r.status !== 'REJECTED' && (
                       <button
-                        aria-label="Reject review"
+                        aria-label={t('dashboard.reviews.reject')}
                         onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })}
                         className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                       >
@@ -111,14 +113,14 @@ export default function Reviews() {
                       </button>
                     )}
                     <button
-                      aria-label="Reply to review"
+                      aria-label={t('dashboard.reviews.reply')}
                       onClick={() => { setReplyFor(r.id); setReplyText(r.reply || ''); }}
                       className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
                     >
                       <Reply strokeWidth={1.75} className="h-4 w-4" />
                     </button>
                     <button
-                      aria-label="Delete review"
+                      aria-label={t('dashboard.reviews.delete')}
                       onClick={() => remove.mutate(r.id)}
                       className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50"
                     >
@@ -131,7 +133,7 @@ export default function Reviews() {
 
                 {r.reply && replyFor !== r.id && (
                   <div className="mt-3.5 rounded-lg border border-sand-200 bg-sand-50 p-3.5 text-sm text-sand-600">
-                    <span className="font-semibold text-sand-800">Your reply: </span>
+                    <span className="font-semibold text-sand-800">{t('dashboard.reviews.yourReply')}</span>
                     {r.reply}
                   </div>
                 )}
@@ -142,16 +144,16 @@ export default function Reviews() {
                       rows={2}
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Write a reply…"
+                      placeholder={t('dashboard.reviews.replyPlaceholder')}
                     />
                     <div className="flex gap-2">
                       <Button
                         onClick={() => update.mutate({ id: r.id, data: { reply: replyText } })}
                         loading={update.isPending}
                       >
-                        Save reply
+                        {t('dashboard.reviews.saveReply')}
                       </Button>
-                      <Button variant="secondary" onClick={() => setReplyFor(null)}>Cancel</Button>
+                      <Button variant="secondary" onClick={() => setReplyFor(null)}>{t('dashboard.reviews.cancel')}</Button>
                     </div>
                   </div>
                 )}
