@@ -134,6 +134,8 @@ export default function CustomizeMode({
   }, [data]);
 
   const listOp = useCallback((itemPath: string, op: 'add' | 'remove') => {
+    // Packages come from the wizard PlansEditor — never add/remove them in Customize.
+    if (/^packages(\.|$)/.test(itemPath)) return;
     const { store, storeArr, parentArr, index } = resolveList(itemPath);
     if (!Array.isArray(parentArr)) return;
     if (op === 'add') {
@@ -239,7 +241,12 @@ export default function CustomizeMode({
       return h && h.top === next.top && h.left === next.left && h.width === next.width ? h : next;
     });
     const el = (e.target as HTMLElement).closest('[data-edit-item]') as HTMLElement | null;
-    if (!el) {
+    // Packages are owned by the wizard's PlansEditor (the single source of truth), so
+    // Customize must NOT offer add/remove/reorder on package cards — that desyncs from
+    // the plans and can duplicate cards. Treat a package item as "no list item" here
+    // (it's still selectable for colour styling via click).
+    const isPackages = !!el && /^packages(\.|$)/.test(el.dataset.editItem!);
+    if (!el || isPackages) {
       // The controls sit just above (or below) the item with a small gap. Keep them
       // alive while the cursor travels through that corridor toward the buttons —
       // otherwise the hover clears and the buttons vanish before they can be clicked.

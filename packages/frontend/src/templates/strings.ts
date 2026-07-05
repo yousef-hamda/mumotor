@@ -481,7 +481,7 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
     heroCtaSecondary: 'See packages',
     aboutHeading: 'Calm, patient, and on your side',
     aboutBody: [
-      'No shouting, no clipboard energy. Just clear, steady guidance from someone who has helped over 1,200 people earn their licence.',
+      'No shouting, no clipboard energy. Just clear, steady guidance from someone who genuinely wants you to pass.',
       'Lessons are tailored to you — nervous beginner or test-ready, {trans}. We go at your pace and celebrate the small wins.',
     ],
     aboutChecklist: [
@@ -490,14 +490,14 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
       'Dual-control, fully insured car',
       'Honest feedback after every lesson',
     ],
-    credentials: ['DVSA Approved (ADI)', 'Pass Plus registered', 'Manual & Automatic', 'Fully insured dual-control car'],
+    credentials: ['Certified driving instructor', 'Patient & professional', 'Manual & Automatic', 'Fully insured dual-control car'],
   },
   he: {
     heroCtaPrimary: 'הזמנת שיעור ראשון',
     heroCtaSecondary: 'לחבילות',
     aboutHeading: 'רגוע, סבלני, ולצידך',
     aboutBody: [
-      'בלי צעקות ובלי לחץ. רק הדרכה ברורה ויציבה ממי שכבר עזר למאות תלמידים להוציא רישיון.',
+      'בלי צעקות ובלי לחץ. רק הדרכה ברורה ויציבה ממי שבאמת רוצה שתעברו.',
       'השיעורים מותאמים אליך — מתחיל לחוץ או מוכן לטסט, {trans}. מתקדמים בקצב שלך וחוגגים כל הצלחה קטנה.',
     ],
     aboutChecklist: [
@@ -513,7 +513,7 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
     heroCtaSecondary: 'شاهد الباقات',
     aboutHeading: 'هادئ وصبور وإلى جانبك',
     aboutBody: [
-      'بلا صراخ وبلا توتر. فقط توجيه واضح وثابت من مدرّب ساعد مئات الطلاب في الحصول على الرخصة.',
+      'بلا صراخ وبلا توتر. فقط توجيه واضح وثابت من مدرّب يريد لك النجاح بصدق.',
       'الدروس مصمّمة لك — مبتدئ متوتر أو جاهز للاختبار، {trans}. نتقدّم بوتيرتك ونحتفل بكل إنجاز صغير.',
     ],
     aboutChecklist: [

@@ -75,18 +75,18 @@ async function main() {
     ok('GET /auth/me without token → 401', noTok.status === 401, noTok.status);
 
     const reg = await req('POST', '/auth/register', {
-      body: { email: email('teacher2'), password: 'password123', name: 'Second Teacher' },
+      body: { email: email('teacher2'), password: 'password123', name: 'Second Teacher', phone: '+972 50 111 2222' },
     });
     ok('register second teacher → 201', reg.status === 201 && !!reg.json?.token, reg.json);
     token2 = reg.json?.token;
 
     const dup = await req('POST', '/auth/register', {
-      body: { email: 'teacher@mumotor.local', password: 'password123', name: 'Dup' },
+      body: { email: 'teacher@mumotor.local', password: 'password123', name: 'Dup', phone: '+972 50 111 2222' },
     });
     ok('register duplicate email → 409', dup.status === 409, dup.status);
 
     const weak = await req('POST', '/auth/register', {
-      body: { email: email('weak'), password: '123', name: 'Weak' },
+      body: { email: email('weak'), password: '123', name: 'Weak', phone: '+972 50 111 2222' },
     });
     ok('register weak password → 400', weak.status === 400, weak.status);
   }

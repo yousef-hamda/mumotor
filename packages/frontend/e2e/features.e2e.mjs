@@ -129,25 +129,34 @@ try {
     return true;
   }));
 
-  // list add via hover controls — scroll first (lets the scroll event clear hover), then move
-  await page.evaluate(() => document.querySelector('[data-edit-item^="packages."]').scrollIntoView({ block: 'center' }));
+  // list add via hover controls — scroll first (lets the scroll event clear hover), then move.
+  // Uses `areas` (a Customize-editable list). NOTE: packages are intentionally NOT
+  // add/remove-editable in Customize (the wizard PlansEditor is their source of truth).
+  await page.evaluate(() => document.querySelector('[data-edit-item^="areas."]').scrollIntoView({ block: 'center' }));
   await page.waitForTimeout(300);
-  const beforePkgs = await page.locator('[data-edit-item^="packages."]').count();
-  await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="packages."]'); const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); });
+  const beforeAreas = await page.locator('[data-edit-item^="areas."]').count();
+  await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="areas."]'); const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); });
   await page.waitForTimeout(250);
   ok('hover add control appears', (await page.locator('button[title="Add item"]').count()) > 0);
   await page.locator('button[title="Add item"]').first().click();
   await page.waitForTimeout(300);
-  ok('package added via hover +', (await page.locator('[data-edit-item^="packages."]').count()) === beforePkgs + 1);
+  ok('area added via hover +', (await page.locator('[data-edit-item^="areas."]').count()) === beforeAreas + 1);
 
   // remove a list item via hover trash
-  await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="packages."]'); const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); });
+  await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="areas."]'); const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); });
   await page.waitForTimeout(250);
-  const beforeRemove = await page.locator('[data-edit-item^="packages."]').count();
+  const beforeRemove = await page.locator('[data-edit-item^="areas."]').count();
   ok('hover remove control appears', (await page.locator('button[title="Remove item"]').count()) > 0);
   await page.locator('button[title="Remove item"]').first().click();
   await page.waitForTimeout(250);
-  ok('package removed via hover trash', (await page.locator('[data-edit-item^="packages."]').count()) === beforeRemove - 1);
+  ok('area removed via hover trash', (await page.locator('[data-edit-item^="areas."]').count()) === beforeRemove - 1);
+
+  // packages must NOT expose add/remove in Customize (PlansEditor is the source of truth)
+  await page.evaluate(() => document.querySelector('[data-edit-item^="packages."]')?.scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(300);
+  await page.evaluate(() => { const el = document.querySelector('[data-edit-item^="packages."]'); if (el) { const r = el.getBoundingClientRect(); el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: r.left + 12, clientY: r.top + 12 })); } });
+  await page.waitForTimeout(250);
+  ok('packages have no add/remove controls (PlansEditor-owned)', (await page.locator('button[title="Add item"]').count()) === 0);
 
   // ── new: social icons + credentials are deletable/draggable items ──
   ok('social icons are deletable items', (await page.locator('[data-edit-item^="contact.socials."]').count()) >= 1);

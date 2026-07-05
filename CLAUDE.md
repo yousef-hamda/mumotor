@@ -208,6 +208,21 @@ submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) ·
 account + chat** (see the student-experience section above) · **double-booking closed at the DB level** · themed
 booking/enroll/account.
 
+**July 5 (data fidelity — site shows only what the teacher entered):** A published site could show **3 identical
+package cards while the wizard had 1 plan**. Root cause: Customize "add" clones a package card and stores a full-array
+`customization.fields.packages` snapshot; editing plans in the wizard afterwards left that snapshot stale, and
+`applyOverrides` (`fromWizard.ts`) let it REPLACE the plans-derived packages on the published site. Fixes: (a) at render,
+`reconcilePackageOverride` (`fromWizard.ts`) drops a `fields.packages` override that STRUCTURALLY desyncs from the plans
+(different card count / out-of-range index) — so packages always come from the **wizard PlansEditor (single source of
+truth)**; same-length inline text tweaks are kept; this **auto-fixes already-broken live sites** on next load, no republish.
+(b) Customize no longer offers add/remove/reorder on package cards (`CustomizeMode.tsx` guards `onCanvasMove` + `listOp`
+for `packages`) so the desync can't recur — packages are edited only in the wizard. Also made the English default instructor
+**credentials honest** ("Certified driving instructor / Patient & professional" — were false UK certs "DVSA Approved (ADI)"
+/ "Pass Plus registered") and dropped the invented "helped over 1,200 people" claim from the about-body default (HE/AR were
+already generic). NOTE (design, not a bug): templates still fill genuinely-empty sections with tasteful starter content
+(about body, FAQ from real price/transmission, generic coverage areas, a stock hero image) so a minimally-filled site looks
+complete — this is editable, not a mismatch. Reviews never fabricate (only approved reviews render).
+
 **July 5 (template scroll performance):** Published-site scroll jank ("laggy / must scroll twice") fixed on the
 effect-heavy templates WITHOUT changing the visuals. Root causes + fixes (all effect-preserving): (a) **mumotor**
 (`.mm-orb`, blur 72px) and **obsidian** (`.ob-orb`, blur 100px) animated `scale` in their drift keyframes — animating
@@ -261,7 +276,7 @@ can no longer cancel + no "2-hour" wording; teacher **Today/Tomorrow schedule** 
 - **Dead models**: `Page`/`Section` (and `Domain`, until subdomains ship) are unused.
 - **AI branding**: still zero real AI calls — opportunity for Claude bio/SEO copy.
 
-## Testing (all green: unit 26/26 · integration 74/74 · E2E 89/89, 0 console errors)
+## Testing (all green: unit 26/26 · integration 74/74 · E2E 90/90, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
   then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.

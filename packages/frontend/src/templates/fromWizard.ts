@@ -226,7 +226,28 @@ function buildTemplateData(c: CoreInput): TemplateData {
     accountUrl: c.accountUrl,
   };
 
-  return applyOverrides(base, c.customization);
+  // Packages come from the teacher's plans (the wizard PlansEditor is the source of
+  // truth). Drop a STALE Customize `packages` snapshot that no longer matches the
+  // plans — that's what made a site show 3 duplicate cards while the wizard had 1
+  // plan (a clone in Customize, then the plans were edited down). A same-length
+  // override (legit inline text tweaks) is kept; style/theme overrides are always kept.
+  return applyOverrides(base, reconcilePackageOverride(c.customization, base.packages.length));
+}
+
+/** Drop a Customize package-content override (`fields['packages']` / `fields['packages.N…']`)
+ *  only when it STRUCTURALLY desyncs from the plans (different card count or an
+ *  out-of-range index). Same-length overrides + all style/theme overrides are kept. */
+export function reconcilePackageOverride(c?: Customization | null, planCount = 0): Customization | null | undefined {
+  if (!c?.fields) return c;
+  const arr = c.fields['packages'];
+  const lenMismatch = Array.isArray(arr) && arr.length !== planCount;
+  const outOfRange = Object.keys(c.fields).some((k) => {
+    const m = k.match(/^packages\.(\d+)/);
+    return m && Number(m[1]) >= planCount;
+  });
+  if (!lenMismatch && !outOfRange) return c;
+  const fields = Object.fromEntries(Object.entries(c.fields).filter(([k]) => !/^packages(\.|$)/.test(k)));
+  return { ...c, fields };
 }
 
 /** Builder wizard config → live TemplateData for preview & publish. */

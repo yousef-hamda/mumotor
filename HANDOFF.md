@@ -1,65 +1,63 @@
-# Handoff — July 5, 2026 (16-fix batch)
+# Handoff — July 5, 2026 session
 
-A batch of 16 user-reported fixes across the builder, templates, Customize editor, student pages,
-teacher dashboard, and a footer bug. All shipped, verified end-to-end, and deployed to mumotor.com.
+A long iterative session driven by the user reviewing freshly-built sites and reporting issues via
+screenshots. All work below is committed to `main` and deployed to mumotor.com (Railway auto-deploys on push).
 
-## What changed (by area)
+## What shipped, by theme
 
-### Builder — Design step
-- Removed the 12-card horizontal concept-selector strip. `DesignPreviewStep` (`BuilderWizard.tsx`)
-  now shows only the live preview + a **"Choose another template"** button that returns to the
-  Templates gallery. Caption reworded. Switch designs from the gallery, not an inline strip.
+### 1. The original 16-fix batch (templates, customize, student & teacher flows)
+Builder Design step (removed the concept strip → "Choose another template"); every template fully honours
+locale + transmission choice + **₪** currency; Customize (controls above short items, FAQ answers open + clean
+new answer in editing, reliable window-level drag-reorder, save toast, bigger instructor photo); student pages
+localized + logged-in students skip the email step + students can't self-cancel + no "2-hour" wording; teacher
+**Today/Tomorrow schedule** (add student to a slot, cancel-with-email, "Email me the schedule"); email specific
+students; open-road footer scrollbar-flicker fix. See CLAUDE.md "July 5 batch — 16 fixes".
 
-### Templates — localization, transmission, currency
-- **Currency:** every template price is now **₪** (was `£`) — 12 `templates/<slug>/index.tsx` + `sampleData.ts`.
-- **Transmission-aware copy:** `strings.ts` `dataDefaults(locale, transmission)` localizes the About body
-  clause + credential chip to the real choice (manual/automatic/both). `both` output is byte-identical to
-  before, so EN/existing sites are unchanged.
-- **No stale English:** `fromWizard.ts` `plansToPackages` re-localizes any stored *default* transmission
-  feature line to the site locale+choice (custom text untouched); `sampleWizardConfig` (`lib/wizard.ts`) is
-  per-locale so Auto-fill previews fully in-language; English `sampleData` `areas`/`bio` fallbacks localized.
+### 2. Complete localization
+- Templates: localized the auto-fill sample, transmission-aware About/credential/FAQ, weekday names in the
+  hours table, the default tagline + default plan text — so a HE/AR site is fully in-language (numbers stay Latin).
+- **Whole Mumotor app** now follows the language switcher (react-i18next, `lib/i18n.ts`): the marketing landing,
+  the **builder wizard (every step/field)**, the dashboard (all pages + tabs), the auth pages, and the Customize
+  toolbar — EN/HE/AR + RTL. "Mumotor" stays English.
+- The builder's "website language" field **defaults to the app language** on a fresh wizard.
+- Fixed a reveal bug where landing sections vanished on language switch (lists were keyed by translated text →
+  remounted into the hidden `whileInView` state; now keyed by index).
 
-### Customize editor (`components/customize/CustomizeMode.tsx`)
-- Per-item hover controls (⠿ / ＋ / 🗑) now sit **above** the item (below when near the top) — they no
-  longer cover short pills/chips.
-- FAQ answers **force-open in editing mode** (new `EditingProvider`/`useIsEditing` in `templates/shared.tsx`,
-  read by every template's FAQ). Normal/preview keeps the accordion. A newly added FAQ inserts a clean
-  `{q:'', a:''}`; empty editable text shows an "Add text…" placeholder (scoped `.cz-canvas` CSS).
-- **Drag-reorder is reliable** — DnD moved to always-mounted `window` listeners (guarded by `dragSrc`),
-  resolving the target from `e.target.closest('[data-edit-item]')` (elementFromPoint fallback), so a drop
-  lands even outside the canvas and **persists**.
-- The **Save toast is `bottom-center`** so it never covers the toolbar Save/Done.
-- Instructor photo is **~1.5× bigger** in all 12 `<slug>.css`.
+### 3. Phone required + report email
+Phone is now required at teacher signup + dashboard add-student + student profile (front + zod), so the teacher's
+daily schedule report always has each student's number. That **daily report email was redesigned** (Apple-minimal
+Mumotor look, per-lesson rows with a tappable `tel:` phone).
 
-### Student pages (`pages/public/*` + `components/public/TemplatedShell.tsx`)
-- **Fully localized to the site's locale** (not the browser) via new `lib/bookingStrings.ts`
-  (`bookLocale` + `bookT`, en/he/ar; EN byte-identical). Dates use `formatDateLongIn`/`formatWeekdayIn`
-  (`lib/utils.ts`) — words localize, **digits stay Latin** (`numberingSystem:'latn'`).
-- **Logged-in students skip the email step** in BookLesson (`studentTokenStore.activate` → `studentPortalApi.me`).
-- **Students can no longer cancel** — cancel UI removed; they're told to contact the instructor. No
-  "…up to 2 hours before…" wording anywhere.
+### 4. Performance — scroll jank (effect-preserving)
+The landing and the effect-heavy templates (mumotor, obsidian, open-road) had scroll lag. Fixed WITHOUT changing
+visuals: animated `scale` on `blur()` orbs → **translate-only** (translate is a cheap compositor op; scale
+re-rasterizes the blur every frame); open-road's full-page-tall grain overlay → `position: fixed` (viewport-sized).
+Verified with frame-time traces: all templates ~16.6ms/frame (60fps), 0 janky frames.
 
-### Teacher dashboard (`pages/dashboard/DrivingSchool.tsx` + backend)
-- **Today / Tomorrow schedule** (`daily-report?day=`); free slots gain **"Add student"**
-  (`POST /schedule/assign` — books a slot like a self-booking, honouring the unique index, no daily-report
-  email); booked slots keep **Cancel** (emails the student). **"Email me the schedule"** button
-  (`POST /schedule/email-me`) sends the day's report on demand.
-- **Email specific students**: "A group / Specific students" toggle → sends `enrollmentIds`
-  (resolved `id:{in:…}` scoped to `websiteId`, IDOR-safe; `targetGroup:'selected'`, no migration).
-
-### open-road footer flicker
-- Added `overflow-x:hidden` to `.tmpl-open-road` (only template that lacked it) and changed the film-grain
-  keyframes from `%` translate to small `px` + `inset:-6px` — the scrollbars no longer flicker at the footer.
+### 5. Data fidelity — "show only what the teacher entered"
+A site could show 3 identical package cards while the wizard had 1 plan — a stale Customize `packages` array
+snapshot overriding the wizard plans. Fixed: `reconcilePackageOverride` (`fromWizard.ts`) drops a packages override
+that structurally desyncs from the plans (auto-fixes broken live sites on next load); Customize can no longer
+add/remove/reorder package cards (**PlansEditor is the single source of truth** for packages). Also made the English
+default credentials honest (were false UK certs) and dropped an invented "1,200 people" claim.
 
 ## Verification
-- Typecheck: frontend + backend clean. Frontend build clean.
-- Tests: **unit 26/26 · integration 74/74 · E2E 89/89**, 0 console errors. (Integration: clean
-  `prisma migrate reset --force` then run once — the suite books persistent slots that otherwise fail the
-  date-drift assertions.)
-- Browser (real): AR open-road site → RTL, "ناقل أوتوماتيكي", ₪50, no £, no horizontal overflow; Customize →
-  FAQ answers open + controls above chips + bigger photo; dashboard → Today/Tomorrow + Add-student modal +
-  Email specific students; student enroll/book → Arabic, no 2-hour text.
-- Backend (curl + DB): `schedule/assign` 201 → slot locked, dup → 409; `schedule/email-me` sent;
-  bulk-email to a single selected enrollment resolved 1 recipient.
+Every change was verified in a real browser (Playwright / chrome-devtools MCP): Arabic/Hebrew renders, RTL, photo
+sizes, hover/toast behaviour, frame-time traces, and DB state for booking/assign/cancel. Suites green throughout:
+**unit 26/26 · integration 74/74 · E2E 90/90 · 0 console errors**; frontend + backend typecheck + build clean.
 
-## No schema changes / no migration. No new env. Deploy = push to `main` (Railway auto-deploys).
+## Boundaries / known design choices (not bugs)
+- Free text a teacher personally types (custom bio/tagline/name/city) shows exactly as typed — there is no AI
+  translator, so it isn't machine-translated (agreed with the user).
+- Templates fill genuinely-empty sections with tasteful, editable starter content (about body, FAQ derived from the
+  real price/transmission, generic coverage areas, a stock hero image) so a minimally-filled site still looks
+  complete. Reviews never fabricate.
+
+## Deploy
+No schema changes / no migration this session. Deploy = push to `main` (Railway auto-deploys). `db:deploy` only if a
+migration is ever added.
+
+## Still open (pre-existing, from the July audit — unchanged this session)
+Media storage still local (`Media.cdnUrl` null, no S3/R2/CDN); no plan enforcement (Stripe not wired); per-teacher
+subdomains dormant (wildcard DNS blocked on the Railway Hobby plan); daily-email cron loads all enrollments in memory
+(first scaling cost); tokens in localStorage + no CSP; dead `Page`/`Section` models; zero real AI calls.
