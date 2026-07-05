@@ -124,45 +124,60 @@ classes never needed renaming.
   cascades all the site's rows + clears the `site:<slug>` cache. UI = danger-zone in `pages/dashboard/Settings.tsx`
   (type-DELETE modal). The mumotor logo links to `/` everywhere.
 
+## Public student experience (July 2026 — themed, matches each template)
+Full detail in the `student-portal-and-themed-booking` memory. The student-facing pages **adopt the teacher's chosen
+template design** — they are NOT the old app "sand" look.
+- **Themed shell**: `components/public/TemplatedShell.tsx` + `lib/templateTheme.ts` `resolveBookTheme(slug, theme)` map
+  any template's palette (`COLOR_SLOTS` + `registry` fallbacks) into normalized `--book-*` tokens (bg/ink/accent/surface/
+  line/muted/radius/font) + loads the template font + light/dark + RTL. Styles in `components/public/book-shell.css`
+  (`.book-*`). Used by `Enroll.tsx`, `BookLesson.tsx`, `StudentAccount.tsx`, `LeaveReview.tsx`.
+- **Booking is TOMORROW-ONLY** (`BookLesson.tsx`): no multi-day grid — books `upcomingDates(2)[1]`, gated by the teacher's
+  daily booking window; "No classes tomorrow" when closed. Slots render **start–end** ("08:00 – 09:00", `slotRange()`) with
+  a header "Each lesson is N min · arrive 5 minutes early". Done screen: Book-another + Back-to-home + My account. The
+  **double-booking race is closed by a DB partial unique index** `Booking_slot_unique` on
+  `(websiteId,bookingDate,bookingTime) WHERE status<>'CANCELLED'` (migration `20260704114405`); the book route's P2002 catch
+  surfaces it as a friendly 409.
+- **Student account** (`/p/:slug/account`, `StudentAccount.tsx`): a per-site login area. **Login = EMAIL ONLY** for a
+  returning student (`POST /:websiteId/student/login {email}` → ACTIVE enrollment → `signStudentToken`, `middleware/auth.ts`
+  `requireStudent`); the one-time enrollment code is only the gate for NEW students at `/enroll`. Tabs: Lessons (next-lesson
+  highlight, view/cancel/book, real `stats` from `/student/me` = completed/upcoming/total — NOT the double-counting
+  `classCount`), Chat (two-way, polling), Profile. A **"My account" button is in every template's nav** (desktop + mobile,
+  `data.accountUrl`, per-template ghost class — contrast-checked light/dark; `navAccount` in `templates/strings.ts`).
+  Separate `studentApi` axios instance so the teacher token never leaks.
+- **Teacher chat inbox**: `pages/dashboard/Messages.tsx` (`/dashboard/messages`, nav entry). Prisma `Message` model
+  (websiteId+enrollmentId cascade). Student→teacher messages create a `MESSAGE` notification.
+- **Per-teacher subdomains** `{slug}.mumotor.com`: host-aware routing is CODE-COMPLETE and DORMANT (`lib/tenant.ts`
+  `getTenantSlug`/`useTenantSlug`; `App.tsx` `TenantApp`). **Wildcard DNS is NOT live** (Railway Hobby plan caps custom
+  domains). Sites are at `mumotor.com/p/:slug` today. The wizard done-screen shows the working `/p/:slug` URL.
+- **Teacher dashboard**: overview has a **"Copy link"** button beside the site URL (`Dashboard.tsx` `SiteOverview`); the
+  empty state (no website) is a CTA to `/builder`.
+
 ## Conventions
 - Generation is **deterministic** (presets + builder in `backend/src/services/ai/`), not a freeform AI call.
 - After editing `tailwind.config.js`, the Vite dev server can serve **stale CSS** — restart it (and clear
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
 
-## Known Gaps & Improvement Priorities (July 2026)
-Full detail in `IMPROVEMENT_PLAN.md`. Key issues by tier:
+## Status & remaining gaps (updated July 5, 2026)
+Most of the original July-2026 audit (`IMPROVEMENT_PLAN.md`) is now DONE. LIVE at mumotor.com.
 
-### Tier 0 — Security (fix before any real user)
-- `JWT_SECRET` has a hardcoded default string in `config/env.ts` — must be required with no fallback.
-- CORS is `origin: '*'` in `app.ts` — must be locked to `FRONTEND_URL`.
-- `STRIPE_WEBHOOK_SECRET` is optional — anyone can forge Stripe webhooks if not set.
-- No rate limit on media uploads (`POST /websites/:id/media`).
+**Closed since the audit:** Tier-0 security (JWT_SECRET required in prod, CORS allowlisted, Stripe webhook enforced when
+keys set, media upload rate-limited + magic-byte validated) · password reset + email verification · public review
+submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) · **all 12 templates trilingual HE/AR/EN + RTL**
+· server-side wizard drafts (`WizardDraft`) · SEO (title/OG/JSON-LD, robots, sitemap) · legacy 9-preset `EditorPage` retired
+(→ `/customize`) · **lesson cancellation** (teacher + student) · **student portal + account + chat** (see the student-experience
+section above) · **double-booking closed at the DB level** · themed booking/enroll/account.
 
-### Tier 1 — Product blockers
-- **No plan enforcement**: billing plans are display-only; FREE and STUDIO users have identical API access.
-- **Media storage is ephemeral**: uploads go to local `/uploads/` — wiped on every Railway deploy. `Media.cdnUrl` always null. Fix: S3/R2 or Railway persistent volume.
-- **No password reset**: `POST /auth/forgot-password` does not exist. Locked-out users cannot recover.
-- **No email verification**: `User.emailVerified` field exists but is never set to `true`.
-- **No public review submission**: no `POST /reviews` endpoint. Every published site has empty testimonials.
-- **False subdomain URL**: wizard done screen shows `slug.mumotor.com` but no wildcard DNS exists. Real URL is `/p/:slug`.
+**Still open (real):**
+- **Media storage ephemeral**: uploads to local `/uploads` are on a Railway volume now, but `Media.cdnUrl` is still null (no S3/R2/CDN).
+- **No plan enforcement**: billing plans are display-only; FREE and STUDIO have identical API access. Stripe not wired (paid checkout 503 by design).
+- **Per-teacher subdomains dormant**: code done, wildcard DNS not live (Railway Hobby plan caps custom domains) — sites are at `/p/:slug`.
+- **Daily email volume at scale**: the every-5-min cron loads all active enrollments into memory and emails every student daily → the first scaling cost (batch/queue + paginate the cron before ~hundreds of teachers). See the capacity report in the advertising-report memory.
+- **Session tokens in localStorage + no CSP** (student + teacher) — residual XSS surface.
+- **Dead models**: `Page`/`Section` (and `Domain`, until subdomains ship) are unused.
+- **AI branding**: still zero real AI calls — opportunity for Claude bio/SEO copy.
 
-### Tier 2 — High priority
-- **Zero analytics**: no instrumentation anywhere. Cannot measure wizard completion, template choice, or growth.
-- **Dual pipeline confusion**: `EditorPage` uses the old 9-preset HTML generator; Customize Mode uses the 12 React templates. They are completely separate and diverge on every save. Plan: deprecate Pipeline A, redirect dashboard "Edit" → `/customize/:id`.
-- **Templates are English-only**: `data.locale` flows through `TemplateData` but all 12 templates have hardcoded English copy. HE/AR market promise is broken.
-- **Wizard data loss**: only `localStorage` — no server-side draft. Closing mid-flow loses all progress.
-- **Currency mismatch**: billing shows USD ($29/$79); UI shows NIS (₪). Target market is Israel.
-- **No SEO**: `Website.seoSettings` field is never written or read. Published sites at `/p/:slug` have no `<title>`, no OG tags, no LocalBusiness JSON-LD.
-
-### Tier 3+ — See IMPROVEMENT_PLAN.md
-- No lesson cancellation, no student portal, no waiting list, no referral flow.
-- AI branding is misleading — zero actual AI calls anywhere. Opportunity: add Claude Haiku for bio generation and SEO copy.
-- PRO/STUDIO feature lists need to reflect enforced reality.
-- Israeli payment methods (Bit/Cardcom) not covered by default Stripe.
-- `Page` and `Section` Prisma models are dead code with no routes or frontend references.
-
-## Testing (all green: unit 26/26 · integration 70/70 · E2E 84/84, 0 console errors)
+## Testing (all green: unit 26/26 · integration 74/74 · E2E 89/89, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
   then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.

@@ -37,10 +37,11 @@ wizard    inline editor   /p/{slug}    dashboard
 - **Builder wizard** — welcome → business info → driving setup (lesson **plans**, **manual/automatic/both**, per-day hours, breaks, booking window, instructor photo) → contact & socials → **pick template + logo** → live preview (with a switcher across all 6) → publish. An **Auto-fill sample** button populates demo data.
 - **Inline visual Customize editor** — full-screen live site, no side panel. Click anything to edit: **text** (type inline + Text/Fill colour), **icons** (swap from the full lucide icon library), **images** (upload or find on Unsplash), **background & colours** (a "Colours" panel), and **lists** (add/remove packages/FAQs/areas/stats inline). Undo / Redo / Reset; persists only on **Save**.
 - **Operational dashboard** — overview (live student/booking counts per site), Driving Teacher (rotating + static enrollment code, students with search/filter/pause/finish/delete, today's schedule, bulk email, full booking/hours/profile settings), reviews (approve/delete), publishing (customize/edit/visit/unpublish), billing, account (profile, password, **delete a website**).
-- **Public student flow** — code enrollment, self-service lesson booking (advance window, same-day cutoff, breaks, no double-booking), magic-link login, self-pause.
+- **Public student flow (themed to match each template)** — one-time-code enrollment, then a **student account** at `/p/:slug/account` reachable from a **"My account" button in every template's nav**: sign in with **email only** (the code is only for first enrollment), see a **next-lesson highlight**, book **tomorrow's** lesson (slots shown as **start–end**, e.g. "08:00 – 09:00", with an "arrive 5 min early" note), cancel (2h cutoff), **chat with the instructor**, and edit profile. The enroll/book/account/review pages adopt the teacher's chosen template palette, font, light/dark and RTL (`TemplatedShell`). **Double-booking is impossible** (DB partial unique index).
+- **Teacher chat inbox** — `/dashboard/messages`: two-way messaging with each student (polling), plus a **"Copy link"** button on the overview to share the site with students.
 - **Automated jobs** — "booking open" emails, teacher schedule report, lesson reminders (node-cron).
-- **Trilingual + RTL** — HE / AR / EN with a language switcher; generated sites are fully translated and RTL-aware.
-- **Multi-tenant & secure** — every site's data is isolated by `websiteId` (cascade deletes); JWT auth + ownership checks, salted/hashed codes, timing-safe comparisons, rate limiting, transactional booking, one-time website-scoped magic links.
+- **Trilingual + RTL** — HE / AR / EN with a language switcher; **all 12 generated templates are fully translated** and RTL-aware.
+- **Multi-tenant & secure** — every site's data is isolated by `websiteId` (cascade deletes + indexes); JWT auth + ownership checks, separate student session tokens (kind-scoped, per-site), salted/hashed codes, timing-safe comparisons, rate limiting, transactional booking + DB-level no-double-booking, one-time website-scoped magic links, required prod `JWT_SECRET`, CORS allowlist, magic-byte-validated uploads.
 
 ---
 
@@ -212,7 +213,7 @@ i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language 
 
 ## Testing
 
-All green: **unit 26/26 · integration 70/70 · E2E 84/84 (0 console errors)**, both packages typecheck-clean, production build OK.
+All green: **unit 26/26 · integration 74/74 · E2E 89/89 (0 console errors)**, both packages typecheck-clean, production build OK.
 
 ```bash
 # Frontend unit (vitest)
@@ -269,7 +270,7 @@ Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.ym
 - **Scheduling math is timezone-aware** (UTC internally; set `BUSINESS_TIMEZONE`).
 - **The published user-facing site is the React `/p/:slug`** (applies customization); the older deterministic `GET /site/:slug` HTML still generates on publish but isn't the site teachers/students see.
 - The folder/packages/branding/domain/GitHub repo are all **mumotor** (renamed from the old `otto-il` codename); the Postgres role/db stay `otto` / `otto_driving` internally.
-- **Subdomain routing is not yet live**: the product UI refers to `{slug}.mumotor.com` but wildcard DNS and proxy routing are not configured. Published sites are accessible at `mumotor.com/p/{slug}`.
+- **Per-teacher subdomain routing is code-complete but dormant**: host-aware routing (`{slug}.mumotor.com` serves that teacher's site + student flows) is built and verified, but wildcard DNS/SSL isn't provisioned (the Railway Hobby plan caps custom domains). Published sites are served at `mumotor.com/p/{slug}` and the wizard shows that working URL.
 
 ---
 
@@ -277,9 +278,12 @@ Dockerfile · railway.toml · packages/frontend/vercel.json · docker-compose.ym
 
 A full improvement plan is documented in [`IMPROVEMENT_PLAN.md`](./IMPROVEMENT_PLAN.md). It covers 30 prioritised issues across security, product, growth, infrastructure, and technical debt — with a 90-day execution roadmap and pitch-readiness scoring.
 
-Key open items:
-- **P0 security**: JWT secret must be required (no default), CORS must be locked to origin, Stripe webhook signature must be enforced.
-- **P0 product**: plan enforcement (billing is decorative today), media persistence (Railway ephemeral FS), password reset, email verification, review submission endpoint.
-- **P1**: analytics instrumentation (zero currently), Hebrew/Arabic template copy (all 12 templates are English-only), SEO for published sites, wizard draft saving.
-- **P2+**: student portal, lesson cancellation, waiting list, real AI generation (bio/SEO copy via Claude Haiku), Israeli payment methods (Bit/Cardcom).
+Most of that plan is now shipped (LIVE at mumotor.com): Tier-0 security (required `JWT_SECRET`, CORS allowlist, Stripe webhook enforcement, upload validation + rate limits), password reset, email verification, public review submission, analytics, **HE/AR template copy for all 12**, SEO, wizard drafts, lesson cancellation, the **student portal + account + chat**, themed booking, and **DB-level no-double-booking**.
+
+Key **remaining** items:
+- **Media persistence to a CDN** (`Media.cdnUrl` still null) and **billing/plan enforcement** (Stripe not wired; paid checkout 503 by design).
+- **Per-teacher subdomains**: code done, needs wildcard DNS (Railway plan upgrade) to go live.
+- **Email volume at scale**: the daily "booking open" blast + the all-enrollments cron need batching/pagination before ~hundreds of teachers.
+- **Residual hardening**: CSP + moving session tokens off `localStorage`.
+- **Real AI generation** (bio/SEO copy via Claude) and Israeli payment methods (Bit/Cardcom).
 ```
