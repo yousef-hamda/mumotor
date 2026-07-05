@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTemplateFonts } from '../../templates/shared';
 import { resolveBookTheme, type Dir } from '../../lib/templateTheme';
+import { bookLocale, bookT } from '../../lib/bookingStrings';
 import './book-shell.css';
 
 /**
@@ -22,6 +23,7 @@ export function TemplatedShell({
   slug,
   theme,
   dir = 'ltr',
+  locale,
   schoolName,
   logoSrc,
   publicSlug,
@@ -31,6 +33,7 @@ export function TemplatedShell({
   slug: string | undefined | null;
   theme?: Record<string, string> | null;
   dir?: Dir;
+  locale?: string | null;
   schoolName?: string;
   logoSrc?: string | null;
   publicSlug?: string;
@@ -39,6 +42,7 @@ export function TemplatedShell({
 }) {
   const { vars, isDark, fontHref } = resolveBookTheme(slug, theme);
   useTemplateFonts([fontHref]);
+  const L = bookLocale(locale);
 
   const home = publicSlug ? `/p/${publicSlug}` : '/';
 
@@ -47,7 +51,7 @@ export function TemplatedShell({
       <div className="book-shell-glow" aria-hidden="true" />
       <header className="book-nav">
         <div className="book-nav-inner">
-          <Link to={home} className="book-brand" aria-label={schoolName || 'Home'}>
+          <Link to={home} className="book-brand" aria-label={schoolName || bookT(L, 'shellHome')}>
             {logoSrc ? (
               <img src={logoSrc} alt="" className="book-brand-logo" />
             ) : (
@@ -55,7 +59,7 @@ export function TemplatedShell({
                 {(schoolName || 'M').charAt(0).toUpperCase()}
               </span>
             )}
-            <span className="book-brand-name">{schoolName || 'Driving School'}</span>
+            <span className="book-brand-name">{schoolName || bookT(L, 'shellBrandFallback')}</span>
           </Link>
         </div>
       </header>
@@ -65,7 +69,7 @@ export function TemplatedShell({
       </main>
 
       <footer className="book-footer">
-        Powered by{' '}
+        {bookT(L, 'poweredBy')}{' '}
         <Link to="/" className="book-footer-link">
           Mumotor
         </Link>

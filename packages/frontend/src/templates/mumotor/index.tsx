@@ -17,7 +17,7 @@ import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
-import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt } from '../shared';
+import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt, useIsEditing } from '../shared';
 import { fmt } from '../strings';
 import { mmStrings, type MmStrings } from './strings';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -222,7 +222,7 @@ function MmPackages({ data }: { data: TemplateData }) {
               <div className={cx('mm-pkg', pkg.popular && 'is-popular')} data-edit-item={`packages.${i}`}>
                 {pkg.popular && <span className="mm-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge ?? s.badgePopular}</span>}
                 <p className="mm-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
-                <p className="mm-pkg-price"><span className="mm-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>{pkg.unit && <span className="mm-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}</p>
+                <p className="mm-pkg-price"><span className="mm-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>{pkg.unit && <span className="mm-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}</p>
                 <ul className="mm-pkg-features">
                   {pkg.features.map((f, fi) => <li key={fi}><Check size={15} className="mm-check" aria-hidden="true" /><span data-edit={`packages.${i}.features.${fi}`} data-edit-type="text">{f}</span></li>)}
                 </ul>
@@ -350,6 +350,7 @@ function MmGallery({ data }: { data: TemplateData }) {
 function MmFaq({ data }: { data: TemplateData }) {
   const s = mmStrings(data.locale);
   const [open, setOpen] = useState<number | null>(0);
+  const editing = useIsEditing();
   return (
     <section id={SECTION_IDS.faq} className="mm-section mm-band">
       <div className="mm-container mm-faq-wrap">
@@ -359,7 +360,7 @@ function MmFaq({ data }: { data: TemplateData }) {
         </FadeUp>
         <div className="mm-faq-list">
           {data.faqs.map((faq, i) => {
-            const isOpen = open === i;
+            const isOpen = editing || open === i;
             return (
               <div key={i} className="mm-faq-item" data-edit-item={`faqs.${i}`}>
                 <button className="mm-faq-q" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>

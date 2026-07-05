@@ -1,6 +1,18 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from 'react';
 import { motion, useMotionValue, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import { usePrefersReducedMotion } from '../components/motion';
+
+/**
+ * True when a template renders inside Customize (editing) mode. Provided by
+ * CustomizeMode via <EditingProvider>; defaults to false everywhere else
+ * (live preview, published sites). Templates use it to force-expand collapsible
+ * regions (e.g. FAQ answers) so every part stays clickable/editable.
+ */
+const EditingContext = createContext(false);
+export const EditingProvider = EditingContext.Provider;
+export function useIsEditing(): boolean {
+  return useContext(EditingContext);
+}
 
 /** Canonical in-page section ids — every template uses these for anchor nav. */
 export const SECTION_IDS = {

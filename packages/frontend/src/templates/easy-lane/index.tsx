@@ -9,7 +9,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { elStrings, type ElStrings } from './strings';
 import './easy-lane.css';
@@ -239,7 +239,7 @@ function PackageCard({
       {pkg.badge && <span className="el-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
       <h3 className="el-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
       <div className="el-pkg-price">
-        <span className="el-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+        <span className="el-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
         {pkg.unit && <span className="el-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
       </div>
       {pkg.duration && (
@@ -484,6 +484,7 @@ function FaqItem({
 function FAQ({ data }: { data: TemplateData }) {
   const s = elStrings(data.locale);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const editing = useIsEditing();
   return (
     <section id={SECTION_IDS.faq} className="el-faq-section">
       <div className="el-container el-container--narrow">
@@ -491,7 +492,7 @@ function FAQ({ data }: { data: TemplateData }) {
         <div className="el-faq-list">
           {data.faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 0.06}>
-              <FaqItem faq={faq} i={i} open={openIdx === i} toggle={() => setOpenIdx(openIdx === i ? null : i)} />
+              <FaqItem faq={faq} i={i} open={editing || openIdx === i} toggle={() => setOpenIdx(openIdx === i ? null : i)} />
             </Reveal>
           ))}
         </div>

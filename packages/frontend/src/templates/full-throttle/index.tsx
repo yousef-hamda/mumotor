@@ -11,7 +11,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { fmt } from '../strings';
 import { ftStrings } from './strings';
@@ -233,7 +233,7 @@ function Packages({
                 {pkg.badge && <span className="ft-pkg-badge">{pkg.badge}</span>}
                 <h3 className="ft-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                 <div className="ft-pkg-price-row">
-                  <span className="ft-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                  <span className="ft-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                   {pkg.unit && <span className="ft-pkg-unit">{pkg.unit}</span>}
                 </div>
                 {pkg.duration && (
@@ -471,6 +471,7 @@ function FaqItem({
 function FAQ({ data }: { data: TemplateData }) {
   const s = ftStrings(data.locale);
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const editing = useIsEditing();
   return (
     <section id={SECTION_IDS.faq} className="ft-faq">
       <div className="ft-section-inner--narrow">
@@ -483,7 +484,7 @@ function FAQ({ data }: { data: TemplateData }) {
               <FaqItem
                 faq={faq}
                 index={i}
-                open={openIdx === i}
+                open={editing || openIdx === i}
                 toggle={() => setOpenIdx(openIdx === i ? null : i)}
               />
             </Reveal>

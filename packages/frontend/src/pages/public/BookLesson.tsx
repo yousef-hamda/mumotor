@@ -4,10 +4,11 @@ import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
-import { apiError, drivingSchoolApi } from '../../lib/api';
-import { formatDateLong, upcomingDates } from '../../lib/utils';
+import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore } from '../../lib/api';
+import { formatDateLongIn, formatWeekdayIn, upcomingDates } from '../../lib/utils';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
+import { bookLocale, bookT } from '../../lib/bookingStrings';
 import {
   TemplatedShell,
   BookButton,
@@ -56,6 +57,8 @@ export default function BookLesson() {
     retry: false,
   });
 
+  const L = bookLocale(settings?.locale);
+
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [studentName, setStudentName] = useState('');
@@ -76,16 +79,36 @@ export default function BookLesson() {
         setStudentName(res.studentName);
         setNeedsEnrollment(false);
         setStep('time');
-        toast.success('Welcome back!');
+        toast.success(bookT(L, 'welcomeBack'));
       })
-      .catch(() => toast.error('That booking link has expired. Please enter your email.'));
+      .catch(() => toast.error(bookT(L, 'linkExpired')));
   }, [token, settings]);
+
+  // Logged-in session: skip the email step. If a student token is stored for this
+  // site (and there's no magic-link token in play), resolve the student's email/name
+  // and jump straight to choosing a time. Public availability/book only need `email`.
+  useEffect(() => {
+    if (token || !settings) return;
+    const stored = studentTokenStore.activate(websiteSlug);
+    if (!stored) return;
+    studentPortalApi
+      .me(settings.id)
+      .then((student) => {
+        setEmail(student.email);
+        setStudentName(student.name);
+        setNeedsEnrollment(false);
+        setStep('time');
+      })
+      .catch(() => {
+        /* expired/invalid token — fall back to the email step */
+      });
+  }, [token, settings, websiteSlug]);
 
   const checkEnrollment = useMutation({
     mutationFn: (e: string) => drivingSchoolApi.checkEnrollment(settings!.id, e),
     onSuccess: (res) => {
       if (res.enrolled && res.active === false) {
-        toast.error('Your enrollment is paused. Please contact your instructor.');
+        toast.error(bookT(L, 'enrollmentPaused'));
         return;
       }
       setNeedsEnrollment(!res.enrolled);
@@ -142,6 +165,7 @@ export default function BookLesson() {
     slug,
     theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
     dir: dirForLocale(settings?.locale),
+    locale: settings?.locale,
     schoolName: settings?.name,
     logoSrc: settings?.logoSrc,
     publicSlug: websiteSlug,
@@ -151,15 +175,15 @@ export default function BookLesson() {
   if (isLoading)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
-        <BookSpinner label="Loading…" />
+        <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
   if (isError || !settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
         <BookCard>
-          <h1 className="book-title">School not found</h1>
-          <p className="book-sub">This booking link may be incorrect or no longer active.</p>
+          <h1 className="book-title">{bookT(L, 'schoolNotFound')}</h1>
+          <p className="book-sub">{bookT(L, 'notFoundBook')}</p>
         </BookCard>
       </TemplatedShell>
     );
@@ -179,35 +203,35 @@ export default function BookLesson() {
       {/* STEP: email */}
       {step === 'email' && (
         <BookCard>
-          <p className="book-eyebrow">Book a lesson</p>
+          <p className="book-eyebrow">{bookT(L, 'bookLesson')}</p>
           <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
-            Book your next lesson
+            {bookT(L, 'bookTitle')}
           </h1>
-          <p className="book-sub">Lessons are booked for the next day. Enter the email you enrolled with to start.</p>
+          <p className="book-sub">{bookT(L, 'bookHelper')}</p>
           {windowConfigured && (
             <p className="book-sub" style={{ marginTop: '0.35rem' }}>
-              Booking is open daily {wStart}–{wEnd} (Israel time).
+              {bookT(L, 'windowOpenDaily', { wStart: wStart!, wEnd: wEnd! })}
             </p>
           )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error('Please enter a valid email');
+              if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error(bookT(L, 'errEmail'));
               checkEnrollment.mutate(email.trim());
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
           >
-            <BookField label="Email">
-              <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
+            <BookField label={bookT(L, 'emailLabel')}>
+              <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={bookT(L, 'phEmailYou')} required />
             </BookField>
             <BookButton variant="primary" type="submit" loading={checkEnrollment.isPending} className="book-btn-block">
-              Continue <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+              {bookT(L, 'continue')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
             </BookButton>
           </form>
           <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
-            Not enrolled yet?{' '}
+            {bookT(L, 'notEnrolledYet')}{' '}
             <Link to={`/p/${websiteSlug}/enroll`} className="book-link">
-              Enroll here
+              {bookT(L, 'enrollHere')}
             </Link>
           </p>
         </BookCard>
@@ -217,32 +241,32 @@ export default function BookLesson() {
       {step === 'details' && (
         <BookCard>
           <button type="button" className="book-back" onClick={() => setStep('email')}>
-            ← Back
+            ← {bookT(L, 'back')}
           </button>
-          <h1 className="book-title">Quick enrollment</h1>
-          <p className="book-sub">We don't recognize this email yet. Enter your name and code to continue.</p>
+          <h1 className="book-title">{bookT(L, 'quickEnrollTitle')}</h1>
+          <p className="book-sub">{bookT(L, 'quickEnrollHelper')}</p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
               const code = (new FormData(e.currentTarget).get('code') as string) ?? '';
-              if (studentName.trim().length < 2) return toast.error('Please enter your name');
-              if (!/^[+\d][\d\s-]{6,18}$/.test(studentPhone.trim())) return toast.error('Please enter a valid phone number');
-              if (code.trim().length < 4) return toast.error('Enter the code from your instructor');
+              if (studentName.trim().length < 2) return toast.error(bookT(L, 'errName'));
+              if (!/^[+\d][\d\s-]{6,18}$/.test(studentPhone.trim())) return toast.error(bookT(L, 'errPhone'));
+              if (code.trim().length < 4) return toast.error(bookT(L, 'errCodeInstructor'));
               enroll.mutate(code);
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
           >
-            <BookField label="Full name">
-              <BookInput value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Jane Doe" required />
+            <BookField label={bookT(L, 'fullName')}>
+              <BookInput value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder={bookT(L, 'phName')} required />
             </BookField>
-            <BookField label="Phone">
-              <BookInput type="tel" value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} placeholder="+972 50 123 4567" required />
+            <BookField label={bookT(L, 'phoneLabel')}>
+              <BookInput type="tel" value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} placeholder={bookT(L, 'phPhone')} required />
             </BookField>
-            <BookField label="Enrollment code">
-              <BookInput name="code" placeholder="e.g. DRIVE2026" style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }} required />
+            <BookField label={bookT(L, 'enrollmentCode')}>
+              <BookInput name="code" placeholder={bookT(L, 'phCode')} style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }} required />
             </BookField>
             <BookButton variant="primary" type="submit" loading={enroll.isPending} className="book-btn-block">
-              Continue <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+              {bookT(L, 'continue')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
             </BookButton>
           </form>
         </BookCard>
@@ -252,46 +276,54 @@ export default function BookLesson() {
       {step === 'time' && (
         <BookCard>
           <button type="button" className="book-back" onClick={() => { setPendingTime(''); setStep('email'); }}>
-            ← Back
+            ← {bookT(L, 'back')}
           </button>
-          <h1 className="book-title">Choose a time</h1>
+          <h1 className="book-title">{bookT(L, 'chooseTime')}</h1>
           <p className="book-sub" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <CalendarDays style={{ height: '1rem', width: '1rem' }} /> Tomorrow · {formatDateLong(tomorrow)}
+            <CalendarDays style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tomorrowDate', { date: formatDateLongIn(tomorrow, L) })}
           </p>
           <p className="book-sub" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.35rem' }}>
-            <Clock style={{ height: '1rem', width: '1rem' }} /> Each lesson is {settings.classDuration} minutes · please arrive 5 minutes early.
+            <Clock style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'eachLessonArrive', { duration: settings.classDuration })}
           </p>
 
           {!windowOpen ? (
             <div className="book-note" style={{ marginTop: '1.4rem' }}>
-              Booking is closed right now. It opens daily at <strong>{wStart}</strong> (Israel time). Please come back then to
-              book tomorrow's lesson.
+              {(() => {
+                const [before, after] = bookT(L, 'bookingClosed').split('{wStart}');
+                return (
+                  <>
+                    {before}
+                    <strong>{wStart}</strong>
+                    {after}
+                  </>
+                );
+              })()}
             </div>
           ) : availability.isLoading ? (
-            <BookSpinner label="Checking availability…" />
+            <BookSpinner label={bookT(L, 'checkingAvailability')} />
           ) : availability.data?.closed ? (
             <div className="book-note" style={{ marginTop: '1.4rem' }}>
-              No classes tomorrow — the school is closed on {formatDateLong(tomorrow).split(',')[0]}. Please check back on a working day.
+              {bookT(L, 'noClassesTomorrow', { day: formatWeekdayIn(tomorrow, L) })}
             </div>
           ) : !availability.data || availability.data.slots.length === 0 ? (
             <div className="book-note" style={{ marginTop: '1.4rem' }}>
-              No available times for tomorrow — every slot is booked. Please try again later.
+              {bookT(L, 'allBooked')}
             </div>
           ) : pendingTime ? (
             <div style={{ marginTop: '1.4rem' }}>
               <div className="book-note" style={{ borderStyle: 'solid' }}>
-                <p style={{ margin: 0 }}>You're booking a lesson for</p>
-                <p style={{ margin: '0.4rem 0 0', fontWeight: 700, color: 'var(--book-ink)' }}>{formatDateLong(tomorrow)}</p>
+                <p style={{ margin: 0 }}>{bookT(L, 'youreBooking')}</p>
+                <p style={{ margin: '0.4rem 0 0', fontWeight: 700, color: 'var(--book-ink)' }}>{formatDateLongIn(tomorrow, L)}</p>
                 <p style={{ margin: '0.2rem 0 0', fontFamily: 'var(--book-font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--book-ink)' }}>
                   {slotRange(pendingTime, settings.classDuration)}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
                 <BookButton variant="secondary" className="book-btn-block" onClick={() => setPendingTime('')}>
-                  Change time
+                  {bookT(L, 'changeTime')}
                 </BookButton>
                 <BookButton variant="primary" className="book-btn-block" loading={book.isPending} onClick={() => book.mutate()}>
-                  Confirm booking
+                  {bookT(L, 'confirmBooking')}
                 </BookButton>
               </div>
             </div>
@@ -314,18 +346,29 @@ export default function BookLesson() {
             <CheckCircle2 style={{ height: '2.2rem', width: '2.2rem' }} strokeWidth={1.75} />
           </div>
           <h1 className="book-title" style={{ marginTop: '1rem', textAlign: 'center' }}>
-            Lesson booked
+            {bookT(L, 'lessonBooked')}
           </h1>
           <p className="book-sub" style={{ textAlign: 'center' }}>
-            See you <strong style={{ color: 'var(--book-ink)' }}>{formatDateLong(tomorrow)}</strong> at{' '}
-            <strong style={{ color: 'var(--book-ink)' }}>{slotRange(pendingTime, settings.classDuration)}</strong>.
+            {(() => {
+              const [a, restb] = bookT(L, 'seeYou').split('{date}');
+              const [b, c] = restb.split('{time}');
+              return (
+                <>
+                  {a}
+                  <strong style={{ color: 'var(--book-ink)' }}>{formatDateLongIn(tomorrow, L)}</strong>
+                  {b}
+                  <strong style={{ color: 'var(--book-ink)' }}>{slotRange(pendingTime, settings.classDuration)}</strong>
+                  {c}
+                </>
+              );
+            })()}
           </p>
           <div className="book-note" style={{ marginTop: '1.2rem', textAlign: 'start' }}>
             <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Clock style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> We'll remind you ~2 hours before.
+              <Clock style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> {bookT(L, 'reminderLine')}
             </p>
             <p style={{ margin: '0.5rem 0 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CalendarDays style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> Please arrive 5 minutes early.
+              <CalendarDays style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> {bookT(L, 'arriveEarly')}
             </p>
           </div>
           <BookButton
@@ -337,13 +380,13 @@ export default function BookLesson() {
               setStep('time');
             }}
           >
-            Book another lesson
+            {bookT(L, 'bookAnother')}
           </BookButton>
           <Link to={accountHref} className="book-btn book-btn-secondary book-btn-block" style={{ marginTop: '0.6rem' }}>
-            Go to my account
+            {bookT(L, 'goToAccount')}
           </Link>
           <Link to={homeHref} className="book-btn book-btn-ghost book-btn-block" style={{ marginTop: '0.4rem' }}>
-            Back to home
+            {bookT(L, 'backToHome')}
           </Link>
         </BookCard>
       )}
@@ -352,7 +395,7 @@ export default function BookLesson() {
       {step !== 'done' && (
         <p style={{ marginTop: '1.4rem', textAlign: 'center', fontSize: '0.8rem' }}>
           <Link to={accountHref} className="book-link">
-            My account &amp; lessons
+            {bookT(L, 'myAccountLessons')}
           </Link>
         </p>
       )}

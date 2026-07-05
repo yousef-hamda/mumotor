@@ -81,6 +81,13 @@ export function todayUtcMidnight(): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
+/** Tomorrow's date at UTC midnight (matches @db.Date columns). */
+export function tomorrowUtcMidnight(): Date {
+  const t = todayUtcMidnight();
+  t.setUTCDate(t.getUTCDate() + 1);
+  return t;
+}
+
 /** Parse a "YYYY-MM-DD" (or ISO) string into a UTC-midnight Date. */
 export function toUtcMidnight(dateInput: string): Date {
   // Accept "YYYY-MM-DD" or full ISO; take only the date portion.

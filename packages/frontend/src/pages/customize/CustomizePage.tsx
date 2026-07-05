@@ -50,9 +50,10 @@ export default function CustomizePage() {
   const save = async (c: Customization) => {
     try {
       await websiteApi.update(id, { configuration: { customization: c } as Record<string, unknown> });
-      toast.success('Saved');
+      // Bottom-center so it never covers the top-right Save/Done buttons.
+      toast.success('Saved', { position: 'bottom-center' });
     } catch {
-      toast.error("Couldn't save changes");
+      toast.error("Couldn't save changes", { position: 'bottom-center' });
     }
   };
 

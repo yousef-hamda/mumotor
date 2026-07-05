@@ -25,6 +25,7 @@ import {
   useCountUp,
   useMouseTilt,
   usePrefersReducedMotion,
+  useIsEditing,
 } from '../shared';
 import './bento.css';
 
@@ -513,7 +514,7 @@ function BnPackages({ data }: { data: TemplateData }) {
                       data-edit={`packages.${i}.price`}
                       data-edit-type="text"
                     >
-                      £{pkg.price}
+                      ₪{pkg.price}
                     </span>
                     {pkg.unit && (
                       <span
@@ -873,20 +874,22 @@ function FaqItem({
   index: number;
 }) {
   const [open, setOpen] = useState(false);
+  const editing = useIsEditing();
+  const isOpen = editing || open;
   return (
     <Tile className="bn-faq-tile">
       {/* data-edit-item lives on inner div, not on the Tile component */}
       <div data-edit-item={`faqs.${index}`}>
         <button
           className="bn-faq-q"
-          aria-expanded={open}
+          aria-expanded={isOpen}
           onClick={() => setOpen(!open)}
         >
           <span data-edit={`faqs.${index}.q`} data-edit-type="text">
             {faq.q}
           </span>
           <motion.span
-            animate={{ rotate: open ? 180 : 0 }}
+            animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
             className="bn-faq-chev"
             aria-hidden="true"
@@ -895,7 +898,7 @@ function FaqItem({
           </motion.span>
         </button>
         <AnimatePresence>
-          {open && (
+          {isOpen && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}

@@ -87,7 +87,7 @@ try {
   ok('no separate "preview" button', (await page.getByText(/preview my site/i).count()) === 0);
   const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2);
   ok('no horizontal overflow (nothing clipped)', noOverflow);
-  ok('concept selector present (12)', (await page.locator('.tc-root').count()) >= 12);
+  ok('choose-another-template control present', (await page.getByText(/choose another template/i).count()) > 0);
   ok('booking section is a CTA (no multi-step widget)', await page.evaluate(() => {
     const book = document.getElementById('book');
     return !!book && !/choose a date|choose a time/i.test(book.textContent || '');

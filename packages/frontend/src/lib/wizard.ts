@@ -155,18 +155,72 @@ export const defaultWizardConfig: WizardConfig = {
   presetId: 'clear-horizon',
 };
 
-/** Realistic sample data so the owner can preview before editing ("Auto-generate"). */
-export function sampleWizardConfig(prev: WizardConfig): WizardConfig {
-  return {
-    ...prev,
+/** Localized, language-specific parts of the "Auto-fill sample" so the preview
+ *  renders fully in the chosen language. Numbers/prices stay Latin digits. */
+type SampleContent = {
+  businessName: string;
+  businessDescription: string;
+  tagline: string;
+  teacherName: string;
+  address: string;
+  city: string;
+  plans: PlanInput[];
+};
+const SAMPLE_CONTENT: Record<'EN' | 'HE' | 'AR', SampleContent> = {
+  EN: {
     businessName: 'Northgate Driving School',
     businessDescription:
       'Calm, patient, one-to-one driving lessons with a 96% first-time pass rate. I help nervous beginners feel in control from the very first lesson — manual or automatic, fully insured dual-control car.',
     tagline: 'Pass first time, drive for life.',
-    phone: '054-321-0987',
-    email: 'hello@northgate.driving',
+    teacherName: 'David Cohen',
     address: '22 Jabotinsky Street',
     city: 'Netanya',
+    plans: [
+      { id: 'single', name: 'Single lesson', price: 120, unit: '/ lesson', features: ['Manual or automatic', 'Door-to-door pickup', 'No commitment'] },
+      { id: 'block10', name: '10-lesson block', price: 1100, unit: '10 lessons', popular: true, features: ['Save vs single lessons', 'Mock test included', 'Flexible rescheduling'] },
+    ],
+  },
+  HE: {
+    businessName: 'בית ספר לנהיגה נורת׳גייט',
+    businessDescription:
+      'שיעורי נהיגה אישיים, רגועים וסבלניים עם 96% הצלחה בטסט הראשון. אני עוזר למתחילים לחוצים להרגיש בשליטה כבר מהשיעור הראשון — ידני או אוטומט, רכב מבוטח עם דוושות כפולות.',
+    tagline: 'עוברים טסט בפעם הראשונה, נוהגים לכל החיים.',
+    teacherName: 'דוד כהן',
+    address: 'רחוב ז׳בוטינסקי 22',
+    city: 'נתניה',
+    plans: [
+      { id: 'single', name: 'שיעור בודד', price: 120, unit: '/ שיעור', features: ['ידני או אוטומט', 'איסוף עד הבית', 'ללא התחייבות'] },
+      { id: 'block10', name: 'חבילת 10 שיעורים', price: 1100, unit: '10 שיעורים', popular: true, features: ['חיסכון מול שיעור בודד', 'כולל מבחן דמה', 'גמישות בשינוי מועד'] },
+    ],
+  },
+  AR: {
+    businessName: 'مدرسة نورثغيت للقيادة',
+    businessDescription:
+      'دروس قيادة فردية هادئة وصبورة بنسبة نجاح 96% من أول مرة. أساعد المبتدئين المتوترين على الشعور بالسيطرة منذ الدرس الأول — يدوي أو أوتوماتيك، سيارة مؤمّنة مزدوجة التحكّم.',
+    tagline: 'انجح من أول مرة، وقُد مدى الحياة.',
+    teacherName: 'داود كوهين',
+    address: 'شارع جابوتنسكي 22',
+    city: 'نتانيا',
+    plans: [
+      { id: 'single', name: 'درس واحد', price: 120, unit: '/ درس', features: ['يدوي أو أوتوماتيك', 'اصطحاب من الباب إلى الباب', 'بدون التزام'] },
+      { id: 'block10', name: 'باقة 10 دروس', price: 1100, unit: '10 دروس', popular: true, features: ['وفّر مقارنة بالدرس المنفرد', 'يشمل اختبار تجريبي', 'مرونة في تغيير الموعد'] },
+    ],
+  },
+};
+
+/** Realistic sample data so the owner can preview before editing ("Auto-generate").
+ *  Language-specific content follows the currently-selected locale. */
+export function sampleWizardConfig(prev: WizardConfig): WizardConfig {
+  const content = SAMPLE_CONTENT[prev.locale] ?? SAMPLE_CONTENT.EN;
+  return {
+    ...prev,
+    businessName: content.businessName,
+    businessDescription: content.businessDescription,
+    tagline: content.tagline,
+    phone: '054-321-0987',
+    email: 'hello@northgate.driving',
+    address: content.address,
+    city: content.city,
     workingDays: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'],
     shiftStart: '08:00',
     shiftEnd: '19:00',
@@ -176,11 +230,8 @@ export function sampleWizardConfig(prev: WizardConfig): WizardConfig {
     classDuration: 45,
     pricePerClass: 120,
     transmission: 'both',
-    plans: [
-      { id: 'single', name: 'Single lesson', price: 120, unit: '/ lesson', features: ['Manual or automatic', 'Door-to-door pickup', 'No commitment'] },
-      { id: 'block10', name: '10-lesson block', price: 1100, unit: '10 lessons', popular: true, features: ['Save vs single lessons', 'Mock test included', 'Flexible rescheduling'] },
-    ],
-    teacherName: 'David Cohen',
+    plans: content.plans.map((p) => ({ ...p, features: [...(p.features ?? [])] })),
+    teacherName: content.teacherName,
     experienceLevel: '10+',
     bookingWindowStart: '09:00',
     bookingWindowEnd: '17:00',

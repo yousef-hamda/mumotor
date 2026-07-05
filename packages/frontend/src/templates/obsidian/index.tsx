@@ -17,7 +17,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, useMouseTilt, useScrollParallax, usePrefersReducedMotion,
+  Reveal, useCountUp, useMouseTilt, useScrollParallax, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { obStrings, type ObStrings } from './strings';
 import './obsidian.css';
@@ -452,7 +452,7 @@ function ObPackages({ data }: { data: TemplateData }) {
                       data-edit={`packages.${i}.price`}
                       data-edit-type="text"
                     >
-                      £{pkg.price}
+                      ₪{pkg.price}
                     </span>
                     {pkg.unit && <span className="ob-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
@@ -693,17 +693,19 @@ function ObGallery({ data }: { data: TemplateData }) {
 
 function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: number }) {
   const [open, setOpen] = useState(false);
+  const editing = useIsEditing();
+  const isOpen = editing || open;
   return (
     <div data-edit-item={`faqs.${index}`}>
       <Glass className="ob-faq-item">
         <button
           className="ob-faq-q"
-          aria-expanded={open}
+          aria-expanded={isOpen}
           onClick={() => setOpen(!open)}
         >
           <span data-edit={`faqs.${index}.q`} data-edit-type="text">{faq.q}</span>
           <motion.span
-            animate={{ rotate: open ? 180 : 0 }}
+            animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
             className="ob-faq-chev"
             aria-hidden="true"
@@ -712,7 +714,7 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
           </motion.span>
         </button>
         <AnimatePresence>
-          {open && (
+          {isOpen && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}

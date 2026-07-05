@@ -6,8 +6,9 @@ import { CalendarDays, MessageSquare, User, LogOut, ArrowRight, Send, Clock } fr
 import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore, type StudentSummary } from '../../lib/api';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
+import { bookLocale, bookT, type BookLocale } from '../../lib/bookingStrings';
 import { useTenantSlug } from '../../lib/tenant';
-import { formatDateLong } from '../../lib/utils';
+import { formatDateLongIn } from '../../lib/utils';
 import {
   TemplatedShell,
   BookButton,
@@ -40,12 +41,15 @@ export default function StudentAccount() {
   const [token, setToken] = useState<string | null>(() => studentTokenStore.activate(websiteSlug));
   const [tab, setTab] = useState<Tab>('lessons');
 
+  const L = bookLocale(settings?.locale);
+
   const slug =
     settings?.template && TEMPLATES.some((t) => t.slug === settings.template) ? settings.template : TEMPLATES[0].slug;
   const shellProps = {
     slug,
     theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
     dir: dirForLocale(settings?.locale),
+    locale: settings?.locale,
     schoolName: settings?.name,
     logoSrc: settings?.logoSrc,
     publicSlug: websiteSlug,
@@ -60,15 +64,15 @@ export default function StudentAccount() {
   if (settingsLoading)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
-        <BookSpinner label="Loading…" />
+        <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
   if (!settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
         <BookCard>
-          <h1 className="book-title">School not found</h1>
-          <p className="book-sub">This link may be incorrect or no longer active.</p>
+          <h1 className="book-title">{bookT(L, 'schoolNotFound')}</h1>
+          <p className="book-sub">{bookT(L, 'notFoundAccount')}</p>
         </BookCard>
       </TemplatedShell>
     );
@@ -80,6 +84,7 @@ export default function StudentAccount() {
           websiteId={settings.id}
           schoolName={settings.name}
           slug={websiteSlug}
+          L={L}
           onSuccess={(t) => {
             studentTokenStore.set(websiteSlug, t);
             setToken(t);
@@ -93,6 +98,7 @@ export default function StudentAccount() {
           tab={tab}
           setTab={setTab}
           onLogout={logout}
+          L={L}
         />
       )}
     </TemplatedShell>
@@ -103,11 +109,13 @@ function LoginCard({
   websiteId,
   schoolName,
   slug,
+  L,
   onSuccess,
 }: {
   websiteId: string;
   schoolName: string;
   slug: string;
+  L: BookLocale;
   onSuccess: (token: string) => void;
 }) {
   const [email, setEmail] = useState('');
@@ -120,30 +128,30 @@ function LoginCard({
 
   return (
     <BookCard>
-      <p className="book-eyebrow">Student account</p>
+      <p className="book-eyebrow">{bookT(L, 'studentAccount')}</p>
       <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
-        Sign in to {schoolName}
+        {bookT(L, 'signInTo', { name: schoolName })}
       </h1>
-      <p className="book-sub">Enter the email you enrolled with — no code needed.</p>
+      <p className="book-sub">{bookT(L, 'signInHelper')}</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error('Please enter a valid email');
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error(bookT(L, 'errEmail'));
           login.mutate();
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
       >
-        <BookField label="Email">
-          <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
+        <BookField label={bookT(L, 'emailLabel')}>
+          <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={bookT(L, 'phEmailYou')} required />
         </BookField>
         <BookButton variant="primary" type="submit" loading={login.isPending} className="book-btn-block">
-          Sign in <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+          {bookT(L, 'signIn')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
         </BookButton>
       </form>
       <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
-        New student?{' '}
+        {bookT(L, 'newStudent')}{' '}
         <Link to={`/p/${slug}/enroll`} className="book-link">
-          Enroll with your code
+          {bookT(L, 'enrollWithCode')}
         </Link>
       </p>
     </BookCard>
@@ -157,6 +165,7 @@ function Account({
   tab,
   setTab,
   onLogout,
+  L,
 }: {
   websiteId: string;
   slug: string;
@@ -164,6 +173,7 @@ function Account({
   tab: Tab;
   setTab: (t: Tab) => void;
   onLogout: () => void;
+  L: BookLocale;
 }) {
   const me = useQuery({
     queryKey: ['student', 'me', websiteId],
@@ -177,37 +187,37 @@ function Account({
     if (me.isError && apiError(me.error).status === 401) onLogout();
   }, [me.isError, me.error, onLogout]);
 
-  if (me.isLoading) return <BookSpinner label="Loading your account…" />;
+  if (me.isLoading) return <BookSpinner label={bookT(L, 'loadingAccount')} />;
   if (!me.data) return <BookSpinner label="…" />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
         <div>
-          <p className="book-eyebrow">Welcome back</p>
+          <p className="book-eyebrow">{bookT(L, 'welcomeBackEyebrow')}</p>
           <h1 className="book-title">{me.data.name}</h1>
         </div>
-        <BookButton variant="secondary" onClick={onLogout} aria-label="Sign out">
-          <LogOut style={{ height: '1rem', width: '1rem' }} /> Sign out
+        <BookButton variant="secondary" onClick={onLogout} aria-label={bookT(L, 'signOut')}>
+          <LogOut style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'signOut')}
         </BookButton>
       </div>
 
       <div className="book-tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lessons'} className="book-tab" onClick={() => setTab('lessons')}>
-          <CalendarDays style={{ height: '1rem', width: '1rem' }} /> Lessons
+          <CalendarDays style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabLessons')}
         </button>
         <button role="tab" aria-selected={tab === 'chat'} className="book-tab" onClick={() => setTab('chat')}>
-          <MessageSquare style={{ height: '1rem', width: '1rem' }} /> Chat
+          <MessageSquare style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabChat')}
           {unread > 0 && <span className="book-tab-badge">{unread}</span>}
         </button>
         <button role="tab" aria-selected={tab === 'profile'} className="book-tab" onClick={() => setTab('profile')}>
-          <User style={{ height: '1rem', width: '1rem' }} /> Profile
+          <User style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabProfile')}
         </button>
       </div>
 
-      {tab === 'lessons' && <LessonsTab websiteId={websiteId} slug={slug} classDuration={classDuration} stats={me.data.stats} />}
-      {tab === 'chat' && <ChatTab websiteId={websiteId} />}
-      {tab === 'profile' && <ProfileTab me={me.data} websiteId={websiteId} onSaved={() => me.refetch()} />}
+      {tab === 'lessons' && <LessonsTab websiteId={websiteId} slug={slug} classDuration={classDuration} stats={me.data.stats} L={L} />}
+      {tab === 'chat' && <ChatTab websiteId={websiteId} L={L} />}
+      {tab === 'profile' && <ProfileTab me={me.data} websiteId={websiteId} onSaved={() => me.refetch()} L={L} />}
     </div>
   );
 }
@@ -228,29 +238,18 @@ function LessonsTab({
   slug,
   classDuration,
   stats,
+  L,
 }: {
   websiteId: string;
   slug: string;
   classDuration: number;
   stats?: StudentSummary['stats'];
+  L: BookLocale;
 }) {
   const lessons = useQuery({
     queryKey: ['student', 'lessons', websiteId],
     queryFn: () => studentPortalApi.lessons(websiteId),
     retry: false,
-  });
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const qc = useQueryClient();
-
-  const cancel = useMutation({
-    mutationFn: (bookingId: string) => studentPortalApi.cancelLesson(websiteId, bookingId),
-    onSuccess: () => {
-      toast.success('Lesson cancelled');
-      setConfirmId(null);
-      lessons.refetch();
-      qc.invalidateQueries({ queryKey: ['student', 'me', websiteId] });
-    },
-    onError: (e) => toast.error(apiError(e).message),
   });
 
   const upcoming = lessons.data ?? [];
@@ -261,7 +260,7 @@ function LessonsTab({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Next lesson highlight */}
       {lessons.isLoading ? (
-        <BookCard><BookSpinner label="Loading your lessons…" /></BookCard>
+        <BookCard><BookSpinner label={bookT(L, 'loadingLessons')} /></BookCard>
       ) : next ? (
         <div
           style={{
@@ -271,33 +270,24 @@ function LessonsTab({
             padding: '1.4rem 1.5rem',
           }}
         >
-          <p className="book-eyebrow">Your next lesson</p>
+          <p className="book-eyebrow">{bookT(L, 'yourNextLesson')}</p>
           <p style={{ margin: '0.5rem 0 0', fontFamily: 'var(--book-font-display)', fontSize: '1.35rem', fontWeight: 700, color: 'var(--book-ink)' }}>
-            {formatDateLong(next.date)}
+            {formatDateLongIn(next.date, L)}
           </p>
           <p style={{ margin: '0.25rem 0 0', color: 'var(--book-ink)', fontWeight: 600 }}>
-            {slotRange(next.time, next.duration)} · {next.duration} min
+            {slotRange(next.time, next.duration)} · {next.duration} {bookT(L, 'minShort')}
           </p>
           <p className="book-sub" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Clock style={{ height: '0.95rem', width: '0.95rem' }} /> Please arrive 5 minutes early.
+            <Clock style={{ height: '0.95rem', width: '0.95rem' }} /> {bookT(L, 'arriveEarly')}
           </p>
-          <div style={{ marginTop: '1rem' }}>
-            {confirmId === next.id ? (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <BookButton variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(next.id)}>Cancel lesson</BookButton>
-                <BookButton variant="secondary" onClick={() => setConfirmId(null)}>Keep it</BookButton>
-              </div>
-            ) : next.cancellable ? (
-              <BookButton variant="secondary" onClick={() => setConfirmId(next.id)}>Cancel this lesson</BookButton>
-            ) : (
-              <span className="book-sub">Starts soon — to cancel, contact your instructor.</span>
-            )}
-          </div>
+          <p className="book-sub" style={{ marginTop: '0.75rem' }}>
+            {bookT(L, 'contactToCancel')}
+          </p>
         </div>
       ) : (
         <BookCard>
           <div className="book-note" style={{ border: 'none', padding: '0.5rem 0' }}>
-            You have no upcoming lessons. Book your next one below.
+            {bookT(L, 'noUpcoming')}
           </div>
         </BookCard>
       )}
@@ -307,40 +297,30 @@ function LessonsTab({
         <div className="book-stats">
           <div className="book-stat">
             <div className="book-stat-num">{stats?.completed ?? 0}</div>
-            <div className="book-stat-label">Completed</div>
+            <div className="book-stat-label">{bookT(L, 'statCompleted')}</div>
           </div>
           <div className="book-stat">
             <div className="book-stat-num">{stats?.upcoming ?? upcoming.length}</div>
-            <div className="book-stat-label">Upcoming</div>
+            <div className="book-stat-label">{bookT(L, 'statUpcoming')}</div>
           </div>
           <div className="book-stat">
             <div className="book-stat-num">{stats?.total ?? upcoming.length}</div>
-            <div className="book-stat-label">Total lessons</div>
+            <div className="book-stat-label">{bookT(L, 'statTotal')}</div>
           </div>
         </div>
 
         {rest.length > 0 && (
           <>
             <h2 className="book-title" style={{ fontSize: '1.05rem', marginTop: '1.4rem' }}>
-              Later lessons
+              {bookT(L, 'laterLessons')}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
               {rest.map((b) => (
                 <div key={b.id} className="book-row">
                   <div>
-                    <div className="book-row-date">{formatDateLong(b.date)}</div>
-                    <div className="book-row-time">{slotRange(b.time, b.duration)} · {b.duration} min</div>
+                    <div className="book-row-date">{formatDateLongIn(b.date, L)}</div>
+                    <div className="book-row-time">{slotRange(b.time, b.duration)} · {b.duration} {bookT(L, 'minShort')}</div>
                   </div>
-                  {confirmId === b.id ? (
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <BookButton variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(b.id)}>Confirm</BookButton>
-                      <BookButton variant="secondary" onClick={() => setConfirmId(null)}>Keep</BookButton>
-                    </div>
-                  ) : b.cancellable ? (
-                    <button className="book-link" style={{ color: '#e5484d' }} onClick={() => setConfirmId(b.id)}>Cancel</button>
-                  ) : (
-                    <span className="book-row-time">Starts soon</span>
-                  )}
                 </div>
               ))}
             </div>
@@ -348,17 +328,17 @@ function LessonsTab({
         )}
 
         <Link to={`/p/${slug}/book-lesson`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.2rem' }}>
-          Book a lesson <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+          {bookT(L, 'bookLesson')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
         </Link>
         <p className="book-sub" style={{ textAlign: 'center', marginTop: '0.6rem' }}>
-          Each lesson is {classDuration} min. Lessons can be cancelled up to 2 hours before they start.
+          {bookT(L, 'eachLessonMin', { duration: classDuration })} {bookT(L, 'contactToCancel')}
         </p>
       </BookCard>
     </div>
   );
 }
 
-function ChatTab({ websiteId }: { websiteId: string }) {
+function ChatTab({ websiteId, L }: { websiteId: string; L: BookLocale }) {
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -389,23 +369,23 @@ function ChatTab({ websiteId }: { websiteId: string }) {
   return (
     <BookCard>
       <h2 className="book-title" style={{ fontSize: '1.1rem' }}>
-        Chat with your instructor
+        {bookT(L, 'chatHeading')}
       </h2>
-      <p className="book-sub">Ask a question, reschedule, or say hello. Replies appear here.</p>
+      <p className="book-sub">{bookT(L, 'chatHelper')}</p>
 
       <div className="book-chat" ref={scrollRef} style={{ marginTop: '1rem' }}>
         {messages.isLoading ? (
-          <BookSpinner label="Loading messages…" />
+          <BookSpinner label={bookT(L, 'loadingMessages')} />
         ) : !messages.data || messages.data.length === 0 ? (
           <div className="book-note" style={{ border: 'none' }}>
-            No messages yet. Start the conversation below.
+            {bookT(L, 'chatEmpty')}
           </div>
         ) : (
           messages.data.map((m) => (
             <div key={m.id} className={m.sender === 'STUDENT' ? 'book-bubble book-bubble-me' : 'book-bubble book-bubble-them'}>
               {m.body}
               <span className="book-bubble-time">
-                {new Date(m.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {new Date(m.createdAt).toLocaleString(L === 'he' ? 'he' : L === 'ar' ? 'ar' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', calendar: 'gregory', numberingSystem: 'latn' })}
               </span>
             </div>
           ))
@@ -421,8 +401,8 @@ function ChatTab({ websiteId }: { websiteId: string }) {
           send.mutate(body);
         }}
       >
-        <BookInput value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Type a message…" maxLength={2000} />
-        <BookButton variant="primary" type="submit" loading={send.isPending} aria-label="Send">
+        <BookInput value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={bookT(L, 'phMessage')} maxLength={2000} />
+        <BookButton variant="primary" type="submit" loading={send.isPending} aria-label={bookT(L, 'send')}>
           <Send style={{ height: '1rem', width: '1rem' }} />
         </BookButton>
       </form>
@@ -430,14 +410,14 @@ function ChatTab({ websiteId }: { websiteId: string }) {
   );
 }
 
-function ProfileTab({ me, websiteId, onSaved }: { me: StudentSummary; websiteId: string; onSaved: () => void }) {
+function ProfileTab({ me, websiteId, onSaved, L }: { me: StudentSummary; websiteId: string; onSaved: () => void; L: BookLocale }) {
   const [phone, setPhone] = useState<string | null>(null);
   const phoneValue = phone ?? me.phone ?? '';
 
   const save = useMutation({
     mutationFn: () => studentPortalApi.updateProfile(websiteId, { studentPhone: phoneValue.trim() }),
     onSuccess: () => {
-      toast.success('Profile updated');
+      toast.success(bookT(L, 'profileUpdated'));
       onSaved();
       setPhone(null);
     },
@@ -447,17 +427,17 @@ function ProfileTab({ me, websiteId, onSaved }: { me: StudentSummary; websiteId:
   return (
     <BookCard>
       <h2 className="book-title" style={{ fontSize: '1.1rem' }}>
-        Your details
+        {bookT(L, 'yourDetails')}
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.2rem' }}>
-        <BookField label="Name">
+        <BookField label={bookT(L, 'nameLabel')}>
           <BookInput value={me.name} disabled />
         </BookField>
-        <BookField label="Email">
+        <BookField label={bookT(L, 'emailLabel')}>
           <BookInput value={me.email} disabled />
         </BookField>
-        <BookField label="Phone" hint="The number your instructor uses to reach you.">
-          <BookInput type="tel" value={phoneValue} onChange={(e) => setPhone(e.target.value)} placeholder="+972 50 123 4567" />
+        <BookField label={bookT(L, 'phoneLabel')} hint={bookT(L, 'phoneHint')}>
+          <BookInput type="tel" value={phoneValue} onChange={(e) => setPhone(e.target.value)} placeholder={bookT(L, 'phPhone')} />
         </BookField>
         <BookButton
           variant="primary"
@@ -465,11 +445,11 @@ function ProfileTab({ me, websiteId, onSaved }: { me: StudentSummary; websiteId:
           loading={save.isPending}
           disabled={phone === null}
           onClick={() => {
-            if (phoneValue && !/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) return toast.error('Please enter a valid phone number');
+            if (phoneValue && !/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) return toast.error(bookT(L, 'errPhone'));
             save.mutate();
           }}
         >
-          Save changes
+          {bookT(L, 'saveChanges')}
         </BookButton>
       </div>
     </BookCard>

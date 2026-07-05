@@ -617,8 +617,8 @@
   gap: 18px;
 }
 .tmpl-bento .bn-instructor-photo {
-  width: 76px;
-  height: 76px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #fff;

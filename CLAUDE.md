@@ -123,6 +123,22 @@ classes never needed renaming.
 - **Delete a website**: `DELETE /api/websites/:id` requires body `{confirm:"DELETE"}` (else 400 `CONFIRM_REQUIRED`);
   cascades all the site's rows + clears the `site:<slug>` cache. UI = danger-zone in `pages/dashboard/Settings.tsx`
   (type-DELETE modal). The mumotor logo links to `/` everywhere.
+- **Templates fully honour locale + transmission + currency (July 5)**: `strings.ts` `dataDefaults(locale, transmission)`
+  makes the About body + credential chip reflect the actual transmission (manual/automatic/both, localized); `fromWizard.ts`
+  `plansToPackages` re-localizes any stored default transmission-feature line to the site locale + choice (custom text is
+  left alone); `sampleWizardConfig(prev)` (in `lib/wizard.ts`) is per-locale so "Auto-fill sample" previews fully in-language;
+  the English `sampleData` `areas`/`bio` fallbacks were localized. **All prices are `₪` (shekel)** in every template (was `£`).
+- **Builder Design step (July 5)**: the 12-card horizontal concept-selector strip was **removed**; `DesignPreviewStep`
+  (`BuilderWizard.tsx`) now shows just the live preview + a **"Choose another template"** button (→ browse/Templates gallery).
+  Switch designs from the gallery, not an inline strip.
+- **Customize editor fixes (July 5)** (`components/customize/CustomizeMode.tsx`): (a) per-item hover controls (⠿/＋/🗑) now
+  sit **above** the item (below only when near the top), so they never cover short pills/chips; (b) FAQ answers **force-open
+  in editing mode** via a new `EditingProvider`/`useIsEditing` context (`templates/shared.tsx`) each template's FAQ reads —
+  normal/preview mode keeps the accordion; a new FAQ inserts a **clean `{q:'',a:''}`** and empty editable text shows an
+  "Add text…" placeholder (scoped `.cz-canvas` CSS); (c) **drag-reorder is reliable** — DnD is handled at the `window` level
+  (always-mounted, guarded by `dragSrc`), resolving the target from `e.target.closest('[data-edit-item]')` (falls back to
+  `elementFromPoint`), so drops land even outside the canvas; (d) the **Save toast is `bottom-center`** so it never covers
+  the toolbar Save/Done. Instructor photo is **~1.5× bigger** in all 12 `<slug>.css`.
 
 ## Public student experience (July 2026 — themed, matches each template)
 Full detail in the `student-portal-and-themed-booking` memory. The student-facing pages **adopt the teacher's chosen
@@ -140,10 +156,19 @@ template design** — they are NOT the old app "sand" look.
 - **Student account** (`/p/:slug/account`, `StudentAccount.tsx`): a per-site login area. **Login = EMAIL ONLY** for a
   returning student (`POST /:websiteId/student/login {email}` → ACTIVE enrollment → `signStudentToken`, `middleware/auth.ts`
   `requireStudent`); the one-time enrollment code is only the gate for NEW students at `/enroll`. Tabs: Lessons (next-lesson
-  highlight, view/cancel/book, real `stats` from `/student/me` = completed/upcoming/total — NOT the double-counting
-  `classCount`), Chat (two-way, polling), Profile. A **"My account" button is in every template's nav** (desktop + mobile,
+  highlight, view/book — **students CANNOT cancel** (July 5): they see "contact your instructor to change/cancel"; only the
+  teacher cancels), real `stats` from `/student/me` = completed/upcoming/total — NOT the double-counting
+  `classCount`, Chat (two-way, polling), Profile. A **"My account" button is in every template's nav** (desktop + mobile,
   `data.accountUrl`, per-template ghost class — contrast-checked light/dark; `navAccount` in `templates/strings.ts`).
   Separate `studentApi` axios instance so the teacher token never leaks.
+- **Student pages are fully localized (July 5)** to the SITE's locale (not the browser). All copy in Enroll/BookLesson/
+  StudentAccount/LeaveReview + `TemplatedShell` goes through `lib/bookingStrings.ts` (`bookLocale(settings.locale)` +
+  `bookT(locale,key,vars)`, en/he/ar; EN byte-identical to before). Dates use `formatDateLongIn`/`formatWeekdayIn`
+  (`lib/utils.ts`) — words localize, **digits stay Latin (0-9)** via `numberingSystem:'latn'`+`calendar:'gregory'`.
+- **Logged-in students skip the email step (July 5)**: `BookLesson.tsx` on mount calls `studentTokenStore.activate(slug)`
+  → `studentPortalApi.me(settings.id)` → sets email/name and jumps straight to the time step (mirrors the magic-link path).
+- **No cancellation-window wording (July 5)**: removed every "Lessons can be cancelled up to 2 hours before…" / "~2 hours
+  before" line (no time calculations are exposed to students).
 - **Teacher chat inbox**: `pages/dashboard/Messages.tsx` (`/dashboard/messages`, nav entry). Prisma `Message` model
   (websiteId+enrollmentId cascade). Student→teacher messages create a `MESSAGE` notification.
 - **Per-teacher subdomains** `{slug}.mumotor.com`: host-aware routing is CODE-COMPLETE and DORMANT (`lib/tenant.ts`
@@ -151,6 +176,16 @@ template design** — they are NOT the old app "sand" look.
   domains). Sites are at `mumotor.com/p/:slug` today. The wizard done-screen shows the working `/p/:slug` URL.
 - **Teacher dashboard**: overview has a **"Copy link"** button beside the site URL (`Dashboard.tsx` `SiteOverview`); the
   empty state (no website) is a CTA to `/builder`.
+- **Schedule management (July 5)** (`pages/dashboard/DrivingSchool.tsx` `ScheduleTab`): a **Today / Tomorrow** toggle
+  (`GET /:websiteId/daily-report?day=today|tomorrow`); free slots have **"Add student"** → picks an ACTIVE student and
+  `POST /:websiteId/schedule/assign {enrollmentId,day,time}` books that slot exactly like a self-booking (CONFIRMED `Booking`
+  + `classCount++` in a txn, honouring `Booking_slot_unique`; P2002→409). Booked slots keep **Cancel** (already emails the
+  student + frees the slot; works for either day). Teacher edits do **not** auto-send a daily-schedule email — an **"Email me
+  the schedule"** button (`POST /:websiteId/schedule/email-me {day}`) sends the current day's report to the teacher on demand
+  (`sendEnhancedDailyReport` gained a `when:'today'|'tomorrow'`). `utils/time.ts` now exports `tomorrowUtcMidnight`.
+- **Email your students (July 5)**: `EmailTab` has an **"A group" / "Specific students"** toggle; specific mode shows a
+  checkbox list of ACTIVE students and sends `enrollmentIds` — the bulk-email route resolves recipients by
+  `id:{in:enrollmentIds}` scoped to `websiteId` (IDOR-safe), storing `targetGroup:'selected'` (no migration).
 
 ## Conventions
 - Generation is **deterministic** (presets + builder in `backend/src/services/ai/`), not a freeform AI call.
@@ -165,8 +200,17 @@ Most of the original July-2026 audit (`IMPROVEMENT_PLAN.md`) is now DONE. LIVE a
 keys set, media upload rate-limited + magic-byte validated) · password reset + email verification · public review
 submission + live testimonials · analytics (`AnalyticsEvent` + admin Events) · **all 12 templates trilingual HE/AR/EN + RTL**
 · server-side wizard drafts (`WizardDraft`) · SEO (title/OG/JSON-LD, robots, sitemap) · legacy 9-preset `EditorPage` retired
-(→ `/customize`) · **lesson cancellation** (teacher + student) · **student portal + account + chat** (see the student-experience
-section above) · **double-booking closed at the DB level** · themed booking/enroll/account.
+(→ `/customize`) · **lesson cancellation** (teacher-only; students are told to contact the instructor) · **student portal +
+account + chat** (see the student-experience section above) · **double-booking closed at the DB level** · themed
+booking/enroll/account.
+
+**July 5 (later) batch — 16 fixes:** builder Design step (no concept strip → "Choose another template"); templates fully
+honour locale + transmission + **₪** currency (auto-fill sample + About/credential/FAQ all localized); Customize (controls
+above short items, FAQ open + clean new-answer in editing, reliable window-level drag-reorder, Save toast bottom-center,
+bigger instructor photo); student pages fully localized (Latin digits) + logged-in students skip the email step + students
+can no longer cancel + no "2-hour" wording; teacher **Today/Tomorrow schedule** with add-student-to-slot + cancel +
+**"Email me the schedule"**; **email specific students**; open-road **footer scrollbar-flicker** fixed
+(`overflow-x:hidden` + px grain keyframes).
 
 **Still open (real):**
 - **Media storage ephemeral**: uploads to local `/uploads` are on a Railway volume now, but `Media.cdnUrl` is still null (no S3/R2/CDN).
@@ -184,5 +228,7 @@ section above) · **double-booking closed at the DB level** · themed booking/en
 - Frontend E2E: `WEB=http://localhost:<port> node packages/frontend/e2e/features.e2e.mjs`. Playwright/chromium live in
   `packages/frontend/node_modules` (not global) — run from the repo root so the local package resolves.
 - GOTCHAS: the integration "tomorrow excludes booked 09:00/10:00" check needs a **fresh** `npm run db:seed` (the seed
-  books *its* tomorrow, which drifts day-to-day). Don't run the integration suite twice within 60s — enroll/book
-  **rate-limit** and you'll see a transient `RATE_LIMITED` → bad-UUID cascade (not a regression).
+  books *its* tomorrow, which drifts day-to-day). The suite **books slots that persist**, so re-running against a dirty DB
+  can fail the date-drift assertions (e.g. "availability has morning slots" on a Friday) — do a clean
+  `npx prisma migrate reset --force` (reseeds) before a fresh run. Don't run the integration suite twice within 60s —
+  enroll/book **rate-limit** and you'll see a transient `RATE_LIMITED` → bad-UUID cascade (not a regression).

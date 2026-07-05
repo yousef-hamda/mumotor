@@ -7,6 +7,7 @@ import type {
   DrivingSettings,
   PublicSettings,
   Review,
+  ScheduleDay,
   Student,
   StudentsResponse,
   SubscriptionInfo,
@@ -333,13 +334,32 @@ export const drivingSchoolApi = {
     api.patch<{ enrollment: Student }>(`/driving-school/${websiteId}/students/${enrollmentId}/toggle-status`).then((r) => r.data),
   removeStudent: (websiteId: string, enrollmentId: string) =>
     api.delete<{ deleted: boolean }>(`/driving-school/${websiteId}/students/${enrollmentId}`).then((r) => r.data),
-  getDailyReport: (websiteId: string) =>
-    api.get<DailyReport>(`/driving-school/${websiteId}/daily-report`).then((r) => r.data),
+  getDailyReport: (websiteId: string, day?: ScheduleDay) =>
+    api
+      .get<DailyReport>(`/driving-school/${websiteId}/daily-report`, { params: day ? { day } : undefined })
+      .then((r) => r.data),
   cancelBooking: (websiteId: string, bookingId: string) =>
     api.post<{ cancelled: boolean }>(`/driving-school/${websiteId}/bookings/${bookingId}/cancel`).then((r) => r.data),
+  assignStudentToSlot: (
+    websiteId: string,
+    data: { enrollmentId: string; day: ScheduleDay; time: string }
+  ) =>
+    api
+      .post<{ booking: { id: string; date: string; time: string; duration: number; status: string } }>(
+        `/driving-school/${websiteId}/schedule/assign`,
+        data
+      )
+      .then((r) => r.data),
+  emailMeSchedule: (websiteId: string, data: { day: ScheduleDay }) =>
+    api
+      .post<{ sent: boolean }>(`/driving-school/${websiteId}/schedule/email-me`, data)
+      .then((r) => r.data),
   getDailyCode: (websiteId: string) =>
     api.get<DailyCode>(`/driving-school/${websiteId}/daily-code`).then((r) => r.data),
-  sendBulkEmail: (websiteId: string, data: { subject: string; body: string; targetGroup: 'all' | 'active' | 'inactive' }) =>
+  sendBulkEmail: (
+    websiteId: string,
+    data: { subject: string; body: string; targetGroup?: 'all' | 'active' | 'inactive'; enrollmentIds?: string[] }
+  ) =>
     api
       .post<{ id: string; recipients: number; sentCount: number; failedCount: number; status: string }>(
         `/driving-school/${websiteId}/bulk-email`,

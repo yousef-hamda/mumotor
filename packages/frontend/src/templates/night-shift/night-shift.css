@@ -774,8 +774,8 @@
 }
 
 .tmpl-night-shift .ns-instr-photo {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

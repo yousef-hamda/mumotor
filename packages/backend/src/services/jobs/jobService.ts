@@ -3,7 +3,7 @@ import type { Website, SiteSettings, User, ClientEnrollment } from '@prisma/clie
 import { prisma } from '../../lib/prisma.js';
 import { logger } from '../../lib/logger.js';
 import { env } from '../../config/env.js';
-import { nowInZone, parseTimeToMinutes, toUtcMidnight, todayUtcMidnight } from '../../utils/time.js';
+import { nowInZone, parseTimeToMinutes, toUtcMidnight, todayUtcMidnight, tomorrowUtcMidnight } from '../../utils/time.js';
 import { buildDaySchedule, ensureDailyCode, normalizeConfig } from '../scheduling/schedulingService.js';
 import {
   sendBookingReminder,
@@ -23,13 +23,6 @@ function lessonDateTime(date: Date, time: string): Date {
   const d = new Date(date);
   d.setUTCHours(h || 0, m || 0, 0, 0);
   return d;
-}
-
-/** UTC-midnight date of tomorrow. */
-function tomorrowUtcMidnight(): Date {
-  const t = todayUtcMidnight();
-  t.setUTCDate(t.getUTCDate() + 1);
-  return t;
 }
 
 /** Every 15 min: email students ~2h before their lesson, set reminderSent. */

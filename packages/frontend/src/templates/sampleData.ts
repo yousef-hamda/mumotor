@@ -70,7 +70,7 @@ export const sampleData: TemplateData = {
       duration: 60,
       popular: true,
       badge: 'Most popular',
-      features: ['10 × 60-min lessons', 'Mock test included', 'Theory support app', 'Save £30 vs single lessons', 'Flexible rescheduling'],
+      features: ['10 × 60-min lessons', 'Mock test included', 'Theory support app', 'Save ₪30 vs single lessons', 'Flexible rescheduling'],
     },
     {
       id: 'intensive',

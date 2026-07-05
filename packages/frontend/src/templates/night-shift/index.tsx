@@ -16,7 +16,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { fmt } from '../strings';
 import { nsStrings, type NsStrings } from './strings';
@@ -90,6 +90,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
   const reduced = usePrefersReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
+  const editing = useIsEditing();
 
   // Parallax hero beams
   const heroRef = useRef<HTMLElement>(null);
@@ -268,7 +269,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   {pkg.badge && <span className="ns-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                   <h3 className="ns-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                   <div className="ns-pkg-price">
-                    <span className="ns-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                    <span className="ns-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                     {pkg.unit && <span className="ns-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </div>
                   {pkg.duration && (
@@ -443,7 +444,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   index={i}
                   q={faq.q}
                   a={faq.a}
-                  open={activeFaq === faq.q}
+                  open={editing || activeFaq === faq.q}
                   onToggle={() => setActiveFaq(v => v === faq.q ? null : faq.q)}
                 />
               </Reveal>

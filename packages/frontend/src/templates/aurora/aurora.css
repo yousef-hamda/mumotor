@@ -113,7 +113,7 @@
 .tmpl-aurora .au-about-frame { border-radius: 24px; overflow: hidden; box-shadow: 0 40px 80px -50px rgba(45,70,140,0.55); }
 .tmpl-aurora .au-about-img { width: 100%; height: clamp(300px, 40vw, 440px); object-fit: cover; }
 .tmpl-aurora .au-instructor { position: absolute; left: 22px; bottom: -24px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; background: var(--au-glass); border: 1px solid var(--au-glass-border); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-.tmpl-aurora .au-instructor-photo { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+.tmpl-aurora .au-instructor-photo { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; }
 .tmpl-aurora .au-instructor-name { font-weight: 700; font-size: 15px; margin: 0; color: var(--au-ink); }
 .tmpl-aurora .au-instructor-title { font-size: 12.5px; color: var(--au-muted); margin: 1px 0 0; }
 .tmpl-aurora .au-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 13px; }

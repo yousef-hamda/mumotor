@@ -19,6 +19,7 @@ import {
   X,
   Send,
   ExternalLink,
+  UserPlus,
 } from 'lucide-react';
 import { apiError, drivingSchoolApi, websiteApi } from '../../lib/api';
 import {
@@ -36,12 +37,12 @@ import {
 } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import { WEEKDAYS, formatDate, formatDateLong, titleCase } from '../../lib/utils';
-import type { BusinessHours, DrivingSettings, Student, Website } from '../../lib/types';
+import type { BusinessHours, DrivingSettings, ScheduleDay, Student, Website } from '../../lib/types';
 
 const TABS = [
   { key: 'code', label: 'Enrollment Code', icon: KeyRound },
   { key: 'students', label: 'Students', icon: Users },
-  { key: 'schedule', label: "Today's Schedule", icon: CalendarDays },
+  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
   { key: 'email', label: 'Email', icon: Mail },
   { key: 'settings', label: 'Settings', icon: SettingsIcon },
 ] as const;
@@ -432,24 +433,55 @@ function StudentsTab({ website }: { website: Website }) {
 }
 
 // ===========================================================================
-// Tab: Today's Schedule
+// Tab: Schedule (Today / Tomorrow)
 // ===========================================================================
 function ScheduleTab({ website }: { website: Website }) {
   const qc = useQueryClient();
+  const [day, setDay] = useState<ScheduleDay>('today');
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['daily-report', website.id],
-    queryFn: () => drivingSchoolApi.getDailyReport(website.id),
+    queryKey: ['daily-report', website.id, day],
+    queryFn: () => drivingSchoolApi.getDailyReport(website.id, day),
   });
   const [cancelTarget, setCancelTarget] = useState<{ bookingId: string; time: string; studentName?: string } | null>(null);
+  const [assignTime, setAssignTime] = useState<string | null>(null);
+  const [studentSearch, setStudentSearch] = useState('');
+
+  const invalidateReport = () => qc.invalidateQueries({ queryKey: ['daily-report', website.id] });
 
   const cancelBooking = useMutation({
     mutationFn: (bookingId: string) => drivingSchoolApi.cancelBooking(website.id, bookingId),
     onSuccess: () => {
       toast.success('Lesson cancelled — the student was emailed and the slot is free again');
       setCancelTarget(null);
-      qc.invalidateQueries({ queryKey: ['daily-report', website.id] });
+      invalidateReport();
     },
     onError: (e) => toast.error(apiError(e).message),
+  });
+
+  const assign = useMutation({
+    mutationFn: (enrollmentId: string) =>
+      drivingSchoolApi.assignStudentToSlot(website.id, { enrollmentId, day, time: assignTime! }),
+    onSuccess: () => {
+      toast.success('Student booked into the slot');
+      setAssignTime(null);
+      setStudentSearch('');
+      invalidateReport();
+    },
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
+  const emailMe = useMutation({
+    mutationFn: () => drivingSchoolApi.emailMeSchedule(website.id, { day }),
+    onSuccess: () => toast.success(`The ${day}'s schedule was emailed to you`),
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
+  // Active students for the "add student to this slot" picker — only fetched while the modal is open.
+  const { data: pickerStudents, isLoading: pickerLoading } = useQuery({
+    queryKey: ['students', website.id, 'schedule-picker', studentSearch],
+    queryFn: () =>
+      drivingSchoolApi.listStudents(website.id, { status: 'ACTIVE', search: studentSearch, limit: 50 }),
+    enabled: assignTime !== null,
   });
 
   if (isLoading) return <CenteredSpinner />;
@@ -460,7 +492,7 @@ function ScheduleTab({ website }: { website: Website }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold tracking-tight text-sand-900">
-            {data ? formatDateLong(data.date) : 'Today'}
+            {data ? formatDateLong(data.date) : titleCase(day)}
           </h3>
           {data?.isOpen ? (
             <p className="mt-0.5 text-sm text-sand-600">
@@ -469,18 +501,41 @@ function ScheduleTab({ website }: { website: Website }) {
               <span className="font-semibold tabular-nums text-sand-900">{data.totals.empty}</span> free
             </p>
           ) : (
-            <p className="mt-0.5 text-sm text-sand-600">Closed today</p>
+            <p className="mt-0.5 text-sm text-sand-600">Closed {day}</p>
           )}
         </div>
-        <Button variant="secondary" onClick={() => refetch()} loading={isFetching}>
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Today / Tomorrow segmented control */}
+          <div className="flex gap-1 rounded-lg border border-sand-200 bg-sand-100 p-1">
+            {(['today', 'tomorrow'] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDay(d)}
+                aria-current={day === d ? 'page' : undefined}
+                className={
+                  day === d
+                    ? 'rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-sand-900 shadow-sm transition-colors'
+                    : 'rounded-md px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:text-sand-900'
+                }
+              >
+                {titleCase(d)}
+              </button>
+            ))}
+          </div>
+          <Button variant="secondary" onClick={() => emailMe.mutate()} loading={emailMe.isPending}>
+            <Mail className="h-4 w-4" /> Email me the schedule
+          </Button>
+          <Button variant="secondary" onClick={() => refetch()} loading={isFetching}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
       </div>
 
       {!data || data.slots.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-10 w-10" />}
-          title={data?.isOpen ? 'No slots today' : 'Closed today'}
+          title={data?.isOpen ? `No slots ${day}` : `Closed ${day}`}
           description="Adjust your working hours in Settings."
         />
       ) : (
@@ -502,7 +557,7 @@ function ScheduleTab({ website }: { website: Website }) {
                   <span className="chip bg-sand-200 text-sand-600">Free</span>
                 )}
               </div>
-              {slot.booked && (
+              {slot.booked ? (
                 <div className="mt-2">
                   <p className="font-semibold text-sand-900">{slot.studentName}</p>
                   {slot.studentPhone && (
@@ -520,6 +575,14 @@ function ScheduleTab({ website }: { website: Website }) {
                     </button>
                   )}
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAssignTime(slot.time)}
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sun-600 hover:underline"
+                >
+                  <UserPlus className="h-3.5 w-3.5" /> Add student
+                </button>
               )}
             </div>
           ))}
@@ -543,6 +606,49 @@ function ScheduleTab({ website }: { website: Website }) {
           </Button>
         </div>
       </Modal>
+
+      <Modal
+        open={assignTime !== null}
+        onClose={() => {
+          setAssignTime(null);
+          setStudentSearch('');
+        }}
+        title={`Book a student at ${assignTime ?? ''}`}
+      >
+        <div className="space-y-3">
+          <Input
+            value={studentSearch}
+            onChange={(e) => setStudentSearch(e.target.value)}
+            placeholder="Search active students by name or email…"
+            autoFocus
+          />
+          <div className="max-h-72 overflow-y-auto rounded-lg border border-sand-200">
+            {pickerLoading ? (
+              <CenteredSpinner />
+            ) : !pickerStudents || pickerStudents.students.length === 0 ? (
+              <p className="p-4 text-sm text-sand-500">No active students found.</p>
+            ) : (
+              pickerStudents.students.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={assign.isPending}
+                  onClick={() => assign.mutate(s.id)}
+                  className="flex w-full items-center justify-between border-b border-sand-100 px-4 py-3 text-start last:border-b-0 hover:bg-sand-50 disabled:opacity-50"
+                >
+                  <span>
+                    <span className="block font-medium text-sand-900">{s.studentName}</span>
+                    <span className="block text-xs text-sand-500">{s.studentEmail}</span>
+                  </span>
+                  {assign.isPending && assign.variables === s.id && (
+                    <span className="text-xs text-sand-400">Booking…</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </Modal>
     </Card>
   );
 }
@@ -551,47 +657,119 @@ function ScheduleTab({ website }: { website: Website }) {
 // Tab: Email
 // ===========================================================================
 function EmailTab({ website }: { website: Website }) {
+  const [mode, setMode] = useState<'group' | 'specific'>('group');
   const [targetGroup, setTargetGroup] = useState<'all' | 'active' | 'inactive'>('active');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
 
+  const { data: pickerStudents, isLoading: pickerLoading } = useQuery({
+    queryKey: ['students', website.id, 'email-picker'],
+    queryFn: () => drivingSchoolApi.listStudents(website.id, { status: 'ACTIVE', limit: 100 }),
+    enabled: mode === 'specific',
+  });
+
   const send = useMutation({
-    mutationFn: () => drivingSchoolApi.sendBulkEmail(website.id, { subject, body, targetGroup }),
+    mutationFn: () =>
+      drivingSchoolApi.sendBulkEmail(
+        website.id,
+        mode === 'specific'
+          ? { subject, body, enrollmentIds: selectedIds }
+          : { subject, body, targetGroup }
+      ),
     onSuccess: (res) => {
       toast.success(
         `Sent to ${res.sentCount} student(s)${res.failedCount ? `, ${res.failedCount} failed` : ''}`
       );
       setSubject('');
       setBody('');
+      setSelectedIds([]);
     },
     onError: (e) => toast.error(apiError(e).message),
   });
+
+  const toggleStudent = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   return (
     <Card className="mx-auto max-w-2xl">
       <h3 className="text-xl font-semibold tracking-tight text-sand-900">
         Email your students
       </h3>
-      <p className="mt-1 text-sm text-sand-600">Send an announcement to a group of students.</p>
+      <p className="mt-1 text-sm text-sand-600">Send an announcement to a group, or pick specific students.</p>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (!subject.trim() || !body.trim()) return toast.error('Subject and message are required');
+          if (mode === 'specific' && selectedIds.length === 0) {
+            return toast.error('Select at least one student');
+          }
           send.mutate();
         }}
         className="mt-6 space-y-4"
       >
         <Field label="Send to">
-          <Select
-            value={targetGroup}
-            onChange={(e) => setTargetGroup(e.target.value as typeof targetGroup)}
-          >
-            <option value="all">All students</option>
-            <option value="active">Active students</option>
-            <option value="inactive">Inactive students</option>
-          </Select>
+          <div className="flex gap-1 rounded-lg border border-sand-200 bg-sand-100 p-1">
+            {(['group', 'specific'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                aria-current={mode === m ? 'page' : undefined}
+                className={
+                  mode === m
+                    ? 'flex-1 rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-sand-900 shadow-sm transition-colors'
+                    : 'flex-1 rounded-md px-4 py-1.5 text-sm font-medium text-sand-600 transition-colors hover:text-sand-900'
+                }
+              >
+                {m === 'group' ? 'A group' : 'Specific students'}
+              </button>
+            ))}
+          </div>
         </Field>
+
+        {mode === 'group' ? (
+          <Field label="Group">
+            <Select
+              value={targetGroup}
+              onChange={(e) => setTargetGroup(e.target.value as typeof targetGroup)}
+            >
+              <option value="all">All students</option>
+              <option value="active">Active students</option>
+              <option value="inactive">Inactive students</option>
+            </Select>
+          </Field>
+        ) : (
+          <Field label={`Students (${selectedIds.length} selected)`}>
+            <div className="max-h-56 overflow-y-auto rounded-lg border border-sand-200">
+              {pickerLoading ? (
+                <CenteredSpinner />
+              ) : !pickerStudents || pickerStudents.students.length === 0 ? (
+                <p className="p-4 text-sm text-sand-500">No active students found.</p>
+              ) : (
+                pickerStudents.students.map((s) => (
+                  <label
+                    key={s.id}
+                    className="flex cursor-pointer items-center gap-3 border-b border-sand-100 px-4 py-2.5 last:border-b-0 hover:bg-sand-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(s.id)}
+                      onChange={() => toggleStudent(s.id)}
+                      className="h-4 w-4 rounded border-sand-300 text-sun-600 focus:ring-sun-500"
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-sand-900">{s.studentName}</span>
+                      <span className="block text-xs text-sand-500">{s.studentEmail}</span>
+                    </span>
+                  </label>
+                ))
+              )}
+            </div>
+          </Field>
+        )}
+
         <Field label="Subject">
           <Input
             value={subject}

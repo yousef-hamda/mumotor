@@ -16,7 +16,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { pgStrings } from './strings';
 import './prestige.css';
@@ -89,6 +89,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
   const reduced = usePrefersReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
+  const editing = useIsEditing();
 
   // Parallax — hero
   const heroRef = useRef<HTMLElement>(null);
@@ -241,7 +242,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   {pkg.badge && <span className="pd-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                   <h3 className="pd-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                   <div className="pd-pkg-price">
-                    <span className="pd-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                    <span className="pd-pkg-amount tabular-nums" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                     {pkg.unit && <span className="pd-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </div>
                   {pkg.duration && (
@@ -404,7 +405,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             {data.faqs.map((faq, i) => (
               <Reveal key={faq.q} delay={i * 0.07}>
                 <FaqItem q={faq.q} a={faq.a} editIndex={i}
-                  open={activeFaq === faq.q}
+                  open={editing || activeFaq === faq.q}
                   onToggle={() => setActiveFaq(v => v === faq.q ? null : faq.q)} />
               </Reveal>
             ))}

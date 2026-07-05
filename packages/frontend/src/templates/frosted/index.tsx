@@ -16,7 +16,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp, useMouseTilt, useScrollParallax,
-  usePrefersReducedMotion, useGsapScrollTrigger,
+  usePrefersReducedMotion, useGsapScrollTrigger, useIsEditing,
 } from '../shared';
 import { frStrings, type FrStrings } from './strings';
 import './frosted.css';
@@ -302,7 +302,7 @@ function FrPackages({ data }: { data: TemplateData }) {
                   )}
                   <p className="fr-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                   <p className="fr-pkg-price">
-                    <span className="fr-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                    <span className="fr-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                     {pkg.unit && <span className="fr-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                   <ul className="fr-pkg-features">
@@ -507,12 +507,14 @@ function FrGallery({ data }: { data: TemplateData }) {
 
 function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: number }) {
   const [open, setOpen] = useState(false);
+  const editing = useIsEditing();
+  const isOpen = editing || open;
   return (
     <FrGlass className="fr-faq-item" data-edit-item={`faqs.${index}`}>
-      <button className="fr-faq-q" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button className="fr-faq-q" aria-expanded={isOpen} onClick={() => setOpen(!open)}>
         <span data-edit={`faqs.${index}.q`} data-edit-type="text">{faq.q}</span>
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3 }}
           className="fr-faq-chev"
           aria-hidden="true"
@@ -521,7 +523,7 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
         </motion.span>
       </button>
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

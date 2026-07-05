@@ -482,7 +482,7 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
     aboutHeading: 'Calm, patient, and on your side',
     aboutBody: [
       'No shouting, no clipboard energy. Just clear, steady guidance from someone who has helped over 1,200 people earn their licence.',
-      'Lessons are tailored to you — nervous beginner or test-ready, manual or automatic. We go at your pace and celebrate the small wins.',
+      'Lessons are tailored to you — nervous beginner or test-ready, {trans}. We go at your pace and celebrate the small wins.',
     ],
     aboutChecklist: [
       'One-to-one, never doubled-up',
@@ -498,7 +498,7 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
     aboutHeading: 'רגוע, סבלני, ולצידך',
     aboutBody: [
       'בלי צעקות ובלי לחץ. רק הדרכה ברורה ויציבה ממי שכבר עזר למאות תלמידים להוציא רישיון.',
-      'השיעורים מותאמים אליך — מתחיל לחוץ או מוכן לטסט, ידני או אוטומט. מתקדמים בקצב שלך וחוגגים כל הצלחה קטנה.',
+      'השיעורים מותאמים אליך — מתחיל לחוץ או מוכן לטסט, {trans}. מתקדמים בקצב שלך וחוגגים כל הצלחה קטנה.',
     ],
     aboutChecklist: [
       'אחד על אחד, אף פעם לא בזוגות',
@@ -514,7 +514,7 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
     aboutHeading: 'هادئ وصبور وإلى جانبك',
     aboutBody: [
       'بلا صراخ وبلا توتر. فقط توجيه واضح وثابت من مدرّب ساعد مئات الطلاب في الحصول على الرخصة.',
-      'الدروس مصمّمة لك — مبتدئ متوتر أو جاهز للاختبار، يدوي أو أوتوماتيك. نتقدّم بوتيرتك ونحتفل بكل إنجاز صغير.',
+      'الدروس مصمّمة لك — مبتدئ متوتر أو جاهز للاختبار، {trans}. نتقدّم بوتيرتك ونحتفل بكل إنجاز صغير.',
     ],
     aboutChecklist: [
       'فردي دائماً، لا دروس مزدوجة',
@@ -526,6 +526,35 @@ const DATA_DEFAULTS: Record<Locale, DataDefaults> = {
   },
 };
 
-export function dataDefaults(locale?: Locale): DataDefaults {
-  return DATA_DEFAULTS[locale ?? 'en'] ?? DATA_DEFAULTS.en;
+type Trans = 'manual' | 'automatic' | 'both';
+
+/** Localized transmission clauses so the About copy + credential chip reflect the
+ *  teacher's actual transmission choice (the `both` values byte-match the old literals). */
+const TRANS_CLAUSE: Record<Locale, Record<Trans, { about: string; credential: string }>> = {
+  en: {
+    both: { about: 'manual or automatic', credential: 'Manual & Automatic' },
+    manual: { about: 'manual', credential: 'Manual transmission' },
+    automatic: { about: 'automatic', credential: 'Automatic transmission' },
+  },
+  he: {
+    both: { about: 'ידני או אוטומט', credential: 'ידני ואוטומט' },
+    manual: { about: 'ידני', credential: 'רכב ידני' },
+    automatic: { about: 'אוטומט', credential: 'רכב אוטומטי' },
+  },
+  ar: {
+    both: { about: 'يدوي أو أوتوماتيك', credential: 'يدوي وأوتوماتيك' },
+    manual: { about: 'يدوي', credential: 'ناقل يدوي' },
+    automatic: { about: 'أوتوماتيك', credential: 'ناقل أوتوماتيكي' },
+  },
+};
+
+export function dataDefaults(locale?: Locale, transmission: Trans = 'both'): DataDefaults {
+  const base = DATA_DEFAULTS[locale ?? 'en'] ?? DATA_DEFAULTS.en;
+  const tc = (TRANS_CLAUSE[locale ?? 'en'] ?? TRANS_CLAUSE.en)[transmission];
+  return {
+    ...base,
+    aboutBody: [base.aboutBody[0], fmt(base.aboutBody[1], { trans: tc.about })],
+    // credentials[2] is the transmission chip — reflect the actual choice.
+    credentials: base.credentials.map((c, i) => (i === 2 ? tc.credential : c)),
+  };
 }

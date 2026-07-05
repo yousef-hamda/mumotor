@@ -8,7 +8,7 @@ import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
-import { TEMPLATES, getTemplate, type TemplateMeta } from '../../templates/registry';
+import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
 import { wizardToTemplateData } from '../../templates/fromWizard';
 import { TemplateRender } from '../../templates/TemplateRender';
 import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
@@ -215,7 +215,6 @@ export default function BuilderWizard() {
         {step === 'design' && (
           <DesignPreviewStep
             config={config}
-            onPick={(id) => set('templateChoice', id)}
             onBack={() => setStep('browse')}
             onCustomize={() => setStep('customize')}
             onPublish={() => (user ? doPublish() : setStep('account'))}
@@ -732,42 +731,19 @@ function BrowseCard({ t, sel, onPick, initialAccent }: { t: TemplateMeta; sel: b
 
 // ── Step 5: Design + live preview (pick = instant live) ──────────────────────
 
-function DesignPreviewStep({ config, onPick, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onPick: (id: string) => void; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
+function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing }: { config: WizardConfig; onBack: () => void; onCustomize: () => void; onPublish: () => void; publishing: boolean }) {
   const data = useMemo(() => wizardToTemplateData(config), [config]);
   const selected = config.templateChoice || TEMPLATES[0].slug;
-  const meta = getTemplate(selected) ?? TEMPLATES[0];
   return (
     <FadeUp className="w-full">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
-          <ArrowLeft className="h-4 w-4" /> Back
+          <ArrowLeft className="h-4 w-4" /> Choose another template
         </button>
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> Customize</Button>
           <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">Publish my site <ArrowRight className="h-4 w-4" /></Button>
         </div>
-      </div>
-
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-sand-900">Pick a design — it previews live</h1>
-        <span className="hidden text-sm text-sand-500 sm:block"><span className="font-medium" style={{ color: meta.accent }}>{meta.name}</span> · {meta.style}</span>
-      </div>
-
-      {/* Live concept selector — clicking swaps the live preview instantly */}
-      <div className="mb-4 flex gap-3 overflow-x-auto pb-2">
-        {TEMPLATES.map((t) => {
-          const sel = selected === t.slug;
-          return (
-            <button key={t.slug} onClick={() => onPick(t.slug)} aria-pressed={sel} title={`${t.name} · ${t.style}`}
-              className={cn('group relative w-[150px] shrink-0 overflow-hidden rounded-xl border bg-white text-start transition-all duration-200', sel ? 'border-sand-900 ring-2 ring-sand-900/15' : 'border-sand-200 hover:border-sand-300')}>
-              <div className="relative aspect-[16/10] overflow-hidden" style={{ background: t.bg }}>
-                <TemplateConcept meta={t} />
-                {sel && <span className="absolute right-1.5 top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-sand-900 text-white shadow"><Check className="h-3 w-3" strokeWidth={2.5} /></span>}
-              </div>
-              <span className="block truncate px-3 py-2 text-[13px] font-semibold tracking-tight text-sand-900">{t.name}</span>
-            </button>
-          );
-        })}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
@@ -779,7 +755,7 @@ function DesignPreviewStep({ config, onPick, onBack, onCustomize, onPublish, pub
           <TemplateRender slug={selected} data={data} />
         </div>
       </div>
-      <p className="mt-3 text-center text-xs text-sand-500">Click any design above to preview it live — every button works. Use <strong>Customize</strong> to change colours, text, icons and photos.</p>
+      <p className="mt-3 text-center text-xs text-sand-500">Use <strong>Customize</strong> to change colours, text, icons and photos, or <strong>Choose another template</strong> to switch designs.</p>
     </FadeUp>
   );
 }

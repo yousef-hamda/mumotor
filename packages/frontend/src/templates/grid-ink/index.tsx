@@ -18,7 +18,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, usePrefersReducedMotion,
+  Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import { fmt } from '../strings';
 import { giStrings, type GiStrings } from './strings';
@@ -263,7 +263,7 @@ function GIPackages({
                     <p className="gi-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</p>
                   </div>
                   <p className="gi-pkg-price">
-                    <span className="gi-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                    <span className="gi-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                     {pkg.unit && <span className="gi-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                   </p>
                 </div>
@@ -430,6 +430,8 @@ function GIGallery({ gallery, copy, locale }: { gallery: TemplateData['gallery']
 
 function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: number }) {
   const [open, setOpen] = useState(false);
+  const editing = useIsEditing();
+  const isOpen = editing || open;
   const btnId = `gi-faq-q-${index}`;
   const panelId = `gi-faq-a-${index}`;
   return (
@@ -437,14 +439,14 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
       <button
         className="gi-faq-q"
         id={btnId}
-        aria-expanded={open}
+        aria-expanded={isOpen}
         aria-controls={panelId}
         onClick={() => setOpen(!open)}
       >
         <span className="gi-mono gi-faq-n">{String(index + 1).padStart(2, '0')}</span>
         <span className="gi-faq-question" data-edit={`faqs.${index}.q`} data-edit-type="text">{faq.q}</span>
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="gi-faq-chevron"
           aria-hidden="true"
@@ -453,7 +455,7 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
         </motion.span>
       </button>
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             id={panelId}
             role="region"

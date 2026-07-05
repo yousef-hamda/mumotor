@@ -485,8 +485,8 @@
   gap: 0.9rem;
 }
 .tmpl-full-throttle .ft-instructor-photo {
-  width: 54px;
-  height: 54px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
   border: var(--border);
   flex-shrink: 0;

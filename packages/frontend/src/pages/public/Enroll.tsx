@@ -7,6 +7,7 @@ import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { apiError, drivingSchoolApi } from '../../lib/api';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
+import { bookLocale, bookT } from '../../lib/bookingStrings';
 import {
   TemplatedShell,
   BookButton,
@@ -23,6 +24,8 @@ export default function Enroll() {
     queryFn: () => drivingSchoolApi.getPublicSettings(websiteSlug),
     retry: false,
   });
+
+  const L = bookLocale(settings?.locale);
 
   const [form, setForm] = useState({ studentName: '', studentEmail: '', studentPhone: '', enrollmentCode: '' });
   const [done, setDone] = useState(false);
@@ -54,6 +57,7 @@ export default function Enroll() {
     slug,
     theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
     dir: dirForLocale(settings?.locale),
+    locale: settings?.locale,
     schoolName: settings?.name,
     logoSrc: settings?.logoSrc,
     publicSlug: websiteSlug,
@@ -62,15 +66,15 @@ export default function Enroll() {
   if (isLoading)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
-        <BookSpinner label="Loading…" />
+        <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
   if (isError || !settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
         <BookCard>
-          <h1 className="book-title">School not found</h1>
-          <p className="book-sub">This enrollment link may be incorrect or no longer active.</p>
+          <h1 className="book-title">{bookT(L, 'schoolNotFound')}</h1>
+          <p className="book-sub">{bookT(L, 'notFoundEnroll')}</p>
         </BookCard>
       </TemplatedShell>
     );
@@ -86,18 +90,18 @@ export default function Enroll() {
             <CheckCircle2 style={{ height: '2.2rem', width: '2.2rem' }} strokeWidth={1.75} />
           </div>
           <h1 className="book-title" style={{ marginTop: '1rem', textAlign: 'center' }}>
-            {alreadyEnrolled ? "You're already enrolled" : "You're enrolled"}
+            {alreadyEnrolled ? bookT(L, 'alreadyEnrolledTitle') : bookT(L, 'enrolledTitle')}
           </h1>
           <p className="book-sub" style={{ textAlign: 'center' }}>
             {alreadyEnrolled
-              ? 'This email is already registered. You can go straight to booking your next lesson.'
-              : `Welcome to ${settings.name}. You can book a lesson online whenever it suits you.`}
+              ? bookT(L, 'alreadyEnrolledSub')
+              : bookT(L, 'enrolledSub', { name: settings.name })}
           </p>
           <Link to={bookHref} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.4rem' }}>
-            Book a lesson <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+            {bookT(L, 'bookLesson')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
           </Link>
           <Link to={accountHref} className="book-btn book-btn-secondary book-btn-block" style={{ marginTop: '0.6rem' }}>
-            Go to my account
+            {bookT(L, 'goToAccount')}
           </Link>
         </BookCard>
       </TemplatedShell>
@@ -106,49 +110,49 @@ export default function Enroll() {
   return (
     <TemplatedShell {...shellProps}>
       <BookCard>
-        <p className="book-eyebrow">Student enrollment</p>
+        <p className="book-eyebrow">{bookT(L, 'enrollEyebrow')}</p>
         <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
-          Enroll at {settings.name}
+          {bookT(L, 'enrollTitle', { name: settings.name })}
         </h1>
-        <p className="book-sub">Enter your details and the code your instructor gave you to get started.</p>
+        <p className="book-sub">{bookT(L, 'enrollHelper')}</p>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
-            if (!/^[+\d][\d\s-]{6,18}$/.test(form.studentPhone.trim())) return toast.error('Please enter a valid phone number');
-            if (form.enrollmentCode.trim().length < 4) return toast.error('Enrollment code looks too short');
+            if (form.studentName.trim().length < 2) return toast.error(bookT(L, 'errName'));
+            if (!/^[+\d][\d\s-]{6,18}$/.test(form.studentPhone.trim())) return toast.error(bookT(L, 'errPhone'));
+            if (form.enrollmentCode.trim().length < 4) return toast.error(bookT(L, 'errCodeShort'));
             enroll.mutate();
           }}
           style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
         >
-          <BookField label="Full name">
-            <BookInput value={form.studentName} onChange={set('studentName')} placeholder="Jane Doe" required />
+          <BookField label={bookT(L, 'fullName')}>
+            <BookInput value={form.studentName} onChange={set('studentName')} placeholder={bookT(L, 'phName')} required />
           </BookField>
-          <BookField label="Email">
-            <BookInput type="email" value={form.studentEmail} onChange={set('studentEmail')} placeholder="jane@example.com" required />
+          <BookField label={bookT(L, 'emailLabel')}>
+            <BookInput type="email" value={form.studentEmail} onChange={set('studentEmail')} placeholder={bookT(L, 'phEmail')} required />
           </BookField>
-          <BookField label="Phone">
-            <BookInput type="tel" value={form.studentPhone} onChange={set('studentPhone')} placeholder="+972 50 123 4567" required />
+          <BookField label={bookT(L, 'phoneLabel')}>
+            <BookInput type="tel" value={form.studentPhone} onChange={set('studentPhone')} placeholder={bookT(L, 'phPhone')} required />
           </BookField>
-          <BookField label="Enrollment code">
+          <BookField label={bookT(L, 'enrollmentCode')}>
             <BookInput
               value={form.enrollmentCode}
               onChange={set('enrollmentCode')}
-              placeholder="e.g. DRIVE2026"
+              placeholder={bookT(L, 'phCode')}
               style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }}
               required
             />
           </BookField>
           <BookButton variant="primary" type="submit" loading={enroll.isPending} className="book-btn-block">
-            Enroll
+            {bookT(L, 'enroll')}
           </BookButton>
         </form>
 
         <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
-          Already enrolled?{' '}
+          {bookT(L, 'alreadyEnrolledQ')}{' '}
           <Link to={bookHref} className="book-link">
-            Book a lesson
+            {bookT(L, 'bookLesson')}
           </Link>
         </p>
       </BookCard>

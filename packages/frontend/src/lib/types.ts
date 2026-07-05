@@ -123,6 +123,8 @@ export interface DailyReport {
   totals: { booked: number; empty: number; total: number };
 }
 
+export type ScheduleDay = 'today' | 'tomorrow';
+
 export interface DailyCode {
   code: string;
   date: string;

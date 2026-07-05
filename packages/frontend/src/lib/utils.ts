@@ -16,6 +16,23 @@ export function formatDateLong(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+/** BookLocale ('en'|'he'|'ar') → BCP-47 tag (Gregorian + Latin digits forced). */
+function bcpFor(locale?: string): string {
+  return locale === 'he' ? 'he' : locale === 'ar' ? 'ar' : 'en-US';
+}
+
+/** Locale-aware long date — words follow the site language, digits stay Latin (0-9). */
+export function formatDateLongIn(dateStr: string, locale?: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString(bcpFor(locale), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', calendar: 'gregory', numberingSystem: 'latn' });
+}
+
+/** Locale-aware weekday name (e.g. for "closed on {day}"). */
+export function formatWeekdayIn(dateStr: string, locale?: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString(bcpFor(locale), { weekday: 'long', calendar: 'gregory' });
+}
+
 /** ISO datetime → "Jun 22, 2026" */
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

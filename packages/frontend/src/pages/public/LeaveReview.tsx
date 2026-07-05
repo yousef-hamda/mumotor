@@ -7,6 +7,7 @@ import { CheckCircle2, Star } from 'lucide-react';
 import { apiError, drivingSchoolApi, reviewsApi } from '../../lib/api';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
+import { bookLocale, bookT, type BookLocale } from '../../lib/bookingStrings';
 import {
   TemplatedShell,
   BookButton,
@@ -17,10 +18,10 @@ import {
   BookTextarea,
 } from '../../components/public/TemplatedShell';
 
-function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+function StarPicker({ value, onChange, L }: { value: number; onChange: (n: number) => void; L: BookLocale }) {
   const [hover, setHover] = useState(0);
   return (
-    <div style={{ display: 'flex', gap: '0.25rem' }} role="radiogroup" aria-label="Rating">
+    <div style={{ display: 'flex', gap: '0.25rem' }} role="radiogroup" aria-label={bookT(L, 'rating')}>
       {[1, 2, 3, 4, 5].map((n) => {
         const on = n <= (hover || value);
         return (
@@ -29,7 +30,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (n: number) 
             type="button"
             role="radio"
             aria-checked={value === n}
-            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+            aria-label={n === 1 ? bookT(L, 'star1') : bookT(L, 'starN', { n })}
             onClick={() => onChange(n)}
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
@@ -55,6 +56,7 @@ export default function LeaveReview() {
     retry: false,
   });
 
+  const L = bookLocale(settings?.locale);
   const [form, setForm] = useState({ studentName: '', rating: 5, comment: '' });
   const [done, setDone] = useState(false);
 
@@ -76,6 +78,7 @@ export default function LeaveReview() {
     slug,
     theme: (settings?.customization as { theme?: Record<string, string> } | undefined)?.theme,
     dir: dirForLocale(settings?.locale),
+    locale: settings?.locale,
     schoolName: settings?.name,
     logoSrc: settings?.logoSrc,
     publicSlug: websiteSlug,
@@ -84,15 +87,15 @@ export default function LeaveReview() {
   if (isLoading)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
-        <BookSpinner label="Loading…" />
+        <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
   if (isError || !settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>
         <BookCard>
-          <h1 className="book-title">School not found</h1>
-          <p className="book-sub">This review link may be incorrect or no longer active.</p>
+          <h1 className="book-title">{bookT(L, 'schoolNotFound')}</h1>
+          <p className="book-sub">{bookT(L, 'notFoundReview')}</p>
         </BookCard>
       </TemplatedShell>
     );
@@ -105,13 +108,13 @@ export default function LeaveReview() {
             <CheckCircle2 style={{ height: '2.2rem', width: '2.2rem' }} strokeWidth={1.75} />
           </div>
           <h1 className="book-title" style={{ marginTop: '1rem', textAlign: 'center' }}>
-            Thank you!
+            {bookT(L, 'thankYou')}
           </h1>
           <p className="book-sub" style={{ textAlign: 'center' }}>
-            Your review was sent to {settings.name} and will appear on the site once it's approved.
+            {bookT(L, 'reviewSentSub', { name: settings.name })}
           </p>
           <Link to={`/p/${websiteSlug}`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.4rem' }}>
-            Back to the site
+            {bookT(L, 'backToSite')}
           </Link>
         </BookCard>
       </TemplatedShell>
@@ -120,39 +123,39 @@ export default function LeaveReview() {
   return (
     <TemplatedShell {...shellProps}>
       <BookCard>
-        <p className="book-eyebrow">Student review</p>
+        <p className="book-eyebrow">{bookT(L, 'studentReview')}</p>
         <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
-          How was your experience with {settings.name}?
+          {bookT(L, 'reviewTitle', { name: settings.name })}
         </h1>
-        <p className="book-sub">Your review helps other learners choose their instructor.</p>
+        <p className="book-sub">{bookT(L, 'reviewHelper')}</p>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (form.studentName.trim().length < 2) return toast.error('Please enter your name');
-            if (form.comment.trim().length < 5) return toast.error('Please write a few words about your experience');
+            if (form.studentName.trim().length < 2) return toast.error(bookT(L, 'errName'));
+            if (form.comment.trim().length < 5) return toast.error(bookT(L, 'errComment'));
             submit.mutate();
           }}
           style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
         >
-          <BookField label="Your name">
-            <BookInput value={form.studentName} onChange={(e) => setForm((f) => ({ ...f, studentName: e.target.value }))} placeholder="Jane Doe" required />
+          <BookField label={bookT(L, 'yourName')}>
+            <BookInput value={form.studentName} onChange={(e) => setForm((f) => ({ ...f, studentName: e.target.value }))} placeholder={bookT(L, 'phName')} required />
           </BookField>
-          <BookField label="Rating">
-            <StarPicker value={form.rating} onChange={(rating) => setForm((f) => ({ ...f, rating }))} />
+          <BookField label={bookT(L, 'rating')}>
+            <StarPicker value={form.rating} onChange={(rating) => setForm((f) => ({ ...f, rating }))} L={L} />
           </BookField>
-          <BookField label="Your review">
+          <BookField label={bookT(L, 'yourReview')}>
             <BookTextarea
               rows={4}
               value={form.comment}
               onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
-              placeholder="What was learning to drive here like?"
+              placeholder={bookT(L, 'phReview')}
               maxLength={1000}
               required
             />
           </BookField>
           <BookButton variant="primary" type="submit" loading={submit.isPending} className="book-btn-block">
-            Send review
+            {bookT(L, 'sendReview')}
           </BookButton>
         </form>
       </BookCard>

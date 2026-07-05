@@ -33,6 +33,17 @@ function transmissionFeature(s: TemplateStrings, t: Transmission): string {
   return t === 'both' ? s.transmissionBoth : t === 'manual' ? s.transmissionManual : s.transmissionAutomatic;
 }
 
+/** Any auto-generated transmission feature line, across all locales/choices. A stored
+ *  plan feature matching one of these is re-localized to the site's current locale +
+ *  transmission (so a default plan seeded in English never leaks "Manual or automatic"
+ *  onto an Arabic site, and switching to "automatic" updates the line). Custom feature
+ *  text (not in this set) is left exactly as the teacher wrote it. */
+const TRANSMISSION_PHRASES = new Set<string>([
+  'Manual or automatic', 'Manual transmission', 'Automatic transmission',
+  'ידני או אוטומט', 'רכב ידני', 'רכב אוטומטי',
+  'يدوي أو أوتوماتيك', 'ناقل يدوي', 'ناقل أوتوماتيكي',
+]);
+
 /** Use the teacher's own plans → packages (no invented offerings). */
 function plansToPackages(s: TemplateStrings, plans: PlanInput[] | undefined, duration: number, price: number, transmission: Transmission): Package[] {
   const list = plans && plans.length ? plans : [{ id: 'single', name: s.planSingleName, price: price || 0, unit: s.planPerLessonUnit, features: [transmissionFeature(s, transmission), s.planPickup, s.planNoCommitment] }];
@@ -44,7 +55,9 @@ function plansToPackages(s: TemplateStrings, plans: PlanInput[] | undefined, dur
     duration,
     popular: pl.popular,
     badge: pl.popular ? s.badgePopular : undefined,
-    features: (pl.features ?? []).filter((f) => f.trim().length > 0),
+    features: (pl.features ?? [])
+      .filter((f) => f.trim().length > 0)
+      .map((f) => (TRANSMISSION_PHRASES.has(f.trim()) ? transmissionFeature(s, transmission) : f)),
   }));
 }
 
@@ -64,6 +77,12 @@ function buildAreas(s: TemplateStrings, address: string): Area[] {
   parts.slice(1, 3).forEach((p) => out.push({ name: p }));
   out.push({ name: s.areaTestRoutes }, { name: s.areaEveningWeekend }, { name: s.areaPickup });
   return out.slice(0, 6);
+}
+
+/** Localized coverage list used when the teacher entered no city/address
+ *  (replaces the English `sampleData.areas` fallback). */
+function defaultAreas(s: TemplateStrings): Area[] {
+  return [{ name: s.areaTestRoutes }, { name: s.areaEveningWeekend }, { name: s.areaPickup }];
 }
 
 function hoursFromMap(map: Record<string, { isOpen?: boolean; open?: string; close?: string }>): Hour[] {
@@ -106,7 +125,7 @@ interface CoreInput {
 /** Shared builder: real data wins; demo defaults only fill what is genuinely empty. */
 function buildTemplateData(c: CoreInput): TemplateData {
   const s = strings(c.locale);
-  const d = dataDefaults(c.locale);
+  const d = dataDefaults(c.locale, c.transmission);
   const name = c.businessName || c.teacherName || 'Your Driving School';
   const teacher = c.teacherName || c.businessName || 'Your instructor';
   const area = c.city || c.address.split(/[,/]/)[0]?.trim() || '';
@@ -137,7 +156,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
       ...sampleData.instructor,
       name: teacher,
       title: `${s.instructorRole} · ${experienceLabel(s, c.experienceLevel)}`,
-      bio: c.description || sampleData.instructor.bio,
+      bio: c.description || d.aboutBody[0],
       photo: c.instructorPhoto || sampleData.instructor.photo,
       credentials: d.credentials,
     },
@@ -159,7 +178,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
       checklist: [...d.aboutChecklist],
       image: aboutImg,
     },
-    areas: area ? buildAreas(s, addressFull) : sampleData.areas,
+    areas: area ? buildAreas(s, addressFull) : defaultAreas(s),
     // Real approved reviews when provided; never fabricated (templates hide the empty section).
     reviews: c.reviews ?? [],
     faqs: defaultFaqs(c.locale, { price: c.price, duration: c.duration, area, transmission: c.transmission }),

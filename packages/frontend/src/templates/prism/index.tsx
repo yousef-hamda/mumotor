@@ -31,7 +31,7 @@ import { ShaderBackground } from '../webgl/ShaderBackground';
 import { SHADER_IRIDESCENT } from '../webgl/shaders';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, useScrollParallax,
+  Reveal, useCountUp, useScrollParallax, useIsEditing,
 } from '../shared';
 import { prStrings, type PrStrings } from './strings';
 import './prism.css';
@@ -362,7 +362,7 @@ function PrPackages({ data }: { data: TemplateData }) {
                 </p>
                 <p className="pr-plan-price">
                   <span className="pr-plan-amount" data-edit={`packages.${i}.price`} data-edit-type="text">
-                    £{pkg.price}
+                    ₪{pkg.price}
                   </span>
                   {pkg.unit && <span className="pr-plan-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                 </p>
@@ -575,16 +575,18 @@ function PrGallery({ data }: { data: TemplateData }) {
 
 function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: number }) {
   const [open, setOpen] = useState(false);
+  const editing = useIsEditing();
+  const isOpen = editing || open;
   return (
     <div className="pr-accord-item" data-edit-item={`faqs.${index}`}>
       <button
         className="pr-accord-q"
-        aria-expanded={open}
+        aria-expanded={isOpen}
         onClick={() => setOpen(!open)}
       >
         <span data-edit={`faqs.${index}.q`} data-edit-type="text">{faq.q}</span>
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3 }}
           className="pr-accord-chev"
           aria-hidden="true"
@@ -593,7 +595,7 @@ function FaqItem({ faq, index }: { faq: TemplateData['faqs'][number]; index: num
         </motion.span>
       </button>
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

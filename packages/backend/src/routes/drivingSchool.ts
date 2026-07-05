@@ -18,6 +18,7 @@ import {
   nowInZone,
   parseTimeToMinutes,
   todayUtcMidnight,
+  tomorrowUtcMidnight,
   toUtcMidnight,
   type BreakTime,
 } from '../utils/time.js';
@@ -34,6 +35,7 @@ import {
   sendBulkCustomEmail,
   sendBookingCancelled,
   sendBookingConfirmation,
+  sendEnhancedDailyReport,
   sendMagicLink,
   sendWelcomeEnrollment,
   siteBrand,
@@ -854,13 +856,20 @@ router.post(
   })
 );
 
-// GET /driving-school/:websiteId/daily-report  (today's full schedule)
+/** Resolve the ?day=today|tomorrow query param (default 'today') to its UTC-midnight date. */
+function resolveScheduleDate(day: unknown): { day: 'today' | 'tomorrow'; date: Date } {
+  const resolved = day === 'tomorrow' ? 'tomorrow' : 'today';
+  return { day: resolved, date: resolved === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight() };
+}
+
+// GET /driving-school/:websiteId/daily-report?day=today|tomorrow  (default today's full schedule)
 router.get(
   '/:websiteId/daily-report',
   ...teacher,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     const website = getWebsite(res);
-    const schedule = await buildDaySchedule(website, website.settings, todayUtcMidnight());
+    const { date } = resolveScheduleDate(req.query.day);
+    const schedule = await buildDaySchedule(website, website.settings, date);
 
     // enrich with classCount per student
     const emails = schedule.slots.filter((s) => s.booked && s.studentEmail).map((s) => s.studentEmail!);
@@ -883,6 +892,155 @@ router.get(
       })),
       totals: { booked: schedule.bookedCount, empty: schedule.emptyCount, total: schedule.total },
     });
+  })
+);
+
+// POST /driving-school/:websiteId/schedule/assign — teacher manually books an ACTIVE
+// student into a free slot for today or tomorrow (same effect as the student booking
+// it themselves: the slot becomes CONFIRMED so no one else can take it).
+const assignSchema = z.object({
+  enrollmentId: z.string().uuid(),
+  day: z.enum(['today', 'tomorrow']),
+  time: z.string().regex(/^\d{2}:\d{2}$/),
+});
+router.post(
+  '/:websiteId/schedule/assign',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const data = assignSchema.parse(req.body);
+    const cfg = normalizeConfig(website);
+    const targetDate = data.day === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight();
+    const dateStr = targetDate.toISOString().slice(0, 10);
+
+    const hours = getDayHours(website.settings, targetDate);
+    if (!hours) throw badRequest('The school is closed on this day', 'DAY_CLOSED');
+    const validSlots = generateTimeSlots({
+      open: hours.open,
+      close: hours.close,
+      classDuration: cfg.classDuration,
+      breakTimes: (cfg.breakTimes as BreakTime[]) ?? [],
+      restMinutes: cfg.restMinutes,
+    });
+    if (!validSlots.includes(data.time)) throw badRequest('That time is not a valid slot', 'SLOT_NOT_AVAILABLE');
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const enrollment = await tx.clientEnrollment.findFirst({
+          where: { id: data.enrollmentId, websiteId: website.id },
+        });
+        if (!enrollment) throw notFound('Student not found');
+        if (enrollment.status !== 'ACTIVE') {
+          throw badRequest('This student is not active', 'ENROLLMENT_NOT_ACTIVE');
+        }
+
+        const service = await getOrCreateLessonService(tx, website.id, cfg.classDuration);
+
+        const clash = await tx.booking.findFirst({
+          where: { websiteId: website.id, bookingDate: targetDate, bookingTime: data.time, status: { not: 'CANCELLED' } },
+        });
+        if (clash) throw conflict('That slot was just taken', 'SLOT_NOT_AVAILABLE');
+
+        const created = await tx.booking.create({
+          data: {
+            websiteId: website.id,
+            serviceId: service.id,
+            customerName: enrollment.studentName,
+            customerEmail: enrollment.studentEmail,
+            customerPhone: enrollment.studentPhone,
+            bookingDate: targetDate,
+            bookingTime: data.time,
+            duration: cfg.classDuration,
+            status: 'CONFIRMED',
+            reminderSent: false,
+          },
+        });
+
+        await tx.clientEnrollment.update({
+          where: { id: enrollment.id },
+          data: { classCount: { increment: 1 } },
+        });
+
+        return { created, enrollment };
+      });
+
+      // Same as a student self-booking: confirmation email + teacher notification.
+      // Deliberately NOT a daily-schedule report email — the teacher is already
+      // looking at the (now updated) schedule and can request one on demand.
+      void sendBookingConfirmation(result.enrollment.studentEmail, {
+        studentName: result.enrollment.studentName,
+        date: dateStr,
+        time: data.time,
+        teacherName: cfg.teacherName,
+        duration: cfg.classDuration,
+        brand: siteBrand(website),
+      });
+      void createNotification(website.userId, {
+        type: 'BOOKING',
+        title: 'New lesson booked',
+        body: `${result.enrollment.studentName} — ${dateStr} at ${data.time}`,
+      });
+      logEvent('booking_created', { props: { websiteId: website.id, source: 'teacher_assign' } });
+
+      res.status(201).json({
+        booking: {
+          id: result.created.id,
+          date: dateStr,
+          time: data.time,
+          duration: result.created.duration,
+          status: result.created.status,
+        },
+      });
+    } catch (err) {
+      // Unique index race → friendly 409
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code?: string }).code === 'P2002'
+      ) {
+        throw conflict('That slot was just taken', 'SLOT_NOT_AVAILABLE');
+      }
+      throw err;
+    }
+  })
+);
+
+// POST /driving-school/:websiteId/schedule/email-me — send the teacher the
+// (up to date) schedule for today or tomorrow, on demand. Independent of the
+// automatic daily-rhythm cron report.
+router.post(
+  '/:websiteId/schedule/email-me',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const { day } = z.object({ day: z.enum(['today', 'tomorrow']) }).parse(req.body);
+    const targetDate = day === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight();
+
+    const teacherUser = await prisma.user.findUnique({
+      where: { id: website.userId },
+      select: { email: true, name: true },
+    });
+    if (!teacherUser) throw notFound('Teacher account not found');
+
+    const schedule = await buildDaySchedule(website, website.settings, targetDate);
+    await sendEnhancedDailyReport(teacherUser.email, {
+      teacherName: teacherUser.name,
+      date: schedule.date,
+      slots: schedule.slots.map((s) => ({
+        time: s.time,
+        booked: s.booked,
+        studentName: s.studentName,
+        studentPhone: s.studentPhone,
+      })),
+      booked: schedule.bookedCount,
+      empty: schedule.emptyCount,
+      total: schedule.total,
+      when: day,
+      brand: siteBrand(website),
+    });
+
+    res.json({ sent: true });
   })
 );
 
@@ -1316,6 +1474,9 @@ const bulkEmailSchema = z.object({
   subject: z.string().min(1).max(200),
   body: z.string().min(1).max(5000),
   targetGroup: z.enum(['all', 'active', 'inactive']).default('all'),
+  // When present + non-empty, email exactly these enrollments instead of a
+  // targetGroup (still scoped to this website — anti-IDOR).
+  enrollmentIds: z.array(z.string().uuid()).max(1000).optional(),
 });
 router.post(
   '/:websiteId/bulk-email',
@@ -1325,21 +1486,33 @@ router.post(
     const website = getWebsite(res);
     const data = bulkEmailSchema.parse(req.body);
 
-    const where: Prisma.ClientEnrollmentWhereInput = { websiteId: website.id };
-    if (data.targetGroup === 'active') where.status = 'ACTIVE';
-    if (data.targetGroup === 'inactive') where.status = { in: ['INACTIVE', 'SUSPENDED'] };
+    const selectingSpecificStudents = Boolean(data.enrollmentIds && data.enrollmentIds.length > 0);
 
-    const recipients = await prisma.clientEnrollment.findMany({
-      where,
-      select: { studentName: true, studentEmail: true },
-    });
+    let recipients: { studentName: string; studentEmail: string }[];
+    let targetGroupToStore: string;
+    if (selectingSpecificStudents) {
+      recipients = await prisma.clientEnrollment.findMany({
+        where: { websiteId: website.id, id: { in: data.enrollmentIds! } },
+        select: { studentName: true, studentEmail: true },
+      });
+      targetGroupToStore = 'selected';
+    } else {
+      const where: Prisma.ClientEnrollmentWhereInput = { websiteId: website.id };
+      if (data.targetGroup === 'active') where.status = 'ACTIVE';
+      if (data.targetGroup === 'inactive') where.status = { in: ['INACTIVE', 'SUSPENDED'] };
+      recipients = await prisma.clientEnrollment.findMany({
+        where,
+        select: { studentName: true, studentEmail: true },
+      });
+      targetGroupToStore = data.targetGroup;
+    }
 
     const log = await prisma.bulkEmail.create({
       data: {
         websiteId: website.id,
         subject: data.subject,
         body: data.body,
-        targetGroup: data.targetGroup,
+        targetGroup: targetGroupToStore,
         status: 'SENDING',
       },
     });

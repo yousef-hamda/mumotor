@@ -11,6 +11,7 @@ import {
   type EditType,
 } from '../../templates/customize/overrides';
 import { DynamicIcon, ICON_LIBRARY } from '../../templates/DynamicIcon';
+import { EditingProvider } from '../../templates/shared';
 import { mediaApi } from '../../lib/api';
 import { useHistory } from './useHistory';
 import { PhotoPicker } from './PhotoPicker';
@@ -130,7 +131,11 @@ export default function CustomizeMode({
     const { store, storeArr, parentArr, index } = resolveList(itemPath);
     if (!Array.isArray(parentArr)) return;
     if (op === 'add') {
-      const copy = clone(parentArr[index] ?? (typeof parentArr[0] === 'string' ? '' : {}));
+      // FAQs get a CLEAN empty question+answer (not a clone) so the new answer box
+      // starts blank and editable; other lists clone the neighbour to keep shape.
+      const copy: unknown = store === 'faqs'
+        ? { q: '', a: '' }
+        : clone(parentArr[index] ?? (typeof parentArr[0] === 'string' ? '' : {}));
       if (copy && typeof copy === 'object' && 'id' in (copy as object)) (copy as Record<string, unknown>).id = `item-${Date.now()}-${index}`;
       parentArr.splice(index + 1, 0, copy);
     } else {
@@ -235,24 +240,45 @@ export default function CustomizeMode({
   }, []);
 
   // ── drag to reorder within the same group ──────────────────────────────────
-  const onCanvasDragOver = useCallback((e: React.DragEvent) => {
-    if (!dragSrc.current) return;
-    const el = (e.target as HTMLElement).closest('[data-edit-item]') as HTMLElement | null;
-    if (!el || groupOf(el.dataset.editItem!) !== groupOf(dragSrc.current)) { setDropTarget((d) => (d ? null : d)); return; }
-    e.preventDefault(); // allow drop only within the same group
-    const targetPath = el.dataset.editItem!;
-    const r = el.getBoundingClientRect();
-    setDropTarget((d) => (d && d.path === targetPath ? d : { path: targetPath, rect: { top: r.top, left: r.left, width: r.width, height: r.height } }));
-  }, []);
-  const onCanvasDrop = useCallback((e: React.DragEvent) => {
-    const src = dragSrc.current;
-    dragSrc.current = null;
-    setDropTarget(null);
-    if (!src) return;
-    const el = (e.target as HTMLElement).closest('[data-edit-item]') as HTMLElement | null;
-    if (!el) return;
-    e.preventDefault();
-    move(src, el.dataset.editItem!);
+  // The drag handle + highlights are fixed overlays OUTSIDE the scroll canvas, so a
+  // native `drop` on the canvas is unreliable. Instead we listen at the window level
+  // (always mounted, guarded by dragSrc) so a drop anywhere is caught. The drop target
+  // is the event's own target (works for real drags AND synthetic dispatch); we fall
+  // back to elementFromPoint when the target isn't itself a list item.
+  useEffect(() => {
+    const resolveItem = (e: DragEvent): HTMLElement | null => {
+      const t = e.target;
+      let el = t instanceof Element ? (t.closest('[data-edit-item]') as HTMLElement | null) : null;
+      if (!el && (e.clientX || e.clientY)) el = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest('[data-edit-item]') as HTMLElement | null;
+      return el;
+    };
+    const onOver = (e: DragEvent) => {
+      if (!dragSrc.current) return;
+      const el = resolveItem(e);
+      if (!el || groupOf(el.dataset.editItem!) !== groupOf(dragSrc.current)) { setDropTarget((d) => (d ? null : d)); return; }
+      e.preventDefault(); // allow drop only within the same group
+      const targetPath = el.dataset.editItem!;
+      const r = el.getBoundingClientRect();
+      setDropTarget((d) => (d && d.path === targetPath ? d : { path: targetPath, rect: { top: r.top, left: r.left, width: r.width, height: r.height } }));
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!dragSrc.current) return;
+      e.preventDefault();
+      const src = dragSrc.current;
+      const el = resolveItem(e);
+      dragSrc.current = null;
+      setDropTarget(null);
+      if (src && el) move(src, el.dataset.editItem!);
+    };
+    const onEnd = () => { dragSrc.current = null; setDropTarget(null); };
+    window.addEventListener('dragover', onOver);
+    window.addEventListener('drop', onDrop);
+    window.addEventListener('dragend', onEnd);
+    return () => {
+      window.removeEventListener('dragover', onOver);
+      window.removeEventListener('drop', onDrop);
+      window.removeEventListener('dragend', onEnd);
+    };
   }, [move]);
 
   // ── keep selection outline + popover anchored on scroll/resize/rerender ─────
@@ -334,10 +360,16 @@ export default function CustomizeMode({
         </div>
       </div>
 
+      {/* Empty editable text still needs a clickable target + hint (e.g. a freshly
+          added FAQ answer). Scoped to the canvas so it never affects live sites. */}
+      <style>{`.cz-canvas [data-edit][data-edit-type="text"]:empty::before{content:"Add text\\2026";opacity:.45;font-style:italic}`}</style>
+
       {/* Canvas */}
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
-        <div onClickCapture={onCanvasClick} onMouseMove={onCanvasMove} onDragOver={onCanvasDragOver} onDrop={onCanvasDrop} className="cz-canvas">
-          <TemplateRender slug={templateSlug} data={data} />
+        <div onClickCapture={onCanvasClick} onMouseMove={onCanvasMove} className="cz-canvas">
+          <EditingProvider value={true}>
+            <TemplateRender slug={templateSlug} data={data} />
+          </EditingProvider>
         </div>
       </div>
 
@@ -354,9 +386,16 @@ export default function CustomizeMode({
         <div className="pointer-events-none fixed z-[155] rounded-[4px] bg-purple-500/10 ring-2 ring-purple-500" style={{ top: dropTarget.rect.top - 2, left: dropTarget.rect.left - 2, width: dropTarget.rect.width + 4, height: dropTarget.rect.height + 4 }} />
       )}
 
-      {/* Hover list controls — drag to reorder, add, remove */}
+      {/* Hover list controls — drag to reorder, add, remove. Anchored ABOVE the item
+          (or below when there's no room up top) so short pills/chips stay readable. */}
       {hover && (
-        <div className="fixed z-[160] flex gap-1" style={{ top: hover.rect.top + 4, left: hover.rect.left + hover.rect.width - 84 }}>
+        <div
+          className="fixed z-[160] flex gap-1"
+          style={{
+            top: hover.rect.top - 34 < 60 ? hover.rect.top + hover.rect.height + 6 : hover.rect.top - 34,
+            left: Math.min(Math.max(hover.rect.left + hover.rect.width - 84, 8), window.innerWidth - 92),
+          }}
+        >
           <button
             title="Drag to reorder"
             draggable

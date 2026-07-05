@@ -13,7 +13,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
 } from '../shared';
 import './open-road.css';
 
@@ -214,7 +214,7 @@ function Packages({
                 {pkg.badge && <span className="or-package-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                 <h3 className="or-package-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                 <div className="or-package-price">
-                  <span className="or-package-amount" data-edit={`packages.${i}.price`} data-edit-type="text">£{pkg.price}</span>
+                  <span className="or-package-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
                   {pkg.unit && <span className="or-package-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                 </div>
                 {pkg.duration && (
@@ -438,6 +438,7 @@ function FaqItem({ faq, index, open, toggle }: { faq: TemplateData['faqs'][numbe
 
 function FAQ({ data }: { data: TemplateData }) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const editing = useIsEditing();
   const s = orStrings(data.locale);
   return (
     <section id={SECTION_IDS.faq} className="or-bg-mustard">
@@ -451,7 +452,7 @@ function FAQ({ data }: { data: TemplateData }) {
               <FaqItem
                 faq={faq}
                 index={i}
-                open={openIdx === i}
+                open={editing || openIdx === i}
                 toggle={() => setOpenIdx(openIdx === i ? null : i)}
               />
             </Reveal>

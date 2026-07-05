@@ -250,9 +250,14 @@ export function sendEnhancedDailyReport(
     booked: number;
     empty: number;
     total: number;
+    /** Which day this schedule is for — controls the email wording. Defaults to
+     *  'tomorrow' so the existing daily-rhythm cron (which always reports on the
+     *  next day) keeps behaving exactly as before. */
+    when?: 'today' | 'tomorrow';
     brand?: EmailBrand;
   }
 ) {
+  const when = data.when ?? 'tomorrow';
   const rows = data.slots
     .map(
       (s) => `<tr>
@@ -269,7 +274,7 @@ export function sendEnhancedDailyReport(
     .join('');
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your schedule for ${esc(data.date)}</h1>
-    <p style="color:#52525b">Hi ${esc(data.teacherName)}, here's what tomorrow looks like.</p>
+    <p style="color:#52525b">Hi ${esc(data.teacherName)}, here's what ${when} looks like.</p>
     <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin:16px -8px" role="presentation"><tr>
       <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.booked}</div><div style="font-size:12px;color:#71717a">Booked</div></td>
       <td style="width:33%;border:1px solid #e4e4e7;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:700;color:#18181b">${data.empty}</div><div style="font-size:12px;color:#71717a">Free</div></td>
