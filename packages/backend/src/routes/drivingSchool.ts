@@ -998,15 +998,35 @@ const studentSummary = (e: {
   classCount: e.classCount,
 });
 
-// POST /driving-school/:websiteId/student/login — email + code → session token.
+/** Real lesson counts for a student, from their bookings (not the classCount
+ *  column, which is incremented per booking and double-counts). */
+async function studentStats(websiteId: string, email: string) {
+  const today = todayUtcMidnight();
+  const [upcoming, completed] = await Promise.all([
+    prisma.booking.count({ where: { websiteId, customerEmail: email, status: 'CONFIRMED', bookingDate: { gte: today } } }),
+    prisma.booking.count({ where: { websiteId, customerEmail: email, status: 'CONFIRMED', bookingDate: { lt: today } } }),
+  ]);
+  return { upcoming, completed, total: upcoming + completed };
+}
+
+// POST /driving-school/:websiteId/student/login — a RETURNING student signs in
+// with just their email (no code). The one-time enrollment code is the gate for
+// NEW students only (at enroll time). Requires an ACTIVE enrollment.
 router.post(
   '/:websiteId/student/login',
   rateLimit({ keyPrefix: 'student-login', windowSeconds: 60, max: 8 }),
   asyncHandler(async (req, res) => {
-    const data = z
-      .object({ email: z.string().email(), enrollmentCode: z.string().min(1).max(64) })
-      .parse(req.body);
-    const { enrollment } = await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
+    const data = z.object({ email: z.string().email() }).parse(req.body);
+    const email = normalizeEmail(data.email);
+    const enrollment = await prisma.clientEnrollment.findUnique({
+      where: { websiteId_studentEmail: { websiteId: req.params.websiteId, studentEmail: email } },
+    });
+    if (!enrollment) {
+      throw unauthorized('No account found for this email. New students need the code from their instructor.', 'NO_ACCOUNT');
+    }
+    if (enrollment.status !== 'ACTIVE') {
+      throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
+    }
     const token = signStudentToken({
       sub: enrollment.id,
       kind: 'student',
@@ -1017,13 +1037,14 @@ router.post(
   })
 );
 
-// GET /driving-school/:websiteId/student/me — account summary.
+// GET /driving-school/:websiteId/student/me — account summary + real lesson counts.
 router.get(
   '/:websiteId/student/me',
   requireStudent,
   asyncHandler(async (req, res) => {
     const enrollment = await loadStudentEnrollment(req);
-    res.json({ student: studentSummary(enrollment) });
+    const stats = await studentStats(req.params.websiteId, enrollment.studentEmail);
+    res.json({ student: { ...studentSummary(enrollment), stats } });
   })
 );
 

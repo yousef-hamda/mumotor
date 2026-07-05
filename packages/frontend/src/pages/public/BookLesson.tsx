@@ -35,6 +35,15 @@ const hhmmToMin = (s: string) => {
   const [h, m] = s.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
 };
+/** "08:00" + 45 → "08:45". */
+const addMinutes = (hhmm: string, mins: number) => {
+  const t = hhmmToMin(hhmm) + mins;
+  const h = Math.floor(t / 60) % 24;
+  const m = t % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+/** "08:00 – 08:45" for a slot of the given duration. */
+const slotRange = (start: string, dur: number) => `${start} – ${addMinutes(start, dur)}`;
 
 export default function BookLesson() {
   const websiteSlug = useTenantSlug();
@@ -249,6 +258,9 @@ export default function BookLesson() {
           <p className="book-sub" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <CalendarDays style={{ height: '1rem', width: '1rem' }} /> Tomorrow · {formatDateLong(tomorrow)}
           </p>
+          <p className="book-sub" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.35rem' }}>
+            <Clock style={{ height: '1rem', width: '1rem' }} /> Each lesson is {settings.classDuration} minutes · please arrive 5 minutes early.
+          </p>
 
           {!windowOpen ? (
             <div className="book-note" style={{ marginTop: '1.4rem' }}>
@@ -270,8 +282,8 @@ export default function BookLesson() {
               <div className="book-note" style={{ borderStyle: 'solid' }}>
                 <p style={{ margin: 0 }}>You're booking a lesson for</p>
                 <p style={{ margin: '0.4rem 0 0', fontWeight: 700, color: 'var(--book-ink)' }}>{formatDateLong(tomorrow)}</p>
-                <p style={{ margin: '0.2rem 0 0', fontFamily: 'var(--book-font-display)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--book-ink)' }}>
-                  {pendingTime}
+                <p style={{ margin: '0.2rem 0 0', fontFamily: 'var(--book-font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--book-ink)' }}>
+                  {slotRange(pendingTime, settings.classDuration)}
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
@@ -287,7 +299,7 @@ export default function BookLesson() {
             <div className="book-chip-grid" style={{ marginTop: '1.4rem' }}>
               {availability.data.slots.map((t) => (
                 <button key={t} type="button" className="book-chip" onClick={() => setPendingTime(t)}>
-                  {t}
+                  {slotRange(t, settings.classDuration)}
                 </button>
               ))}
             </div>
@@ -306,7 +318,7 @@ export default function BookLesson() {
           </h1>
           <p className="book-sub" style={{ textAlign: 'center' }}>
             See you <strong style={{ color: 'var(--book-ink)' }}>{formatDateLong(tomorrow)}</strong> at{' '}
-            <strong style={{ color: 'var(--book-ink)' }}>{pendingTime}</strong>.
+            <strong style={{ color: 'var(--book-ink)' }}>{slotRange(pendingTime, settings.classDuration)}</strong>.
           </p>
           <div className="book-note" style={{ marginTop: '1.2rem', textAlign: 'start' }}>
             <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

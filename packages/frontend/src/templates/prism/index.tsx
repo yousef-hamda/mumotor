@@ -108,6 +108,11 @@ function PrNav({ data, active }: { data: TemplateData; active: string }) {
         </div>
 
         <div className="pr-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="pr-btn pr-btn-ghost pr-btn-sm">
+              {data.copy?.nav_account ?? s.navAccount}
+            </a>
+          )}
           <button
             className="pr-btn pr-btn-primary pr-btn-sm"
             data-edit="labels.bookCta"
@@ -144,6 +149,11 @@ function PrNav({ data, active }: { data: TemplateData; active: string }) {
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} style={{ fontWeight: 500, fontSize: 15, color: 'var(--pr-ink)', padding: '12px 0', minHeight: 44, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                {data.copy?.nav_account ?? s.navAccount}
+              </a>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

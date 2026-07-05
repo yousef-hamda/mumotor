@@ -138,6 +138,9 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
               </button>
             ))}
           </div>
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="pd-btn-ghost">{data.copy?.nav_account ?? s.navAccount}</a>
+          )}
           <button className="pd-nav-cta" data-edit="labels.bookCta" data-edit-type="text"
             onClick={() => { scrollToSection(SECTION_IDS.book); setMobileOpen(false); }}>
             {bookCta}
@@ -153,6 +156,9 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
               <button key={id} role="menuitem" className="pd-mobile-link"
                 onClick={() => { scrollToSection(id); setMobileOpen(false); }}>{label}</button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} className="pd-mobile-link">{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
             <button className="pd-nav-cta pd-mobile-cta"
               onClick={() => { scrollToSection(SECTION_IDS.book); setMobileOpen(false); }}>
               {bookCta}

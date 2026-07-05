@@ -63,6 +63,10 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
           ))}
         </ul>
 
+        {data.accountUrl && (
+          <a href={data.accountUrl} className="ft-btn ft-btn--black">{data.copy?.nav_account ?? s.navAccount}</a>
+        )}
+
         <motion.button
           className="ft-nav-book"
           onClick={() => scrollToSection(SECTION_IDS.book)}
@@ -96,6 +100,9 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} className="ft-nav-mobile-link">{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
             <motion.button
               className="ft-btn ft-btn--black"
               style={{ marginTop: '0.75rem' }}

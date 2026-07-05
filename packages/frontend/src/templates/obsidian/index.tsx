@@ -155,6 +155,11 @@ function ObNav({ data, active }: { data: TemplateData; active: string }) {
         </div>
 
         <div className="ob-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="ob-btn ob-btn-ghost ob-btn-sm">
+              {data.copy?.nav_account ?? s.navAccount}
+            </a>
+          )}
           <button
             className="ob-btn ob-btn-primary ob-btn-sm"
             data-edit="labels.bookCta"
@@ -187,6 +192,11 @@ function ObNav({ data, active }: { data: TemplateData; active: string }) {
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} style={{ fontWeight: 500, color: 'var(--ob-ink)', padding: '12px 14px', borderRadius: 12, minHeight: 44, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                {data.copy?.nav_account ?? s.navAccount}
+              </a>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

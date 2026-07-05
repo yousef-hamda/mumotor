@@ -19,6 +19,7 @@ export interface TemplateStrings {
   navFaq: string;
   navContact: string;
   navAreas: string;
+  navAccount: string;
   navGallery: string;
   navHours: string;
 
@@ -110,6 +111,7 @@ const en: TemplateStrings = {
   navFaq: 'FAQ',
   navContact: 'Contact',
   navAreas: 'Areas',
+  navAccount: 'My account',
   navGallery: 'Gallery',
   navHours: 'Hours',
 
@@ -189,6 +191,7 @@ const he: TemplateStrings = {
   navFaq: 'שאלות נפוצות',
   navContact: 'צור קשר',
   navAreas: 'אזורים',
+  navAccount: 'האזור שלי',
   navGallery: 'גלריה',
   navHours: 'שעות פעילות',
 
@@ -268,6 +271,7 @@ const ar: TemplateStrings = {
   navFaq: 'الأسئلة الشائعة',
   navContact: 'تواصل',
   navAreas: 'المناطق',
+  navAccount: 'حسابي',
   navGallery: 'معرض الصور',
   navHours: 'ساعات العمل',
 

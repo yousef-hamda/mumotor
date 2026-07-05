@@ -206,10 +206,10 @@
 /* Chips (time slots) */
 .book-chip-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
 }
-@media (min-width: 480px) { .book-chip-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 560px) { .book-chip-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .book-chip {
   border: 1px solid var(--book-line);
   border-radius: var(--book-radius);

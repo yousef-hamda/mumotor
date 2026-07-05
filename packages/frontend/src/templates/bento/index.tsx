@@ -155,6 +155,11 @@ function BnNav({ data, active }: { data: TemplateData; active: string }) {
         </div>
 
         <div className="bn-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="bn-btn bn-btn-outline bn-btn-sm">
+              {data.copy?.nav_account ?? s.navAccount}
+            </a>
+          )}
           <button
             className="bn-btn bn-btn-primary bn-btn-sm"
             data-edit="labels.bookCta"
@@ -194,6 +199,11 @@ function BnNav({ data, active }: { data: TemplateData; active: string }) {
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} style={{ fontWeight: 500, color: 'var(--bn-ink)', padding: '13px 16px', borderRadius: 14, minHeight: 44, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                {data.copy?.nav_account ?? s.navAccount}
+              </a>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

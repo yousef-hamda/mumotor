@@ -1,11 +1,39 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Users, CalendarCheck, ExternalLink, ArrowRight, Plus, Pencil, GraduationCap } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Users, CalendarCheck, ExternalLink, ArrowRight, Plus, Pencil, GraduationCap, Copy, Check } from 'lucide-react';
 import { websiteApi } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Card, CenteredSpinner, StatusBadge } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import type { Website } from '../../lib/types';
+
+/** Copy the public site link to the clipboard so the teacher can send it to students. */
+function CopyLinkButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success('Link copied');
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error('Could not copy — copy it manually');
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 text-xs font-medium text-sand-700 transition-colors hover:bg-sand-50"
+      aria-label="Copy site link"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? 'Copied' : 'Copy link'}
+    </button>
+  );
+}
 
 /** Empty state: send the teacher into the full guided builder (same flow as the
  *  landing hero's "Build your site"), not a bare inline create. */
@@ -53,9 +81,13 @@ function SiteOverview({ website }: { website: Website }) {
               <StatusBadge status={website.status} />
             </div>
             {website.tagline && <p className="mt-0.5 text-sm text-sand-600">{website.tagline}</p>}
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
-              {liveUrl.replace(/^https?:\/\//, '')}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="inline-flex items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
+                {liveUrl.replace(/^https?:\/\//, '')}
+              </p>
+              <CopyLinkButton url={liveUrl} />
+            </div>
+            <p className="mt-1.5 text-xs text-sand-500">Share this link with your students so they can enroll and book.</p>
           </div>
           {live && (
             <a href={liveUrl} target="_blank" rel="noreferrer" className="btn-secondary">

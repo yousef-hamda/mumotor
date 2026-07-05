@@ -76,6 +76,9 @@ function MmNav({ data, active }: { data: TemplateData; active: string }) {
           ))}
         </div>
         <div className="mm-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="mm-btn mm-btn-glass mm-btn-sm">{data.copy?.nav_account ?? s.navAccount}</a>
+          )}
           <button className="mm-btn mm-btn-primary mm-btn-sm" data-edit="labels.bookCta" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.book)}>{bookLabel}</button>
           <button className="mm-menu" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
@@ -84,6 +87,9 @@ function MmNav({ data, active }: { data: TemplateData; active: string }) {
         {open && (
           <motion.div className="mm-nav-mobile" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             {links.map(({ id, label }) => <button key={id} onClick={() => { scrollToSection(id); setOpen(false); }}>{label}</button>)}
+            {data.accountUrl && (
+              <a href={data.accountUrl} style={{ padding: '12px 8px', borderRadius: 10, fontWeight: 500, color: 'var(--mm-ink)', textDecoration: 'none' }}>{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

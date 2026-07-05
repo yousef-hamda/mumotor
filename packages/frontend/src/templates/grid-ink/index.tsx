@@ -114,6 +114,9 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
           ))}
         </div>
         <div className="gi-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="gi-btn-ghost">{data.copy?.nav_account ?? s.navAccount}</a>
+          )}
           <button className="gi-btn-primary" data-edit="labels.bookCta" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.book)}>
             {bookLabel}
           </button>
@@ -145,6 +148,9 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} className="gi-btn-ghost gi-btn-block">{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
             <button
               className="gi-btn-primary gi-btn-block"
               data-edit="labels.bookCta" data-edit-type="text"

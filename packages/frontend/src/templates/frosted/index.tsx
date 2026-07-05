@@ -97,6 +97,11 @@ function FrNav({ data, active }: { data: TemplateData; active: string }) {
           ))}
         </div>
         <div className="fr-nav-end">
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="fr-btn fr-btn-ghost-dark fr-btn-sm">
+              {data.copy?.nav_account ?? s.navAccount}
+            </a>
+          )}
           <button className="fr-btn fr-btn-primary fr-btn-sm" data-edit="labels.bookCta" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.book)}>
             {bookLabel}
           </button>
@@ -111,6 +116,11 @@ function FrNav({ data, active }: { data: TemplateData; active: string }) {
             {links.map(({ id, label }) => (
               <button key={id} onClick={() => { scrollToSection(id); setOpen(false); }}>{label}</button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} style={{ fontWeight: 500, color: 'var(--fr-white)', padding: '13px 16px', borderRadius: 14, minHeight: 44, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                {data.copy?.nav_account ?? s.navAccount}
+              </a>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

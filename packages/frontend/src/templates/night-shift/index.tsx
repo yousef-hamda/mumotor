@@ -147,6 +147,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
               </button>
             ))}
           </div>
+          {data.accountUrl && (
+            <a href={data.accountUrl} className="ns-btn-ghost">{data.copy?.nav_account ?? s.navAccount}</a>
+          )}
           <button
             className="ns-nav-cta"
             data-edit="labels.bookCta"
@@ -176,6 +179,9 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                 {label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} className="ns-mobile-link">{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
             <button
               className="ns-nav-cta ns-mobile-cta"
               data-edit="labels.bookCta"

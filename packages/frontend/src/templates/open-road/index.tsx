@@ -60,6 +60,9 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
             </li>
           ))}
         </ul>
+        {data.accountUrl && (
+          <a href={data.accountUrl} className="or-nav-link">{data.copy?.nav_account ?? s.navAccount}</a>
+        )}
         <button className="or-btn or-btn-primary" data-edit="labels.bookCta" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.book)}>
           {bookLabel}
         </button>
@@ -87,6 +90,9 @@ function Nav({ data, active }: { data: TemplateData; active: string }) {
                 {data.copy?.[`nav_${id}`] ?? label}
               </button>
             ))}
+            {data.accountUrl && (
+              <a href={data.accountUrl} className="or-nav-mobile-link">{data.copy?.nav_account ?? s.navAccount}</a>
+            )}
             <button className="or-btn or-btn-primary" style={{ marginTop: '0.75rem' }}
               onClick={() => { scrollToSection(SECTION_IDS.book); setOpen(false); }}>
               {bookLabel}

@@ -91,6 +91,8 @@ export interface StudentSummary {
   phone: string | null;
   status: string;
   classCount: number;
+  /** Real lesson counts (from /student/me). */
+  stats?: { upcoming: number; completed: number; total: number };
 }
 export interface ChatMessage {
   id: string;
@@ -107,7 +109,7 @@ export interface StudentLesson {
 }
 
 export const studentPortalApi = {
-  login: (websiteId: string, data: { email: string; enrollmentCode: string }) =>
+  login: (websiteId: string, data: { email: string }) =>
     studentApi
       .post<{ token: string; student: StudentSummary }>(`/driving-school/${websiteId}/student/login`, data)
       .then((r) => r.data),

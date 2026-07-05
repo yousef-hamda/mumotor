@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { CalendarDays, MessageSquare, User, LogOut, ArrowRight, Send } from 'lucide-react';
-import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore } from '../../lib/api';
+import { CalendarDays, MessageSquare, User, LogOut, ArrowRight, Send, Clock } from 'lucide-react';
+import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore, type StudentSummary } from '../../lib/api';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
+import { useTenantSlug } from '../../lib/tenant';
 import { formatDateLong } from '../../lib/utils';
 import {
   TemplatedShell,
@@ -19,6 +19,14 @@ import {
 
 type Tab = 'lessons' | 'chat' | 'profile';
 
+/** "08:00" + 45 → "08:00 – 08:45". */
+function slotRange(start: string, dur: number): string {
+  const [h, m] = start.split(':').map(Number);
+  const t = (h || 0) * 60 + (m || 0) + dur;
+  const end = `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+  return `${start} – ${end}`;
+}
+
 export default function StudentAccount() {
   const websiteSlug = useTenantSlug();
   const qc = useQueryClient();
@@ -29,7 +37,6 @@ export default function StudentAccount() {
     retry: false,
   });
 
-  // Activate any stored session token for this site on first render.
   const [token, setToken] = useState<string | null>(() => studentTokenStore.activate(websiteSlug));
   const [tab, setTab] = useState<Tab>('lessons');
 
@@ -79,7 +86,14 @@ export default function StudentAccount() {
           }}
         />
       ) : (
-        <Account websiteId={settings.id} slug={websiteSlug} tab={tab} setTab={setTab} onLogout={logout} />
+        <Account
+          websiteId={settings.id}
+          slug={websiteSlug}
+          classDuration={settings.classDuration}
+          tab={tab}
+          setTab={setTab}
+          onLogout={logout}
+        />
       )}
     </TemplatedShell>
   );
@@ -97,10 +111,9 @@ function LoginCard({
   onSuccess: (token: string) => void;
 }) {
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
 
   const login = useMutation({
-    mutationFn: () => studentPortalApi.login(websiteId, { email: email.trim(), enrollmentCode: code.trim() }),
+    mutationFn: () => studentPortalApi.login(websiteId, { email: email.trim() }),
     onSuccess: (res) => onSuccess(res.token),
     onError: (e) => toast.error(apiError(e).message),
   });
@@ -111,12 +124,11 @@ function LoginCard({
       <h1 className="book-title" style={{ marginTop: '0.6rem' }}>
         Sign in to {schoolName}
       </h1>
-      <p className="book-sub">Use the email you enrolled with and the code your instructor gave you.</p>
+      <p className="book-sub">Enter the email you enrolled with — no code needed.</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error('Please enter a valid email');
-          if (code.trim().length < 4) return toast.error('Enter your enrollment code');
           login.mutate();
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.4rem' }}
@@ -124,23 +136,14 @@ function LoginCard({
         <BookField label="Email">
           <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
         </BookField>
-        <BookField label="Enrollment code">
-          <BookInput
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="e.g. DRIVE2026"
-            style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }}
-            required
-          />
-        </BookField>
         <BookButton variant="primary" type="submit" loading={login.isPending} className="book-btn-block">
           Sign in <ArrowRight style={{ height: '1rem', width: '1rem' }} />
         </BookButton>
       </form>
       <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
-        Not enrolled yet?{' '}
+        New student?{' '}
         <Link to={`/p/${slug}/enroll`} className="book-link">
-          Enroll here
+          Enroll with your code
         </Link>
       </p>
     </BookCard>
@@ -150,12 +153,14 @@ function LoginCard({
 function Account({
   websiteId,
   slug,
+  classDuration,
   tab,
   setTab,
   onLogout,
 }: {
   websiteId: string;
   slug: string;
+  classDuration: number;
   tab: Tab;
   setTab: (t: Tab) => void;
   onLogout: () => void;
@@ -166,10 +171,8 @@ function Account({
     retry: false,
   });
 
-  // Unread messages badge (poll lightly).
   const unread = useUnreadCount(websiteId);
 
-  // If the session is invalid/expired, drop back to login.
   useEffect(() => {
     if (me.isError && apiError(me.error).status === 401) onLogout();
   }, [me.isError, me.error, onLogout]);
@@ -202,16 +205,14 @@ function Account({
         </button>
       </div>
 
-      {tab === 'lessons' && <LessonsTab websiteId={websiteId} slug={slug} classCount={me.data.classCount} />}
+      {tab === 'lessons' && <LessonsTab websiteId={websiteId} slug={slug} classDuration={classDuration} stats={me.data.stats} />}
       {tab === 'chat' && <ChatTab websiteId={websiteId} />}
-      {tab === 'profile' && <ProfileTab websiteId={websiteId} />}
+      {tab === 'profile' && <ProfileTab me={me.data} websiteId={websiteId} onSaved={() => me.refetch()} />}
     </div>
   );
 }
 
 function useUnreadCount(websiteId: string): number {
-  // Cheap unread signal: count teacher messages newer than the last time the
-  // student opened the chat. We piggyback on the messages list.
   const msgs = useQuery({
     queryKey: ['student', 'messages', websiteId],
     queryFn: () => studentPortalApi.messages(websiteId),
@@ -222,13 +223,24 @@ function useUnreadCount(websiteId: string): number {
   return (msgs.data ?? []).filter((m) => m.sender === 'TEACHER' && new Date(m.createdAt).getTime() > lastSeen).length;
 }
 
-function LessonsTab({ websiteId, slug, classCount }: { websiteId: string; slug: string; classCount: number }) {
+function LessonsTab({
+  websiteId,
+  slug,
+  classDuration,
+  stats,
+}: {
+  websiteId: string;
+  slug: string;
+  classDuration: number;
+  stats?: StudentSummary['stats'];
+}) {
   const lessons = useQuery({
     queryKey: ['student', 'lessons', websiteId],
     queryFn: () => studentPortalApi.lessons(websiteId),
     retry: false,
   });
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const cancel = useMutation({
     mutationFn: (bookingId: string) => studentPortalApi.cancelLesson(websiteId, bookingId),
@@ -236,77 +248,113 @@ function LessonsTab({ websiteId, slug, classCount }: { websiteId: string; slug: 
       toast.success('Lesson cancelled');
       setConfirmId(null);
       lessons.refetch();
+      qc.invalidateQueries({ queryKey: ['student', 'me', websiteId] });
     },
     onError: (e) => toast.error(apiError(e).message),
   });
 
+  const upcoming = lessons.data ?? [];
+  const next = upcoming[0];
+  const rest = upcoming.slice(1);
+
   return (
-    <BookCard>
-      <div className="book-stats">
-        <div className="book-stat">
-          <div className="book-stat-num">{classCount}</div>
-          <div className="book-stat-label">Lessons taken</div>
-        </div>
-        <div className="book-stat">
-          <div className="book-stat-num">{lessons.data?.length ?? 0}</div>
-          <div className="book-stat-label">Upcoming</div>
-        </div>
-        <div className="book-stat">
-          <div className="book-stat-num">{classCount + (lessons.data?.length ?? 0)}</div>
-          <div className="book-stat-label">Total booked</div>
-        </div>
-      </div>
-
-      <h2 className="book-title" style={{ fontSize: '1.1rem', marginTop: '1.4rem' }}>
-        Upcoming lessons
-      </h2>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Next lesson highlight */}
       {lessons.isLoading ? (
-        <BookSpinner label="Loading…" />
-      ) : !lessons.data || lessons.data.length === 0 ? (
-        <div className="book-note" style={{ marginTop: '0.8rem' }}>
-          You have no upcoming lessons booked.
+        <BookCard><BookSpinner label="Loading your lessons…" /></BookCard>
+      ) : next ? (
+        <div
+          style={{
+            background: 'var(--book-accent-soft)',
+            border: '1px solid var(--book-line)',
+            borderRadius: 'calc(var(--book-radius) + 6px)',
+            padding: '1.4rem 1.5rem',
+          }}
+        >
+          <p className="book-eyebrow">Your next lesson</p>
+          <p style={{ margin: '0.5rem 0 0', fontFamily: 'var(--book-font-display)', fontSize: '1.35rem', fontWeight: 700, color: 'var(--book-ink)' }}>
+            {formatDateLong(next.date)}
+          </p>
+          <p style={{ margin: '0.25rem 0 0', color: 'var(--book-ink)', fontWeight: 600 }}>
+            {slotRange(next.time, next.duration)} · {next.duration} min
+          </p>
+          <p className="book-sub" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Clock style={{ height: '0.95rem', width: '0.95rem' }} /> Please arrive 5 minutes early.
+          </p>
+          <div style={{ marginTop: '1rem' }}>
+            {confirmId === next.id ? (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <BookButton variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(next.id)}>Cancel lesson</BookButton>
+                <BookButton variant="secondary" onClick={() => setConfirmId(null)}>Keep it</BookButton>
+              </div>
+            ) : next.cancellable ? (
+              <BookButton variant="secondary" onClick={() => setConfirmId(next.id)}>Cancel this lesson</BookButton>
+            ) : (
+              <span className="book-sub">Starts soon — to cancel, contact your instructor.</span>
+            )}
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
-          {lessons.data.map((b) => (
-            <div key={b.id} className="book-row">
-              <div>
-                <div className="book-row-date">{formatDateLong(b.date)}</div>
-                <div className="book-row-time">
-                  {b.time} · {b.duration} min
-                </div>
-              </div>
-              {confirmId === b.id ? (
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  <BookButton variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(b.id)}>
-                    Confirm
-                  </BookButton>
-                  <BookButton variant="secondary" onClick={() => setConfirmId(null)}>
-                    Keep
-                  </BookButton>
-                </div>
-              ) : b.cancellable ? (
-                <button className="book-link" style={{ color: '#e5484d' }} onClick={() => setConfirmId(b.id)}>
-                  Cancel
-                </button>
-              ) : (
-                <span className="book-row-time" title="Lessons can be cancelled up to 2 hours before they start">
-                  Starts soon
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+        <BookCard>
+          <div className="book-note" style={{ border: 'none', padding: '0.5rem 0' }}>
+            You have no upcoming lessons. Book your next one below.
+          </div>
+        </BookCard>
       )}
 
-      <Link to={`/p/${slug}/book-lesson`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.2rem' }}>
-        Book a lesson <ArrowRight style={{ height: '1rem', width: '1rem' }} />
-      </Link>
-      <p className="book-sub" style={{ textAlign: 'center', marginTop: '0.6rem' }}>
-        Lessons can be cancelled up to 2 hours before they start.
-      </p>
-    </BookCard>
+      <BookCard>
+        {/* Real, correct counts */}
+        <div className="book-stats">
+          <div className="book-stat">
+            <div className="book-stat-num">{stats?.completed ?? 0}</div>
+            <div className="book-stat-label">Completed</div>
+          </div>
+          <div className="book-stat">
+            <div className="book-stat-num">{stats?.upcoming ?? upcoming.length}</div>
+            <div className="book-stat-label">Upcoming</div>
+          </div>
+          <div className="book-stat">
+            <div className="book-stat-num">{stats?.total ?? upcoming.length}</div>
+            <div className="book-stat-label">Total lessons</div>
+          </div>
+        </div>
+
+        {rest.length > 0 && (
+          <>
+            <h2 className="book-title" style={{ fontSize: '1.05rem', marginTop: '1.4rem' }}>
+              Later lessons
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
+              {rest.map((b) => (
+                <div key={b.id} className="book-row">
+                  <div>
+                    <div className="book-row-date">{formatDateLong(b.date)}</div>
+                    <div className="book-row-time">{slotRange(b.time, b.duration)} · {b.duration} min</div>
+                  </div>
+                  {confirmId === b.id ? (
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <BookButton variant="danger" loading={cancel.isPending} onClick={() => cancel.mutate(b.id)}>Confirm</BookButton>
+                      <BookButton variant="secondary" onClick={() => setConfirmId(null)}>Keep</BookButton>
+                    </div>
+                  ) : b.cancellable ? (
+                    <button className="book-link" style={{ color: '#e5484d' }} onClick={() => setConfirmId(b.id)}>Cancel</button>
+                  ) : (
+                    <span className="book-row-time">Starts soon</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <Link to={`/p/${slug}/book-lesson`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.2rem' }}>
+          Book a lesson <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+        </Link>
+        <p className="book-sub" style={{ textAlign: 'center', marginTop: '0.6rem' }}>
+          Each lesson is {classDuration} min. Lessons can be cancelled up to 2 hours before they start.
+        </p>
+      </BookCard>
+    </div>
   );
 }
 
@@ -330,7 +378,6 @@ function ChatTab({ websiteId }: { websiteId: string }) {
     onError: (e) => toast.error(apiError(e).message),
   });
 
-  // Mark as seen (clears the unread badge) whenever the thread renders/updates.
   useEffect(() => {
     if (messages.data && messages.data.length) {
       const latest = Math.max(...messages.data.map((m) => new Date(m.createdAt).getTime()));
@@ -383,26 +430,19 @@ function ChatTab({ websiteId }: { websiteId: string }) {
   );
 }
 
-function ProfileTab({ websiteId }: { websiteId: string }) {
-  const me = useQuery({
-    queryKey: ['student', 'me', websiteId],
-    queryFn: () => studentPortalApi.me(websiteId),
-    retry: false,
-  });
+function ProfileTab({ me, websiteId, onSaved }: { me: StudentSummary; websiteId: string; onSaved: () => void }) {
   const [phone, setPhone] = useState<string | null>(null);
-  const phoneValue = phone ?? me.data?.phone ?? '';
+  const phoneValue = phone ?? me.phone ?? '';
 
   const save = useMutation({
     mutationFn: () => studentPortalApi.updateProfile(websiteId, { studentPhone: phoneValue.trim() }),
     onSuccess: () => {
       toast.success('Profile updated');
-      me.refetch();
+      onSaved();
       setPhone(null);
     },
     onError: (e) => toast.error(apiError(e).message),
   });
-
-  if (me.isLoading || !me.data) return <BookSpinner label="Loading…" />;
 
   return (
     <BookCard>
@@ -411,18 +451,13 @@ function ProfileTab({ websiteId }: { websiteId: string }) {
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.2rem' }}>
         <BookField label="Name">
-          <BookInput value={me.data.name} disabled />
+          <BookInput value={me.name} disabled />
         </BookField>
         <BookField label="Email">
-          <BookInput value={me.data.email} disabled />
+          <BookInput value={me.email} disabled />
         </BookField>
         <BookField label="Phone" hint="The number your instructor uses to reach you.">
-          <BookInput
-            type="tel"
-            value={phoneValue}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+972 50 123 4567"
-          />
+          <BookInput type="tel" value={phoneValue} onChange={(e) => setPhone(e.target.value)} placeholder="+972 50 123 4567" />
         </BookField>
         <BookButton
           variant="primary"
