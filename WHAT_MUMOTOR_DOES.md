@@ -379,7 +379,7 @@ The first-time sign-up page. A student enters:
 
 ## 7.2 Book a lesson
 A short step-by-step flow. **Lessons are booked for tomorrow only.**
-- **Email step:** enter the email you enrolled with, then **Continue**. If the teacher set a daily booking window, it's shown ("Booking is open daily 09:00–17:00 (Israel time)"). *This step is skipped automatically if the student is already signed in or arrived from a one-time email link.*
+- **Email step:** enter the email you enrolled with, then **Continue**. If the teacher set a daily booking window, it's shown ("Booking is open daily 09:00–17:00 (Israel time)"). *This step is skipped automatically if the student is already signed in to their account on this site* (the booking page also technically supports a one-time email "magic link," a capability that is built-in but not currently sent anywhere — see "Built and ready, but not switched on" near the end).
   - If the email isn't recognised, a quick **enroll step** appears (name, phone, code) so they can join and continue.
   - If the enrollment is paused, they're told to contact their instructor.
 - **Choose a time:** shows tomorrow's date, the lesson length, and an "arrive 5 minutes early" note, then a grid of available time slots shown as ranges (e.g. **08:00 – 08:45**). Helpful messages cover the cases where booking is closed right now, the school is closed tomorrow, or every slot is already taken.
@@ -413,7 +413,7 @@ All student-facing emails are **branded as the teacher's own school** (the schoo
 5. **"Booking is now open" email** — each morning at the teacher's booking-window-open time, to every active student, inviting them to book tomorrow.
 6. **The teacher's daily schedule report** — once a day at the teacher's report time. A polished, Apple-style layout: three tiles (Booked / Free / Total), then each slot in time order with the student's name and a **tappable phone number** to call or message them. It can also be sent on demand from the Schedule tab.
 7. **Bulk email** — whatever the teacher writes, personalised with each student's name, to the chosen audience.
-8. **One-time booking link ("magic link")** — lets a returning student book without re-entering their code (works once, expires in 15 minutes).
+8. **One-time booking link ("magic link")** — a built-in capability to email a returning student a one-time link that lets them book without re-entering their code (works once, expires in 15 minutes). *Note: this capability is present in the system but is not currently triggered anywhere in the live product — see "Built and ready, but not switched on."*
 9. **Review request** — automatically about an hour after a lesson ends, inviting a review.
 10. **Password reset** — a one-time link (30-minute expiry).
 11. **Email verification** — on sign-up and on "resend" (24-hour expiry).
@@ -517,7 +517,18 @@ Students cannot cancel within two hours of a lesson — they're directed to cont
 
 ---
 
-# PART 14 — For the Platform Owner (Admin)
+# PART 14 — Built and Ready, but Not Currently Switched On
+
+For completeness, these capabilities exist fully in Mumotor's code but are **not active in the live product today**. They're listed here so nothing is hidden:
+
+- **Per-instructor custom web addresses** (like `yourname.mumotor.com`): fully built, currently switched off; today every site lives at a Mumotor sub-path instead.
+- **The one-time booking "magic link" email:** the system can email a returning student a one-time booking link (and the booking page can accept it), but nothing in the live product currently sends one — the student account (email-only sign-in) covers this need instead.
+- **Older student self-service by email + code:** the system still contains earlier routes for a student to look up their own bookings, cancel by email + code, or pause their own enrollment. These were replaced by the newer email-only student account (where students can view lessons and chat, but cannot cancel — they contact the instructor), so they're no longer offered anywhere in the current pages.
+- **The original built-in HTML site generator:** an earlier engine that produced a site's page as fixed HTML from a set of presets still exists behind the scenes, but the live websites students actually see are the newer, richer template designs described in Part 5.
+
+---
+
+# PART 15 — For the Platform Owner (Admin)
 
 - Mumotor has an **admin area** (for the platform operator, not teachers) showing platform-wide statistics: total teachers, total websites, published sites, total students, bookings, and reviews, plus recent activity and a "started the builder → published a site" conversion funnel, and lists of users and websites.
 - Behind the scenes, Mumotor privately tracks a small set of **milestone events** (someone started the builder, completed a step, chose a template, published a site, a student enrolled, a lesson was booked, a review was submitted) — this is what powers those admin statistics. Nothing personal beyond these milestones is tracked.
