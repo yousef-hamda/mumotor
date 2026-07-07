@@ -4,7 +4,7 @@ import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
-import { apiError, drivingSchoolApi } from '../../lib/api';
+import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore } from '../../lib/api';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
 import { bookLocale, bookT } from '../../lib/bookingStrings';
@@ -34,6 +34,18 @@ export default function Enroll() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: k === 'enrollmentCode' ? e.target.value.toUpperCase() : e.target.value }));
 
+  // Sign the student straight into their account after enrolling, so they never
+  // have to log in again with their email. Booking only needs the email (a public
+  // action), so this is safe. Best-effort — if it fails they can still sign in.
+  const autoSignIn = async () => {
+    try {
+      const { token, student } = await studentPortalApi.login(settings!.id, { email: form.studentEmail.trim() });
+      studentTokenStore.set(websiteSlug, token, { email: student.email, name: student.name });
+    } catch {
+      /* leave them to sign in manually if auto sign-in isn't possible */
+    }
+  };
+
   const enroll = useMutation({
     mutationFn: () =>
       drivingSchoolApi.enroll({
@@ -43,11 +55,17 @@ export default function Enroll() {
         studentPhone: form.studentPhone.trim(),
         enrollmentCode: form.enrollmentCode.trim(),
       }),
-    onSuccess: () => setDone(true),
-    onError: (e) => {
+    onSuccess: async () => {
+      await autoSignIn();
+      setDone(true);
+    },
+    onError: async (e) => {
       const { status, message } = apiError(e);
-      if (status === 409) setAlreadyEnrolled(true);
-      else toast.error(message);
+      if (status === 409) {
+        // Email already enrolled → it's a valid returning student; sign them in too.
+        await autoSignIn();
+        setAlreadyEnrolled(true);
+      } else toast.error(message);
     },
   });
 

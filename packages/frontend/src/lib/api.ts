@@ -59,16 +59,27 @@ api.interceptors.response.use(
 // ---------------------------------------------------------------------------
 let activeStudentToken: string | null = null;
 const studentKey = (slug: string) => `mumotor_student_token:${slug}`;
+const studentInfoKey = (slug: string) => `mumotor_student_info:${slug}`;
 
 export const studentTokenStore = {
   get: (slug: string) => localStorage.getItem(studentKey(slug)),
-  /** Persist + make active for subsequent studentApi calls. */
-  set: (slug: string, t: string) => {
+  /** Persist the session token (+ optional email/name) and make it active.
+   *  Storing the email/name lets the booking page skip the email step instantly,
+   *  without waiting on a network call. */
+  set: (slug: string, t: string, info?: { email?: string; name?: string }) => {
     localStorage.setItem(studentKey(slug), t);
+    if (info && (info.email || info.name)) {
+      try { localStorage.setItem(studentInfoKey(slug), JSON.stringify({ email: info.email ?? '', name: info.name ?? '' })); } catch { /* ignore */ }
+    }
     activeStudentToken = t;
+  },
+  /** The stored student email/name for this site (or null). */
+  info: (slug: string): { email: string; name: string } | null => {
+    try { const raw = localStorage.getItem(studentInfoKey(slug)); return raw ? JSON.parse(raw) : null; } catch { return null; }
   },
   clear: (slug: string) => {
     localStorage.removeItem(studentKey(slug));
+    localStorage.removeItem(studentInfoKey(slug));
     activeStudentToken = null;
   },
   /** Load a stored token for this site and make it active; returns it (or null). */

@@ -85,8 +85,8 @@ export default function StudentAccount() {
           schoolName={settings.name}
           slug={websiteSlug}
           L={L}
-          onSuccess={(t) => {
-            studentTokenStore.set(websiteSlug, t);
+          onSuccess={(t, info) => {
+            studentTokenStore.set(websiteSlug, t, info);
             setToken(t);
           }}
         />
@@ -116,13 +116,13 @@ function LoginCard({
   schoolName: string;
   slug: string;
   L: BookLocale;
-  onSuccess: (token: string) => void;
+  onSuccess: (token: string, info: { email: string; name: string }) => void;
 }) {
   const [email, setEmail] = useState('');
 
   const login = useMutation({
     mutationFn: () => studentPortalApi.login(websiteId, { email: email.trim() }),
-    onSuccess: (res) => onSuccess(res.token),
+    onSuccess: (res) => onSuccess(res.token, { email: res.student.email, name: res.student.name }),
     onError: (e) => toast.error(apiError(e).message),
   });
 

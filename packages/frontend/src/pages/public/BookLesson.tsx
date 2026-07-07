@@ -84,13 +84,22 @@ export default function BookLesson() {
       .catch(() => toast.error(bookT(L, 'linkExpired')));
   }, [token, settings]);
 
-  // Logged-in session: skip the email step. If a student token is stored for this
-  // site (and there's no magic-link token in play), resolve the student's email/name
-  // and jump straight to choosing a time. Public availability/book only need `email`.
+  // Logged-in session: skip the email step. If the student is signed in on this site
+  // (and there's no magic-link token in play), jump straight to choosing a time.
+  // Booking only needs `email` (a public action), so we use the email saved with the
+  // session for an INSTANT, reliable skip — no waiting on a network call. Older
+  // sessions that predate saved info fall back to looking the student up.
   useEffect(() => {
     if (token || !settings) return;
-    const stored = studentTokenStore.activate(websiteSlug);
-    if (!stored) return;
+    if (!studentTokenStore.activate(websiteSlug)) return;
+    const info = studentTokenStore.info(websiteSlug);
+    if (info?.email) {
+      setEmail(info.email);
+      setStudentName(info.name || '');
+      setNeedsEnrollment(false);
+      setStep('time');
+      return;
+    }
     studentPortalApi
       .me(settings.id)
       .then((student) => {
@@ -130,6 +139,11 @@ export default function BookLesson() {
     onSuccess: () => {
       setNeedsEnrollment(false);
       setStep('time');
+      // Sign them in for next time (best-effort) so they won't re-enter their email.
+      studentPortalApi
+        .login(settings!.id, { email: email.trim() })
+        .then(({ token: t, student }) => studentTokenStore.set(websiteSlug, t, { email: student.email, name: student.name }))
+        .catch(() => { /* ignore — booking still proceeds */ });
     },
     onError: (e) => {
       const { status, message } = apiError(e);
