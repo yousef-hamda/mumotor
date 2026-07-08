@@ -14,6 +14,12 @@ export function useIsEditing(): boolean {
   return useContext(EditingContext);
 }
 
+/** Localized "instructor's reply" label shown above a teacher's public reply to
+ *  a review. Falls back to English for any unknown locale. */
+export function reviewReplyLabel(locale?: string): string {
+  return locale === 'he' ? 'תגובת המדריך' : locale === 'ar' ? 'رد المدرّب' : "Instructor's reply";
+}
+
 /** Canonical in-page section ids — every template uses these for anchor nav. */
 export const SECTION_IDS = {
   hero: 'hero',

@@ -31,7 +31,7 @@ import { ShaderBackground } from '../webgl/ShaderBackground';
 import { SHADER_IRIDESCENT } from '../webgl/shaders';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, useScrollParallax, useIsEditing,
+  Reveal, useCountUp, useScrollParallax, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { prStrings, type PrStrings } from './strings';
 import './prism.css';
@@ -248,7 +248,7 @@ function StatItem({ stat, index }: { stat: TemplateData['stats'][number]; index:
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
-  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString() : n.toFixed(1);
+  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString('en-US') : n.toFixed(1);
 
   return (
     <div ref={ref} className="pr-spec" data-edit-item={`stats.${index}`}>
@@ -520,6 +520,11 @@ function PrReviews({ data }: { data: TemplateData }) {
               <div data-edit-item={`reviews.${i}`}>
                 <Stars n={r.rating} />
                 <blockquote className="pr-quote-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                {r.reply && (
+                  <p className="pr-quote-reply">
+                    <span className="pr-quote-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="pr-quote-meta">
                   {r.avatar && (
                     <img src={r.avatar} alt={r.name} className="pr-avatar" loading="lazy" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

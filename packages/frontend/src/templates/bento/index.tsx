@@ -26,6 +26,7 @@ import {
   useMouseTilt,
   usePrefersReducedMotion,
   useIsEditing,
+  reviewReplyLabel,
 } from '../shared';
 import './bento.css';
 
@@ -221,7 +222,7 @@ function BnHeroStat({ stat }: { stat: TemplateData['stats'][number] }) {
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
   const formatted = Number.isInteger(stat.value)
-    ? Math.round(n).toLocaleString()
+    ? Math.round(n).toLocaleString('en-US')
     : n.toFixed(1);
   return (
     <div ref={ref} className="bn-hero-stat-inner">
@@ -340,7 +341,7 @@ function StatTile({
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
   const formatted = Number.isInteger(stat.value)
-    ? Math.round(n).toLocaleString()
+    ? Math.round(n).toLocaleString('en-US')
     : n.toFixed(1);
 
   return (
@@ -780,6 +781,11 @@ function BnReviews({ data }: { data: TemplateData }) {
                   <blockquote className="bn-review-text">
                     "<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"
                   </blockquote>
+                  {r.reply && (
+                    <p className="bn-review-reply">
+                      <span className="bn-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                    </p>
+                  )}
                   <div className="bn-review-meta">
                     {r.avatar && (
                       <img

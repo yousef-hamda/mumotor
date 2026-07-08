@@ -362,10 +362,9 @@ router.get(
       restMinutes: cfg.restMinutes,
     });
 
-    // Drop past slots when booking for today (UTC).
+    // Drop past slots when booking for today (app timezone wall-clock).
     if (diffDays === 0) {
-      const now = new Date();
-      const nowMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+      const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
       slots = slots.filter((s) => parseTimeToMinutes(s) > nowMin);
     }
 
@@ -422,6 +421,11 @@ router.post(
       const now = new Date();
       if (now.getUTCHours() >= (cfg.bookingCutoffHour ?? 18)) {
         throw badRequest('Booking for today is closed', 'BOOKING_CUTOFF_PASSED');
+      }
+      // Can't book a time that has already passed today (app timezone wall-clock).
+      const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
+      if (parseTimeToMinutes(data.time) <= nowMin) {
+        throw badRequest('That time has already passed', 'PAST_TIME');
       }
     }
 

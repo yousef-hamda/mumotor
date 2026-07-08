@@ -930,3 +930,7 @@
 .tmpl-full-throttle[dir='rtl'] .ft-nav-mobile-link,
 .tmpl-full-throttle[dir='rtl'] .ft-faq-q { text-align: right; }
 .tmpl-full-throttle[dir='rtl'] .ft-hours-table td:first-child { padding-right: 0; padding-left: 1.5rem; }
+
+/* Instructor reply to a review */
+.ft-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.ft-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

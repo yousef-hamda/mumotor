@@ -13,7 +13,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import './open-road.css';
 
@@ -365,6 +365,11 @@ function Reviews({ data }: { data: TemplateData }) {
               >
                 <StarRow rating={r.rating} s={s} />
                 <p className="or-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
+                {r.reply && (
+                  <p className="or-review-reply">
+                    <span className="or-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="or-review-author">
                   {r.avatar && (
                     <img src={r.avatar} alt={r.name} className="or-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

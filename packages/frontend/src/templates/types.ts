@@ -42,6 +42,8 @@ export interface Review {
   /** e.g. "Passed first time · Manual". */
   meta?: string;
   avatar?: string;
+  /** Optional public reply from the instructor, shown under the review. */
+  reply?: string;
 }
 
 export interface Faq {

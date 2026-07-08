@@ -53,6 +53,20 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+const isDataUrl = (s?: string) => typeof s === 'string' && s.startsWith('data:');
+
+/** Server draft copy without heavy base64 image data-URLs (they'd exceed the
+ *  draft size cap and fail the sync). Non-data-URL image URLs are preserved. */
+function stripDraftImages(c: WizardConfig): WizardConfig {
+  return {
+    ...c,
+    logoSrc: isDataUrl(c.logoSrc) ? undefined : c.logoSrc,
+    carPhoto: isDataUrl(c.carPhoto) ? undefined : c.carPhoto,
+    instructorPhoto: isDataUrl(c.instructorPhoto) ? undefined : c.instructorPhoto,
+    gallery: (c.gallery ?? []).filter((g) => !isDataUrl(g)),
+  };
+}
+
 export default function BuilderWizard() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -79,6 +93,18 @@ export default function BuilderWizard() {
   }, [searchParams]);
 
   useEffect(() => saveWizard(config), [config]);
+
+  // Until the teacher deliberately picks a site language, keep it in sync with the
+  // app UI language — so switching the app language updates the site-language
+  // default AND the "Auto-fill sample" language. Also self-heals a stale draft
+  // saved in an earlier language (no `localeTouched` ⇒ follows the current UI).
+  useEffect(() => {
+    if (config.localeTouched) return;
+    const lang = (i18n.language || '').toLowerCase();
+    const loc: WizardConfig['locale'] = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
+    setConfig((c) => (c.localeTouched || c.locale === loc ? c : { ...c, locale: loc }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language, config.localeTouched]);
 
   // ── Server-side draft (logged-in users only) ───────────────────────────────
   // localStorage remains the primary store; the server copy survives browser
@@ -109,7 +135,11 @@ export default function BuilderWizard() {
   useEffect(() => {
     if (!user || !draftReady.current || restorePrompt) return;
     const t = setTimeout(() => {
-      wizardDraftApi.put(config as unknown as Record<string, unknown>).catch(() => { /* best-effort */ });
+      // Photos are heavy base64 data-URLs; keeping them here blows past the
+      // server draft's size cap and silently fails every sync. Strip them so the
+      // server copy always carries the typed answers (photos stay in localStorage,
+      // which already survives a same-browser refresh).
+      wizardDraftApi.put(stripDraftImages(config) as unknown as Record<string, unknown>).catch(() => { /* best-effort */ });
     }, 2000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -489,7 +519,7 @@ function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardC
             <Field label={t('builder.business.city')}><Input value={config.city} onChange={(e) => set('city', e.target.value)} placeholder={t('builder.business.cityPlaceholder')} /></Field>
           </div>
           <Field label={t('builder.business.siteLanguage')}>
-            <Select value={config.locale} onChange={(e) => set('locale', e.target.value as WizardConfig['locale'])}>
+            <Select value={config.locale} onChange={(e) => { set('locale', e.target.value as WizardConfig['locale']); set('localeTouched', true); }}>
               <option value="EN">English</option>
               <option value="HE">עברית (Hebrew)</option>
               <option value="AR">العربية (Arabic)</option>
@@ -745,12 +775,12 @@ function BrowseCard({ t: meta, sel, onPick, initialAccent }: { t: TemplateMeta; 
       <div className="relative aspect-[16/10] overflow-hidden" style={{ background: meta.bg }}>
         <TemplateConcept meta={meta} accent={isMumotor ? accent : undefined} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: meta.accent }}>{meta.style}</span>}
+        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: meta.accent }}>{t(`templates.designs.${meta.slug}.style`, meta.style)}</span>}
         <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{meta.name}</span>
         {isMumotor && <MumotorAccentDots value={accent} onPick={setAccent} />}
       </div>
       <div className="p-5">
-        <p className="text-sm leading-relaxed text-sand-600">{meta.blurb}</p>
+        <p className="text-sm leading-relaxed text-sand-600">{t(`templates.designs.${meta.slug}.blurb`, meta.blurb)}</p>
         <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sun-600">
           {t('builder.browse.previewLive')} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </span>

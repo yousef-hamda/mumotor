@@ -8,6 +8,18 @@ import { TemplateRender } from '../../templates/TemplateRender';
 import { publicToTemplateData } from '../../templates/fromWizard';
 import { TEMPLATES } from '../../templates/registry';
 import { useSeo } from '../../lib/seo';
+import { formatMonthYearIn } from '../../lib/utils';
+
+/** schema.org priceRange derived from the teacher's real plans (Latin digits,
+ *  ₪). Falls back to a generic indicator when no priced package exists. */
+function priceRangeFromPackages(packages: { price: number }[]): string {
+  const prices = packages.map((p) => p.price).filter((n) => Number.isFinite(n) && n > 0);
+  if (!prices.length) return '₪₪';
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const fmt = (n: number) => n.toLocaleString('en-US');
+  return min === max ? `₪${fmt(min)}` : `₪${fmt(min)}–₪${fmt(max)}`;
+}
 
 /**
  * The published teacher site. Renders the design the teacher chose in the
@@ -38,7 +50,8 @@ export default function PublicSite() {
           name: r.studentName,
           rating: r.rating,
           text: r.comment,
-          meta: new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
+          reply: r.reply ?? undefined,
+          meta: formatMonthYearIn(r.createdAt, String((data as { locale?: string }).locale ?? 'en')),
         })),
       })
     : null;
@@ -60,7 +73,7 @@ export default function PublicSite() {
             email: templateData.contact.email || undefined,
             address: templateData.contact.address || undefined,
             image: templateData.hero.image || undefined,
-            priceRange: '₪₪',
+            priceRange: priceRangeFromPackages(templateData.packages),
             areaServed: templateData.areas.length ? templateData.areas.map((a) => a.name) : undefined,
           },
         }

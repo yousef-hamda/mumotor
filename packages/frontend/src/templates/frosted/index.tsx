@@ -16,7 +16,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
   Reveal, useCountUp, useMouseTilt, useScrollParallax,
-  usePrefersReducedMotion, useGsapScrollTrigger, useIsEditing,
+  usePrefersReducedMotion, useGsapScrollTrigger, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { frStrings, type FrStrings } from './strings';
 import './frosted.css';
@@ -199,7 +199,7 @@ function StatItem({ stat, index }: { stat: TemplateData['stats'][number]; index:
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
-  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString() : n.toFixed(1);
+  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString('en-US') : n.toFixed(1);
   return (
     <div ref={ref} data-edit-item={`stats.${index}`}>
       <FrGlass tilt className="fr-stat">
@@ -455,6 +455,11 @@ function FrReviews({ data }: { data: TemplateData }) {
                 <div data-edit-item={`reviews.${i}`}>
                   <Stars n={r.rating} />
                   <blockquote className="fr-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                  {r.reply && (
+                    <p className="fr-review-reply">
+                      <span className="fr-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                    </p>
+                  )}
                   <div className="fr-review-meta">
                     {r.avatar && <img src={r.avatar} alt={r.name} className="fr-avatar" loading="lazy" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                     <div>

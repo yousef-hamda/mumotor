@@ -111,6 +111,10 @@ export interface WizardConfig {
 
   // ── Design ─────────────────────────────────────────────────────────────
   locale: 'HE' | 'AR' | 'EN';
+  /** True once the teacher deliberately picked the site language in the wizard.
+   *  While false/absent, the site language follows the app UI language (so a
+   *  fresh/untouched draft never gets stuck on a stale language). */
+  localeTouched?: boolean;
   templateChoice?: string;
   /** Customize-mode overrides (colours, text, photos). */
   customization?: Customization;

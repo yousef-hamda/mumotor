@@ -9,7 +9,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { elStrings, type ElStrings } from './strings';
 import './easy-lane.css';
@@ -402,6 +402,11 @@ function Reviews({ data }: { data: TemplateData }) {
               >
                 <StarRow rating={r.rating} />
                 <p className="el-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
+                {r.reply && (
+                  <p className="el-review-reply">
+                    <span className="el-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="el-review-author">
                   {r.avatar && <img src={r.avatar} alt={r.name} className="el-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                   <div>

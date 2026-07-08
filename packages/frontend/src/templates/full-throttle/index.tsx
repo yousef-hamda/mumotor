@@ -11,7 +11,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { fmt } from '../strings';
 import { ftStrings } from './strings';
@@ -391,6 +391,11 @@ function Reviews({ data }: { data: TemplateData }) {
                   ))}
                 </div>
                 <p className="ft-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</p>
+                {r.reply && (
+                  <p className="ft-review-reply">
+                    <span className="ft-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="ft-review-author">
                   {r.avatar && (
                     <img src={r.avatar} alt={r.name} className="ft-review-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

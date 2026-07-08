@@ -113,7 +113,7 @@ export default function Landing() {
       {/* Header — translucent frosted glass nav */}
       <header className="sticky top-0 z-40 border-b border-white/40 glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Link to="/" aria-label="Mumotor home"><Logo size="sm" /></Link>
+          <Link to="/" aria-label="Mumotor home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><Logo size="sm" /></Link>
           <nav className="hidden items-center gap-9 text-sm text-sand-600 md:flex">
             <Link to="/templates" className="transition-colors hover:text-sand-900">{t('common.navTemplates')}</Link>
             <a href="#features" className="transition-colors hover:text-sand-900">{t('common.navFeatures')}</a>
@@ -369,7 +369,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid gap-8 sm:grid-cols-[2fr_1fr_1fr]">
             <div>
-              <Link to="/" aria-label="Mumotor home" className="inline-flex"><Logo size="sm" /></Link>
+              <Link to="/" aria-label="Mumotor home" className="inline-flex" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><Logo size="sm" /></Link>
               <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-sand-500">
                 {t('landing.footerBlurb')}
               </p>

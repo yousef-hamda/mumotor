@@ -18,7 +18,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { fmt } from '../strings';
 import { giStrings, type GiStrings } from './strings';
@@ -203,7 +203,7 @@ function StatItem({ stat, index }: { stat: TemplateData['stats'][number]; index:
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
   const formatted = Number.isInteger(stat.value)
-    ? Math.round(n).toLocaleString()
+    ? Math.round(n).toLocaleString('en-US')
     : n.toFixed(1);
   return (
     <div ref={ref} className="gi-stat" data-edit-item={`stats.${index}`}>
@@ -387,6 +387,11 @@ function GIReviews({ reviews, copy, locale }: { reviews: TemplateData['reviews']
               <article className="gi-review-card" data-edit-item={`reviews.${i}`}>
                 <Stars n={r.rating} />
                 <blockquote className="gi-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                {r.reply && (
+                  <p className="gi-review-reply">
+                    <span className="gi-review-reply-label">{reviewReplyLabel(locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="gi-review-meta">
                   {r.avatar && <img src={r.avatar} alt={r.name} className="gi-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                   <div>

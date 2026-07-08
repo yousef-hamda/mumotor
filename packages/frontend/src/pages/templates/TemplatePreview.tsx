@@ -1,5 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, LayoutGrid, Check } from 'lucide-react';
 import { TEMPLATES, getTemplate, getTemplateIndex } from '../../templates/registry';
 import { TemplateRender } from '../../templates/TemplateRender';
@@ -7,6 +8,7 @@ import { applyOverrides } from '../../templates/customize/overrides';
 import { sampleData } from '../../templates/sampleData';
 
 export default function TemplatePreview() {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -35,9 +37,9 @@ export default function TemplatePreview() {
     return (
       <div className="grid min-h-dvh place-items-center bg-white text-sand-900">
         <div className="text-center">
-          <p className="text-lg font-semibold">Template not found</p>
+          <p className="text-lg font-semibold">{t('templates.preview.notFound')}</p>
           <Link to="/templates" className="btn btn-primary mt-4">
-            Back to gallery
+            {t('templates.preview.backToGallery')}
           </Link>
         </div>
       </div>
@@ -60,7 +62,7 @@ export default function TemplatePreview() {
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/15 bg-black/80 p-1.5 text-white shadow-elevated backdrop-blur-xl">
           <Link
             to="/templates"
-            title="All templates"
+            title={t('templates.preview.allTemplates')}
             className="grid h-9 w-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           >
             <LayoutGrid className="h-4 w-4" />
@@ -68,7 +70,7 @@ export default function TemplatePreview() {
           <span className="mx-1 h-5 w-px bg-white/15" />
           <Link
             to={`/templates/${prev.slug}`}
-            title={`Previous: ${prev.name}`}
+            title={t('templates.preview.prevTitle', { name: prev.name })}
             className="grid h-9 w-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -76,12 +78,12 @@ export default function TemplatePreview() {
           <div className="select-none px-2 text-center">
             <div className="text-[11px] font-semibold leading-tight">{meta.name}</div>
             <div className="text-[10px] leading-tight text-white/50">
-              {idx + 1} / {TEMPLATES.length} · {meta.style}
+              {idx + 1} / {TEMPLATES.length} · {t(`templates.designs.${meta.slug}.style`, meta.style)}
             </div>
           </div>
           <Link
             to={`/templates/${next.slug}`}
-            title={`Next: ${next.name}`}
+            title={t('templates.preview.nextTitle', { name: next.name })}
             className="grid h-9 w-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           >
             <ChevronRight className="h-4 w-4" />
@@ -92,7 +94,7 @@ export default function TemplatePreview() {
             className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black transition-transform hover:scale-[1.02] active:scale-95"
           >
             <Check className="h-3.5 w-3.5" />
-            Use this
+            {t('templates.preview.useThis')}
           </Link>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, CalendarCheck, ShieldCheck } from 'lucide-react';
-import { siteUrl } from '../../lib/api';
 import { FadeUp, ScrollTilt } from '../motion';
 
 /**
@@ -37,7 +36,7 @@ export function CinematicHero() {
               {t('landing.ctaButton')}
             </Link>
             <a
-              href={siteUrl('davids-driving')}
+              href="/p/davids-driving"
               target="_blank"
               rel="noreferrer"
               className="btn-glass px-6 py-3 text-base"

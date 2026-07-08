@@ -17,7 +17,7 @@ import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
-import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt, useIsEditing } from '../shared';
+import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt, useIsEditing, reviewReplyLabel } from '../shared';
 import { fmt } from '../strings';
 import { mmStrings, type MmStrings } from './strings';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -153,7 +153,7 @@ function StatItem({ stat, index }: { stat: TemplateData['stats'][number]; index:
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
-  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString() : n.toFixed(1);
+  const formatted = Number.isInteger(stat.value) ? Math.round(n).toLocaleString('en-US') : n.toFixed(1);
   return (
     <div ref={ref} className="mm-stat" data-edit-item={`stats.${index}`}>
       <span className="mm-stat-num" data-edit={`stats.${index}.value`} data-edit-type="text">{stat.prefix}{formatted}{stat.suffix}</span>
@@ -315,6 +315,11 @@ function MmReviews({ data }: { data: TemplateData }) {
               <div className="mm-glass mm-review" data-edit-item={`reviews.${i}`}>
                 <Stars n={r.rating} />
                 <blockquote className="mm-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                {r.reply && (
+                  <p className="mm-review-reply">
+                    <span className="mm-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                  </p>
+                )}
                 <div className="mm-review-meta">
                   {r.avatar && <img src={r.avatar} alt={r.name} className="mm-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />}
                   <div><p className="mm-review-name" data-edit={`reviews.${i}.name`} data-edit-type="text">{r.name}</p>{r.meta && <p className="mm-review-sub" data-edit={`reviews.${i}.meta`} data-edit-type="text">{r.meta}</p>}</div>

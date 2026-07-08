@@ -315,7 +315,7 @@ export function sendBulkCustomEmail(
     <div style="margin:12px 0;line-height:1.6">${safeBody}</div>`;
   return sendEmail({
     to,
-    subject: data.subject,
+    subject: `${data.subject}${subjectTag(data.brand)}`,
     html: layout(data.subject, body, data.brand),
     brand: data.brand,
   });

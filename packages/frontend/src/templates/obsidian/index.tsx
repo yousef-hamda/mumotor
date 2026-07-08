@@ -17,7 +17,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, useMouseTilt, useScrollParallax, usePrefersReducedMotion, useIsEditing,
+  Reveal, useCountUp, useMouseTilt, useScrollParallax, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { obStrings, type ObStrings } from './strings';
 import './obsidian.css';
@@ -291,7 +291,7 @@ function StatItem({ stat, index }: { stat: TemplateData['stats'][number]; index:
   const inView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
   const n = useCountUp(stat.value, inView);
   const formatted = Number.isInteger(stat.value)
-    ? Math.round(n).toLocaleString()
+    ? Math.round(n).toLocaleString('en-US')
     : n.toFixed(1);
 
   return (
@@ -635,6 +635,11 @@ function ObReviews({ data }: { data: TemplateData }) {
                 <Glass tilt className="ob-review">
                   <Stars n={r.rating} />
                   <blockquote className="ob-review-text">"<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>"</blockquote>
+                  {r.reply && (
+                    <p className="ob-review-reply">
+                      <span className="ob-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                    </p>
+                  )}
                   <div className="ob-review-meta">
                     {r.avatar && (
                       <img src={r.avatar} alt={r.name} className="ob-avatar" data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

@@ -16,7 +16,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { pgStrings } from './strings';
 import './prestige.css';
@@ -44,7 +44,7 @@ function StatCard({ label, value, suffix, prefix, editIndex }: {
     obs.observe(el); return () => obs.disconnect();
   }, []);
   const count = useCountUp(value, inView, 1600);
-  const display = Number.isInteger(value) ? Math.round(count).toLocaleString() : count.toFixed(1);
+  const display = Number.isInteger(value) ? Math.round(count).toLocaleString('en-US') : count.toFixed(1);
   return (
     <div ref={ref} className="pd-stat">
       <div className="pd-stat-value tabular-nums"
@@ -355,6 +355,11 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   <div className="pd-review-card" data-edit-item={`reviews.${i}`}>
                     <Stars n={r.rating} />
                     <p className="pd-review-text">&#8220;<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>&#8221;</p>
+                    {r.reply && (
+                      <p className="pd-review-reply">
+                        <span className="pd-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                      </p>
+                    )}
                     <div className="pd-reviewer">
                       {r.avatar
                         ? <img src={r.avatar} alt="" className="pd-avatar" width={40} height={40} data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

@@ -16,7 +16,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy,
-  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing,
+  useTemplateFonts, Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { fmt } from '../strings';
 import { nsStrings, type NsStrings } from './strings';
@@ -50,7 +50,7 @@ function StatCard({
     return () => obs.disconnect();
   }, []);
   const count = useCountUp(value, inView, 1400);
-  const display = Number.isInteger(value) ? Math.round(count).toLocaleString() : count.toFixed(1);
+  const display = Number.isInteger(value) ? Math.round(count).toLocaleString('en-US') : count.toFixed(1);
   return (
     <div ref={ref} className="ns-stat" data-edit-item={`stats.${index}`}>
       <div className="ns-stat-value tabular-nums" data-edit={`stats.${index}.value`} data-edit-type="text">
@@ -394,6 +394,11 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   <div className="ns-review-card" data-edit-item={`reviews.${i}`}>
                     <Stars n={r.rating} s={s} />
                     <p className="ns-review-text">&#8220;<span data-edit={`reviews.${i}.text`} data-edit-type="text">{r.text}</span>&#8221;</p>
+                    {r.reply && (
+                      <p className="ns-review-reply">
+                        <span className="ns-review-reply-label">{reviewReplyLabel(data.locale)}</span> {r.reply}
+                      </p>
+                    )}
                     <div className="ns-reviewer">
                       {r.avatar
                         ? <img src={r.avatar} alt="" className="ns-avatar" width={38} height={38} data-edit={`reviews.${i}.avatar`} data-edit-type="image" />

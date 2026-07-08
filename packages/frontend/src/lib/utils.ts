@@ -27,6 +27,12 @@ export function formatDateLongIn(dateStr: string, locale?: string): string {
   return d.toLocaleDateString(bcpFor(locale), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', calendar: 'gregory', numberingSystem: 'latn' });
 }
 
+/** Locale-aware "month year" (e.g. review meta) — words follow the site
+ *  language, digits stay Latin (0-9). Accepts an ISO datetime string. */
+export function formatMonthYearIn(iso: string, locale?: string): string {
+  return new Date(iso).toLocaleDateString(bcpFor(locale), { month: 'short', year: 'numeric', calendar: 'gregory', numberingSystem: 'latn' });
+}
+
 /** Locale-aware weekday name (e.g. for "closed on {day}"). */
 export function formatWeekdayIn(dateStr: string, locale?: string): string {
   const d = new Date(dateStr + 'T00:00:00');
