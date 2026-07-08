@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTenantSlug } from '../../lib/tenant';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
 import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore } from '../../lib/api';
 import { formatDateLongIn, formatWeekdayIn, upcomingDates } from '../../lib/utils';
 import { TEMPLATES } from '../../templates/registry';
@@ -239,7 +239,7 @@ export default function BookLesson() {
               <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={bookT(L, 'phEmailYou')} required />
             </BookField>
             <BookButton variant="primary" type="submit" loading={checkEnrollment.isPending} className="book-btn-block">
-              {bookT(L, 'continue')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+              {bookT(L, 'continue')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
             </BookButton>
           </form>
           <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
@@ -255,7 +255,7 @@ export default function BookLesson() {
       {step === 'details' && (
         <BookCard>
           <button type="button" className="book-back" onClick={() => setStep('email')}>
-            ← {bookT(L, 'back')}
+            <ArrowLeft className="book-arrow" style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'back')}
           </button>
           <h1 className="book-title">{bookT(L, 'quickEnrollTitle')}</h1>
           <p className="book-sub">{bookT(L, 'quickEnrollHelper')}</p>
@@ -280,7 +280,7 @@ export default function BookLesson() {
               <BookInput name="code" placeholder={bookT(L, 'phCode')} style={{ fontFamily: 'var(--book-font-display)', letterSpacing: '0.15em' }} required />
             </BookField>
             <BookButton variant="primary" type="submit" loading={enroll.isPending} className="book-btn-block">
-              {bookT(L, 'continue')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+              {bookT(L, 'continue')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
             </BookButton>
           </form>
         </BookCard>
@@ -290,7 +290,7 @@ export default function BookLesson() {
       {step === 'time' && (
         <BookCard>
           <button type="button" className="book-back" onClick={() => { setPendingTime(''); setStep('email'); }}>
-            ← {bookT(L, 'back')}
+            <ArrowLeft className="book-arrow" style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'back')}
           </button>
           <h1 className="book-title">{bookT(L, 'chooseTime')}</h1>
           <p className="book-sub" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -332,7 +332,7 @@ export default function BookLesson() {
                   {slotRange(pendingTime, settings.classDuration)}
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
+              <div className="book-confirm-actions">
                 <BookButton variant="secondary" className="book-btn-block" onClick={() => setPendingTime('')}>
                   {bookT(L, 'changeTime')}
                 </BookButton>

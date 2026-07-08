@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -63,6 +63,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+
+  // Mobile drawer: lock body scroll + close on Escape while it's open.
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? location.pathname === to : location.pathname.startsWith(to);
@@ -133,9 +148,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile sidebar */}
       {open && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-sand-950/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 start-0 w-64 bg-white shadow-elevated">{SidebarContent}</aside>
+          <aside className="absolute inset-y-0 start-0 flex w-[min(16rem,85vw)] flex-col bg-white shadow-elevated">{SidebarContent}</aside>
         </div>
       )}
 
@@ -143,7 +158,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <header className="glass sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-sand-200 px-4 sm:px-6">
           <button
             onClick={() => setOpen((v) => !v)}
-            className="rounded-lg p-2 text-sand-600 hover:bg-sand-100 lg:hidden"
+            className="flex items-center justify-center rounded-lg p-2 text-sand-600 hover:bg-sand-100 coarse:min-h-11 coarse:min-w-11 lg:hidden"
             aria-label={open ? t('dashboard.layout.closeMenu') : t('dashboard.layout.openMenu')}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

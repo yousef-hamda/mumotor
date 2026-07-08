@@ -79,15 +79,15 @@ function SiteOverview({ website }: { website: Website }) {
     <Card className="overflow-hidden p-0">
       <div className="border-b border-sand-200 bg-sand-50 p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <h3 className="text-xl font-semibold tracking-tight text-sand-900">{website.name}</h3>
               <StatusBadge status={website.status} />
             </div>
             {website.tagline && <p className="mt-0.5 text-sm text-sand-600">{website.tagline}</p>}
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <p className="inline-flex items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
-                {liveUrl.replace(/^https?:\/\//, '')}
+            <div className="mt-2 flex max-w-full flex-wrap items-center gap-2">
+              <p className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-sand-200 bg-white px-2.5 py-1 font-mono text-[11px] text-sand-600">
+                <span className="truncate">{liveUrl.replace(/^https?:\/\//, '')}</span>
               </p>
               <CopyLinkButton url={liveUrl} />
             </div>

@@ -75,7 +75,7 @@ function CodeTab({ website }: { website: Website }) {
   if (isLoading) return <CenteredSpinner />;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Daily code card */}
       <Card>
         <h3 className="text-xl font-semibold tracking-tight text-sand-900">
@@ -84,8 +84,8 @@ function CodeTab({ website }: { website: Website }) {
         <p className="mt-1 text-sm text-sand-600">
           {t('dashboard.school.code.todayDesc')}
         </p>
-        <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-sand-200 bg-sand-50 p-8">
-          <span className="font-mono text-5xl font-bold tracking-[0.3em] tabular-nums text-sand-900">{data?.code}</span>
+        <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-sand-200 bg-sand-50 p-6 sm:p-8">
+          <span className="max-w-full break-all text-center font-mono text-3xl font-bold tracking-[0.2em] tabular-nums text-sand-900 sm:text-5xl sm:tracking-[0.3em]">{data?.code}</span>
           <Button variant="secondary" onClick={() => copy(data?.code ?? '')}>
             {copied === data?.code ? (
               <Check className="h-4 w-4 text-sand-900" />
@@ -109,10 +109,10 @@ function CodeTab({ website }: { website: Website }) {
           {t('dashboard.school.code.linkDesc')}
         </p>
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-sand-200 bg-sand-50 px-3 py-2.5">
-          <code className="flex-1 truncate text-sm text-sand-700">{enrollUrl}</code>
+          <code className="min-w-0 flex-1 truncate text-sm text-sand-700">{enrollUrl}</code>
           <button
             onClick={() => copy(enrollUrl, 'link')}
-            className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+            className="flex shrink-0 items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
             aria-label={t('dashboard.school.code.copyEnrollLink')}
           >
             {copied === 'link' ? (
@@ -217,6 +217,41 @@ function StudentsTab({ website }: { website: Website }) {
     onError: (e) => toast.error(apiError(e).message),
   });
 
+  // Shared row actions (used by both the desktop table and the mobile card list).
+  // Icon buttons grow to 44px on touch devices via the `coarse:` variant.
+  const actions = (s: Student) => (
+    <div className="flex items-center justify-end gap-1">
+      {s.status !== 'COMPLETED' && (
+        <button
+          aria-label={s.status === 'ACTIVE' ? t('dashboard.school.students.pauseStudent') : t('dashboard.school.students.activateStudent')}
+          title={s.status === 'ACTIVE' ? t('dashboard.school.students.pause') : t('dashboard.school.students.activate')}
+          onClick={() => toggle.mutate(s.id)}
+          className="flex items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
+        >
+          {s.status === 'ACTIVE' ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+        </button>
+      )}
+      {s.status !== 'COMPLETED' && (
+        <button
+          aria-label={t('dashboard.school.students.markCompleted')}
+          title={t('dashboard.school.students.markCompletedShort')}
+          onClick={() => finish.mutate(s.id)}
+          className="flex items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
+        >
+          <GraduationCap className="h-4 w-4" />
+        </button>
+      )}
+      <button
+        aria-label={t('dashboard.school.students.deleteStudent')}
+        title={t('dashboard.school.students.deleteShort')}
+        onClick={() => setToDelete(s)}
+        className="flex items-center justify-center rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700 coarse:min-h-11 coarse:min-w-11"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
   return (
     <Card className="p-0">
       {/* Filter bar */}
@@ -250,76 +285,74 @@ function StudentsTab({ website }: { website: Website }) {
           description={t('dashboard.school.students.emptyDesc')}
         />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-sand-200 bg-sand-50 text-start text-xs uppercase tracking-wide text-sand-500">
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colName')}</th>
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEmail')}</th>
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colPhone')}</th>
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colClasses')}</th>
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEnrolled')}</th>
-                <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colStatus')}</th>
-                <th className="px-4 py-3 text-end font-semibold">{t('dashboard.school.students.colActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.students.map((s) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-sand-200 transition-colors last:border-b-0 hover:bg-sand-50"
-                >
-                  <td className="px-4 py-3 font-semibold text-sand-900">{s.studentName}</td>
-                  <td className="px-4 py-3 text-sand-600">{s.studentEmail}</td>
-                  <td className="px-4 py-3 text-sand-600">{s.studentPhone || '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className="font-semibold tabular-nums text-sand-900">{s.classCount}</span>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-sand-600">{formatDate(s.enrolledAt)}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={s.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      {s.status !== 'COMPLETED' && (
-                        <button
-                          aria-label={s.status === 'ACTIVE' ? t('dashboard.school.students.pauseStudent') : t('dashboard.school.students.activateStudent')}
-                          title={s.status === 'ACTIVE' ? t('dashboard.school.students.pause') : t('dashboard.school.students.activate')}
-                          onClick={() => toggle.mutate(s.id)}
-                          className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
-                        >
-                          {s.status === 'ACTIVE' ? (
-                            <PauseCircle className="h-4 w-4" />
-                          ) : (
-                            <PlayCircle className="h-4 w-4" />
-                          )}
-                        </button>
-                      )}
-                      {s.status !== 'COMPLETED' && (
-                        <button
-                          aria-label={t('dashboard.school.students.markCompleted')}
-                          title={t('dashboard.school.students.markCompletedShort')}
-                          onClick={() => finish.mutate(s.id)}
-                          className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                        </button>
-                      )}
-                      <button
-                        aria-label={t('dashboard.school.students.deleteStudent')}
-                        title={t('dashboard.school.students.deleteShort')}
-                        onClick={() => setToDelete(s)}
-                        className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
+        <>
+          {/* Desktop / tablet-landscape: full table */}
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-sand-200 bg-sand-50 text-start text-xs uppercase tracking-wide text-sand-500">
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colName')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEmail')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colPhone')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colClasses')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colEnrolled')}</th>
+                  <th className="px-4 py-3 font-semibold">{t('dashboard.school.students.colStatus')}</th>
+                  <th className="px-4 py-3 text-end font-semibold">{t('dashboard.school.students.colActions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {data.students.map((s) => (
+                  <tr
+                    key={s.id}
+                    className="border-b border-sand-200 transition-colors last:border-b-0 hover:bg-sand-50"
+                  >
+                    <td className="px-4 py-3 font-semibold text-sand-900">{s.studentName}</td>
+                    <td className="px-4 py-3 text-sand-600">{s.studentEmail}</td>
+                    <td className="px-4 py-3 text-sand-600">{s.studentPhone || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-semibold tabular-nums text-sand-900">{s.classCount}</span>
+                    </td>
+                    <td className="px-4 py-3 tabular-nums text-sand-600">{formatDate(s.enrolledAt)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={s.status} />
+                    </td>
+                    <td className="px-4 py-3">{actions(s)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Phone / tablet-portrait: stacked cards (no horizontal scroll) */}
+          <ul className="divide-y divide-sand-200 md:hidden">
+            {data.students.map((s) => (
+              <li key={s.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-sand-900">{s.studentName}</p>
+                    <p className="truncate text-sm text-sand-600">{s.studentEmail}</p>
+                  </div>
+                  <StatusBadge status={s.status} />
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-sand-500">{t('dashboard.school.students.colPhone')}</dt>
+                    <dd className="truncate text-sand-700">{s.studentPhone || '—'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-sand-500">{t('dashboard.school.students.colClasses')}</dt>
+                    <dd className="font-semibold tabular-nums text-sand-900">{s.classCount}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-sand-500">{t('dashboard.school.students.colEnrolled')}</dt>
+                    <dd className="tabular-nums text-sand-700">{formatDate(s.enrolledAt)}</dd>
+                  </div>
+                </dl>
+                <div className="mt-3 border-t border-sand-100 pt-2">{actions(s)}</div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {/* Pagination */}
@@ -891,7 +924,7 @@ function SettingsTab({ website }: { website: Website }) {
         <p className="mt-1 text-sm text-sand-600">
           {t('dashboard.school.settings.codeDesc')}
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('dashboard.school.settings.staticCode')} hint={t('dashboard.school.settings.staticCodeHint')}>
             <div className="flex gap-2">
               <Input
@@ -908,11 +941,11 @@ function SettingsTab({ website }: { website: Website }) {
           </Field>
           <Field label={t('dashboard.school.settings.publicEnrollLink')}>
             <div className="flex items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 px-3 py-2.5">
-              <code className="flex-1 truncate text-sm text-sand-600">{enrollUrl}</code>
+              <code className="min-w-0 flex-1 truncate text-sm text-sand-600">{enrollUrl}</code>
               <button
                 type="button"
                 onClick={() => copy(enrollUrl, 'enroll')}
-                className="rounded-md p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+                className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
                 aria-label={t('dashboard.school.settings.copyEnrollLink')}
               >
                 {copied === 'enroll' ? (
@@ -1086,7 +1119,7 @@ function SettingsTab({ website }: { website: Website }) {
             {form.breakTimes.map((b, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 p-3"
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-sand-200 bg-sand-50 p-3"
               >
                 <Input
                   type="time"
@@ -1115,7 +1148,7 @@ function SettingsTab({ website }: { website: Website }) {
                   onClick={() =>
                     setForm({ ...form, breakTimes: form.breakTimes.filter((_, j) => j !== i) })
                   }
-                  className="ms-auto rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700"
+                  className="ms-auto flex items-center justify-center rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 hover:text-ember-700 coarse:min-h-11 coarse:min-w-11"
                 >
                   <X className="h-4 w-4" />
                 </button>

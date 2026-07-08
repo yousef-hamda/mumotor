@@ -39,9 +39,9 @@ export function PhotoPicker({ open, initialQuery, onPick, onClose }: { open: boo
             onSubmit={(e) => { e.preventDefault(); run(q); }}
           >
             <Search className="h-4 w-4 text-sand-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search photos…" className="flex-1 bg-transparent text-sm outline-none" autoFocus />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search photos…" className="flex-1 bg-transparent text-sm outline-none coarse:text-base" autoFocus />
           </form>
-          <button onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full text-sand-500 hover:bg-sand-100"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full text-sand-500 hover:bg-sand-100 coarse:h-11 coarse:w-11"><X className="h-4 w-4" /></button>
         </div>
         <div className="min-h-[200px] flex-1 overflow-y-auto p-4">
           {loading ? (

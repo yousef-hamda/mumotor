@@ -251,7 +251,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       {/* ── STATS ── */}
       <section id={SECTION_IDS.stats} className="ns-stats-section">
         <div className="ns-container ns-stats-grid">
-          {data.stats.map((s, i) => <StatCard key={s.label} index={i} {...s} />)}
+          {data.stats.map((s, i) => <StatCard key={i} index={i} {...s} />)}
         </div>
       </section>
 
@@ -280,7 +280,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   )}
                   <ul className="ns-pkg-features" aria-label={s.ariaFeatures}>
                     {pkg.features.map((f, j) => (
-                      <li key={f} data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
+                      <li key={j} data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
                         <Check size={12} className="ns-check-icon" aria-hidden="true" />
                         {f}
                       </li>
@@ -369,7 +369,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           <Reveal delay={0.2}>
             <div className="ns-areas-grid">
               {data.areas.map((area, i) => (
-                <div key={area.name} className="ns-area-chip" data-edit-item={`areas.${i}`}>
+                <div key={i} className="ns-area-chip" data-edit-item={`areas.${i}`}>
                   <Car size={12} aria-hidden="true" />
                   <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
                   {area.note && <span className="ns-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}

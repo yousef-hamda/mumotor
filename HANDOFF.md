@@ -1,3 +1,63 @@
+# Handoff — July 8, 2026 session (full responsive / device-adaptive pass)
+
+Goal: make the **entire product** perfect on **phone · tablet · desktop**, adapting **automatically to the
+device** (no user toggle), across all 12 templates, the whole student portal, the teacher (Mumotor) dashboard,
+the builder, the Customize editor, and the marketing/auth site — in EN + HE/AR (RTL) — **without changing the
+already-working laptop/desktop rendering.** Committed to `main` and auto-deployed to mumotor.com.
+
+## Approach
+Responsive CSS/Tailwind + per-template `@media` do the layout; `lib/useDevice.ts` (`matchMedia`) covers the few
+JS branches. New Tailwind variants **`coarse:`** (`pointer:coarse`), **`touch:`** (`hover:none`), **`mouse:`** —
+so every touch/phone change is scoped and **cannot reach a laptop** (`pointer:fine`, `≥lg`). Standards enforced
+everywhere: **≥44px** tap targets on touch, **≥16px** inputs on touch (kills iOS zoom), `100dvh`, no horizontal
+page scroll at any width, logical props / mirrored glyphs for RTL.
+
+## What shipped (by wave)
+- **Foundation:** `lib/useDevice.ts`; `coarse/touch/mouse` Tailwind variants; global touch floors in `index.css`;
+  shared `Modal` now scrolls (`max-h-[90dvh]`) instead of clipping; **Landing got a hamburger mobile menu**.
+- **Student portal (`book-shell.css` + pages):** 16px inputs + 44px btn/tab/chip/back on touch; `100dvh`; chat
+  height `min(26rem,52dvh)`; brand truncation; StudentAccount tabs no-wrap + header name/sign-out; BookLesson
+  slot chips no-wrap + confirm buttons stack on phone; **RTL-aware back/forward arrows** (`.book-arrow`); 44px stars.
+- **All 12 templates (additive CSS only — desktop byte-identical):** phone nav shows **logo + hamburger only**
+  (account pill hidden ≤520, already in the mobile menu); 44px hamburgers; instructor photos shrink on phone
+  (prestige 216→88, night-shift 192→88, full-throttle 160→96, …); frosted orphan hero-badge hidden <940;
+  grid-ink hamburger no longer clipped; RTL flips added where missing (**mumotor had none**); `overflow-wrap` on
+  big headings. `mumotor` is the reference block; `prism`/`prestige` are the RTL references; `easy-lane` the nav ref.
+- **Teacher dashboard:** `StudentsTab` and `AdminDashboard`'s 3 tables → **stacked cards on phone / table on
+  desktop** (`hidden md:block` + `md:hidden`); drawer scroll-lock + Esc; break-times row wraps; URL pills truncate;
+  Billing RTL badge + tablet grid (`lg:grid-cols-3`, laptop unchanged); NotificationBell dropdown clamped; 44px icons.
+- **Builder / gallery / preview:** Design-step preview edge-to-edge + stacked action bar on phone; hours/break rows
+  wrap; TemplatePreview pill capped + truncated + RTL chevrons/arrow-keys; accent dots 44px hit area; gallery header.
+- **Customize → full touch parity:** tap reveals per-item controls (was hover-only); **touch reorder via ▲/▼
+  buttons** (drag grip stays for mouse via `mouse:`/`touch:` scoping — desktop cluster unchanged); responsive
+  icon-only toolbar; popover width-clamped; `scrollIntoView` + `visualViewport` so the keyboard doesn't cover edits.
+- **Marketing/auth:** hero `break-words`; AuthShell brand pane at `md`; password-eye + LanguageSwitcher 44px; truncation.
+
+## Bugs found *during verification* and fixed (pre-existing, not introduced here)
+- **CodeTab + Settings phone overflow (real):** a `grid … lg:grid-cols-2` with no base `grid-cols-1` made the mobile
+  track expand to a `nowrap truncate` `<code>` URL's max-content → page overflow. Fix: base `grid-cols-1`
+  (`minmax(0,1fr)`) + `min-w-0` on the code. Also the daily code scales down on phone.
+- **Duplicate React keys:** several templates keyed lists by content (`key={area.name}`/`key={f}`/`key={s.label}`);
+  Customize's clone-on-add produced duplicates → the E2E "0 console errors" gate failed. Re-keyed by index (also
+  what CLAUDE.md already mandated). This is why E2E is back to 90/90.
+
+## Verification
+typecheck + build clean; **unit 26/26 · E2E 90/90 (0 console errors) · integration 74/74**. Live-drove landing,
+auth, builder, dashboard (every driving-school tab + all pages), admin, Customize, all 12 templates, and the
+student pages at 360/375/390/768/1024/1280 in EN + HE — asserting `scrollWidth ≤ innerWidth` everywhere — and
+confirmed desktop is unchanged (admin shows tables not cards; template nav-links/photos identical at 1280).
+
+## Still open / notes
+- **Touch-target/16px rules use `@media (pointer:coarse)`** — verify on a REAL phone/tablet or with device
+  emulation; headless Chrome reports `pointer:fine` so `browser_resize` alone won't trigger them (the rules are
+  present in the shipped CSS and are standard).
+- **Untracked `"* 2"` duplicate folders (14)** under `templates/` are local macOS copy cruft (not in git); left
+  untouched. Safe to `rm` if desired.
+- Pre-existing non-responsive i18n gaps remain (NotificationBell, AdminDashboard, PhotoPicker hardcoded English) —
+  out of scope for this pass.
+
+---
+
 # Handoff — July 5, 2026 session
 
 A long iterative session driven by the user reviewing freshly-built sites and reporting issues via

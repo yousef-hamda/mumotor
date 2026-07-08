@@ -173,7 +173,7 @@ function Stats({ data }: { data: TemplateData }) {
       <div className="el-container">
         <div className="el-stats-grid">
           {data.stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.09}>
+            <Reveal key={i} delay={i * 0.09}>
               <StatCard stat={s} i={i} />
             </Reveal>
           ))}
@@ -250,7 +250,7 @@ function PackageCard({
       )}
       <ul className="el-pkg-features">
         {pkg.features.map((f, j) => (
-          <li key={f} className="el-pkg-feature"><Check size={13} className="el-check" /><span data-edit={`packages.${i}.features.${j}`} data-edit-type="text">{f}</span></li>
+          <li key={j} className="el-pkg-feature"><Check size={13} className="el-check" /><span data-edit={`packages.${i}.features.${j}`} data-edit-type="text">{f}</span></li>
         ))}
       </ul>
       <button
@@ -355,7 +355,7 @@ function Areas({ data }: { data: TemplateData }) {
         </Reveal>
         <div className="el-areas-grid">
           {data.areas.map((area, i) => (
-            <Reveal key={area.name} delay={i * 0.07}>
+            <Reveal key={i} delay={i * 0.07}>
               <motion.div
                 className={`el-area-pill${area.note ? ' el-area-pill--home' : ''}`}
                 data-edit-item={`areas.${i}`}

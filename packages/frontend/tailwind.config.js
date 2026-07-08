@@ -139,5 +139,14 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    /* Device-adaptive variants — style by the ACTUAL input device (automatic),
+       never a user toggle. e.g. `coarse:min-h-11` = 44px tap targets on touch only. */
+    function ({ addVariant }) {
+      addVariant('coarse', '@media (pointer: coarse)'); // finger / stylus primary
+      addVariant('fine', '@media (pointer: fine)'); // mouse / trackpad primary
+      addVariant('touch', '@media (hover: none)'); // cannot reliably hover
+      addVariant('mouse', '@media (hover: hover) and (pointer: fine)');
+    },
+  ],
 };

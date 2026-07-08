@@ -116,7 +116,7 @@ export default function Enroll() {
               : bookT(L, 'enrolledSub', { name: settings.name })}
           </p>
           <Link to={bookHref} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.4rem' }}>
-            {bookT(L, 'bookLesson')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+            {bookT(L, 'bookLesson')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
           </Link>
           <Link to={accountHref} className="book-btn book-btn-secondary book-btn-block" style={{ marginTop: '0.6rem' }}>
             {bookT(L, 'goToAccount')}

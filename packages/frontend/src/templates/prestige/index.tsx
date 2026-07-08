@@ -221,7 +221,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       <section id={SECTION_IDS.stats} className="pd-stats-section">
         <div className="pd-container pd-stats-grid">
           {data.stats.map((s, i) => (
-            <div key={s.label} data-edit-item={`stats.${i}`}>
+            <div key={i} data-edit-item={`stats.${i}`}>
               <StatCard {...s} editIndex={i} />
             </div>
           ))}
@@ -253,7 +253,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   <div className="pd-pkg-rule" aria-hidden="true" />
                   <ul className="pd-pkg-features" aria-label="Included features">
                     {pkg.features.map((f, j) => (
-                      <li key={f} data-edit={`packages.${i}.features.${j}`} data-edit-type="text"><Check size={11} className="pd-check-icon" aria-hidden="true" />{f}</li>
+                      <li key={j} data-edit={`packages.${i}.features.${j}`} data-edit-type="text"><Check size={11} className="pd-check-icon" aria-hidden="true" />{f}</li>
                     ))}
                   </ul>
                   <button
@@ -330,7 +330,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           <Reveal delay={0.2}>
             <div className="pd-areas-grid">
               {data.areas.map((area, i) => (
-                <div key={area.name} className="pd-area-chip" data-edit-item={`areas.${i}`}>
+                <div key={i} className="pd-area-chip" data-edit-item={`areas.${i}`}>
                   <Car size={11} aria-hidden="true" />
                   <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
                   {area.note && <span className="pd-area-note" data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span>}

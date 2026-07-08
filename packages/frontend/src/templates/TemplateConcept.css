@@ -85,8 +85,18 @@
 
 /* mumotor accent colour dots (bottom-right of the card) */
 .tc-dots { position: absolute; right: 10px; bottom: 10px; z-index: 6; display: flex; gap: 6px; padding: 6px 8px; border-radius: 999px; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(29,29,31,0.08); box-shadow: 0 6px 18px -8px rgba(0,0,0,0.3); }
-.tc-dot-sw { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); cursor: pointer; padding: 0; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.tc-dot-sw { position: relative; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); cursor: pointer; padding: 0; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+/* Extend the tap area beyond the small visual swatch so it's finger-friendly. */
+.tc-dot-sw::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
 .tc-dot-sw:hover { transform: scale(1.18); }
 .tc-dot-sw.is-on { box-shadow: 0 0 0 2px #1D1D1F; }
+/* RTL: pin the picker to the inline-start corner. */
+[dir='rtl'] .tc-dots { right: auto; left: 10px; }
+/* Touch: larger swatches + gaps so the extended hit areas approach 44px. */
+@media (pointer: coarse) {
+  .tc-dots { gap: 9px; padding: 8px 10px; }
+  .tc-dot-sw { width: 22px; height: 22px; }
+  .tc-dot-sw::before { inset: -10px; }
+}
 
 @media (prefers-reduced-motion: reduce) { .tc-root * { animation: none !important; } }

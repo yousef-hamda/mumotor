@@ -1256,3 +1256,28 @@
 /* Instructor reply to a review */
 .gi-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .gi-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone nav + touch targets (device pass) ───────────────────── */
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-grid-ink .gi-h1,
+.tmpl-grid-ink .gi-h2 { overflow-wrap: break-word; }
+
+/* Menu button → 44×44 tap target (was ~28px). Only rendered ≤ 860px. */
+.tmpl-grid-ink .gi-menu-btn {
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* FUNCTIONAL: when the hamburger appears (≤860), .gi-nav-end still held the account
+   link + Book button (both flex-shrink:0) beside the burger — on narrow phones with
+   long HE/AR labels the burger was pushed off-screen / clipped. Both are repeated in
+   the mobile dropdown, so drop the account link across the collapsed range, and the
+   Book button on the smallest phones, leaving just logo + burger. */
+@media (max-width: 860px) {
+  .tmpl-grid-ink .gi-nav-end .gi-btn-ghost { display: none; }
+}
+@media (max-width: 400px) {
+  .tmpl-grid-ink .gi-nav-end .gi-btn-primary { display: none; }
+}

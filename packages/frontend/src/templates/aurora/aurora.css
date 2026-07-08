@@ -192,3 +192,32 @@
 /* Instructor reply to a review */
 .au-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .au-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone tuning + RTL (device pass) ──────────────────────────────
+   Additive only — the desktop/tablet layout above is unchanged. This template
+   previously had no [dir=rtl] block and no phone breakpoint. */
+
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-aurora .au-h1, .tmpl-aurora .au-h2 { overflow-wrap: break-word; }
+
+/* Menu button: a real 44×44 tap target. It's only shown <940px (hidden on
+   desktop by the 940px rule above), so this never affects the desktop nav. */
+.tmpl-aurora .au-menu { align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+
+/* RTL: flip the hardcoded-LTR absolute cards so they sit on the correct side. */
+.tmpl-aurora[dir='rtl'] .au-slab-badge { left: auto; right: 34px; }
+.tmpl-aurora[dir='rtl'] .au-instructor { left: auto; right: 22px; }
+
+/* Phone ≤520: drop the nav account pill (still reachable in the mobile menu),
+   calm the heavy section padding, and shrink the instructor photo so the
+   absolutely-positioned About card never overflows a narrow screen. */
+@media (max-width: 520px) {
+  .tmpl-aurora .au-nav-end .au-btn-ghost { display: none; }
+  .tmpl-aurora .au-section { padding: 72px 0; }
+  .tmpl-aurora .au-instructor-photo { width: 96px; height: 96px; }
+}
+
+/* Touch devices: 44px min tap target on the remaining small nav pills. */
+@media (pointer: coarse) {
+  .tmpl-aurora .au-btn-sm { min-height: 44px; }
+}

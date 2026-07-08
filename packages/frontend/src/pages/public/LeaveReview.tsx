@@ -34,6 +34,7 @@ function StarPicker({ value, onChange, L }: { value: number; onChange: (n: numbe
             onClick={() => onChange(n)}
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
+            className="book-star-btn"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.15rem' }}
           >
             <Star

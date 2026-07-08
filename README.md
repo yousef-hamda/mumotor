@@ -42,6 +42,7 @@ wizard    inline editor   /p/{slug}    dashboard
 - **Automated jobs** — "booking open" emails, teacher schedule report, lesson reminders (node-cron).
 - **Trilingual + RTL, everywhere** — HE / AR / EN with a language switcher. The **entire app** follows it: the marketing landing, the **builder wizard**, the **dashboard** (every page), the **auth pages**, the **Customize** toolbar, the **student pages**, and **all 12 generated templates** — RTL-aware, numbers kept in Latin digits. The wizard's "website language" defaults to the app language.
 - **Multi-tenant & secure** — every site's data is isolated by `websiteId` (cascade deletes + indexes); JWT auth + ownership checks, separate student session tokens (kind-scoped, per-site), salted/hashed codes, timing-safe comparisons, rate limiting, transactional booking + DB-level no-double-booking, one-time website-scoped magic links, required prod `JWT_SECRET`, CORS allowlist, magic-byte-validated uploads.
+- **Responsive on every device (phone · tablet · desktop), automatically** — the whole product adapts to the device with zero user toggle: all 12 templates, the entire student flow, the teacher dashboard, the builder, the Customize editor, and the marketing/auth site. Touch devices get ≥44px tap targets and ≥16px inputs (no iOS zoom); data tables collapse to cards on phones; the landing and dashboard have proper mobile menus; **the Customize editor is fully touch-usable** (tap-to-edit, ▲/▼ reorder). Touch/phone rules are scoped (`@media (pointer:coarse)`, `coarse:`/`touch:` Tailwind variants + `lib/useDevice.ts`) so the **laptop/desktop rendering is unchanged**. RTL (HE/AR) mirrors correctly; no page ever scrolls horizontally.
 
 ---
 
@@ -213,7 +214,7 @@ i18next with HE / AR / EN and full RTL (`dir` toggled per language). A language 
 
 ## Testing
 
-All green: **unit 26/26 · integration 74/74 · E2E 89/89 (0 console errors)**, both packages typecheck-clean, production build OK.
+All green: **unit 26/26 · integration 74/74 · E2E 90/90 (0 console errors)**, both packages typecheck-clean, production build OK. Verified responsive at 360/375/390/768/1024/1280 in EN + HE (no horizontal overflow anywhere; desktop unchanged).
 
 ```bash
 # Frontend unit (vitest)

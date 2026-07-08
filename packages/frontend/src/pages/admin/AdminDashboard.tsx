@@ -103,7 +103,7 @@ export default function AdminDashboard() {
                   {stats.data.events.funnel.published7d} sites published
                 </span>
               </div>
-              <div className="overflow-x-auto">
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-sand-200 text-start text-xs uppercase tracking-widest text-sand-500">
@@ -132,6 +132,20 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+              {/* Mobile: stacked cards */}
+              <ul className="divide-y divide-sand-100 md:hidden">
+                {Object.keys({ ...stats.data.events.last30, ...stats.data.events.last7 }).sort().map((name) => (
+                  <li key={name} className="flex items-center justify-between gap-3 px-5 py-3">
+                    <span className="min-w-0 truncate font-mono text-xs text-sand-700">{name}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-sand-600">
+                      7d <span className="font-semibold text-sand-900">{stats.data!.events!.last7[name] ?? 0}</span> · 30d <span className="font-semibold text-sand-900">{stats.data!.events!.last30[name] ?? 0}</span>
+                    </span>
+                  </li>
+                ))}
+                {Object.keys(stats.data.events.last30).length === 0 && (
+                  <li className="px-5 py-4 text-center text-sand-500">No events yet.</li>
+                )}
+              </ul>
             </Card>
           </FadeUp>
         )}
@@ -145,7 +159,7 @@ export default function AdminDashboard() {
                 {sites.data?.length ?? 0} total
               </span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-sand-200 text-start text-xs uppercase tracking-widest text-sand-500">
@@ -177,6 +191,24 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-sand-100 md:hidden">
+              {sites.data?.map((w) => (
+                <li key={w.id} className="px-5 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-sand-900">{w.name}</p>
+                      <p className="truncate font-mono text-xs text-sand-500">/{w.slug}</p>
+                      <p className="mt-0.5 truncate text-xs text-sand-600">{w.user.email}</p>
+                    </div>
+                    <StatusBadge status={w.status} />
+                  </div>
+                  <p className="mt-2 text-xs tabular-nums text-sand-600">
+                    {w._count.enrollments} students · {w._count.bookings} bookings
+                  </p>
+                </li>
+              ))}
+            </ul>
           </Card>
         </FadeUp>
 
@@ -189,7 +221,7 @@ export default function AdminDashboard() {
                 {users.data?.length ?? 0} total
               </span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-sand-200 text-start text-xs uppercase tracking-widest text-sand-500">
@@ -218,6 +250,23 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+            {/* Mobile: stacked cards */}
+            <ul className="divide-y divide-sand-100 md:hidden">
+              {users.data?.map((u) => (
+                <li key={u.id} className="px-5 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-sand-900">{u.name}</p>
+                      <p className="truncate text-xs text-sand-600">{u.email}</p>
+                    </div>
+                    <span className="chip shrink-0 bg-sand-100 text-sand-700">{u.role}</span>
+                  </div>
+                  <p className="mt-1 text-xs tabular-nums text-sand-500">
+                    {u._count.websites} sites · joined {formatDate(u.createdAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </Card>
         </FadeUp>
       </main>

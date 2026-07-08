@@ -766,3 +766,29 @@
 /* Instructor reply to a review */
 .ob-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .ob-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone nav + touch targets + RTL (device pass) ─────────────── */
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-obsidian .ob-h1,
+.tmpl-obsidian .ob-h2 { overflow-wrap: break-word; }
+
+/* Menu button → full 44×44 tap target (was ~36px wide). Only rendered < 940px. */
+.tmpl-obsidian .ob-menu { min-width: 44px; justify-content: center; }
+
+/* RTL: flip the hardcoded-LTR floating hero badge + instructor pill (only
+   .ob-area-note was flipped before). */
+.tmpl-obsidian[dir='rtl'] .ob-hero-badge { left: auto; right: 22px; }
+.tmpl-obsidian[dir='rtl'] .ob-instructor { left: auto; right: 20px; }
+
+/* Phone (no breakpoint existed): drop the nav account pill — still reachable in the
+   mobile menu — so the top bar is just logo + Book + hamburger; shrink the floating
+   instructor photo so its glass badge doesn't overrun the narrow about image. */
+@media (max-width: 520px) {
+  .tmpl-obsidian .ob-nav-end .ob-btn-ghost { display: none; }
+  .tmpl-obsidian .ob-instructor-photo { width: 96px; height: 96px; }
+}
+
+/* Touch devices: 44px min tap height on the small nav pill(s). */
+@media (pointer: coarse) {
+  .tmpl-obsidian .ob-btn-sm { min-height: 44px; }
+}

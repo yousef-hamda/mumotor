@@ -245,7 +245,7 @@ function Packages({
                 )}
                 <ul className="ft-pkg-features">
                   {pkg.features.map((f, j) => (
-                    <li key={f} className="ft-pkg-feature" data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
+                    <li key={j} className="ft-pkg-feature" data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
                       <span className="ft-check" aria-hidden="true"><Check size={10} /></span>
                       {f}
                     </li>
@@ -356,7 +356,7 @@ function Areas({ data }: { data: TemplateData }) {
         </Reveal>
         <div className="ft-areas-grid">
           {data.areas.map((area, i) => (
-            <Reveal key={area.name} delay={i * 0.06}>
+            <Reveal key={i} delay={i * 0.06}>
               <div className="ft-area-pill" data-edit-item={`areas.${i}`}>
                 <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
                 {area.note && <span className="ft-area-note">{area.note}</span>}

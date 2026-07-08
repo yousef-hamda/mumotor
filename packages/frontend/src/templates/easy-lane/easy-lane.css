@@ -966,3 +966,30 @@
 /* Instructor reply to a review */
 .el-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .el-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ============================================================
+   RESPONSIVE + RTL — phone / device pass
+   Additive only. The nav-hide (logo + hamburger only) already
+   exists ≤ 767px; desktop & tablet stay unchanged.
+   ============================================================ */
+
+/* Long HE/AR words must never overflow the big clamp() headings. */
+.tmpl-easy-lane .el-hero-title,
+.tmpl-easy-lane .el-section-title { overflow-wrap: break-word; }
+
+/* Hamburger: ≥ 44×44 tap target, bars centred (only visible ≤ 767px). */
+.tmpl-easy-lane .el-hamburger {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* RTL: the floating instructor card is pinned with a physical `right`, so it
+   lands on the wrong side under dir="rtl". Mirror it to the left (both the
+   base -0.75rem overhang and the ≤ 767px flush-to-edge value). */
+.tmpl-easy-lane[dir='rtl'] .el-instructor-card { right: auto; left: -0.75rem; }
+@media (max-width: 767px) {
+  .tmpl-easy-lane[dir='rtl'] .el-instructor-card { left: 0; }
+}

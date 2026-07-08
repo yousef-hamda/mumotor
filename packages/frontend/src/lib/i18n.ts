@@ -16,7 +16,7 @@ export function applyDir(lang: string) {
 }
 
 const en = {
-  common: { signIn: 'Sign in', buildSite: 'Build your site', getStarted: 'Get started', dashboard: 'Go to dashboard', overview: 'Overview', drivingTeacher: 'Driving Teacher', reviews: 'Reviews', messages: 'Messages', publishing: 'Publishing', billing: 'Billing', settings: 'Settings', signOut: 'Sign out', newSite: 'New site', viewDemo: 'View a live demo', language: 'Language', navTemplates: 'Templates', navFeatures: 'Features', navHowItWorks: 'How it works', navFaq: 'FAQ', allRightsReserved: 'All rights reserved.' },
+  common: { signIn: 'Sign in', buildSite: 'Build your site', getStarted: 'Get started', dashboard: 'Go to dashboard', overview: 'Overview', drivingTeacher: 'Driving Teacher', reviews: 'Reviews', messages: 'Messages', publishing: 'Publishing', billing: 'Billing', settings: 'Settings', signOut: 'Sign out', newSite: 'New site', viewDemo: 'View a live demo', language: 'Language', navTemplates: 'Templates', navFeatures: 'Features', navHowItWorks: 'How it works', navFaq: 'FAQ', menu: 'Menu', close: 'Close', allRightsReserved: 'All rights reserved.' },
   templates: {
     gallery: {
       templates: 'Templates',
@@ -519,13 +519,15 @@ const en = {
     close: 'Close',
     tip: 'Tip: you can also click any empty background area of the site.',
     dragReorder: 'Drag to reorder',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
     addItem: 'Add item',
     removeItem: 'Remove item',
     discardConfirm: 'Discard unsaved changes?',
   },
 };
 const he: typeof en = {
-  common: { signIn: 'התחברות', buildSite: 'בנו אתר', getStarted: 'בואו נתחיל', dashboard: 'לוח הבקרה', overview: 'סקירה', drivingTeacher: 'מורה לנהיגה', reviews: 'ביקורות', messages: 'הודעות', publishing: 'פרסום', billing: 'חיוב', settings: 'הגדרות', signOut: 'התנתקות', newSite: 'אתר חדש', viewDemo: 'צפו בדמו', language: 'שפה', navTemplates: 'תבניות', navFeatures: 'יכולות', navHowItWorks: 'איך זה עובד', navFaq: 'שאלות נפוצות', allRightsReserved: 'כל הזכויות שמורות.' },
+  common: { signIn: 'התחברות', buildSite: 'בנו אתר', getStarted: 'בואו נתחיל', dashboard: 'לוח הבקרה', overview: 'סקירה', drivingTeacher: 'מורה לנהיגה', reviews: 'ביקורות', messages: 'הודעות', publishing: 'פרסום', billing: 'חיוב', settings: 'הגדרות', signOut: 'התנתקות', newSite: 'אתר חדש', viewDemo: 'צפו בדמו', language: 'שפה', navTemplates: 'תבניות', navFeatures: 'יכולות', navHowItWorks: 'איך זה עובד', navFaq: 'שאלות נפוצות', menu: 'תפריט', close: 'סגירה', allRightsReserved: 'כל הזכויות שמורות.' },
   templates: {
     gallery: {
       templates: 'תבניות',
@@ -1028,13 +1030,15 @@ const he: typeof en = {
     close: 'סגירה',
     tip: 'טיפ: אפשר גם ללחוץ על כל אזור רקע ריק באתר.',
     dragReorder: 'גררו לסידור מחדש',
+    moveUp: 'הזיזו למעלה',
+    moveDown: 'הזיזו למטה',
     addItem: 'הוספת פריט',
     removeItem: 'הסרת פריט',
     discardConfirm: 'לבטל שינויים שלא נשמרו?',
   },
 };
 const ar: typeof en = {
-  common: { signIn: 'تسجيل الدخول', buildSite: 'أنشئ موقعك', getStarted: 'ابدأ الآن', dashboard: 'لوحة التحكم', overview: 'نظرة عامة', drivingTeacher: 'مدرّب القيادة', reviews: 'التقييمات', messages: 'الرسائل', publishing: 'النشر', billing: 'الفوترة', settings: 'الإعدادات', signOut: 'تسجيل الخروج', newSite: 'موقع جديد', viewDemo: 'شاهد عرضاً حياً', language: 'اللغة', navTemplates: 'القوالب', navFeatures: 'الميزات', navHowItWorks: 'كيف يعمل', navFaq: 'الأسئلة الشائعة', allRightsReserved: 'جميع الحقوق محفوظة.' },
+  common: { signIn: 'تسجيل الدخول', buildSite: 'أنشئ موقعك', getStarted: 'ابدأ الآن', dashboard: 'لوحة التحكم', overview: 'نظرة عامة', drivingTeacher: 'مدرّب القيادة', reviews: 'التقييمات', messages: 'الرسائل', publishing: 'النشر', billing: 'الفوترة', settings: 'الإعدادات', signOut: 'تسجيل الخروج', newSite: 'موقع جديد', viewDemo: 'شاهد عرضاً حياً', language: 'اللغة', navTemplates: 'القوالب', navFeatures: 'الميزات', navHowItWorks: 'كيف يعمل', navFaq: 'الأسئلة الشائعة', menu: 'القائمة', close: 'إغلاق', allRightsReserved: 'جميع الحقوق محفوظة.' },
   templates: {
     gallery: {
       templates: 'القوالب',
@@ -1537,6 +1541,8 @@ const ar: typeof en = {
     close: 'إغلاق',
     tip: 'نصيحة: يمكنك أيضاً النقر على أي منطقة خلفية فارغة في الموقع.',
     dragReorder: 'اسحب لإعادة الترتيب',
+    moveUp: 'حرّك لأعلى',
+    moveDown: 'حرّك لأسفل',
     addItem: 'إضافة عنصر',
     removeItem: 'إزالة عنصر',
     discardConfirm: 'تجاهل التغييرات غير المحفوظة؟',

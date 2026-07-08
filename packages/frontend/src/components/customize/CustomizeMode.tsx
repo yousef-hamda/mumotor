@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Redo2, RotateCcw, Undo2, Save, X, Upload, Search, Plus, Trash2, GripVertical, Type as TypeIcon, Image as ImageIcon, Paintbrush, Smile } from 'lucide-react';
+import { Redo2, RotateCcw, Undo2, Save, X, Upload, Search, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, Type as TypeIcon, Image as ImageIcon, Paintbrush, Smile } from 'lucide-react';
 import type { TemplateData } from '../../templates/types';
 import { TemplateRender } from '../../templates/TemplateRender';
 import {
@@ -165,6 +165,22 @@ export default function CustomizeMode({
     setHover(null);
   }, [resolveList, pushFields]);
 
+  // Index-based reorder (▲/▼ buttons) — the touch-friendly path that works with any
+  // input device, unlike HTML5 drag. Keeps the controls on the item at its new index.
+  const moveItem = useCallback((itemPath: string, dir: -1 | 1) => {
+    const { parentPath, index } = splitItem(itemPath);
+    const next = index + dir;
+    if (next < 0) return;
+    const arr = getPath(data, parentPath);
+    if (Array.isArray(arr) && next >= arr.length) return;
+    move(itemPath, `${parentPath}.${next}`);
+    const el = scrollRef.current?.querySelector<HTMLElement>(`[data-edit-item="${parentPath}.${next}"]`);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setHover({ path: `${parentPath}.${next}`, rect: { top: r.top, left: r.left, width: r.width, height: r.height } });
+    }
+  }, [data, move]);
+
   // Compute the customization that results from committing one field edit — SYNC
   // (so Save/Done can include an in-progress edit without waiting for setState).
   const computeCommit = useCallback((base: Customization, path: string, raw: string): Customization => {
@@ -201,6 +217,17 @@ export default function CustomizeMode({
   // ── click to select / edit ─────────────────────────────────────────────────
   const onCanvasClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
+    // Tap/click reveals the list controls for the item under the cursor. This is the
+    // TOUCH path (no hover to trigger onCanvasMove) and is harmless on mouse. Tapping
+    // outside any list item dismisses the controls.
+    const item = target.closest('[data-edit-item]') as HTMLElement | null;
+    if (item) {
+      const ir = item.getBoundingClientRect();
+      const ipath = item.dataset.editItem!;
+      setHover((h) => (h && h.path === ipath ? h : { path: ipath, rect: { top: ir.top, left: ir.left, width: ir.width, height: ir.height } }));
+    } else {
+      setHover((h) => (h ? null : h));
+    }
     const el = target.closest('[data-edit]') as HTMLElement | null;
     // In Customize mode NOTHING should navigate or trigger its own action —
     // links/buttons must be selectable, not "act as buttons". Block them all.
@@ -219,6 +246,10 @@ export default function CustomizeMode({
       el.contentEditable = 'true';
       editingRef.current = el;
       el.focus();
+      // On touch, lift the edited text into view so the on-screen keyboard can't cover it.
+      if (window.matchMedia?.('(pointer: coarse)').matches) {
+        el.scrollIntoView({ block: 'center' });
+      }
       setPopover({ kind: 'text', path, rect });
     } else if (type === 'background') {
       setPopover({ kind: 'background', path, rect });
@@ -312,7 +343,16 @@ export default function CustomizeMode({
     const onScroll = () => { reanchor(); setHover(null); setHoverEdit(null); };
     window.addEventListener('resize', reanchor);
     host?.addEventListener('scroll', onScroll, { passive: true });
-    return () => { window.removeEventListener('resize', reanchor); host?.removeEventListener('scroll', onScroll); };
+    // The on-screen keyboard resizes the visual viewport; keep the popover anchored.
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', reanchor);
+    vv?.addEventListener('scroll', reanchor);
+    return () => {
+      window.removeEventListener('resize', reanchor);
+      host?.removeEventListener('scroll', onScroll);
+      vv?.removeEventListener('resize', reanchor);
+      vv?.removeEventListener('scroll', reanchor);
+    };
   }, [reanchor]);
   // close on Escape
   useEffect(() => {
@@ -348,15 +388,16 @@ export default function CustomizeMode({
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-sand-100">
       {/* Toolbar */}
-      <div className="flex h-14 shrink-0 items-center justify-between bg-sand-900 px-4 text-white">
+      <div className="flex h-14 shrink-0 items-center justify-between gap-2 bg-sand-900 px-2 text-white sm:px-4">
         <span className="flex items-center gap-2 text-sm font-medium">
-          <span className="relative flex h-2.5 w-2.5">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-75" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-purple-500" />
           </span>
-          {t('customize.editingMode')} <span className="ml-1 hidden text-xs text-white/40 sm:inline">{t('customize.editHint')}</span>
+          <span className="hidden sm:inline">{t('customize.editingMode')}</span>
+          <span className="ml-1 hidden text-xs text-white/40 md:inline">{t('customize.editHint')}</span>
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           <TBtn title={hist.undoCount ? t('customize.undoCount', { n: hist.undoCount }) : t('customize.undo')} disabled={!hist.canUndo} onClick={() => { commitEditing(); hist.undo(); }}><Undo2 className="h-4 w-4" /></TBtn>
           <TBtn title={hist.redoCount ? t('customize.redoCount', { n: hist.redoCount }) : t('customize.redo')} disabled={!hist.canRedo} onClick={() => { commitEditing(); hist.redo(); }}><Redo2 className="h-4 w-4" /></TBtn>
           <span className="mx-1.5 h-5 w-px bg-white/20" />
@@ -364,16 +405,17 @@ export default function CustomizeMode({
           <span className="mx-1.5 h-5 w-px bg-white/20" />
           <button
             onClick={() => { commitEditing(); setPopover(null); setSel(null); setThemePanel((v) => !v); }}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${themePanel ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10'}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors coarse:min-h-11 ${themePanel ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10'}`}
             title={t('customize.bgSiteColours')}
+            aria-label={t('customize.colours')}
           >
-            <Paintbrush className="h-4 w-4" /> {t('customize.colours')}
+            <Paintbrush className="h-4 w-4" /> <span className="hidden sm:inline">{t('customize.colours')}</span>
           </button>
-          <span className="mx-1.5 h-5 w-px bg-white/20" />
-          <button onClick={doSave} className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500">
+          <span className="mx-1 h-5 w-px bg-white/20 sm:mx-1.5" />
+          <button onClick={doSave} className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 coarse:min-h-11 sm:px-4">
             <Save className="h-3.5 w-3.5" /> {dirty ? t('customize.save') : t('customize.saved')}
           </button>
-          <button onClick={doDone} className="ml-1 rounded-full border border-white/20 px-4 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10">{t('customize.done')}</button>
+          <button onClick={doDone} className="ms-1 rounded-full border border-white/20 px-3 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 coarse:min-h-11 sm:px-4">{t('customize.done')}</button>
         </div>
       </div>
 
@@ -405,25 +447,33 @@ export default function CustomizeMode({
 
       {/* Hover list controls — drag to reorder, add, remove. Anchored ABOVE the item
           (or below when there's no room up top) so short pills/chips stay readable. */}
-      {hover && (
+      {hover && (() => {
+        const idx = splitItem(hover.path).index;
+        const grp = getPath(data, groupOf(hover.path));
+        const len = Array.isArray(grp) ? grp.length : 0;
+        return (
         <div
           className="fixed z-[160] flex gap-1"
           style={{
             top: hover.rect.top - 34 < 60 ? hover.rect.top + hover.rect.height + 6 : hover.rect.top - 34,
-            left: Math.min(Math.max(hover.rect.left + hover.rect.width - 84, 8), window.innerWidth - 92),
+            left: Math.min(Math.max(hover.rect.left + hover.rect.width - 150, 8), Math.max(8, window.innerWidth - 212)),
           }}
         >
+          {/* Drag handle — mouse only (touch reorders with the ▲/▼ buttons below). */}
           <button
             title={t('customize.dragReorder')}
             draggable
             onDragStart={(e) => { dragSrc.current = hover.path; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', hover.path); } catch { /* noop */ } }}
             onDragEnd={() => { dragSrc.current = null; setDropTarget(null); }}
-            className="grid h-7 w-7 cursor-grab place-items-center rounded-md bg-white text-sand-500 shadow ring-1 ring-sand-200 hover:text-sand-800 active:cursor-grabbing"
+            className="hidden h-7 w-7 cursor-grab place-items-center rounded-md bg-white text-sand-500 shadow ring-1 ring-sand-200 hover:text-sand-800 active:cursor-grabbing mouse:grid"
           ><GripVertical className="h-4 w-4" /></button>
-          <button title={t('customize.addItem')} onClick={() => listOp(hover.path, 'add')} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500"><Plus className="h-4 w-4" /></button>
-          <button title={t('customize.removeItem')} onClick={() => listOp(hover.path, 'remove')} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50"><Trash2 className="h-4 w-4" /></button>
+          <button title={t('customize.moveUp')} aria-label={t('customize.moveUp')} disabled={idx <= 0} onClick={() => moveItem(hover.path, -1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronUp className="h-4 w-4" /></button>
+          <button title={t('customize.moveDown')} aria-label={t('customize.moveDown')} disabled={idx >= len - 1} onClick={() => moveItem(hover.path, 1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronDown className="h-4 w-4" /></button>
+          <button title={t('customize.addItem')} aria-label={t('customize.addItem')} onClick={() => listOp(hover.path, 'add')} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500 coarse:h-11 coarse:w-11"><Plus className="h-4 w-4" /></button>
+          <button title={t('customize.removeItem')} aria-label={t('customize.removeItem')} onClick={() => listOp(hover.path, 'remove')} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50 coarse:h-11 coarse:w-11"><Trash2 className="h-4 w-4" /></button>
         </div>
-      )}
+        );
+      })()}
 
       {/* Popover */}
       {popover && (
@@ -483,7 +533,7 @@ export default function CustomizeMode({
 
       {/* Theme / background colours panel (toolbar "Colours") */}
       {themePanel && (
-        <div className="fixed right-3 top-16 z-[170] w-60 rounded-xl border border-sand-200 bg-white p-3 shadow-elevated">
+        <div className="fixed end-3 top-16 z-[170] w-60 max-w-[calc(100vw-1.5rem)] rounded-xl border border-sand-200 bg-white p-3 shadow-elevated">
           <div className="mb-2 flex items-center justify-between">
             <p className="flex items-center gap-1 text-xs font-semibold text-sand-700"><Paintbrush className="h-3.5 w-3.5 text-purple-500" /> {t('customize.bgColours')}</p>
             <button onClick={() => setThemePanel(false)} aria-label={t('customize.close')} className="grid h-5 w-5 place-items-center rounded-full text-sand-400 hover:bg-sand-100 hover:text-sand-700"><X className="h-3 w-3" /></button>
@@ -520,7 +570,7 @@ function IconPicker({ current, onPick }: { current?: string; onPick: (name: stri
     <div className="w-64">
       <p className="mb-2 flex items-center gap-1 text-xs font-medium text-sand-600"><Smile className="h-3.5 w-3.5 text-purple-500" /> {t('customize.chooseIcon')}</p>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('customize.searchIcons')} className="input mb-2 text-xs" autoFocus />
-      <div className="max-h-56 overflow-y-auto pr-1">
+      <div className="max-h-56 overflow-y-auto pe-1">
         {groups.length === 0 && <p className="px-1 py-3 text-center text-xs text-sand-400">{t('customize.noIconsMatch', { query: q })}</p>}
         {groups.map((g) => (
           <div key={g.group} className="mb-2">
@@ -547,7 +597,7 @@ function IconPicker({ current, onPick }: { current?: string; onPick: (name: stri
 function TBtn({ children, title, onClick, disabled, className }: { children: React.ReactNode; title: string; onClick: () => void; disabled?: boolean; className?: string }) {
   return (
     <button title={title} aria-label={title} onClick={onClick} disabled={disabled}
-      className={`grid h-9 w-9 place-items-center rounded-lg text-white/90 transition-colors hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent ${className ?? ''}`}>
+      className={`grid h-9 w-9 place-items-center rounded-lg text-white/90 transition-colors hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent coarse:h-11 coarse:w-11 ${className ?? ''}`}>
       {children}
     </button>
   );
@@ -558,10 +608,10 @@ function Popover({ rect, onClose, children }: { rect: Rect; onClose: () => void;
   const { t } = useTranslation();
   const below = rect.top < 130;
   const top = below ? rect.top + rect.height + 8 : rect.top - 8;
-  const left = Math.min(Math.max(rect.left, 8), window.innerWidth - 280);
+  const left = Math.min(Math.max(rect.left, 8), Math.max(8, window.innerWidth - 288));
   return (
     <div className="fixed z-[170]" style={{ top, left, transform: below ? undefined : 'translateY(-100%)' }}>
-      <div className="relative rounded-xl border border-sand-200 bg-white p-3 shadow-elevated">
+      <div className="relative max-w-[calc(100vw-1rem)] rounded-xl border border-sand-200 bg-white p-3 shadow-elevated">
         <button onClick={onClose} aria-label={t('customize.close')} className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-sand-900 text-white"><X className="h-3 w-3" /></button>
         {children}
       </div>

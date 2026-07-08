@@ -197,6 +197,36 @@ template design** — they are NOT the old app "sand" look.
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
 
+## Responsive / device-adaptive (July 8, 2026 — the whole app works on phone · tablet · desktop)
+The ENTIRE product adapts to the device **automatically** — there is deliberately NO user "mobile/desktop"
+toggle. CSS/Tailwind + per-template `@media` do the layout; a few JS branches use `matchMedia`. **Desktop
+(laptop) rendering is intentionally left byte-identical to before this pass** — every phone/touch change is
+scoped so it can't reach `pointer:fine`/`≥lg` viewports.
+- **Breakpoint contract (app chrome):** phone `<640` · tablet `640–1023` · laptop/desktop `≥1024`
+  (dashboard sidebar → drawer `<1024`). Templates keep their own systems (nav flips ~940) and grew a
+  **phone breakpoint (≤480–520)** where one was missing.
+- **`lib/useDevice.ts`** — SSR-safe `useMediaQuery` / `useBreakpoint` / `useIsPhone` / `useIsCompact` /
+  `usePointerCoarse` / `useIsTouch`. Used where JS must branch (e.g. Customize tap-vs-hover).
+- **Custom Tailwind variants** (`tailwind.config.js` plugin): `coarse:` = `@media(pointer:coarse)` (touch),
+  `touch:` = `@media(hover:none)`, `fine:`/`mouse:` = mouse/trackpad. Standard: **`coarse:min-h-11 coarse:min-w-11`
+  = 44px tap targets on TOUCH ONLY** (desktop density untouched). Global floors live under
+  `@media (pointer:coarse)` in `index.css` (`.btn*`/`.input` → 44px + 16px) and in `book-shell.css`.
+- **Rules enforced everywhere:** ≥44px interactive targets on touch · ≥16px input font-size on touch (kills
+  iOS focus-zoom) · `100dvh`/`svh` not `100vh` · **no horizontal page scroll at any width** · logical props
+  / mirrored glyphs for RTL (never hardcoded left/right) · content never touches screen edges.
+- **Data tables → cards on phone:** `StudentsTab` (`DrivingSchool.tsx`) and `AdminDashboard`'s 3 tables render
+  a `hidden md:block` table on `md+` and a `md:hidden` stacked-card list on phone. Landing has a hamburger
+  menu; dashboard drawer has scroll-lock + Esc. **Customize is fully touch-usable** (tap reveals per-item
+  controls; touch reorder via ▲/▼ buttons that are `touch:`-only so desktop keeps drag).
+- **GOTCHA (fixed here, watch for it):** a `grid ... lg:grid-cols-2` with NO explicit base `grid-cols-1` makes
+  the mobile track an `auto` track that **expands to a child's max-content** (e.g. a `truncate` `<code>` URL is
+  `nowrap` → forces the whole column wide → page overflow). Always give such grids a base `grid-cols-1`
+  (= `minmax(0,1fr)`) AND `min-w-0` on the truncating flex child. Also: never key a list by content
+  (`key={area.name}`/`key={f}`) — Customize's clone-on-add makes duplicates → React dup-key warning; key by index.
+- **Verify responsiveness** by driving the app at 360/375/390/768/1024/1280 (EN + HE) and asserting
+  `document.documentElement.scrollWidth <= innerWidth`. Touch rules (`pointer:coarse`) need real mobile
+  emulation, not just `browser_resize` — headless Chrome reports `pointer:fine`.
+
 ## Status & remaining gaps (updated July 5, 2026)
 Most of the original July-2026 audit (`IMPROVEMENT_PLAN.md`) is now DONE. LIVE at mumotor.com.
 

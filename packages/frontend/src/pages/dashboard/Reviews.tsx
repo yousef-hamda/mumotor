@@ -98,7 +98,7 @@ export default function Reviews() {
                       <button
                         aria-label={t('dashboard.reviews.approve')}
                         onClick={() => update.mutate({ id: r.id, data: { status: 'APPROVED' } })}
-                        className="rounded-lg p-2 text-sand-900 transition-colors hover:bg-sand-100"
+                        className="flex items-center justify-center rounded-lg p-2 text-sand-900 transition-colors hover:bg-sand-100 coarse:min-h-11 coarse:min-w-11"
                       >
                         <Check strokeWidth={1.75} className="h-4 w-4" />
                       </button>
@@ -107,7 +107,7 @@ export default function Reviews() {
                       <button
                         aria-label={t('dashboard.reviews.reject')}
                         onClick={() => update.mutate({ id: r.id, data: { status: 'REJECTED' } })}
-                        className="rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800"
+                        className="flex items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
                       >
                         <X strokeWidth={1.75} className="h-4 w-4" />
                       </button>
@@ -122,7 +122,7 @@ export default function Reviews() {
                     <button
                       aria-label={t('dashboard.reviews.delete')}
                       onClick={() => remove.mutate(r.id)}
-                      className="rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50"
+                      className="flex items-center justify-center rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 coarse:min-h-11 coarse:min-w-11"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

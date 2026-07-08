@@ -61,7 +61,7 @@ export default function Billing() {
       </FadeUp>
 
       <Stagger
-        className={cn('grid gap-5', data.plans.length > 1 ? 'md:grid-cols-3' : 'mx-auto max-w-md')}
+        className={cn('grid gap-5', data.plans.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'mx-auto max-w-md')}
         gap={0.1}
       >
         {data.plans.map((p) => {
@@ -80,7 +80,7 @@ export default function Billing() {
                 )}
               >
                 {isRecommended && (
-                  <span className="absolute -top-3 start-1/2 -translate-x-1/2 chip bg-sand-900 text-white text-[10px] uppercase tracking-widest px-3 py-1">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 chip bg-sand-900 text-white text-[10px] uppercase tracking-widest px-3 py-1">
                     {t('dashboard.billing.recommended')}
                   </span>
                 )}

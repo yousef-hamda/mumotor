@@ -583,7 +583,7 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
               {WEEKDAYS.map((d) => {
                 const ph = config.perDayHours[d];
                 return (
-                  <div key={d} className="flex items-center gap-3">
+                  <div key={d} className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     <span className="w-10 text-sm font-medium text-sand-700">{t(`builder.days.${d}`)}</span>
                     <label className="flex items-center gap-1.5 text-xs text-sand-500">
                       <input type="checkbox" checked={!ph.closed} onChange={(e) => set('perDayHours', { ...config.perDayHours, [d]: { ...ph, closed: !e.target.checked } })} /> {t('builder.setup.open')}
@@ -603,11 +603,11 @@ function SetupStep({ config, set, onBack, onNext }: { config: WizardConfig; set:
           <Field label={t('builder.setup.breakTimes')}>
             <div className="space-y-2">
               {config.breakTimes.map((b, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-wrap items-center gap-2">
                   <TimeInput value={b.start} onChange={(e) => setBreak(i, 'start', e.target.value)} />
                   <span className="text-sand-400">–</span>
                   <TimeInput value={b.end} onChange={(e) => setBreak(i, 'end', e.target.value)} />
-                  <button onClick={() => set('breakTimes', config.breakTimes.filter((_, j) => j !== i))} aria-label={t('builder.setup.removeBreak')} className="text-sand-400 hover:text-ember-600"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => set('breakTimes', config.breakTimes.filter((_, j) => j !== i))} aria-label={t('builder.setup.removeBreak')} className="flex items-center justify-center text-sand-400 hover:text-ember-600 coarse:min-h-11 coarse:min-w-11"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
               <button onClick={addBreak} className="inline-flex items-center gap-1 text-sm font-medium text-sun-600 hover:underline"><Plus className="h-4 w-4" /> {t('builder.setup.addBreak')}</button>
@@ -775,8 +775,8 @@ function BrowseCard({ t: meta, sel, onPick, initialAccent }: { t: TemplateMeta; 
       <div className="relative aspect-[16/10] overflow-hidden" style={{ background: meta.bg }}>
         <TemplateConcept meta={meta} accent={isMumotor ? accent : undefined} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-        {!isMumotor && <span className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: meta.accent }}>{t(`templates.designs.${meta.slug}.style`, meta.style)}</span>}
-        <span className="absolute bottom-3 left-4 text-lg font-semibold tracking-tight text-white drop-shadow">{meta.name}</span>
+        {!isMumotor && <span className="absolute start-3 top-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white shadow" style={{ background: meta.accent }}>{t(`templates.designs.${meta.slug}.style`, meta.style)}</span>}
+        <span className="absolute bottom-3 start-4 text-lg font-semibold tracking-tight text-white drop-shadow">{meta.name}</span>
         {isMumotor && <MumotorAccentDots value={accent} onPick={setAccent} />}
       </div>
       <div className="p-5">
@@ -797,22 +797,23 @@ function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing 
   const selected = config.templateChoice || TEMPLATES[0].slug;
   return (
     <FadeUp className="w-full">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
           <ArrowLeft className="h-4 w-4" /> {t('builder.design.chooseAnother')}
         </button>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={onCustomize}><Sparkles className="h-4 w-4" /> {t('builder.design.customize')}</Button>
-          <Button variant="primary" onClick={onPublish} loading={publishing} className="px-7">{t('builder.design.publish')} <ArrowRight className="h-4 w-4" /></Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button variant="secondary" onClick={onCustomize} className="w-full sm:w-auto"><Sparkles className="h-4 w-4" /> {t('builder.design.customize')}</Button>
+          <Button variant="primary" onClick={onPublish} loading={publishing} className="w-full px-7 sm:w-auto">{t('builder.design.publish')} <ArrowRight className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-sand-200 bg-white shadow-card">
+      {/* Edge-to-edge on phones so full-bleed template sections aren't clipped by the card's side padding. */}
+      <div className="-mx-4 overflow-hidden border-y border-sand-200 bg-white shadow-card sm:mx-0 sm:rounded-xl sm:border-x">
         <div className="flex items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
           <span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" />
           <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">{data.business.name} · {t('builder.design.livePreview')}</span>
         </div>
-        <div className="relative h-[78vh] overflow-y-auto overflow-x-hidden">
+        <div className="relative h-[72vh] overflow-y-auto overflow-x-hidden sm:h-[78vh]">
           <TemplateRender slug={selected} data={data} />
         </div>
       </div>

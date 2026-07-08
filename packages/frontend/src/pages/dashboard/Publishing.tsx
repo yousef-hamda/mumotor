@@ -36,12 +36,12 @@ function SiteRow({ website }: { website: Website }) {
               <h3 className="text-lg font-semibold tracking-tight text-sand-900">{website.name}</h3>
               <StatusBadge status={website.status} />
             </div>
-            <div className="mt-2.5 inline-flex items-center gap-2 rounded-md border border-sand-200 bg-sand-50 px-3 py-1">
+            <div className="mt-2.5 flex min-w-0 max-w-full items-center gap-2 rounded-md border border-sand-200 bg-sand-50 px-3 py-1">
               <Globe className="h-3 w-3 shrink-0 text-sand-500" />
-              <code className="text-[12px] text-sand-600">{url.replace(/^https?:\/\//, '')}</code>
+              <code className="truncate text-[12px] text-sand-600">{url.replace(/^https?:\/\//, '')}</code>
               <button
                 onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                className="rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800"
+                className="flex shrink-0 items-center justify-center rounded-md p-1 text-sand-500 transition-colors hover:bg-sand-200 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
                 aria-label={t('dashboard.publishing.copySiteUrl')}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-sand-900" /> : <Copy className="h-3.5 w-3.5" />}

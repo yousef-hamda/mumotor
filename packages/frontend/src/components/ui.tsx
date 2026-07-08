@@ -201,17 +201,21 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div className="absolute inset-0 bg-sand-950/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md animate-fade-in rounded-2xl border border-white/60 bg-white/85 p-6 shadow-elevated backdrop-blur-xl backdrop-saturate-150">
-        <div className="mb-4 flex items-start justify-between">
+      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-md flex-col animate-fade-in rounded-2xl border border-white/60 bg-white/85 shadow-elevated backdrop-blur-xl backdrop-saturate-150">
+        <div className="flex shrink-0 items-start justify-between px-6 pb-4 pt-6">
           <h3 className="text-lg font-bold tracking-tight text-sand-900">{title}</h3>
-          <button onClick={onClose} className="rounded-full p-1.5 text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-700">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="-me-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sand-400 transition-colors hover:bg-sand-100 hover:text-sand-700 coarse:h-11 coarse:w-11"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div>{children}</div>
-        {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+        <div className="min-h-0 overflow-y-auto px-6 pb-6">{children}</div>
+        {footer && <div className="flex shrink-0 flex-wrap justify-end gap-3 px-6 pb-6 pt-0">{footer}</div>}
       </div>
     </div>
   );

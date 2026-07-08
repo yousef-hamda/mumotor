@@ -934,3 +934,41 @@
 /* Instructor reply to a review */
 .ft-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .ft-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── RESPONSIVE + RTL — phone / device pass ──────────────────────────────────── */
+/* Additive only. Desktop & tablet stay unchanged; the nav switches to the       */
+/* hamburger ≤ 768px and the instructor photo only shrinks on phones.            */
+
+/* Long HE/AR words must never overflow the big clamp() headings. */
+.tmpl-full-throttle .ft-hero-title,
+.tmpl-full-throttle .ft-heading,
+.tmpl-full-throttle .ft-contact-name { overflow-wrap: break-word; }
+
+/* Hamburger: ≥ 44×44 tap target, bars centred (only visible ≤ 768px). */
+.tmpl-full-throttle .ft-hamburger {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* RTL: the burger (margin-left:auto) and logo (margin-right) use physical
+   margins that don't mirror — under dir="rtl" they land on the wrong side.
+   Flip them so the logo sits at the right edge and the burger at the left. */
+.tmpl-full-throttle[dir='rtl'] .ft-logo { margin-right: 0; margin-left: 1.5rem; }
+.tmpl-full-throttle[dir='rtl'] .ft-hamburger { margin-left: 0; margin-right: auto; }
+
+/* Phone (hamburger range): the top bar shows only logo + hamburger — hide the
+   heavy account button (still reachable in the mobile menu). The Book CTA is
+   already hidden in the ≤ 768px block. Scoped to the nav so the in-page booking
+   ft-btn--black buttons are untouched. */
+@media (max-width: 768px) {
+  .tmpl-full-throttle .ft-nav-inner > .ft-btn--black { display: none; }
+}
+
+/* Phone: shrink the fixed 160px instructor photo so the strip fits and the
+   name/title stay readable. */
+@media (max-width: 520px) {
+  .tmpl-full-throttle .ft-instructor-photo { width: 96px; height: 96px; }
+}

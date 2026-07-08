@@ -9,7 +9,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   return (
     <label
       className={cn(
-        'glass group relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-sand-700 transition-colors hover:bg-white/85 focus-within:border-sun-500/70 focus-within:ring-4 focus-within:ring-sun-500/15',
+        'glass group relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-sand-700 transition-colors hover:bg-white/85 focus-within:border-sun-500/70 focus-within:ring-4 focus-within:ring-sun-500/15 coarse:min-h-11',
         className
       )}
       title={t('common.language')}

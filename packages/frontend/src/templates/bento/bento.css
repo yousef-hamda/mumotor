@@ -1044,3 +1044,42 @@
 /* Instructor reply to a review */
 .bn-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .bn-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone tuning + RTL (device pass) ──────────────────────────────
+   Additive only — the tablet/desktop bento grid above is unchanged. This
+   template previously had no [dir=rtl] block. */
+
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-bento .bn-h1, .tmpl-bento .bn-h2 { overflow-wrap: break-word; }
+
+/* RTL: flip the one hardcoded-LTR margin on the coverage-area note. */
+.tmpl-bento[dir='rtl'] .bn-area-note { margin-left: 0; margin-right: 2px; }
+
+/* Phone ≤520: drop the nav account pill (still reachable in the mobile menu).
+   The menu button is already 44×44 in the base rules. */
+@media (max-width: 520px) {
+  .tmpl-bento .bn-nav-end .bn-btn-outline { display: none; }
+}
+
+/* Very small ≤400: also drop the nav Book pill. bn-logo is flex-shrink:0 and the
+   pill nav has extra chrome, so logo + Book + hamburger can't fit without the
+   logo and pill overlapping on common phones; the Book section + package CTAs
+   remain the path to booking. */
+@media (max-width: 400px) {
+  .tmpl-bento .bn-nav-end .bn-btn-primary { display: none; }
+}
+
+/* Phone ≤480: ease the generous tile inner padding so the headline/copy inside
+   the full-width tiles isn't squeezed on a narrow screen. */
+@media (max-width: 480px) {
+  .tmpl-bento .bn-hero-copy-tile { padding: 44px 26px; }
+  .tmpl-bento .bn-feature-tile   { padding: 32px 26px; }
+  .tmpl-bento .bn-areas-tile     { padding: 32px 24px; }
+  .tmpl-bento .bn-book-tile      { padding: 56px 26px; }
+  .tmpl-bento .bn-footer-tile    { padding: 40px 28px; }
+}
+
+/* Touch devices: 44px min tap target on the small nav pills. */
+@media (pointer: coarse) {
+  .tmpl-bento .bn-btn-sm { min-height: 44px; }
+}

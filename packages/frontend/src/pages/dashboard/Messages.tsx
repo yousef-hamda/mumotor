@@ -27,12 +27,12 @@ export default function Messages() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-sand-900">{t('common.messages')}</h1>
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold tracking-tight text-sand-900">{t('common.messages')}</h1>
           <p className="mt-1 text-sm text-sand-600">{t('dashboard.messages.subtitle')}</p>
         </div>
         {websites && websites.length > 1 && (
-          <Select value={wid} onChange={(e) => { setWid(e.target.value); setActiveId(null); }} className="w-52">
+          <Select value={wid} onChange={(e) => { setWid(e.target.value); setActiveId(null); }} className="w-44 shrink-0 sm:w-52">
             {websites.map((w) => (
               <option key={w.id} value={w.id}>
                 {w.name}
@@ -141,7 +141,7 @@ function Thread({ websiteId, enrollmentId, onBack }: { websiteId: string; enroll
         {thread.data?.student.email && <span className="text-xs text-sand-400">· {thread.data.student.email}</span>}
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4" style={{ maxHeight: '26rem' }}>
+      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4" style={{ maxHeight: 'min(26rem, 60dvh)' }}>
         {thread.isLoading ? (
           <CenteredSpinner label={t('dashboard.common.loading')} />
         ) : !thread.data || thread.data.messages.length === 0 ? (

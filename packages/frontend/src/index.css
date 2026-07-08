@@ -121,6 +121,27 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Device-adaptive touch standards (June 2026 responsive pass)
+   On coarse-pointer (touch/stylus) devices only: guarantee ≥44px tap targets and
+   ≥16px input text (prevents iOS Safari focus-zoom). Desktop density is untouched.
+--------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-sun,
+  .btn-glass,
+  .btn-glass-dark,
+  .btn-danger,
+  .btn-ghost {
+    min-height: 44px;
+  }
+  .input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Utilities — legacy accent helpers flattened to solids (no gradient/glow)
 --------------------------------------------------------------------------- */
 @layer utilities {

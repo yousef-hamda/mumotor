@@ -16,19 +16,19 @@ export function PublicShell({
   width?: 'narrow' | 'wide';
 }) {
   const Brand = (
-    <span className="flex items-center gap-2.5">
+    <span className="flex min-w-0 items-center gap-2.5">
       <LogoMark size="sm" />
-      <span className="font-semibold tracking-tight text-sand-900">{schoolName || 'Driving School'}</span>
+      <span className="truncate font-semibold tracking-tight text-sand-900">{schoolName || 'Driving School'}</span>
     </span>
   );
   return (
     <div className="flex min-h-screen flex-col bg-sand-50">
       <header className="sticky top-0 z-40 border-b glass">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-          <Link to={slug ? `/p/${slug}` : '/'} className="transition-opacity hover:opacity-80">
+          <Link to={slug ? `/p/${slug}` : '/'} className="min-w-0 transition-opacity hover:opacity-80">
             {Brand}
           </Link>
-          <LanguageSwitcher />
+          <LanguageSwitcher className="shrink-0" />
         </div>
       </header>
 

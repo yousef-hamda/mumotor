@@ -503,3 +503,32 @@
 /* Instructor reply to a review */
 .fr-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .fr-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: hero-badge fix + phone nav + touch + RTL (device pass) ────── */
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-frosted .fr-h1,
+.tmpl-frosted .fr-h2 { overflow-wrap: break-word; }
+
+/* BUG: the absolute hero stat badge is pinned to the hero's bottom-right corner.
+   At ≥940 it sits in the 2-col hero's empty right gutter, but below 940 the hero is
+   a single column and the badge floats over the copy card — hide it there. */
+@media (max-width: 939px) {
+  .tmpl-frosted .fr-hero-badge { display: none; }
+}
+
+/* RTL: flip the hardcoded-LTR floating badges (only .fr-area-note was flipped). */
+.tmpl-frosted[dir='rtl'] .fr-hero-badge       { right: auto; left: 24px; }
+.tmpl-frosted[dir='rtl'] .fr-instructor-badge { left: auto; right: 20px; }
+
+/* Phone (no breakpoint existed): drop the nav account pill — still in the mobile
+   menu — so the top bar is just logo + Book + hamburger; shrink the floating
+   instructor photo so its glass badge doesn't overrun the narrow about photo. */
+@media (max-width: 520px) {
+  .tmpl-frosted .fr-nav-end .fr-btn-ghost-dark { display: none; }
+  .tmpl-frosted .fr-instructor-photo { width: 96px; height: 96px; }
+}
+
+/* Touch devices: 44px min tap height on the small nav pill(s). */
+@media (pointer: coarse) {
+  .tmpl-frosted .fr-btn-sm { min-height: 44px; }
+}

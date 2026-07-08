@@ -19,7 +19,7 @@ export function CinematicHero() {
         </FadeUp>
 
         <FadeUp delay={0.05}>
-          <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-semibold leading-[1.05] tracking-[-0.03em] text-sand-900 sm:text-6xl lg:text-[5.25rem]">
+          <h1 className="mx-auto mt-4 max-w-4xl break-words text-[2.75rem] font-semibold leading-[1.05] tracking-[-0.03em] text-sand-900 sm:text-6xl lg:text-[5.25rem]">
             {t('landing.heroTitlePre')} {t('landing.heroTitleAccent')}
           </h1>
         </FadeUp>

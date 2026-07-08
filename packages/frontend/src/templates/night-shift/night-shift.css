@@ -1425,3 +1425,39 @@
 /* Instructor reply to a review */
 .ns-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .ns-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* RESPONSIVE + RTL — phone / device pass                                       */
+/* Additive only. Desktop & tablet (≥ 768px) are unchanged; the nav switches to */
+/* the hamburger below 768px and the instructor photo only shrinks on phones.   */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* Long HE/AR words must never overflow the big clamp() headings. */
+.tmpl-night-shift .ns-headline,
+.tmpl-night-shift .ns-section-title { overflow-wrap: break-word; }
+
+/* Hamburger: guarantee a ≥ 44×44 tap target (only ever visible below 768px). */
+.tmpl-night-shift .ns-burger {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* RTL: dir="rtl" sits on the .tmpl-night-shift root, so mirror with the
+   root[dir] convention (matches the other templates). Push the burger to the
+   far (left) edge under RTL. */
+.tmpl-night-shift[dir='rtl'] .ns-burger { margin-left: 0; margin-right: auto; }
+
+/* Phone (hamburger range): the top bar shows only the logo + hamburger. The
+   account pill is still reachable inside the mobile dropdown; the Book CTA is
+   already hidden below 768px, so this leaves logo + burger only. Scoped to the
+   nav so the hero/enroll ghost buttons are untouched. */
+@media (max-width: 767px) {
+  .tmpl-night-shift .ns-nav-inner > .ns-btn-ghost { display: none; }
+}
+
+/* Phone: the About instructor photo is a fixed 192px — far larger than the
+   small avatar the layout needs; shrink it so it never crowds the bio. */
+@media (max-width: 520px) {
+  .tmpl-night-shift .ns-instr-photo { width: 88px; height: 88px; }
+}

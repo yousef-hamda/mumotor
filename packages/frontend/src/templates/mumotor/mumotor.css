@@ -78,7 +78,7 @@
 .tmpl-mumotor .mm-nav-link:hover { color: var(--mm-ink); }
 .tmpl-mumotor .mm-nav-link.is-active { color: var(--mm-accent); background: color-mix(in srgb, var(--mm-accent) 10%, transparent); }
 .tmpl-mumotor .mm-nav-end { display: flex; align-items: center; gap: 8px; }
-.tmpl-mumotor .mm-menu { display: inline-flex; background: none; border: 0; cursor: pointer; color: var(--mm-ink); padding: 6px; }
+.tmpl-mumotor .mm-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: none; border: 0; cursor: pointer; color: var(--mm-ink); padding: 6px; }
 .tmpl-mumotor .mm-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 16px 16px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--mm-line); }
 .tmpl-mumotor .mm-nav-mobile button { background: none; border: 0; text-align: start; cursor: pointer; font: inherit; font-weight: 500; color: var(--mm-ink); padding: 12px 8px; border-radius: 10px; }
 .tmpl-mumotor .mm-nav-mobile button:hover { background: var(--mm-band); }
@@ -223,3 +223,27 @@
 /* Instructor reply to a review */
 .mm-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .mm-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone tuning + RTL (June 2026 device pass) ─────────────────── */
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-mumotor .mm-h1, .tmpl-mumotor .mm-h2 { overflow-wrap: break-word; }
+
+/* RTL: flip the hardcoded-LTR floating cards + instructor pill padding (no [dir=rtl] block existed). */
+.tmpl-mumotor[dir='rtl'] .mm-float { left: auto; right: 20px; }
+.tmpl-mumotor[dir='rtl'] .mm-chip { right: auto; left: 20px; }
+.tmpl-mumotor[dir='rtl'] .mm-schedule { right: auto; left: 16px; }
+.tmpl-mumotor[dir='rtl'] .mm-instructor { padding: 10px 10px 10px 16px; }
+
+/* Phone: hide the nav account pill (still reachable in the mobile menu), calm the
+   section padding, and shrink the instructor photo so the About pill never overflows. */
+@media (max-width: 520px) {
+  .tmpl-mumotor .mm-nav-end .mm-btn-glass { display: none; }
+  .tmpl-mumotor .mm-section { padding: 64px 0; }
+  .tmpl-mumotor .mm-instructor { max-width: 100%; }
+  .tmpl-mumotor .mm-instructor-photo { width: 96px; height: 96px; }
+}
+
+/* Touch devices: 44px tap target on the remaining nav pill(s). */
+@media (pointer: coarse) {
+  .tmpl-mumotor .mm-btn-sm { min-height: 44px; }
+}

@@ -16,6 +16,8 @@ import {
   Star,
   Wallet,
   Phone,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { Logo } from '../components/Logo';
@@ -29,6 +31,7 @@ export default function Landing() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const features = [
     { icon: LayoutTemplate, title: t('landing.feature1Title'), desc: t('landing.feature1Desc') },
@@ -120,7 +123,7 @@ export default function Landing() {
             <a href="#how" className="transition-colors hover:text-sand-900">{t('common.navHowItWorks')}</a>
             <a href="#faq" className="transition-colors hover:text-sand-900">{t('common.navFaq')}</a>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher className="hidden sm:inline-flex" />
             {user ? (
               <Link to="/dashboard" className="btn-primary px-4 py-1.5 text-sm">
@@ -136,8 +139,41 @@ export default function Landing() {
                 </Link>
               </>
             )}
+            {/* Mobile menu toggle — nav links + sign-in live here below md */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={menuOpen ? t('common.close') : t('common.menu')}
+              aria-expanded={menuOpen}
+              aria-controls="landing-mobile-menu"
+              className="-me-1 flex h-11 w-11 items-center justify-center rounded-full text-sand-700 transition-colors hover:bg-sand-100 hover:text-sand-900 md:hidden"
+            >
+              {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu panel */}
+        {menuOpen && (
+          <nav
+            id="landing-mobile-menu"
+            className="border-t border-white/40 px-6 py-3 md:hidden"
+            onClick={() => setMenuOpen(false)}
+          >
+            <div className="flex flex-col gap-1 text-[15px] text-sand-700">
+              <Link to="/templates" className="rounded-xl px-2 py-3 transition-colors hover:bg-sand-100 hover:text-sand-900">{t('common.navTemplates')}</Link>
+              <a href="#features" className="rounded-xl px-2 py-3 transition-colors hover:bg-sand-100 hover:text-sand-900">{t('common.navFeatures')}</a>
+              <a href="#how" className="rounded-xl px-2 py-3 transition-colors hover:bg-sand-100 hover:text-sand-900">{t('common.navHowItWorks')}</a>
+              <a href="#faq" className="rounded-xl px-2 py-3 transition-colors hover:bg-sand-100 hover:text-sand-900">{t('common.navFaq')}</a>
+              {!user && (
+                <Link to="/login" className="rounded-xl px-2 py-3 transition-colors hover:bg-sand-100 hover:text-sand-900 sm:hidden">{t('common.signIn')}</Link>
+              )}
+            </div>
+            <div className="mt-2 border-t border-sand-200 pt-3 sm:hidden">
+              <LanguageSwitcher />
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero */}

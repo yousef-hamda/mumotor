@@ -40,7 +40,7 @@ export function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-lg p-2 text-sand-600 transition-colors hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-sun-500/50"
+        className="relative flex items-center justify-center rounded-lg p-2 text-sand-600 transition-colors hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-sun-500/50 coarse:min-h-11 coarse:min-w-11"
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -53,7 +53,7 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute end-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-sand-200 bg-white shadow-elevated" role="menu">
+        <div className="absolute end-0 z-50 mt-2 w-[calc(100vw-1rem)] max-w-[20rem] overflow-hidden rounded-xl border border-sand-200 bg-white shadow-elevated" role="menu">
           <div className="flex items-center justify-between border-b border-sand-200 px-4 py-3">
             <span className="text-sm font-semibold tracking-tight text-sand-900">Notifications</span>
             {unread > 0 ? (

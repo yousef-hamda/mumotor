@@ -1001,3 +1001,26 @@
 /* Instructor reply to a review */
 .or-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .or-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone nav + touch targets (device pass) ───────────────────── */
+/* Long HE/AR words never overflow the big clamp() display headings. */
+.tmpl-open-road .or-hero-title,
+.tmpl-open-road .or-section-title { overflow-wrap: break-word; }
+
+/* "My account" is a direct-child .or-nav-link (not inside .or-nav-links), so the 767
+   collapse left it in the top bar AND duplicated it in the dropdown. Hide the top-bar
+   copy, and give the hamburger a full 44×44 tap target (was ~38×32). */
+@media (max-width: 767px) {
+  .tmpl-open-road .or-nav-inner > .or-nav-link { display: none; }
+  .tmpl-open-road .or-hamburger {
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Phone: shrink the instructor photo so the (now static) about card isn't squeezed. */
+@media (max-width: 520px) {
+  .tmpl-open-road .or-instructor-photo { width: 96px; height: 96px; }
+}

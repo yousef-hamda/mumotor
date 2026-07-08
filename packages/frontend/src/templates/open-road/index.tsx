@@ -225,7 +225,7 @@ function Packages({
                 )}
                 <ul className="or-package-features">
                   {pkg.features.map((f, j) => (
-                    <li key={f} className="or-package-feature" data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
+                    <li key={j} className="or-package-feature" data-edit={`packages.${i}.features.${j}`} data-edit-type="text">
                       <Check size={13} className="or-check-icon" />{f}
                     </li>
                   ))}
@@ -321,7 +321,7 @@ function Areas({ data }: { data: TemplateData }) {
         </Reveal>
         <div className="or-areas-grid">
           {data.areas.map((area, i) => (
-            <Reveal key={area.name} delay={i * 0.06}>
+            <Reveal key={i} delay={i * 0.06}>
               <div className="or-plate" data-edit-item={`areas.${i}`}>
                 <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
                 {area.note && <span className="or-plate-note"> · <span data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span></span>}

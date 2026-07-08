@@ -24,7 +24,7 @@ export default function TemplatesGallery() {
             <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
             Mumotor
           </Link>
-          <span className="text-sm font-semibold tracking-tight">{t('templates.gallery.templates')}</span>
+          <span className="hidden text-sm font-semibold tracking-tight sm:block">{t('templates.gallery.templates')}</span>
           <Link to="/builder" className="btn btn-primary !py-2 text-sm">
             {t('templates.gallery.startBuilding')}
           </Link>

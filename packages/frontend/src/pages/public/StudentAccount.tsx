@@ -145,7 +145,7 @@ function LoginCard({
           <BookInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={bookT(L, 'phEmailYou')} required />
         </BookField>
         <BookButton variant="primary" type="submit" loading={login.isPending} className="book-btn-block">
-          {bookT(L, 'signIn')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+          {bookT(L, 'signIn')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
         </BookButton>
       </form>
       <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
@@ -193,25 +193,25 @@ function Account({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p className="book-eyebrow">{bookT(L, 'welcomeBackEyebrow')}</p>
-          <h1 className="book-title">{me.data.name}</h1>
+          <h1 className="book-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.data.name}</h1>
         </div>
-        <BookButton variant="secondary" onClick={onLogout} aria-label={bookT(L, 'signOut')}>
+        <BookButton variant="secondary" onClick={onLogout} aria-label={bookT(L, 'signOut')} style={{ flexShrink: 0 }}>
           <LogOut style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'signOut')}
         </BookButton>
       </div>
 
       <div className="book-tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lessons'} className="book-tab" onClick={() => setTab('lessons')}>
-          <CalendarDays style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabLessons')}
+          <CalendarDays style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> <span className="book-tab-label">{bookT(L, 'tabLessons')}</span>
         </button>
         <button role="tab" aria-selected={tab === 'chat'} className="book-tab" onClick={() => setTab('chat')}>
-          <MessageSquare style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabChat')}
+          <MessageSquare style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> <span className="book-tab-label">{bookT(L, 'tabChat')}</span>
           {unread > 0 && <span className="book-tab-badge">{unread}</span>}
         </button>
         <button role="tab" aria-selected={tab === 'profile'} className="book-tab" onClick={() => setTab('profile')}>
-          <User style={{ height: '1rem', width: '1rem' }} /> {bookT(L, 'tabProfile')}
+          <User style={{ height: '1rem', width: '1rem', flexShrink: 0 }} /> <span className="book-tab-label">{bookT(L, 'tabProfile')}</span>
         </button>
       </div>
 
@@ -328,7 +328,7 @@ function LessonsTab({
         )}
 
         <Link to={`/p/${slug}/book-lesson`} className="book-btn book-btn-primary book-btn-block" style={{ marginTop: '1.2rem' }}>
-          {bookT(L, 'bookLesson')} <ArrowRight style={{ height: '1rem', width: '1rem' }} />
+          {bookT(L, 'bookLesson')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
         </Link>
         <p className="book-sub" style={{ textAlign: 'center', marginTop: '0.6rem' }}>
           {bookT(L, 'eachLessonMin', { duration: classDuration })} {bookT(L, 'contactToCancel')}

@@ -11,7 +11,7 @@ export function AuthShell({ children, points }: { children: ReactNode; points: s
   return (
     <div className="flex min-h-screen bg-white">
       {/* Brand panel */}
-      <aside className="relative hidden w-[44%] max-w-xl flex-col justify-between bg-black p-14 lg:flex">
+      <aside className="relative hidden w-[44%] max-w-xl flex-col justify-between bg-black p-10 md:flex lg:p-14">
         <div>
           <Link to="/" aria-label={t('auth.mumotorHome')}>
             <Logo size="md" invert />
@@ -38,7 +38,7 @@ export function AuthShell({ children, points }: { children: ReactNode; points: s
       {/* Form panel */}
       <main className="flex flex-1 flex-col bg-white">
         <div className="flex items-center justify-between p-5">
-          <Link to="/" className="lg:hidden" aria-label={t('auth.mumotorHome')}>
+          <Link to="/" className="md:hidden" aria-label={t('auth.mumotorHome')}>
             <Logo size="sm" />
           </Link>
           <div className="ms-auto">

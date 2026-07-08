@@ -957,3 +957,23 @@
 /* Instructor reply to a review */
 .pr-quote-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
 .pr-quote-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+
+/* ── Responsive: phone tuning (device pass) ────────────────────────────────────
+   Additive only — the exemplary RTL blocks + desktop/tablet layout above are
+   unchanged (pr-menu is already 44×44, RTL is already handled). */
+
+/* Long HE/AR words never overflow the big clamp() hero/section headings. */
+.tmpl-prism .pr-h1, .tmpl-prism .pr-h2 { overflow-wrap: break-word; }
+
+/* Phone ≤520: drop the nav account pill (still reachable in the mobile menu),
+   and shrink the instructor photo so its strip doesn't crush the name/title
+   into a sliver next to a 152px circle on a narrow screen. */
+@media (max-width: 520px) {
+  .tmpl-prism .pr-nav-end .pr-btn-ghost { display: none; }
+  .tmpl-prism .pr-instructor-photo { width: 96px; height: 96px; }
+}
+
+/* Touch devices: 44px min tap target on the small nav pills. */
+@media (pointer: coarse) {
+  .tmpl-prism .pr-btn-sm { min-height: 44px; }
+}
