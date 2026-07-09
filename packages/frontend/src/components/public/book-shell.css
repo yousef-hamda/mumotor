@@ -37,6 +37,12 @@
   background: color-mix(in srgb, var(--book-bg) 82%, transparent);
   backdrop-filter: saturate(1.4) blur(16px);
 }
+/* Installed as a home-screen app: keep the nav below the notch / status bar. */
+@media (display-mode: standalone) {
+  .book-nav {
+    padding-block-start: env(safe-area-inset-top, 0px);
+  }
+}
 .book-nav-inner {
   margin: 0 auto;
   display: flex;

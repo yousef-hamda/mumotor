@@ -6,8 +6,12 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { ScrollToTop } from './components/ScrollToTop';
 import { AuthProvider } from './lib/auth';
+import { registerServiceWorker } from './lib/pwa';
 import './lib/i18n';
 import './index.css';
+
+// Installable PWA: register the service worker (production builds only).
+registerServiceWorker();
 
 // Own scroll position ourselves so reloads/back-forward never reopen a long
 // page scrolled to the bottom (ScrollToTop resets to the top on route changes).

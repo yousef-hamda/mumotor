@@ -3,8 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#FFFFFF" />
+
+    <!-- Installable PWA: default (Mumotor) app identity. lib/pwa.ts swaps these
+         to the teacher's branding on a published-site route. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mumotor" />
     <meta name="description" content="Mumotor is the all-in-one platform for driving instructors — build a professional website in minutes, then run enrollments, bookings and reminders from one dashboard. Trilingual, no-code." />
     <meta name="robots" content="index, follow" />
     <meta name="google-site-verification" content="Avcfa8AlDghCUcdjtTEvMrjhDb9LgyXh47bwK9FYsuA" />

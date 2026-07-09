@@ -48,6 +48,10 @@ export interface BookStrings {
   arriveEarly: string;
   minShort: string;
 
+  // Installable-PWA pill
+  installApp: string;
+  installHintIos: string;
+
   // Enroll
   enrolledTitle: string;
   alreadyEnrolledTitle: string;
@@ -168,6 +172,8 @@ const en: BookStrings = {
   errEmail: 'Please enter a valid email',
   arriveEarly: 'Please arrive 5 minutes early.',
   minShort: 'min',
+  installApp: 'Install app',
+  installHintIos: 'Tap the Share button, then “Add to Home Screen”.',
 
   enrolledTitle: "You're enrolled",
   alreadyEnrolledTitle: "You're already enrolled",
@@ -286,6 +292,8 @@ const he: BookStrings = {
   errEmail: 'נא להזין אימייל תקין',
   arriveEarly: 'נא להגיע 5 דקות לפני.',
   minShort: 'דק׳',
+  installApp: 'התקנת אפליקציה',
+  installHintIos: 'הקישו על כפתור השיתוף ואז על ״הוספה למסך הבית״.',
 
   enrolledTitle: 'נרשמת בהצלחה',
   alreadyEnrolledTitle: 'כבר נרשמת',
@@ -403,6 +411,8 @@ const ar: BookStrings = {
   errEmail: 'الرجاء إدخال بريد إلكتروني صحيح',
   arriveEarly: 'الرجاء الحضور قبل 5 دقائق.',
   minShort: 'د',
+  installApp: 'تثبيت التطبيق',
+  installHintIos: 'اضغط زر المشاركة ثم اختر «أضف إلى الشاشة الرئيسية».',
 
   enrolledTitle: 'تم تسجيلك',
   alreadyEnrolledTitle: 'أنت مسجّل بالفعل',

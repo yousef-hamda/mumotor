@@ -9,6 +9,7 @@ import { cn } from '../../lib/utils';
 import { Logo } from '../Logo';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { NotificationBell } from '../NotificationBell';
+import { InstallAppButton } from '../InstallAppButton';
 
 /** Soft nudge to verify the account email — dismissible for the session, blocks nothing. */
 function VerifyEmailBanner() {
@@ -171,7 +172,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               {t(current.labelKey)}
             </h1>
           )}
-          <div className="ms-auto flex items-center gap-1">
+          <div className="ms-auto flex items-center gap-1.5">
+            <InstallAppButton />
             <NotificationBell />
           </div>
         </header>

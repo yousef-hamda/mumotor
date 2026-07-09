@@ -176,6 +176,12 @@ router.post(
     ]);
 
     await kv.del(`site:${website.slug}`);
+    // PWA manifest/icon are derived from the same branding — drop them too.
+    await Promise.all([
+      kv.del(`manifest:${website.slug}:path`),
+      kv.del(`manifest:${website.slug}:sub`),
+      kv.del(`icon:${website.slug}`),
+    ]);
 
     logEvent('site_published', { userId: req.user!.id, props: { template: website.selectedPreset ?? 'unknown' } });
 
@@ -197,6 +203,12 @@ router.post(
     const website = await loadOwned(req.params.id, req.user!.id);
     await prisma.website.update({ where: { id: website.id }, data: { status: 'DRAFT' } });
     await kv.del(`site:${website.slug}`);
+    // PWA manifest/icon are derived from the same branding — drop them too.
+    await Promise.all([
+      kv.del(`manifest:${website.slug}:path`),
+      kv.del(`manifest:${website.slug}:sub`),
+      kv.del(`icon:${website.slug}`),
+    ]);
     res.json({ status: 'DRAFT' });
   })
 );
@@ -213,6 +225,12 @@ router.delete(
     }
     await prisma.website.delete({ where: { id: website.id } });
     await kv.del(`site:${website.slug}`);
+    // PWA manifest/icon are derived from the same branding — drop them too.
+    await Promise.all([
+      kv.del(`manifest:${website.slug}:path`),
+      kv.del(`manifest:${website.slug}:sub`),
+      kv.del(`icon:${website.slug}`),
+    ]);
     res.json({ deleted: true });
   })
 );

@@ -23,6 +23,7 @@ import { useAuth } from '../lib/auth';
 import { Logo } from '../components/Logo';
 import { useSeo } from '../lib/seo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { InstallAppButton } from '../components/InstallAppButton';
 import { FadeUp, Stagger, ScrollTilt } from '../components/motion';
 import { Background } from '../components/Background';
 import { CinematicHero } from '../components/hero/CinematicHero';
@@ -124,6 +125,7 @@ export default function Landing() {
             <a href="#faq" className="transition-colors hover:text-sand-900">{t('common.navFaq')}</a>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
+            <InstallAppButton className="hidden md:inline-flex" />
             <LanguageSwitcher className="hidden sm:inline-flex" />
             {user ? (
               <Link to="/dashboard" className="btn-primary px-4 py-1.5 text-sm">

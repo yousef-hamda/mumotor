@@ -17,6 +17,7 @@ export function applyDir(lang: string) {
 
 const en = {
   common: { signIn: 'Sign in', buildSite: 'Build your site', getStarted: 'Get started', dashboard: 'Go to dashboard', overview: 'Overview', drivingTeacher: 'Driving Teacher', reviews: 'Reviews', messages: 'Messages', publishing: 'Publishing', billing: 'Billing', settings: 'Settings', signOut: 'Sign out', newSite: 'New site', viewDemo: 'View a live demo', language: 'Language', navTemplates: 'Templates', navFeatures: 'Features', navHowItWorks: 'How it works', navFaq: 'FAQ', menu: 'Menu', close: 'Close', allRightsReserved: 'All rights reserved.' },
+  pwa: { install: 'Install app', title: 'Install Mumotor', iosHint: 'Tap the Share button, then choose “Add to Home Screen”.' },
   templates: {
     gallery: {
       templates: 'Templates',
@@ -528,6 +529,7 @@ const en = {
 };
 const he: typeof en = {
   common: { signIn: 'התחברות', buildSite: 'בנו אתר', getStarted: 'בואו נתחיל', dashboard: 'לוח הבקרה', overview: 'סקירה', drivingTeacher: 'מורה לנהיגה', reviews: 'ביקורות', messages: 'הודעות', publishing: 'פרסום', billing: 'חיוב', settings: 'הגדרות', signOut: 'התנתקות', newSite: 'אתר חדש', viewDemo: 'צפו בדמו', language: 'שפה', navTemplates: 'תבניות', navFeatures: 'יכולות', navHowItWorks: 'איך זה עובד', navFaq: 'שאלות נפוצות', menu: 'תפריט', close: 'סגירה', allRightsReserved: 'כל הזכויות שמורות.' },
+  pwa: { install: 'התקנת אפליקציה', title: 'התקנת Mumotor', iosHint: 'הקישו על כפתור השיתוף ואז על ״הוספה למסך הבית״.' },
   templates: {
     gallery: {
       templates: 'תבניות',
@@ -1039,6 +1041,7 @@ const he: typeof en = {
 };
 const ar: typeof en = {
   common: { signIn: 'تسجيل الدخول', buildSite: 'أنشئ موقعك', getStarted: 'ابدأ الآن', dashboard: 'لوحة التحكم', overview: 'نظرة عامة', drivingTeacher: 'مدرّب القيادة', reviews: 'التقييمات', messages: 'الرسائل', publishing: 'النشر', billing: 'الفوترة', settings: 'الإعدادات', signOut: 'تسجيل الخروج', newSite: 'موقع جديد', viewDemo: 'شاهد عرضاً حياً', language: 'اللغة', navTemplates: 'القوالب', navFeatures: 'الميزات', navHowItWorks: 'كيف يعمل', navFaq: 'الأسئلة الشائعة', menu: 'القائمة', close: 'إغلاق', allRightsReserved: 'جميع الحقوق محفوظة.' },
+  pwa: { install: 'تثبيت التطبيق', title: 'تثبيت Mumotor', iosHint: 'اضغط زر المشاركة ثم اختر «أضف إلى الشاشة الرئيسية».' },
   templates: {
     gallery: {
       templates: 'القوالب',

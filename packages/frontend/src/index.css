@@ -269,3 +269,19 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Installable PWA — when launched from the home screen (standalone), the browser
+   chrome is gone, so keep sticky app chrome clear of the notch / status bar and
+   the home indicator. Insets are 0 on desktop / non-notched devices, so this is
+   a no-op there and the July-8 responsive layout is unchanged.
+--------------------------------------------------------------------------- */
+@media (display-mode: standalone) {
+  body {
+    min-height: 100dvh;
+  }
+  /* Dashboard + landing sticky glass header */
+  .glass.sticky {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+}

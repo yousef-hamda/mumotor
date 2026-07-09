@@ -1,3 +1,41 @@
+# Handoff — July 9, 2026 (Installable PWA — the app AND every teacher site)
+
+Goal: make **Mumotor and each published teacher website installable "apps"** — added to the phone/iPad/
+desktop home screen, launched full-screen (no browser chrome), with their own name/icon/colour. Free,
+standards-based (**PWA**: manifest + service worker + iOS meta), no store/native build/new hosting. Built to
+sit on top of the July-8 responsive work (safe-area, touch) **without changing desktop rendering**. Shipped
+to mumotor.com.
+
+## The problem it solves
+The whole product is **one React SPA** whose `index.html` is shared by the app AND every teacher site
+(`/p/:slug` + dormant subdomains). A single static manifest would make every installed site say "Mumotor",
+so the app **identity is swapped per route**.
+
+## What shipped
+- **Backend** (`routes/siteServing.ts`): `GET /site/:slug/manifest.webmanifest` (host-aware `start_url`/`scope`,
+  name + theme_color from the site's template + `customization.theme` accent via a `TEMPLATE_THEME` map that
+  mirrors the frontend `COLOR_SLOTS`/`templateTheme`) and `GET /site/:slug/icon.svg` (generated maskable SVG,
+  site initial on the accent). Both registered **before** `/site/:slug`, Redis-cached; `manifest:*`/`icon:*`
+  cleared with `site:*` on publish/unpublish/delete (`websites.ts`).
+- **Frontend**: static `public/manifest.webmanifest` + real PNG icons `public/icons/` (rasterized from a
+  blue-gradient "M" `icon.svg`) + `index.html` apple/viewport-fit meta; `public/sw.js` (hand-rolled SW —
+  API/uploads/site/manifest **never cached**, navigations network-first→shell, hashed assets SWR; registered
+  only in PROD from `main.tsx`); `lib/pwa.ts` (`applyAppIdentity`/`resetToMumotorIdentity`/`siteAppIdentity`/
+  `usePwaInstall`/`registerServiceWorker`); `components/InstallAppButton.tsx` (`InstallAppButton` in the
+  dashboard header + landing nav; `SiteInstallPill` floating on public sites — themed, localized, iOS
+  Share-hint, dismissible, hidden when standalone). Identity applied in `PublicSite.tsx` + `TemplatedShell.tsx`
+  (enroll/book/account/review). Safe-area under scoped `@media (display-mode: standalone)` in `index.css` +
+  `book-shell.css`. i18n: `pwa.*` (app) + `installApp`/`installHintIos` (site, `bookingStrings`).
+
+## Verified (real dist served by the backend + Playwright)
+App root → static Mumotor manifest + SW `active`; `/p/davids-driving` → manifest swaps to
+`/site/davids-driving/manifest.webmanifest`, apple title "David's Driving School", theme = accent,
+`start_url`/`scope` `/p/davids-driving/`; install pill renders bottom-center on mobile; **SW caches held only
+the shell + hashed assets — never `/api`, `/site`, or `.webmanifest`**; no horizontal scroll at 390.
+Suites: **unit 26/26 · E2E 90/90 (0 console errors) · integration 74/74.** No schema change → no migration.
+
+---
+
 # Handoff — July 9, 2026 (follow-ups, commit `e376095`)
 
 Two small follow-ups after the responsive pass, both shipped to mumotor.com:

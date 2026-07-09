@@ -227,6 +227,42 @@ scoped so it can't reach `pointer:fine`/`≥lg` viewports.
   `document.documentElement.scrollWidth <= innerWidth`. Touch rules (`pointer:coarse`) need real mobile
   emulation, not just `browser_resize` — headless Chrome reports `pointer:fine`.
 
+## Installable PWA (July 9, 2026 — the app AND every teacher site install as home-screen apps)
+Both Mumotor and each published teacher site are installable Progressive Web Apps — added to the phone/iPad/
+desktop home screen, launched full-screen (no browser chrome), with their own name/icon/colour. Free, standards-
+based (manifest + service worker + iOS meta), no store/native build. **The whole product is ONE React SPA** whose
+`index.html` is shared by the app AND every teacher site, so the app IDENTITY is swapped per route rather than
+using one static manifest.
+- **Per-teacher DYNAMIC manifest**: backend `GET /site/:slug/manifest.webmanifest` + `GET /site/:slug/icon.svg`
+  (`routes/siteServing.ts`, registered **before** `/site/:slug`). Host-aware `start_url`/`scope` = `/p/:slug/` on
+  apex, `/` on a subdomain. name/theme_color/bg derive from the site's template + `customization.theme` accent via
+  a `TEMPLATE_THEME` map that **mirrors** the frontend `COLOR_SLOTS`/`lib/templateTheme` (keep them in sync when a
+  template's CSS vars change). Icon = generated maskable SVG (site initial on the accent). Redis-cached; the
+  `manifest:*`/`icon:*` keys are dropped alongside `site:${slug}` on publish/unpublish/delete (`websites.ts`).
+- **Static Mumotor manifest** `public/manifest.webmanifest` + real PNG icons in `public/icons/` (rasterized from
+  `icons/icon.svg` — a blue-gradient "M") linked in `index.html` (+ apple-mobile-web-app meta + `viewport-fit=cover`).
+- **Client identity swap** `lib/pwa.ts`: `applyAppIdentity`/`resetToMumotorIdentity`/`siteAppIdentity`/`usePwaInstall`/
+  `registerServiceWorker`. `PublicSite.tsx` and `TemplatedShell.tsx` (enroll/book/account/review) call
+  `applyAppIdentity(...)` from settings they already fetch; unmount restores Mumotor. Accent =
+  `resolveBookTheme(...).vars['--book-accent']`.
+- **Hand-rolled service worker** `public/sw.js` (registered only in PROD builds from `main.tsx`; bump `CACHE_VERSION`
+  when it changes). CONTRACT — **`/api/*`, `/uploads/*`, `/site/*`, `*.webmanifest` are NEVER cached** (always-fresh
+  booking data + dynamic manifest); navigations → network-first, offline → cached app shell; hashed assets →
+  stale-while-revalidate; cross-origin → untouched. This is why a deploy is always picked up and student data is
+  never stale.
+- **Install affordance** `components/InstallAppButton.tsx`: `InstallAppButton` (dashboard header + landing nav, i18n
+  `pwa.*`) and `SiteInstallPill` (floating themed pill on the public site, localized via `bookingStrings`
+  `installApp`/`installHintIos`, safe-area-aware, dismissible per slug). Both hide when already installed
+  (`display-mode: standalone`) or when neither a native `beforeinstallprompt` (Android/desktop) nor iOS applies; iOS
+  shows a "Share → Add to Home Screen" hint.
+- **Standalone/safe-area**: scoped `@media (display-mode: standalone)` rules in `index.css` + `book-shell.css` keep
+  sticky headers clear of the notch. Insets are 0 on desktop → **the July-8 responsive/desktop layout is unchanged.**
+- **Verify** by serving the real `dist` from the backend and driving with Playwright: at `/` assert the static
+  Mumotor manifest + SW `active`; at `/p/:slug` assert the manifest `<link>` swapped to `/site/:slug/manifest.webmanifest`,
+  `apple-mobile-web-app-title` = the teacher name, `start_url`/`scope` = `/p/:slug/`; assert the SW caches held only
+  the shell + hashed assets (never `/api`, `/site`, `.webmanifest`). SW registers only from a **production build**
+  (`import.meta.env.PROD`), so test via the built dist, not the Vite dev server.
+
 ## Status & remaining gaps (updated July 5, 2026)
 Most of the original July-2026 audit (`IMPROVEMENT_PLAN.md`) is now DONE. LIVE at mumotor.com.
 

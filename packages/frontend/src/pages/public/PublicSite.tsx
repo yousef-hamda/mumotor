@@ -1,13 +1,18 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTenantSlug } from '../../lib/tenant';
 import { drivingSchoolApi, reviewsApi } from '../../lib/api';
 import { CenteredSpinner } from '../../components/ui';
 import { LogoMark } from '../../components/Logo';
+import { SiteInstallPill } from '../../components/InstallAppButton';
 import { TemplateRender } from '../../templates/TemplateRender';
 import { publicToTemplateData } from '../../templates/fromWizard';
 import { TEMPLATES } from '../../templates/registry';
 import { useSeo } from '../../lib/seo';
+import { applyAppIdentity, resetToMumotorIdentity, siteAppIdentity } from '../../lib/pwa';
+import { resolveBookTheme } from '../../lib/templateTheme';
+import { bookLocale } from '../../lib/bookingStrings';
 import { formatMonthYearIn } from '../../lib/utils';
 
 /** schema.org priceRange derived from the teacher's real plans (Latin digits,
@@ -55,6 +60,21 @@ export default function PublicSite() {
         })),
       })
     : null;
+
+  // Installable PWA: on a published-site route, swap the app identity (manifest /
+  // icons / title / status-bar colour) to THIS teacher's, so installing the site
+  // produces their own app. Restored to Mumotor on unmount.
+  const settings = data as
+    | { slug?: string; name?: string; template?: string | null; logoSrc?: string | null; locale?: string | null; customization?: { theme?: Record<string, string> } }
+    | undefined;
+  useEffect(() => {
+    if (!settings?.slug) return;
+    const accent = resolveBookTheme(settings.template ?? undefined, settings.customization?.theme).vars['--book-accent'];
+    applyAppIdentity(
+      siteAppIdentity({ slug: settings.slug, name: settings.name ?? '', accent, logoSrc: settings.logoSrc })
+    );
+    return () => resetToMumotorIdentity();
+  }, [settings?.slug, settings?.name, settings?.template]);
 
   useSeo(
     templateData
@@ -105,5 +125,10 @@ export default function PublicSite() {
 
   const slug = data.template && TEMPLATES.some((t) => t.slug === data.template) ? data.template : TEMPLATES[0].slug;
 
-  return <TemplateRender slug={slug} data={templateData} />;
+  return (
+    <>
+      <TemplateRender slug={slug} data={templateData} />
+      <SiteInstallPill slug={websiteSlug} locale={bookLocale(settings?.locale ?? undefined)} />
+    </>
+  );
 }

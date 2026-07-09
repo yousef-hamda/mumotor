@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useEffect,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type InputHTMLAttributes,
@@ -12,6 +13,7 @@ import { cn } from '../../lib/utils';
 import { useTemplateFonts } from '../../templates/shared';
 import { resolveBookTheme, type Dir } from '../../lib/templateTheme';
 import { bookLocale, bookT } from '../../lib/bookingStrings';
+import { applyAppIdentity, resetToMumotorIdentity, siteAppIdentity } from '../../lib/pwa';
 import './book-shell.css';
 
 /**
@@ -43,6 +45,15 @@ export function TemplatedShell({
   const { vars, isDark, fontHref } = resolveBookTheme(slug, theme);
   useTemplateFonts([fontHref]);
   const L = bookLocale(locale);
+
+  // Installable PWA: student pages adopt the teacher's app identity too, so an
+  // installed booking/account flow stays that instructor's app. Restored on unmount.
+  const accent = vars['--book-accent'];
+  useEffect(() => {
+    if (!publicSlug) return;
+    applyAppIdentity(siteAppIdentity({ slug: publicSlug, name: schoolName ?? '', accent, logoSrc }));
+    return () => resetToMumotorIdentity();
+  }, [publicSlug, schoolName, accent, logoSrc]);
 
   const home = publicSlug ? `/p/${publicSlug}` : '/';
 
