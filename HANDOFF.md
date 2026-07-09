@@ -1,3 +1,17 @@
+# Handoff — July 9, 2026 (follow-ups, commit `e376095`)
+
+Two small follow-ups after the responsive pass, both shipped to mumotor.com:
+- **Removed the 14 untracked `"* 2"` macOS copy-duplicate template folders** (`aurora 2` … `webgl 2`) under
+  `packages/frontend/src/templates/` — verified no source imports them and none were git-tracked, then deleted.
+- **Fixed the builder's "Start fresh" (draft-restore) button.** It only hid the banner (`setRestorePrompt(null)`)
+  while the wizard `config` stayed pre-filled from the localStorage draft (stale auto-sample data), so the form
+  kept showing the old data. Now "Start fresh" `clearWizard()`s the local draft, resets `config` to a clean default
+  (site language defaulted to the app language), removes the server `/api/wizard-draft` copy, and returns to the
+  welcome step. Verified end-to-end (seed a server draft → banner shows → Start fresh → local+server drafts cleared,
+  business-name field empty). typecheck + E2E 90/90 green.
+
+---
+
 # Handoff — July 8, 2026 session (full responsive / device-adaptive pass)
 
 Goal: make the **entire product** perfect on **phone · tablet · desktop**, adapting **automatically to the
@@ -51,8 +65,8 @@ confirmed desktop is unchanged (admin shows tables not cards; template nav-links
 - **Touch-target/16px rules use `@media (pointer:coarse)`** — verify on a REAL phone/tablet or with device
   emulation; headless Chrome reports `pointer:fine` so `browser_resize` alone won't trigger them (the rules are
   present in the shipped CSS and are standard).
-- **Untracked `"* 2"` duplicate folders (14)** under `templates/` are local macOS copy cruft (not in git); left
-  untouched. Safe to `rm` if desired.
+- **Untracked `"* 2"` duplicate folders (14)** under `templates/` were local macOS copy cruft (not in git) —
+  **removed July 9** after verifying nothing imports them.
 - Pre-existing non-responsive i18n gaps remain (NotificationBell, AdminDashboard, PhotoPicker hardcoded English) —
   out of scope for this pass.
 
