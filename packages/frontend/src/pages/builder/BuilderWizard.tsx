@@ -215,7 +215,22 @@ export default function BuilderWizard() {
               >
                 {t('builder.restoreCta')}
               </button>
-              <button onClick={() => setRestorePrompt(null)} className="btn-secondary !py-1.5 text-xs">
+              <button
+                onClick={() => {
+                  // Truly start over: wipe the local draft (which pre-fills the form with
+                  // stale / auto-sample data) AND the server draft, and reset the wizard to a
+                  // clean config with the site language defaulted to the app language.
+                  clearWizard();
+                  const fresh = loadWizard(); // defaults now that storage is cleared
+                  const lang = (i18n.language || '').toLowerCase();
+                  fresh.locale = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
+                  setConfig(fresh);
+                  setStep('welcome');
+                  setRestorePrompt(null);
+                  void wizardDraftApi.remove().catch(() => { /* best-effort */ });
+                }}
+                className="btn-secondary !py-1.5 text-xs"
+              >
                 {t('builder.startFresh')}
               </button>
             </div>
