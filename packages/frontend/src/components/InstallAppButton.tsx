@@ -23,15 +23,15 @@ export function InstallAppButton({ className }: { className?: string }) {
 
   if (isStandalone || (!canInstall && !isIOS)) return null;
 
+  // `className` (e.g. the landing's `hidden md:inline-flex`) goes on the WRAPPER so
+  // hiding it removes the whole element from the flex row — otherwise a zero-width
+  // wrapper would leave a phantom gap in the nav on mobile.
   return (
-    <div className="relative">
+    <div className={cn('relative', className)}>
       <button
         type="button"
         onClick={() => (canInstall ? void promptInstall() : setShowHint((v) => !v))}
-        className={cn(
-          'inline-flex items-center gap-1.5 rounded-full border border-sand-200 bg-white px-3 py-1.5 text-sm font-medium text-sand-800 transition hover:bg-sand-50 coarse:min-h-11',
-          className
-        )}
+        className="inline-flex items-center gap-1.5 rounded-full border border-sand-200 bg-white px-3 py-1.5 text-sm font-medium text-sand-800 transition hover:bg-sand-50 coarse:min-h-11"
       >
         <Download className="h-4 w-4" />
         <span className="hidden sm:inline">{t('pwa.install')}</span>
