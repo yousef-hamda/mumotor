@@ -32,9 +32,13 @@ one of the strongest signals. Never fake reviews — ask real instructors who us
 2. Fill with the copy block below. Category: **Website Builder** / **Scheduling**.
 3. Ask the same real users to leave a review.
 
-### Trustpilot  (https://www.trustpilot.com)  ← better than Google for an online business
-1. Go to Trustpilot → **"for businesses"** → create a free business account with your domain mumotor.com.
-2. It only needs your website (no physical location). Then invite real users to review.
+### Trustpilot  ✅ DONE — profile created + domain VERIFIED (via Cloudflare DNS TXT)
+- Business account live at business.trustpilot.com. Domain mumotor.com verified.
+- **AFS auto-invite BCC address:** `mumotor.com+f1498a9e3f@invite.trustpilot.com`
+  → BCC this ONLY on **instructor** emails (Mumotor's customers), NEVER on student
+  booking emails. To auto-collect reviews, wire it into the instructor welcome email
+  (backend), or manually invite real instructors from the Trustpilot dashboard.
+- Get reviews: ask real driving instructors who use Mumotor (never fake).
 
 ### Google Business Profile — SKIP (doesn't fit an online business)
 - A profile was created but verification requires a **video of a real physical premises**. Mumotor is
