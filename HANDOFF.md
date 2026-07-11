@@ -1,3 +1,28 @@
+# Handoff — July 11, 2026 (Free-month trial + one-website paywall, and a landing demo video)
+
+Shipped + **deployed to mumotor.com** (commit `d790416`; migration applied to the Railway prod DB; verified live — the demo video plays on the homepage). Two deliverables.
+
+## Part A — Free trial + per-website paywall (Stripe-ready, Stripe DORMANT)
+Business rule: **every new teacher gets one website free for the first month** (30 days from signup, `TRIAL_DAYS`, default 30). A **2nd website → `402 PAYMENT_REQUIRED`** (₪199/mo each). After the month, unpaid → account **LOCKED** and the published site **FROZEN** (`WebsiteStatus.SUSPENDED` → goes dark behind a themed "paused" page) + **one localized "free month ended" email** (teacher's language). **Paying reactivates everything automatically** (wired into both the demo-checkout path and the real Stripe webhook, so it "just works" once Stripe keys are set).
+- **Schema/migration** `20260711123432_trial_and_website_quota`: `Subscription` gains `trialEndsAt`, `trialExpiredNotifiedAt`, `websiteQuota Int @default(1)`. The migration **backfills** existing FREE users to `now+30d` (+ creates a trial row for any user without one) so **nothing freezes on deploy**; paid PRO/STUDIO untouched. (Applied to prod: the 3 existing FREE users each got a fresh 30-day grace; the 1 PRO account untouched.)
+- **Single source of truth**: `services/billing/accountState.ts` `getAccountState(userId)` → `{plan,onTrial,trialDaysLeft,paid,quota,websiteCount,canAddWebsite,locked,websitePrice}` — reused by the `POST /websites` guard, `requireActiveAccount` (blocks non-GET teacher writes when locked → `ACCOUNT_LOCKED`), `/auth/me`, `/subscriptions`, and the cron.
+- **Freeze/restore**: `services/billing/siteFreeze.ts` `freezeUserSites`/`restoreUserSites` (flip status + clear `site:`/`manifest:`/`icon:` caches). Cron `processExpiredTrials()` (hourly `17 * * * *` in `jobService.ts`). Unfreeze in `subscriptions.ts` demo path + `stripeWebhook.ts` (restore on checkout.session.completed & subscription.updated=active; freeze on subscription.deleted).
+- **Email**: `sendTrialExpired` (`emailService.ts`) localized via new `strings.ts` keys (`trialHeading/trialBody/trialSub/trialBtn/subjTrialExpired/titleTrialExpired`, en/he/ar).
+- **Frontend**: `lib/useAccount.ts`; `DashboardLayout` trial banner (blue "Free month · N days left · Subscribe") + full **AccountLocked** screen (only Billing reachable); `Billing.tsx` trial/locked status + "first month free — then ₪199/mo"; `PublicSite.tsx` themed paused screen; i18n `dashboard.trial.*`. **Hardened**: `auth.tsx` login/register/logout `qc.clear()` so paywall state can't leak across accounts.
+
+## Part B — Landing marketing demo video (replaced "View a live demo")
+~59s 1080p Apple-keynote demo, **built from REAL product screenshots** (no fake mockups), custom music, no voice; ends on **"You asked. We listened."** + **"Your first month is on us — then just ₪199/month"** + a trilingual (עברית · العربية · English) beat. Assets: `public/media/marketing.{mp4,webm}` + `marketing-poster.jpg`.
+- **How it was built** (all local, no paid AI — sources in the session scratchpad): Playwright captured real pages → Apple-minimal HTML scene slides embedding the shots in browser/phone frames → rendered to PNGs → **music synthesized with numpy** (pads/bass/plucked-arp/soft-drums/reverb + arrangement dynamics) → ffmpeg Ken-Burns + xfade + music. Regenerate: re-run `capture.mjs → render.mjs → music.py → build.py`.
+- **Embed**: `components/VideoLightbox.tsx` (widescreen 16:9 portal, Esc/backdrop close, autoplay-with-sound via the click gesture, scroll-lock); `hero/CinematicHero.tsx` replaced the `viewDemo` link with a **"▶ Watch the demo"** button and added a play-overlay on the hero video. i18n `common.watchDemo`/`videoTitle`.
+
+## Verified
+API flows (register→trial, 2nd-site 402, expire→cron freeze+email, idempotent re-run, demo-pay unfreeze), all three UI states (trial banner / lock screen / themed paused page), the video plays+closes in the lightbox — locally AND on the live production site. FE typecheck + 27/27 unit, BE typecheck, both prod builds green.
+
+## Still open
+Stripe not wired (set `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PRICE_*` to enable real payments — the trial/lock/freeze/reactivate flow is already plumbed to it).
+
+---
+
 # Handoff — July 9, 2026 (Installable PWA — the app AND every teacher site)
 
 Goal: make **Mumotor and each published teacher website installable "apps"** — added to the phone/iPad/
