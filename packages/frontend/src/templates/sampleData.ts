@@ -33,10 +33,10 @@ export const sampleData: TemplateData = {
   },
   instructor: {
     name: 'David Mercer',
-    title: 'DVSA-approved instructor · 14 years',
+    title: 'Certified driving instructor · 14 years',
     bio: 'I started Northgate because learning to drive should feel calm, not scary. Every lesson is one-to-one, fully insured and paced exactly to you — whether it is your very first time behind the wheel or a confidence refresher before your test.',
     photo: IMG.instructor,
-    credentials: ['DVSA Approved (ADI)', 'Pass Plus registered', 'Manual & Automatic', 'Fully insured dual-control car'],
+    credentials: ['Certified driving instructor', 'Patient & professional', 'Manual & Automatic', 'Fully insured dual-control car'],
   },
   hero: {
     eyebrow: 'Driving lessons in Northgate',

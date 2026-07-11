@@ -88,7 +88,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
 
   const reduced = usePrefersReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeFaq, setActiveFaq] = useState<string | null>(null);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const editing = useIsEditing();
 
   // Parallax — hero
@@ -204,7 +204,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
             </button>
             <button className="pd-btn-ghost" data-edit="hero.ctaSecondary" data-edit-type="text"
               onClick={() => scrollToSection(SECTION_IDS.packages)}>
-              {data.hero.ctaSecondary} &rarr;
+              {data.hero.ctaSecondary} <span className="pd-cta-arrow">&rarr;</span>
             </button>
           </motion.div>
         </div>
@@ -229,6 +229,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
       </section>
 
       {/* ── PACKAGES ── */}
+      {data.packages.length > 0 && (
       <section id={SECTION_IDS.packages} className="pd-section">
         <div className="pd-container">
           <Reveal>
@@ -247,7 +248,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                   </div>
                   {pkg.duration && (
                     <p className="pd-pkg-meta">
-                      <Clock size={11} aria-hidden="true" /> <span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? s.lessonDurationSuffix}</span>
+                      <Clock size={11} aria-hidden="true" /> {pkg.lessons ? `${pkg.lessons} × ` : ''}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.packagesDurationSuffix" data-edit-type="text">{data.copy?.packagesDurationSuffix ?? s.lessonDurationSuffix}</span>
                     </p>
                   )}
                   <div className="pd-pkg-rule" aria-hidden="true" />
@@ -270,6 +271,7 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           </div>
         </div>
       </section>
+      )}
 
       {/* ── ABOUT ── */}
       <section id={SECTION_IDS.about} className="pd-section pd-about-section">
@@ -408,10 +410,10 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
           </Reveal>
           <div className="pd-faq-list">
             {data.faqs.map((faq, i) => (
-              <Reveal key={faq.q} delay={i * 0.07}>
+              <Reveal key={i} delay={i * 0.07}>
                 <FaqItem q={faq.q} a={faq.a} editIndex={i}
-                  open={editing || activeFaq === faq.q}
-                  onToggle={() => setActiveFaq(v => v === faq.q ? null : faq.q)} />
+                  open={editing || activeFaq === i}
+                  onToggle={() => setActiveFaq(v => v === i ? null : i)} />
               </Reveal>
             ))}
           </div>
@@ -436,13 +438,14 @@ export default function PrestigeDrive({ data = sampleData }: { data?: TemplateDa
                 </a>
               ) : (
                 <button type="button" className="pd-btn-primary pd-shimmer"
-                  title="Available once your site is published"
+                  disabled aria-disabled="true"
+                  title={s.publishTooltip}
                   data-edit="labels.bookCta" data-edit-type="text">
                   {data.labels?.bookCta ?? s.bookCta}
                 </button>
               )}
               {data.enrollUrl && (
-                <a href={data.enrollUrl} className="pd-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> &rarr;</a>
+                <a href={data.enrollUrl} className="pd-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> <span className="pd-cta-arrow">&rarr;</span></a>
               )}
             </div>
           </Reveal>

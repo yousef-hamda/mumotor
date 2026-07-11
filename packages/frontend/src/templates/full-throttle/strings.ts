@@ -31,6 +31,7 @@ export interface FtStrings extends TemplateStrings {
   emailUs: string;
   hoursLabelFt: string;
   footerRights: string;
+  publishTooltip: string;
 }
 
 const en: FtStrings = {
@@ -62,6 +63,7 @@ const en: FtStrings = {
   emailUs: 'Email us',
   hoursLabelFt: 'Opening Hours',
   footerRights: 'All rights reserved.',
+  publishTooltip: 'Available once your site is published',
 };
 
 const he: FtStrings = {
@@ -93,6 +95,7 @@ const he: FtStrings = {
   emailUs: 'שלחו לנו מייל',
   hoursLabelFt: 'שעות פעילות',
   footerRights: 'כל הזכויות שמורות.',
+  publishTooltip: 'זמין לאחר פרסום האתר',
 };
 
 const ar: FtStrings = {
@@ -124,6 +127,7 @@ const ar: FtStrings = {
   emailUs: 'راسلنا',
   hoursLabelFt: 'ساعات العمل',
   footerRights: 'جميع الحقوق محفوظة.',
+  publishTooltip: 'متاح بعد نشر موقعك',
 };
 
 const FT: Record<Locale, FtStrings> = { en, he, ar };

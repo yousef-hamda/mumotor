@@ -120,12 +120,12 @@ function ObNav({ data, active }: { data: TemplateData; active: string }) {
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
 
   return (
-    <nav className="ob-nav" aria-label="Main navigation">
+    <nav className="ob-nav" aria-label={s.mainNavAria}>
       <div className="ob-nav-glass">
         <button
           className="ob-logo"
           onClick={() => scrollToSection(SECTION_IDS.hero)}
-          aria-label="Go to top"
+          aria-label={s.goToTopAria}
         >
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark
@@ -265,18 +265,20 @@ function ObHero({ data }: { data: TemplateData }) {
               data-edit="hero.image"
               data-edit-type="image"
             />
-            <Glass className="ob-hero-badge">
-              <p className="ob-hero-badge-num" data-edit="stats.0.value" data-edit-type="text">
-                {data.stats[0]?.prefix}{data.stats[0]?.value}{data.stats[0]?.suffix}
-              </p>
-              <p
-                className="ob-hero-badge-label"
-                data-edit="stats.0.label"
-                data-edit-type="text"
-              >
-                {data.stats[0]?.label}
-              </p>
-            </Glass>
+            {data.stats[0] && (
+              <Glass className="ob-hero-badge">
+                <p className="ob-hero-badge-num" data-edit="stats.0.value" data-edit-type="text">
+                  {data.stats[0].prefix}{data.stats[0].value}{data.stats[0].suffix}
+                </p>
+                <p
+                  className="ob-hero-badge-label"
+                  data-edit="stats.0.label"
+                  data-edit-type="text"
+                >
+                  {data.stats[0].label}
+                </p>
+              </Glass>
+            )}
           </Glass>
         </Reveal>
       </div>
@@ -560,6 +562,11 @@ function ObAbout({ data }: { data: TemplateData }) {
               ))}
             </ul>
           </Reveal>
+          {instructor.bio && (
+            <Reveal as="p" className="ob-body" delay={0.28}>
+              <span data-edit="instructor.bio" data-edit-type="text">{instructor.bio}</span>
+            </Reveal>
+          )}
         </div>
       </div>
     </section>
@@ -809,7 +816,9 @@ function ObBook({ data }: { data: TemplateData }) {
                 <button
                   type="button"
                   className="ob-btn ob-btn-primary ob-btn-lg"
-                  title="Available once your site is published"
+                  title={s.publishNote}
+                  disabled
+                  aria-disabled="true"
                   data-edit="labels.bookCta"
                   data-edit-type="text"
                 >
@@ -957,7 +966,7 @@ export default function Obsidian({ data = sampleData }: { data?: TemplateData })
           <ObHero data={data} />
           <ObStats stats={data.stats} />
           <ObWhy data={data} />
-          <ObPackages data={data} />
+          {data.packages.length > 0 && <ObPackages data={data} />}
           <ObAbout data={data} />
           <ObAreas data={data} />
           {data.reviews.length > 0 && <ObReviews data={data} />}

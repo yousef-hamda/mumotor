@@ -192,7 +192,7 @@ function Stats({ data }: { data: TemplateData }) {
     <section id={SECTION_IDS.stats} className="ft-stats">
       <div className="ft-stats-grid">
         {data.stats.map((stat, i) => (
-          <Reveal key={stat.label} delay={i * 0.1}>
+          <Reveal key={i} delay={i * 0.1}>
             <StatCard stat={stat} index={i} />
           </Reveal>
         ))}
@@ -230,14 +230,14 @@ function Packages({
                 onKeyDown={e => { if (e.key==='Enter'||e.key===' ') go(pkg.id); }}
                 data-edit-item={`packages.${i}`}
               >
-                {pkg.badge && <span className="ft-pkg-badge">{pkg.badge}</span>}
+                {pkg.badge && <span className="ft-pkg-badge" data-edit={`packages.${i}.badge`} data-edit-type="text">{pkg.badge}</span>}
                 <h3 className="ft-pkg-name" data-edit={`packages.${i}.name`} data-edit-type="text">{pkg.name}</h3>
                 <div className="ft-pkg-price-row">
                   <span className="ft-pkg-amount" data-edit={`packages.${i}.price`} data-edit-type="text">₪{pkg.price}</span>
-                  {pkg.unit && <span className="ft-pkg-unit">{pkg.unit}</span>}
+                  {pkg.unit && <span className="ft-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
                 </div>
                 {pkg.duration && (
-                  <p className="ft-pkg-detail">
+                  <p className="ft-pkg-detail" data-edit={`packages.${i}.duration`} data-edit-type="text">
                     <Clock size={11} aria-hidden="true" />
                     {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}{s.minSuffix}
                     {(pkg.lessons ?? 1) !== 1 ? s.lessonsPlural : s.lessonSingular}
@@ -297,7 +297,7 @@ function About({ data }: { data: TemplateData }) {
               />
               <div>
                 <span className="ft-instructor-name" data-edit="instructor.name" data-edit-type="text">{data.instructor.name}</span>
-                <span className="ft-instructor-title">{data.instructor.title}</span>
+                <span className="ft-instructor-title" data-edit="instructor.title" data-edit-type="text">{data.instructor.title}</span>
               </div>
             </div>
           </div>
@@ -311,7 +311,8 @@ function About({ data }: { data: TemplateData }) {
             <Reveal key={i} delay={i * 0.1 + 0.1}>
               <p
                 className="ft-about-body"
-                {...(i === 0 ? { 'data-edit': 'about.body.0', 'data-edit-type': 'text' } : {})}
+                data-edit={`about.body.${i}`}
+                data-edit-type="text"
               >
                 {para}
               </p>
@@ -526,8 +527,10 @@ function Book({ data }: { data: TemplateData }) {
             ) : (
               <button
                 type="button"
+                disabled
+                aria-disabled="true"
                 className="ft-btn ft-btn--primary ft-btn--lg"
-                title="Available once your site is published"
+                title={s.publishTooltip}
                 data-edit="labels.bookCta" data-edit-type="text"
               >
                 {bookLabel}
@@ -553,19 +556,19 @@ function Contact({ data }: { data: TemplateData }) {
       <div className="ft-contact-grid">
         <div>
           <Reveal>
-            <h2 className="ft-contact-name">{data.business.name}</h2>
-            <p className="ft-contact-tagline">{data.business.tagline}</p>
+            <h2 className="ft-contact-name" data-edit="business.name" data-edit-type="text">{data.business.name}</h2>
+            <p className="ft-contact-tagline" data-edit="business.tagline" data-edit-type="text">{data.business.tagline}</p>
           </Reveal>
           <Reveal delay={0.1}>
             <div className="ft-contact-list">
               <a href={`tel:${data.contact.phone}`} className="ft-contact-item" aria-label={s.callCta}>
-                <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> {data.contact.phone}
+                <DynamicIcon name={data.icons?.phone ?? 'Phone'} size={14} aria-hidden="true" data-edit="icons.phone" data-edit-type="icon" /> <span data-edit="contact.phone" data-edit-type="text">{data.contact.phone}</span>
               </a>
               <a href={`mailto:${data.contact.email}`} className="ft-contact-item" aria-label={s.emailUs}>
-                <DynamicIcon name={data.icons?.email ?? 'Mail'} size={14} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> {data.contact.email}
+                <DynamicIcon name={data.icons?.email ?? 'Mail'} size={14} aria-hidden="true" data-edit="icons.email" data-edit-type="icon" /> <span data-edit="contact.email" data-edit-type="text">{data.contact.email}</span>
               </a>
               <span className="ft-contact-item">
-                <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={14} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /> {data.contact.address}
+                <DynamicIcon name={data.icons?.address ?? 'MapPin'} size={14} aria-hidden="true" data-edit="icons.address" data-edit-type="icon" /> <span data-edit="contact.address" data-edit-type="text">{data.contact.address}</span>
               </span>
             </div>
           </Reveal>
@@ -608,7 +611,7 @@ function Contact({ data }: { data: TemplateData }) {
       </div>
 
       <div className="ft-footer-bar">
-        © {new Date().getFullYear()} {data.business.name}. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerRights}</span>
+        © {new Date().getFullYear()} <span data-edit="business.name" data-edit-type="text">{data.business.name}</span>. <span data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerRights}</span>
       </div>
     </footer>
   );
@@ -634,7 +637,7 @@ export default function FullThrottle({ data = sampleData }: { data?: TemplateDat
       <Nav data={data} active={active} />
       <Hero data={data} />
       <Stats data={data} />
-      <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />
+      {data.packages.length > 0 && <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />}
       <About data={data} />
       <Areas data={data} />
       {data.reviews.length > 0 && <Reviews data={data} />}

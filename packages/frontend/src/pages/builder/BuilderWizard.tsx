@@ -59,13 +59,23 @@ const isDataUrl = (s?: string) => typeof s === 'string' && s.startsWith('data:')
 /** Server draft copy without heavy base64 image data-URLs (they'd exceed the
  *  draft size cap and fail the sync). Non-data-URL image URLs are preserved. */
 function stripDraftImages(c: WizardConfig): WizardConfig {
-  return {
+  const out: WizardConfig = {
     ...c,
     logoSrc: isDataUrl(c.logoSrc) ? undefined : c.logoSrc,
     carPhoto: isDataUrl(c.carPhoto) ? undefined : c.carPhoto,
     instructorPhoto: isDataUrl(c.instructorPhoto) ? undefined : c.instructorPhoto,
     gallery: (c.gallery ?? []).filter((g) => !isDataUrl(g)),
   };
+  // Also drop base64 images uploaded via Customize-in-the-builder (customization.fields),
+  // otherwise a single Customize photo silently blows the draft size cap and the server
+  // autosave stops syncing from then on (H10).
+  const cz = (c as { customization?: { fields?: Record<string, unknown> } }).customization;
+  if (cz?.fields && Object.values(cz.fields).some((v) => isDataUrl(v as string))) {
+    const fields: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(cz.fields)) if (!isDataUrl(v as string)) fields[k] = v;
+    (out as { customization?: unknown }).customization = { ...cz, fields };
+  }
+  return out;
 }
 
 export default function BuilderWizard() {
@@ -93,7 +103,16 @@ export default function BuilderWizard() {
     if (choice) setConfig((c) => (c.templateChoice === choice ? c : { ...c, templateChoice: choice }));
   }, [searchParams]);
 
-  useEffect(() => saveWizard(config), [config]);
+  const quotaWarned = useRef(false);
+  useEffect(() => {
+    const full = saveWizard(config);
+    // If a big photo blew the browser's storage quota we still saved the typed data
+    // (without images) — warn once so the teacher knows to re-add photos after publish.
+    if (!full && !quotaWarned.current) {
+      quotaWarned.current = true;
+      toast.error(t('builder.storageFull'));
+    }
+  }, [config, t]);
 
   // Until the teacher deliberately picks a site language, keep it in sync with the
   // app UI language — so switching the app language updates the site-language

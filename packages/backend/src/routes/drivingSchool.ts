@@ -619,9 +619,10 @@ const settingsSchema = z.object({
   restMinutes: z.number().int().min(0).max(120).optional(),
   workingHours: z.record(z.object({ isOpen: z.boolean(), open: z.string(), close: z.string() })).optional(),
   teacherName: z.string().max(120).optional(),
-  pricePerClass: z.union([z.number().min(0), z.string().max(20)]).optional(),
-  experienceYears: z.union([z.number().int().min(0).max(80), z.string().max(20)]).optional(),
-  passRate: z.number().min(0).max(100).optional(),
+  // Nullable so the teacher can CLEAR these (send null) — not just set them (M13).
+  pricePerClass: z.union([z.number().min(0), z.string().max(20)]).nullable().optional(),
+  experienceYears: z.union([z.number().int().min(0).max(80), z.string().max(20)]).nullable().optional(),
+  passRate: z.number().min(0).max(100).nullable().optional(),
 });
 router.put(
   '/:websiteId/settings',

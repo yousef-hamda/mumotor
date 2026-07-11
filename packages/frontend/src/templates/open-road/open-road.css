@@ -999,8 +999,8 @@
 }
 
 /* Instructor reply to a review */
-.or-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
-.or-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+.or-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.or-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
 
 /* ── Responsive: phone nav + touch targets (device pass) ───────────────────── */
 /* Long HE/AR words never overflow the big clamp() display headings. */

@@ -30,6 +30,9 @@ export interface MmStrings extends TemplateStrings {
   scheduleTagTest: string;
   heroImageAlt: string;
   aboutImageAlt: string;
+  mainNavAria: string;
+  goToTopAria: string;
+  publishNote: string;
 }
 
 const en: MmStrings = {
@@ -60,6 +63,9 @@ const en: MmStrings = {
   scheduleTagTest: 'Test prep',
   heroImageAlt: 'Driving lesson in progress',
   aboutImageAlt: 'Instructor with a learner driver',
+  mainNavAria: 'Main navigation',
+  goToTopAria: 'Go to top',
+  publishNote: 'Available once your site is published',
 };
 
 const he: MmStrings = {
@@ -90,6 +96,9 @@ const he: MmStrings = {
   scheduleTagTest: 'הכנה לטסט',
   heroImageAlt: 'שיעור נהיגה בעיצומו',
   aboutImageAlt: 'מורה נהיגה עם תלמיד',
+  mainNavAria: 'ניווט ראשי',
+  goToTopAria: 'חזרה לראש הדף',
+  publishNote: 'יהיה זמין לאחר פרסום האתר',
 };
 
 const ar: MmStrings = {
@@ -120,6 +129,9 @@ const ar: MmStrings = {
   scheduleTagTest: 'تحضير للاختبار',
   heroImageAlt: 'درس قيادة جارٍ',
   aboutImageAlt: 'مدرّب مع متعلّم قيادة',
+  mainNavAria: 'التنقل الرئيسي',
+  goToTopAria: 'العودة إلى الأعلى',
+  publishNote: 'متاح بعد نشر موقعك',
 };
 
 const MM: Record<Locale, MmStrings> = { en, he, ar };

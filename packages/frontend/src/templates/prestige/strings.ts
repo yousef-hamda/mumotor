@@ -24,6 +24,7 @@ export interface PgStrings extends TemplateStrings {
   bookHeadingPg: string;
   bookBodyPg: string;
   footerCreditPg: string;
+  publishTooltip: string;
 }
 
 const en: PgStrings = {
@@ -47,6 +48,7 @@ const en: PgStrings = {
   bookHeadingPg: 'Book your lesson.',
   bookBodyPg: 'Reserve your spot and start driving.',
   footerCreditPg: 'All rights reserved.',
+  publishTooltip: 'Available once your site is published',
 };
 
 const he: PgStrings = {
@@ -70,6 +72,7 @@ const he: PgStrings = {
   bookHeadingPg: 'הזמינו את השיעור שלכם.',
   bookBodyPg: 'שריינו את מקומכם והתחילו לנהוג.',
   footerCreditPg: 'כל הזכויות שמורות.',
+  publishTooltip: 'זמין לאחר פרסום האתר',
 };
 
 const ar: PgStrings = {
@@ -93,6 +96,7 @@ const ar: PgStrings = {
   bookHeadingPg: 'احجز درسك.',
   bookBodyPg: 'احجز مكانك وابدأ القيادة.',
   footerCreditPg: 'جميع الحقوق محفوظة.',
+  publishTooltip: 'متاح بعد نشر موقعك',
 };
 
 const PG: Record<Locale, PgStrings> = { en, he, ar };

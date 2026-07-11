@@ -33,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // When any API call 401s (expired/invalidated token), drop the in-memory user so
+  // protected routes redirect to /login without needing a hard reload (M31).
+  useEffect(() => {
+    const onUnauthorized = () => setUser(null);
+    window.addEventListener('mm-unauthorized', onUnauthorized);
+    return () => window.removeEventListener('mm-unauthorized', onUnauthorized);
+  }, []);
+
   const login = async (email: string, password: string) => {
     const { token, user } = await authApi.login({ email, password });
     tokenStore.set(token);

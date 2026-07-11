@@ -249,10 +249,9 @@ function GIPackages({
           {packages.map((pkg, i) => (
             <Reveal key={pkg.id} delay={i * 0.08}>
               <div
-                className={`gi-pkg-card${pkg.popular ? ' gi-pkg-card--popular' : ''}${selectedPkg === pkg.id ? ' gi-pkg-card--selected' : ''}`}
+                className={`gi-pkg-card${pkg.popular ? ' gi-pkg-card--popular' : ''}`}
                 role="button"
                 tabIndex={0}
-                aria-pressed={selectedPkg === pkg.id}
                 onClick={() => onSelect(pkg.id)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelect(pkg.id)}
                 data-edit-item={`packages.${i}`}
@@ -525,7 +524,9 @@ function GIBook({ data }: { data: TemplateData }) {
             <button
               type="button"
               className="gi-btn-primary gi-btn-lg"
-              title="Available once your site is published"
+              title={s.bookUnpublishedTitle}
+              disabled
+              aria-disabled="true"
               data-edit="labels.bookCta"
               data-edit-type="text"
             >
@@ -601,7 +602,7 @@ function GIContact({ data }: { data: TemplateData }) {
         </div>
 
         <Reveal className="gi-footer-bottom">
-          <p className="gi-footer-copy gi-mono">© {new Date().getFullYear()} {/* Built with Mumotor */}</p>
+          <p className="gi-footer-copy gi-mono">© {new Date().getFullYear()} <span data-edit="business.name">{data.business.name}</span></p>
           <p className="gi-footer-copy gi-mono" data-edit="copy.footerCredit" data-edit-type="text">{data.copy?.footerCredit ?? s.footerCredit}</p>
         </Reveal>
       </div>
@@ -637,7 +638,7 @@ export default function GridInk({ data = sampleData }: { data?: TemplateData }) 
       <main>
         <GIHero data={data} />
         <GIStats stats={data.stats} />
-        <GIPackages packages={data.packages} selectedPkg={selectedPkg} onSelect={handleSelectPkg} labels={data.labels} copy={data.copy} locale={data.locale} />
+        {data.packages.length > 0 && <GIPackages packages={data.packages} selectedPkg={selectedPkg} onSelect={handleSelectPkg} labels={data.labels} copy={data.copy} locale={data.locale} />}
         <GIAbout about={data.about} instructor={data.instructor} copy={data.copy} locale={data.locale} />
         <GIAreas areas={data.areas} copy={data.copy} locale={data.locale} />
         {data.reviews.length > 0 && <GIReviews reviews={data.reviews} copy={data.copy} locale={data.locale} />}

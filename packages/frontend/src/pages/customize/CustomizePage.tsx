@@ -60,8 +60,9 @@ export default function CustomizePage() {
       await websiteApi.update(id, { configuration });
       // Bottom-center so it never covers the top-right Save/Done buttons.
       toast.success('Saved', { position: 'bottom-center' });
-    } catch {
+    } catch (e) {
       toast.error("Couldn't save changes", { position: 'bottom-center' });
+      throw e; // rethrow so the editor keeps the state dirty instead of marking it saved (H7)
     }
   };
 

@@ -58,7 +58,10 @@ function localizeDefaultPlanText(s: TemplateStrings, text: string): string {
 
 /** Use the teacher's own plans → packages (no invented offerings). */
 function plansToPackages(s: TemplateStrings, plans: PlanInput[] | undefined, duration: number, price: number, transmission: Transmission): Package[] {
-  const list = plans && plans.length ? plans : [{ id: 'single', name: s.planSingleName, price: price || 0, unit: s.planPerLessonUnit, features: [transmissionFeature(s, transmission), s.planPickup, s.planNoCommitment] }];
+  // A DEFINED array (even empty) is authoritative — a teacher who deleted every
+  // package gets no packages (the templates hide the section). Only a truly unset
+  // plans list (undefined/null) falls back to the tasteful single-lesson starter (M9).
+  const list = plans ? plans : [{ id: 'single', name: s.planSingleName, price: price || 0, unit: s.planPerLessonUnit, features: [transmissionFeature(s, transmission), s.planPickup, s.planNoCommitment] }];
   return list.map((pl) => ({
     id: pl.id,
     name: localizeDefaultPlanText(s, pl.name),

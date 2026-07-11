@@ -28,7 +28,10 @@ const SHELL_VARS: Record<string, SlotMap> = {
   obsidian: { bg: '--ob-bg', ink: '--ob-ink', accent: '--ob-accent' },
   bento: { bg: '--bn-bg', ink: '--bn-ink', accent: '--bn-accent' },
   prism: { bg: '--pr-bg', ink: '--pr-ink', accent: '--pr-c1' },
-  frosted: { bg: '--fr-bg', ink: '--fr-ink', accent: '--fr-accent' },
+  // --fr-ink is the near-black "text on light cards" colour; the frosted BODY text is
+  // --fr-white. Map the shell's foreground to --fr-white so a customized "Text" colour
+  // doesn't paint near-black text on the dark booking background (M18).
+  frosted: { bg: '--fr-bg', ink: '--fr-white', accent: '--fr-accent' },
   'grid-ink': { bg: '--paper', ink: '--ink', accent: '--red', muted: '--grey' },
   'open-road': { bg: '--cream', ink: '--brown', accent: '--orange' },
   'night-shift': { bg: '--ns-bg', ink: '--ns-white', accent: '--ns-cyan' },

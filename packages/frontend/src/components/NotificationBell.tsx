@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, GraduationCap, CalendarCheck, Star, Info } from 'lucide-react';
 import { notificationsApi } from '../lib/api';
@@ -13,6 +14,7 @@ const ICON: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export function NotificationBell() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -55,14 +57,14 @@ export function NotificationBell() {
       {open && (
         <div className="absolute end-0 z-50 mt-2 w-[calc(100vw-1rem)] max-w-[20rem] overflow-hidden rounded-xl border border-sand-200 bg-white shadow-elevated" role="menu">
           <div className="flex items-center justify-between border-b border-sand-200 px-4 py-3">
-            <span className="text-sm font-semibold tracking-tight text-sand-900">Notifications</span>
+            <span className="text-sm font-semibold tracking-tight text-sand-900">{t('notifications.title')}</span>
             {unread > 0 ? (
               <button
                 onClick={() => markAll.mutate()}
                 disabled={markAll.isPending}
                 className="text-xs font-medium text-sun-600 hover:underline disabled:opacity-50"
               >
-                Mark all as read
+                {t('notifications.markAll')}
               </button>
             ) : (
               <span className="text-xs tabular-nums text-sand-500">{items.length}</span>
@@ -70,7 +72,7 @@ export function NotificationBell() {
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-sand-500">You're all caught up.</p>
+              <p className="px-4 py-8 text-center text-sm text-sand-500">{t('notifications.empty')}</p>
             ) : (
               items.map((n) => {
                 const Icon = ICON[n.type] ?? Info;
@@ -81,7 +83,7 @@ export function NotificationBell() {
                     type="button"
                     onClick={() => { if (isUnread) markOne.mutate(n.id); }}
                     disabled={!isUnread}
-                    title={isUnread ? 'Mark as read' : undefined}
+                    title={isUnread ? t('notifications.markOne') : undefined}
                     className={cn(
                       'flex w-full gap-3 border-b border-sand-100 px-4 py-3 text-start last:border-b-0 disabled:cursor-default',
                       isUnread && 'bg-sand-50 hover:bg-sand-100'

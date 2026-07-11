@@ -456,6 +456,18 @@ function PrAbout({ data }: { data: TemplateData }) {
               ))}
             </ul>
           </Reveal>
+          {instructor.credentials.length > 0 && (
+            <Reveal delay={0.28}>
+              <ul className="pr-creds">
+                {instructor.credentials.map((c, i) => (
+                  <li key={i} className="pr-cred" data-edit-item={`instructor.credentials.${i}`}>
+                    <Check size={13} aria-hidden="true" />
+                    <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          )}
         </div>
       </div>
     </section>
@@ -684,7 +696,9 @@ function PrBook({ data }: { data: TemplateData }) {
             <button
               type="button"
               className="pr-btn pr-btn-primary pr-btn-lg"
-              title="Available once your site is published"
+              title={s.bookUnpublishedTitle}
+              disabled
+              aria-disabled="true"
               data-edit="labels.bookCta"
               data-edit-type="text"
             >
@@ -824,7 +838,7 @@ export default function Prism({ data = sampleData }: { data?: TemplateData }) {
         <PrHero data={data} />
         <PrStats stats={data.stats} />
         <PrWhy data={data} />
-        <PrPackages data={data} />
+        {data.packages.length > 0 && <PrPackages data={data} />}
         <PrAbout data={data} />
         <PrAreas data={data} />
         {data.reviews.length > 0 && <PrReviews data={data} />}

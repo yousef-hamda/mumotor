@@ -179,7 +179,7 @@ function Stats({ data }: { data: TemplateData }) {
     <section id={SECTION_IDS.stats} className="or-section-inner">
       <div className="or-stats-grid">
         {data.stats.map((stat, i) => (
-          <Reveal key={stat.label} delay={i * 0.1}>
+          <Reveal key={i} delay={i * 0.1}>
             <StatBadge stat={stat} index={i} />
           </Reveal>
         ))}
@@ -206,7 +206,7 @@ function Packages({
           {data.packages.map((pkg, i) => (
             <Reveal key={pkg.id} delay={i * 0.1}>
               <motion.div
-                className={`or-package-card${pkg.popular ? ' or-package-card--popular' : ''}${selectedId === pkg.id ? ' or-package-card--selected' : ''}`}
+                className={`or-package-card${pkg.popular ? ' or-package-card--popular' : ''}`}
                 data-edit-item={`packages.${i}`}
                 whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(58,42,30,0.18)' }}
                 transition={{ duration: 0.28 }}
@@ -231,17 +231,14 @@ function Packages({
                   ))}
                 </ul>
                 <button
-                  className={`or-btn or-btn-primary${selectedId === pkg.id ? ' or-btn-selected' : ''}`}
+                  className="or-btn or-btn-primary"
                   style={{ width: '100%', marginTop: 'auto' }}
                   data-edit="labels.packageCta" data-edit-type="text"
                   onClick={() => { onSelect(pkg.id); scrollToSection(SECTION_IDS.book); }}
-                  aria-pressed={selectedId === pkg.id}
                 >
-                  {selectedId === pkg.id
-                    ? s.selectedLabel
-                    : pkg.popular
-                      ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.packageCtaOr)
-                      : (data.labels?.packageCta ?? s.packageCtaOr)}
+                  {pkg.popular
+                    ? (data.labels?.packageCtaPopular ?? data.labels?.packageCta ?? s.packageCtaOr)
+                    : (data.labels?.packageCta ?? s.packageCtaOr)}
                 </button>
               </motion.div>
             </Reveal>
@@ -607,8 +604,12 @@ export default function OpenRoad({ data = sampleData }: { data?: TemplateData })
       <Hero data={data} />
       <RoadDivider />
       <Stats data={data} />
-      <RoadDivider />
-      <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />
+      {data.packages.length > 0 && (
+        <>
+          <RoadDivider />
+          <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />
+        </>
+      )}
       <RoadDivider />
       <About data={data} />
       <RoadDivider />

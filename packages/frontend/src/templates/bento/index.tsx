@@ -995,6 +995,8 @@ function BnBook({ data }: { data: TemplateData }) {
                   type="button"
                   className="bn-btn bn-btn-book-primary bn-btn-lg"
                   title={s.publishNote}
+                  disabled
+                  aria-disabled="true"
                   data-edit="labels.bookCta"
                   data-edit-type="text"
                 >
@@ -1158,7 +1160,7 @@ export default function Bento({ data = sampleData }: { data?: TemplateData }) {
         <BnHero data={data} />
         <BnStats stats={data.stats} />
         <BnWhy data={data} />
-        <BnPackages data={data} />
+        {data.packages.length > 0 && <BnPackages data={data} />}
         <BnAbout data={data} />
         <BnAreas data={data} />
         {data.reviews.length > 0 && <BnReviews data={data} />}

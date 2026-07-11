@@ -161,7 +161,11 @@ export default function BookLesson() {
 
   const book = useMutation({
     mutationFn: () => drivingSchoolApi.bookLesson(settings!.id, { studentEmail: email, date: tomorrow, time: pendingTime }),
-    onSuccess: () => setStep('done'),
+    onSuccess: () => {
+      // Refetch availability so "Book another lesson" can't offer the slot we just took (M22).
+      availability.refetch();
+      setStep('done');
+    },
     onError: (e) => {
       const { status, message } = apiError(e);
       toast.error(message);

@@ -41,6 +41,7 @@ export interface ElStrings extends TemplateStrings {
   emailUs: string;
   hoursHeadingEl: string;
   footerCreditEl: string;
+  publishTooltip: string;
 }
 
 const en: ElStrings = {
@@ -81,6 +82,7 @@ const en: ElStrings = {
   emailUs: 'Email us',
   hoursHeadingEl: 'Opening Hours',
   footerCreditEl: 'All rights reserved.',
+  publishTooltip: 'Available once your site is published',
 };
 
 const he: ElStrings = {
@@ -121,6 +123,7 @@ const he: ElStrings = {
   emailUs: 'כתבו לנו',
   hoursHeadingEl: 'שעות פעילות',
   footerCreditEl: 'כל הזכויות שמורות.',
+  publishTooltip: 'זמין לאחר פרסום האתר',
 };
 
 const ar: ElStrings = {
@@ -161,6 +164,7 @@ const ar: ElStrings = {
   emailUs: 'راسلنا',
   hoursHeadingEl: 'ساعات العمل',
   footerCreditEl: 'جميع الحقوق محفوظة.',
+  publishTooltip: 'متاح بعد نشر موقعك',
 };
 
 const EL: Record<Locale, ElStrings> = { en, he, ar };

@@ -1065,8 +1065,9 @@
 }
 
 /* Instructor reply to a review */
-.pd-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
-.pd-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+.pd-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.pd-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+[dir='rtl'] .pd-cta-arrow { display: inline-block; transform: scaleX(-1); }
 
 /* ════════════════════════════════════════════════════════════════════════════
    RESPONSIVE — phone / device pass

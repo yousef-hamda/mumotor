@@ -112,9 +112,12 @@ function SiteOverview({ website }: { website: Website }) {
           <Link to={`/customize/${website.id}`} className="btn-secondary">
             <Pencil className="h-4 w-4" /> {t('dashboard.home.editSite')}
           </Link>
-          <a href={`/p/${website.slug}/enroll`} className="btn-ghost" target="_blank" rel="noreferrer">
-            {t('dashboard.home.enrollmentLink')}
-          </a>
+          {/* The enroll page 404s until the site is published — only offer the link when live (M14). */}
+          {live && (
+            <a href={`/p/${website.slug}/enroll`} className="btn-ghost" target="_blank" rel="noreferrer">
+              {t('dashboard.home.enrollmentLink')}
+            </a>
+          )}
         </div>
       </div>
     </Card>
