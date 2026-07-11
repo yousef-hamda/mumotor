@@ -22,6 +22,7 @@ import {
   buildBusinessHours,
   clearWizard,
   defaultWizardConfig,
+  hourOf,
   loadWizard,
   sampleWizardConfig,
   saveWizard,
@@ -304,7 +305,7 @@ export default function BuilderWizard() {
       await drivingSchoolApi.updateSettings(website.id, {
         classDuration: config.classDuration,
         advanceBookingDays: 1,
-        bookingCutoffHour: Number((config.reportTime || '18:00').split(':')[0]) || 18,
+        bookingCutoffHour: hourOf(config.reportTime, 18),
         dailyCodeEnabled: true,
         restMinutes: config.restEnabled ? config.restMinutes : 0,
         breakTimes: config.breakTimes,

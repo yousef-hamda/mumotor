@@ -17,8 +17,8 @@ import {
   generateTimeSlots,
   nowInZone,
   parseTimeToMinutes,
-  todayUtcMidnight,
-  tomorrowUtcMidnight,
+  appTodayUtcMidnight,
+  appTomorrowUtcMidnight,
   toUtcMidnight,
   type BreakTime,
 } from '../utils/time.js';
@@ -129,7 +129,7 @@ router.post(
       valid = timingSafeEqualStr(submitted, cfg.enrollmentCode);
     }
     if (!valid && cfg.dailyCodeEnabled) {
-      const today = todayUtcMidnight();
+      const today = appTodayUtcMidnight(env.APP_TIMEZONE);
       const daily = await prisma.dailyCode.findUnique({
         where: { websiteId_date: { websiteId: website.id, date: today } },
       });
@@ -340,7 +340,7 @@ router.get(
 
     const cfg = normalizeConfig(website);
     const bookingDate = toUtcMidnight(date);
-    const today = todayUtcMidnight();
+    const today = appTodayUtcMidnight(env.APP_TIMEZONE);
     const diffDays = diffDaysUtc(today, bookingDate);
 
     if (diffDays < 0) return res.json({ date, slots: [], classDuration: cfg.classDuration });
@@ -410,7 +410,7 @@ router.post(
     }
 
     const bookingDate = toUtcMidnight(data.date);
-    const today = todayUtcMidnight();
+    const today = appTodayUtcMidnight(env.APP_TIMEZONE);
     const diffDays = diffDaysUtc(today, bookingDate);
 
     if (diffDays < 0) throw badRequest('Cannot book a lesson in the past', 'PAST_DATE');
@@ -860,7 +860,7 @@ router.post(
 /** Resolve the ?day=today|tomorrow query param (default 'today') to its UTC-midnight date. */
 function resolveScheduleDate(day: unknown): { day: 'today' | 'tomorrow'; date: Date } {
   const resolved = day === 'tomorrow' ? 'tomorrow' : 'today';
-  return { day: resolved, date: resolved === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight() };
+  return { day: resolved, date: resolved === 'tomorrow' ? appTomorrowUtcMidnight(env.APP_TIMEZONE) : appTodayUtcMidnight(env.APP_TIMEZONE) };
 }
 
 // GET /driving-school/:websiteId/daily-report?day=today|tomorrow  (default today's full schedule)
@@ -911,7 +911,7 @@ router.post(
     const website = getWebsite(res);
     const data = assignSchema.parse(req.body);
     const cfg = normalizeConfig(website);
-    const targetDate = data.day === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight();
+    const targetDate = data.day === 'tomorrow' ? appTomorrowUtcMidnight(env.APP_TIMEZONE) : appTodayUtcMidnight(env.APP_TIMEZONE);
     const dateStr = targetDate.toISOString().slice(0, 10);
 
     const hours = getDayHours(website.settings, targetDate);
@@ -1016,7 +1016,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const { day } = z.object({ day: z.enum(['today', 'tomorrow']) }).parse(req.body);
-    const targetDate = day === 'tomorrow' ? tomorrowUtcMidnight() : todayUtcMidnight();
+    const targetDate = day === 'tomorrow' ? appTomorrowUtcMidnight(env.APP_TIMEZONE) : appTodayUtcMidnight(env.APP_TIMEZONE);
 
     const teacherUser = await prisma.user.findUnique({
       where: { id: website.userId },
@@ -1061,7 +1061,7 @@ router.post(
         websiteId: req.params.websiteId,
         customerEmail: email,
         status: 'CONFIRMED',
-        bookingDate: { gte: todayUtcMidnight() },
+        bookingDate: { gte: appTodayUtcMidnight(env.APP_TIMEZONE) },
       },
       orderBy: [{ bookingDate: 'asc' }, { bookingTime: 'asc' }],
       select: { id: true, bookingDate: true, bookingTime: true, duration: true },
@@ -1160,7 +1160,7 @@ const studentSummary = (e: {
 /** Real lesson counts for a student, from their bookings (not the classCount
  *  column, which is incremented per booking and double-counts). */
 async function studentStats(websiteId: string, email: string) {
-  const today = todayUtcMidnight();
+  const today = appTodayUtcMidnight(env.APP_TIMEZONE);
   const [upcoming, completed] = await Promise.all([
     prisma.booking.count({ where: { websiteId, customerEmail: email, status: 'CONFIRMED', bookingDate: { gte: today } } }),
     prisma.booking.count({ where: { websiteId, customerEmail: email, status: 'CONFIRMED', bookingDate: { lt: today } } }),
@@ -1239,7 +1239,7 @@ router.get(
         websiteId: req.params.websiteId,
         customerEmail: enrollment.studentEmail,
         status: 'CONFIRMED',
-        bookingDate: { gte: todayUtcMidnight() },
+        bookingDate: { gte: appTodayUtcMidnight(env.APP_TIMEZONE) },
       },
       orderBy: [{ bookingDate: 'asc' }, { bookingTime: 'asc' }],
       select: { id: true, bookingDate: true, bookingTime: true, duration: true },

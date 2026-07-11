@@ -1,6 +1,7 @@
 import type { Website, SiteSettings, Booking, DailyCode } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import { generateTimeSlots, todayUtcMidnight, weekdayKey, type BreakTime } from '../../utils/time.js';
+import { generateTimeSlots, appTodayUtcMidnight, weekdayKey, type BreakTime } from '../../utils/time.js';
+import { env } from '../../config/env.js';
 import { generateDailyCodeValue } from '../../utils/crypto.js';
 import type { BusinessHours, DrivingConfig } from '../../types/index.js';
 
@@ -164,7 +165,7 @@ function clamp(n: number, lo: number, hi: number): number {
  */
 export async function ensureDailyCode(
   websiteId: string,
-  date: Date = todayUtcMidnight()
+  date: Date = appTodayUtcMidnight(env.APP_TIMEZONE)
 ): Promise<DailyCode> {
   return prisma.dailyCode.upsert({
     where: { websiteId_date: { websiteId, date } },

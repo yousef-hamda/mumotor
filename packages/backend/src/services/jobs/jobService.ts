@@ -3,7 +3,14 @@ import type { Website, SiteSettings, User, ClientEnrollment } from '@prisma/clie
 import { prisma } from '../../lib/prisma.js';
 import { logger } from '../../lib/logger.js';
 import { env } from '../../config/env.js';
-import { nowInZone, parseTimeToMinutes, toUtcMidnight, todayUtcMidnight, tomorrowUtcMidnight } from '../../utils/time.js';
+import {
+  nowInZone,
+  parseTimeToMinutes,
+  toUtcMidnight,
+  appTodayUtcMidnight,
+  appTomorrowUtcMidnight,
+  minutesUntilLessonInZone,
+} from '../../utils/time.js';
 import { buildDaySchedule, ensureDailyCode, normalizeConfig } from '../scheduling/schedulingService.js';
 import {
   sendBookingReminder,
@@ -17,18 +24,9 @@ const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
 const REVIEW_REQUEST_DELAY_MINUTES = 60; // ask ~1h after the lesson ended
 const REVIEW_REQUEST_MAX_AGE_DAYS = 3; // never chase lessons older than this
 
-/** Combine a UTC-midnight date + "HH:MM" into a Date (interpreted in UTC). */
-function lessonDateTime(date: Date, time: string): Date {
-  const [h, m] = time.split(':').map(Number);
-  const d = new Date(date);
-  d.setUTCHours(h || 0, m || 0, 0, 0);
-  return d;
-}
-
 /** Every 15 min: email students ~2h before their lesson, set reminderSent. */
 export async function processBookingReminders(): Promise<number> {
-  const today = todayUtcMidnight();
-  const now = new Date();
+  const today = appTodayUtcMidnight(env.APP_TIMEZONE);
   const candidates = await prisma.booking.findMany({
     where: { bookingDate: today, reminderSent: false, status: { in: ['CONFIRMED', 'PENDING'] } },
     include: { website: true },
@@ -36,19 +34,24 @@ export async function processBookingReminders(): Promise<number> {
 
   let sent = 0;
   for (const b of candidates) {
-    const start = lessonDateTime(b.bookingDate, b.bookingTime);
-    const minutesUntil = (start.getTime() - now.getTime()) / 60000;
-    if (minutesUntil > 0 && minutesUntil <= REMINDER_WINDOW_MINUTES) {
-      const ok = await sendBookingReminder(b.customerEmail, {
-        studentName: b.customerName,
-        date: b.bookingDate.toISOString().slice(0, 10),
-        time: b.bookingTime,
-        brand: siteBrand(b.website),
-      });
-      if (ok) {
-        await prisma.booking.update({ where: { id: b.id }, data: { reminderSent: true } });
-        sent++;
+    try {
+      // Wall-clock minutes until the lesson (Israel local), NOT a UTC-instant diff.
+      const minutesUntil = minutesUntilLessonInZone(b.bookingDate, b.bookingTime, env.APP_TIMEZONE);
+      if (minutesUntil > 0 && minutesUntil <= REMINDER_WINDOW_MINUTES) {
+        const ok = await sendBookingReminder(b.customerEmail, {
+          studentName: b.customerName,
+          date: b.bookingDate.toISOString().slice(0, 10),
+          time: b.bookingTime,
+          brand: siteBrand(b.website),
+        });
+        if (ok) {
+          await prisma.booking.update({ where: { id: b.id }, data: { reminderSent: true } });
+          sent++;
+        }
       }
+    } catch (e) {
+      // Isolate a bad row so it can't starve the rest of this tick.
+      logger.error(`reminder failed for booking ${b.id}`, e);
     }
   }
   if (sent) logger.info(`Reminders: sent ${sent}`);
@@ -57,10 +60,9 @@ export async function processBookingReminders(): Promise<number> {
 
 /** Every 15 min: ask students for a review ~1h after their lesson ended. */
 export async function processReviewRequests(): Promise<number> {
-  const today = todayUtcMidnight();
+  const today = appTodayUtcMidnight(env.APP_TIMEZONE);
   const oldest = new Date(today);
   oldest.setUTCDate(oldest.getUTCDate() - REVIEW_REQUEST_MAX_AGE_DAYS);
-  const now = new Date();
 
   const candidates = await prisma.booking.findMany({
     where: {
@@ -73,22 +75,26 @@ export async function processReviewRequests(): Promise<number> {
 
   let sent = 0;
   for (const b of candidates) {
-    const end = lessonDateTime(b.bookingDate, b.bookingTime);
-    end.setUTCMinutes(end.getUTCMinutes() + b.duration + REVIEW_REQUEST_DELAY_MINUTES);
-    if (now < end) continue; // lesson not long enough over yet
-    if (b.website.status !== 'PUBLISHED') {
-      // Unpublished site — mark handled so we don't rescan forever.
-      await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
-      continue;
-    }
-    const ok = await sendReviewRequest(b.customerEmail, {
-      studentName: b.customerName,
-      reviewUrl: `${env.FRONTEND_URL}/p/${b.website.slug}/review`,
-      brand: siteBrand(b.website),
-    });
-    if (ok) {
-      await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
-      sent++;
+    try {
+      // Minutes since the lesson ENDED, in Israel wall-clock time.
+      const minutesSinceEnd = -minutesUntilLessonInZone(b.bookingDate, b.bookingTime, env.APP_TIMEZONE) - b.duration;
+      if (minutesSinceEnd < REVIEW_REQUEST_DELAY_MINUTES) continue; // not long enough over yet
+      if (b.website.status !== 'PUBLISHED') {
+        // Unpublished site — mark handled so we don't rescan forever.
+        await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
+        continue;
+      }
+      const ok = await sendReviewRequest(b.customerEmail, {
+        studentName: b.customerName,
+        reviewUrl: `${env.FRONTEND_URL}/p/${b.website.slug}/review`,
+        brand: siteBrand(b.website),
+      });
+      if (ok) {
+        await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
+        sent++;
+      }
+    } catch (e) {
+      logger.error(`review request failed for booking ${b.id}`, e);
     }
   }
   if (sent) logger.info(`Review requests: sent ${sent}`);
@@ -103,7 +109,7 @@ type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration'> & {
 
 /** Email every ACTIVE student of one site that booking is open for tomorrow. */
 async function sendBookingOpenForSite(site: SiteForBookingOpen): Promise<number> {
-  const forDate = tomorrowUtcMidnight().toISOString().slice(0, 10);
+  const forDate = appTomorrowUtcMidnight(env.APP_TIMEZONE).toISOString().slice(0, 10);
   const bookingUrl = `${env.FRONTEND_URL}/p/${site.slug}/book-lesson`;
   const brand = siteBrand(site);
   let sent = 0;
@@ -126,7 +132,7 @@ async function sendReportForSite(
   site: SiteForReport,
   settings: Pick<SiteSettings, 'businessHours'> | null
 ): Promise<boolean> {
-  const schedule = await buildDaySchedule(site, settings, tomorrowUtcMidnight());
+  const schedule = await buildDaySchedule(site, settings, appTomorrowUtcMidnight(env.APP_TIMEZONE));
   return sendEnhancedDailyReport(site.user.email, {
     teacherName: site.user.name,
     date: schedule.date,
@@ -214,23 +220,28 @@ export async function processDailyRhythmTick(): Promise<{ codes: number; booking
   let reports = 0;
 
   for (const site of sites) {
-    const cfg = normalizeConfig(site);
+    try {
+      const cfg = normalizeConfig(site);
 
-    // Booking opens for the day → daily code + "booking is open" emails.
-    if (nowMin >= parseTimeToMinutes(cfg.bookingWindowStart) && !sameDay(site.settings?.lastBookingOpenSentOn, today)) {
-      if (cfg.dailyCodeEnabled) {
-        await ensureDailyCode(site.id, today);
-        codes++;
+      // Booking opens for the day → daily code + "booking is open" emails.
+      if (nowMin >= parseTimeToMinutes(cfg.bookingWindowStart) && !sameDay(site.settings?.lastBookingOpenSentOn, today)) {
+        if (cfg.dailyCodeEnabled) {
+          await ensureDailyCode(site.id, today);
+          codes++;
+        }
+        bookingOpen += await sendBookingOpenForSite(site);
+        await markSent(site.id, { lastBookingOpenSentOn: today });
       }
-      bookingOpen += await sendBookingOpenForSite(site);
-      await markSent(site.id, { lastBookingOpenSentOn: today });
-    }
 
-    // Report time → teacher gets tomorrow's ordered schedule.
-    if (nowMin >= parseTimeToMinutes(cfg.reportTime) && !sameDay(site.settings?.lastReportSentOn, today)) {
-      const ok = await sendReportForSite(site, site.settings);
-      if (ok) reports++;
-      await markSent(site.id, { lastReportSentOn: today });
+      // Report time → teacher gets tomorrow's ordered schedule.
+      if (nowMin >= parseTimeToMinutes(cfg.reportTime) && !sameDay(site.settings?.lastReportSentOn, today)) {
+        const ok = await sendReportForSite(site, site.settings);
+        if (ok) reports++;
+        await markSent(site.id, { lastReportSentOn: today });
+      }
+    } catch (e) {
+      // One misconfigured site must not starve every site after it in this tick.
+      logger.error(`daily rhythm failed for site ${site.id}`, e);
     }
   }
 
@@ -249,15 +260,25 @@ export function startCronJobs() {
   if (started) return;
   started = true;
 
-  // ~2h-before lesson reminders + ~1h-after review requests
-  cron.schedule('*/15 * * * *', () => {
-    processBookingReminders().catch((e) => logger.error('reminder job failed', e));
-    processReviewRequests().catch((e) => logger.error('review request job failed', e));
-  });
+  // ~2h-before lesson reminders + ~1h-after review requests.
+  // noOverlap: if a tick runs long (many emails), the next tick is skipped rather
+  // than starting concurrently and re-sending the same not-yet-marked rows.
+  cron.schedule(
+    '*/15 * * * *',
+    () => {
+      processBookingReminders().catch((e) => logger.error('reminder job failed', e));
+      processReviewRequests().catch((e) => logger.error('review request job failed', e));
+    },
+    { noOverlap: true }
+  );
   // Every 5 min: per-teacher booking-open email + teacher report at each site's chosen time
-  cron.schedule('*/5 * * * *', () => {
-    processDailyRhythmTick().catch((e) => logger.error('daily rhythm tick failed', e));
-  });
+  cron.schedule(
+    '*/5 * * * *',
+    () => {
+      processDailyRhythmTick().catch((e) => logger.error('daily rhythm tick failed', e));
+    },
+    { noOverlap: true }
+  );
 
   logger.info('Cron jobs scheduled (reminders */15m, daily rhythm */5m)');
 }

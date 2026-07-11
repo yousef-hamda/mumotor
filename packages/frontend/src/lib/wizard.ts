@@ -297,6 +297,12 @@ export function buildBusinessHours(c: WizardConfig): BusinessHours {
   return hours;
 }
 
+/** Hour (0-23) from an "HH:MM" string; `fallback` only when unset/invalid — NOT for "00". */
+export function hourOf(time: string | undefined, fallback: number): number {
+  const h = Number((time || '').split(':')[0]);
+  return Number.isInteger(h) && h >= 0 && h <= 23 ? h : fallback;
+}
+
 /** Map wizard fields → the generator/config blob stored on Website.configuration. */
 export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
   return {
@@ -309,7 +315,7 @@ export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
     plans: c.plans,
     experienceLevel: c.experienceLevel,
     advanceBookingDays: 1,
-    bookingCutoffHour: Number((c.reportTime || '18:00').split(':')[0]) || 18,
+    bookingCutoffHour: hourOf(c.reportTime, 18),
     dailyCodeEnabled: true,
     restMinutes: c.restEnabled ? c.restMinutes : 0,
     breakTimes: c.breakTimes,

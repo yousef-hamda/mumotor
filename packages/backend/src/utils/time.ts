@@ -75,17 +75,34 @@ export function nowInZone(tz: string): { ymd: string; hhmm: string } {
   return { ymd: `${get('year')}-${get('month')}-${get('day')}`, hhmm: `${get('hour')}:${get('minute')}` };
 }
 
-/** Today's date at UTC midnight (matches @db.Date columns). */
-export function todayUtcMidnight(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+/**
+ * "Today" as a UTC-midnight Date, but the calendar date is taken from the wall
+ * clock in `tz` (default the app timezone, Asia/Jerusalem) — NOT the server's UTC
+ * date. This is what makes "tomorrow-only booking", the daily code, and the daily
+ * emails line up with the teacher's/student's real local day, even in the 2-3h
+ * window each night where the Israel date has already rolled but UTC hasn't.
+ * The RETURNED value is still a UTC-midnight Date so it matches @db.Date columns.
+ */
+export function appTodayUtcMidnight(tz: string): Date {
+  return toUtcMidnight(nowInZone(tz).ymd);
 }
 
-/** Tomorrow's date at UTC midnight (matches @db.Date columns). */
-export function tomorrowUtcMidnight(): Date {
-  const t = todayUtcMidnight();
+/** "Tomorrow" (local wall-clock date in `tz`) as a UTC-midnight Date. */
+export function appTomorrowUtcMidnight(tz: string): Date {
+  const t = appTodayUtcMidnight(tz);
   t.setUTCDate(t.getUTCDate() + 1);
   return t;
+}
+
+/**
+ * Minutes from now until a lesson, comparing the stored Israel-local "HH:MM"
+ * booking time against the current wall clock in `tz`. Negative = already past.
+ * Wall-clock string math (no UTC-instant construction) so it's DST-safe.
+ */
+export function minutesUntilLessonInZone(bookingDate: Date, bookingTime: string, tz: string): number {
+  const { ymd, hhmm } = nowInZone(tz);
+  const dayDiff = diffDaysUtc(toUtcMidnight(ymd), bookingDate);
+  return dayDiff * 24 * 60 + (parseTimeToMinutes(bookingTime) - parseTimeToMinutes(hhmm));
 }
 
 /** Parse a "YYYY-MM-DD" (or ISO) string into a UTC-midnight Date. */
