@@ -70,7 +70,7 @@ export async function processReviewRequests(): Promise<number> {
       status: 'CONFIRMED',
       bookingDate: { lte: today, gte: oldest },
     },
-    include: { website: { select: { slug: true, name: true, configuration: true, status: true } } },
+    include: { website: { select: { slug: true, name: true, configuration: true, status: true, locale: true } } },
   });
 
   let sent = 0;
@@ -103,7 +103,7 @@ export async function processReviewRequests(): Promise<number> {
 
 // ── Per-site senders (reused by the tick + the all-sites wrappers) ──────────────
 
-type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration'> & {
+type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration' | 'locale'> & {
   enrollments: Pick<ClientEnrollment, 'studentEmail' | 'studentName'>[];
 };
 
@@ -125,7 +125,7 @@ async function sendBookingOpenForSite(site: SiteForBookingOpen): Promise<number>
   return sent;
 }
 
-type SiteForReport = Pick<Website, 'id' | 'name' | 'configuration'> & { user: Pick<User, 'email' | 'name'> };
+type SiteForReport = Pick<Website, 'id' | 'name' | 'configuration' | 'locale'> & { user: Pick<User, 'email' | 'name'> };
 
 /** Email one teacher their full, ordered schedule for tomorrow. */
 async function sendReportForSite(

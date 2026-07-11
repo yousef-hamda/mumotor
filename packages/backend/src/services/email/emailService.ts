@@ -1,6 +1,7 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import { env } from '../../config/env.js';
 import { logger } from '../../lib/logger.js';
+import { emailLocale, emailT, type EmailLocale } from './strings.js';
 
 let transporter: Transporter;
 let usingConsole = false;
@@ -35,6 +36,7 @@ export interface EmailBrand {
   schoolName: string;
   logoUrl?: string; // absolute, email-safe URL (or undefined → show the name)
   fromName?: string; // sender display name; defaults to schoolName
+  locale?: EmailLocale; // the SITE's language — drives the email copy + RTL layout
 }
 
 /** Turn a stored logoSrc into an email-safe absolute URL, or undefined. */
@@ -46,9 +48,14 @@ export function resolveLogoUrl(logoSrc?: string | null): string | undefined {
 }
 
 /** Build the email brand for a site from its name + stored configuration. */
-export function siteBrand(site: { name: string; configuration?: unknown }): EmailBrand {
+export function siteBrand(site: { name: string; configuration?: unknown; locale?: string }): EmailBrand {
   const cfg = (site.configuration ?? {}) as { logoSrc?: string };
-  return { schoolName: site.name, logoUrl: resolveLogoUrl(cfg.logoSrc), fromName: site.name };
+  return {
+    schoolName: site.name,
+    logoUrl: resolveLogoUrl(cfg.logoSrc),
+    fromName: site.name,
+    locale: emailLocale(site.locale),
+  };
 }
 
 /** From header: the school as the display name over the Mumotor address. */
@@ -135,21 +142,23 @@ function stripHtml(html: string): string {
 // ---------------------------------------------------------------------------
 
 function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
+  const L: EmailLocale = brand?.locale ?? 'en';
+  const rtl = L === 'he' || L === 'ar';
   const name = brand?.schoolName || 'Mumotor';
   const header = brand?.logoUrl
     ? `<img src="${esc(brand.logoUrl)}" alt="${esc(name)}" height="40" style="height:40px;max-height:44px;max-width:220px;display:inline-block;border:0;outline:0">`
     : `<div style="font-size:19px;font-weight:700;color:#18181b;letter-spacing:-0.3px">${esc(name)}</div>`;
   return `<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html${rtl ? ' dir="rtl"' : ''}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title></head>
-<body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b">
+<body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#18181b${rtl ? ';text-align:right' : ''}">
   <div style="max-width:560px;margin:0 auto;padding:24px">
     <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden">
       <div style="padding:20px 32px;border-bottom:1px solid #f0f0f0;text-align:center">${header}</div>
       <div style="padding:32px">${bodyHtml}</div>
     </div>
     <p style="text-align:center;color:#a1a1aa;font-size:12px;margin-top:20px">
-      ${brand?.schoolName ? `Sent by ${esc(name)} · powered by Mumotor` : 'Sent by Mumotor'}
+      ${brand?.schoolName ? emailT(L, 'footerSchool', { name: esc(name) }) : emailT(L, 'footerMumotor')}
     </p>
   </div>
 </body></html>`;
@@ -163,9 +172,14 @@ function infoBox(rowsHtml: string): string {
   return `<div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:16px;margin:16px 0">${rowsHtml}</div>`;
 }
 
+/** Strip header-injection chars from a name before it goes into a Subject line (L13). */
+function safeName(s: string): string {
+  return String(s).replace(/[<>"\r\n]/g, '').trim();
+}
+
 /** "· School Name" suffix for subject lines (empty when no brand). */
 function subjectTag(brand?: EmailBrand): string {
-  return brand?.schoolName ? ` · ${brand.schoolName}` : '';
+  return brand?.schoolName ? ` · ${safeName(brand.schoolName)}` : '';
 }
 
 export function sendBookingConfirmation(
@@ -179,21 +193,26 @@ export function sendBookingConfirmation(
     brand?: EmailBrand;
   }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your lesson is confirmed</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} is booked.</p>
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'confHeading')}</h1>
+    <p style="color:#52525b">${
+      school
+        ? emailT(L, 'confBodyWithSchool', { name: esc(data.studentName), school: esc(school) })
+        : emailT(L, 'confBodyNoSchool', { name: esc(data.studentName) })
+    }</p>
     ${infoBox(`
-      <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Date</strong> ${esc(data.date)}</p>
-      <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Time</strong> ${esc(data.time)}</p>
-      ${data.duration ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Duration</strong> ${data.duration} min</p>` : ''}
-      ${data.teacherName ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">Instructor</strong> ${esc(data.teacherName)}</p>` : ''}
+      <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">${emailT(L, 'labelDate')}</strong> ${esc(data.date)}</p>
+      <p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">${emailT(L, 'labelTime')}</strong> ${esc(data.time)}</p>
+      ${data.duration ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">${emailT(L, 'labelDuration')}</strong> ${emailT(L, 'durationMin', { n: data.duration })}</p>` : ''}
+      ${data.teacherName ? `<p style="margin:4px 0"><strong style="display:inline-block;width:90px;color:#71717a">${emailT(L, 'labelInstructor')}</strong> ${esc(data.teacherName)}</p>` : ''}
     `)}
-    <p style="color:#52525b">Please arrive 5 minutes early. We'll send you a reminder before your lesson.</p>`;
+    <p style="color:#52525b">${emailT(L, 'confArrive')}</p>`;
   return sendEmail({
     to,
-    subject: `Lesson confirmed — ${data.date} at ${data.time}${subjectTag(data.brand)}`,
-    html: layout('Lesson confirmed', body, data.brand),
+    subject: `${emailT(L, 'subjConfirmed', { date: data.date, time: data.time })}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleConfirmed'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -202,16 +221,21 @@ export function sendBookingReminder(
   to: string,
   data: { studentName: string; date: string; time: string; brand?: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Lesson reminder</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} is coming up soon.</p>
-    ${infoBox(`<p style="margin:0;font-size:16px"><strong>${esc(data.date)} at ${esc(data.time)}</strong></p>`)}
-    <p style="color:#52525b">See you soon — drive safe getting here.</p>`;
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'remHeading')}</h1>
+    <p style="color:#52525b">${
+      school
+        ? emailT(L, 'remBodyWithSchool', { name: esc(data.studentName), school: esc(school) })
+        : emailT(L, 'remBodyNoSchool', { name: esc(data.studentName) })
+    }</p>
+    ${infoBox(`<p style="margin:0;font-size:16px"><strong>${emailT(L, 'dateAtTime', { date: esc(data.date), time: esc(data.time) })}</strong></p>`)}
+    <p style="color:#52525b">${emailT(L, 'remOutro')}</p>`;
   return sendEmail({
     to,
-    subject: `Reminder: lesson today at ${data.time}${subjectTag(data.brand)}`,
-    html: layout('Lesson reminder', body, data.brand),
+    subject: `${emailT(L, 'subjReminder', { time: data.time })}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleReminder'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -220,16 +244,21 @@ export function sendDailyBookingOpen(
   to: string,
   data: { studentName: string; bookingUrl: string; forDate: string; brand?: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Booking is now open</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, you can now book your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} for <strong>${esc(data.forDate)}</strong>. Slots fill up quickly.</p>
-    <p>${button(data.bookingUrl, 'Book a lesson')}</p>
-    <p style="color:#a1a1aa;font-size:13px">Or open this link: ${esc(data.bookingUrl)}</p>`;
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'openHeading')}</h1>
+    <p style="color:#52525b">${
+      school
+        ? emailT(L, 'openBodyWithSchool', { name: esc(data.studentName), school: esc(school), date: esc(data.forDate) })
+        : emailT(L, 'openBodyNoSchool', { name: esc(data.studentName), date: esc(data.forDate) })
+    }</p>
+    <p>${button(data.bookingUrl, emailT(L, 'openBtn'))}</p>
+    <p style="color:#a1a1aa;font-size:13px">${emailT(L, 'orOpenLink', { url: esc(data.bookingUrl) })}</p>`;
   return sendEmail({
     to,
-    subject: school ? `Booking is open at ${school}` : 'Booking is open for your next driving lesson',
-    html: layout('Booking open', body, data.brand),
+    subject: school ? emailT(L, 'subjOpenSchool', { school: safeName(school) }) : emailT(L, 'subjOpenNoSchool'),
+    html: layout(emailT(L, 'titleBookingOpen'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -257,6 +286,7 @@ export function sendEnhancedDailyReport(
     brand?: EmailBrand;
   }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const when = data.when ?? 'tomorrow';
   const ACCENT = '#0071E3';
   const INK = '#1D1D1F';
@@ -276,11 +306,11 @@ export function sendEnhancedDailyReport(
       const timeBadge = `<span style="display:inline-block;font-family:'SF Mono',ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:${s.booked ? ACCENT : MUTED};background:${s.booked ? 'rgba(0,113,227,0.08)' : '#F5F5F7'};border-radius:9px;padding:7px 10px;white-space:nowrap">${esc(s.time)}</span>`;
       const tel = s.studentPhone ? s.studentPhone.replace(/[^\d+]/g, '') : '';
       const detail = s.booked
-        ? `<div style="font-weight:600;color:${INK};font-size:15px;line-height:1.3">${esc(s.studentName || 'Student')}</div>` +
+        ? `<div style="font-weight:600;color:${INK};font-size:15px;line-height:1.3">${esc(s.studentName || emailT(L, 'studentFallback'))}</div>` +
           (s.studentPhone
             ? `<a href="tel:${esc(tel)}" style="color:${ACCENT};text-decoration:none;font-size:14px;font-weight:500;font-family:'SF Mono',ui-monospace,Menlo,monospace">${esc(s.studentPhone)}</a>`
-            : `<span style="color:${MUTED};font-size:13px">No phone on file</span>`)
-        : `<span style="color:${MUTED};font-size:14px">Free</span>`;
+            : `<span style="color:${MUTED};font-size:13px">${emailT(L, 'noPhone')}</span>`)
+        : `<span style="color:${MUTED};font-size:14px">${emailT(L, 'slotFree')}</span>`;
       return `<tr>
         <td style="padding:13px 0;border-bottom:1px solid ${LINE};vertical-align:top;width:92px">${timeBadge}</td>
         <td style="padding:13px 0 13px 14px;border-bottom:1px solid ${LINE};vertical-align:top">${detail}</td>
@@ -288,19 +318,19 @@ export function sendEnhancedDailyReport(
     })
     .join('');
 
-  const heading = when === 'today' ? "Today's schedule" : "Tomorrow's schedule";
+  const heading = when === 'today' ? emailT(L, 'headingToday') : emailT(L, 'headingTomorrow');
   const body = `
     <h1 style="font-size:22px;margin:0 0 5px;font-weight:700;color:${INK};letter-spacing:-0.4px">${heading}</h1>
-    <p style="color:${MUTED};margin:0 0 20px;font-size:15px">Hi ${esc(data.teacherName)} — here's ${esc(data.date)}.</p>
+    <p style="color:${MUTED};margin:0 0 20px;font-size:15px">${emailT(L, 'reportIntro', { name: esc(data.teacherName), date: esc(data.date) })}</p>
     <table role="presentation" style="width:100%;border-collapse:separate;border-spacing:0;margin:0 -4px 6px"><tr>
-      ${stat(data.booked, 'Booked', ACCENT)}${stat(data.empty, 'Free')}${stat(data.total, 'Total')}
+      ${stat(data.booked, emailT(L, 'tileBooked'), ACCENT)}${stat(data.empty, emailT(L, 'tileFree'))}${stat(data.total, emailT(L, 'tileTotal'))}
     </tr></table>
-    <table style="width:100%;border-collapse:collapse;margin-top:14px">${rows || `<tr><td style="color:${MUTED};padding:14px 0">No lessons scheduled.</td></tr>`}</table>
-    ${data.booked > 0 ? `<p style="color:${MUTED};font-size:13px;margin-top:18px">Tap a student's number to call or message them.</p>` : ''}`;
+    <table style="width:100%;border-collapse:collapse;margin-top:14px">${rows || `<tr><td style="color:${MUTED};padding:14px 0">${emailT(L, 'noLessons')}</td></tr>`}</table>
+    ${data.booked > 0 ? `<p style="color:${MUTED};font-size:13px;margin-top:18px">${emailT(L, 'tapNumber')}</p>` : ''}`;
   return sendEmail({
     to,
-    subject: `${heading} — ${data.date} · ${data.booked} lesson(s)${subjectTag(data.brand)}`,
-    html: layout('Daily report', body, data.brand),
+    subject: `${emailT(L, 'subjReport', { heading, date: data.date, n: data.booked })}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleDailyReport'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -309,9 +339,10 @@ export function sendBulkCustomEmail(
   to: string,
   data: { subject: string; body: string; studentName: string; brand?: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const safeBody = esc(data.body).replace(/\n/g, '<br>');
   const body = `
-    <p>Hi ${esc(data.studentName)},</p>
+    <p>${emailT(L, 'bulkHi', { name: esc(data.studentName) })}</p>
     <div style="margin:12px 0;line-height:1.6">${safeBody}</div>`;
   return sendEmail({
     to,
@@ -325,14 +356,19 @@ export function sendMagicLink(
   to: string,
   data: { magicUrl: string; studentName?: string; brand?: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Your booking link</h1>
-    <p style="color:#52525b">${data.studentName ? `Hi ${esc(data.studentName)},` : 'Hi,'} use the button below to book a lesson without re-entering your code. This link works once and expires in 15 minutes.</p>
-    <p>${button(data.magicUrl, 'Open booking')}</p>`;
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'magicHeading')}</h1>
+    <p style="color:#52525b">${
+      data.studentName
+        ? emailT(L, 'magicBodyNamed', { name: esc(data.studentName) })
+        : emailT(L, 'magicBodyAnon')
+    }</p>
+    <p>${button(data.magicUrl, emailT(L, 'magicBtn'))}</p>`;
   return sendEmail({
     to,
-    subject: `Your one-time booking link${subjectTag(data.brand)}`,
-    html: layout('Booking link', body, data.brand),
+    subject: `${emailT(L, 'subjMagic')}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleBookingLink'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -349,24 +385,30 @@ export function sendBookingCancelled(
     brand?: EmailBrand;
   }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
   const intro =
     data.cancelledBy === 'teacher'
-      ? `Hi ${esc(data.recipientName)}, unfortunately your driving lesson${school ? ` with <strong>${esc(school)}</strong>` : ''} had to be cancelled.`
-      : `Hi ${esc(data.recipientName)}, ${esc(data.studentName ?? 'a student')} cancelled their lesson — the slot is open again for other students.`;
+      ? school
+        ? emailT(L, 'cancTeacherWithSchool', { name: esc(data.recipientName), school: esc(school) })
+        : emailT(L, 'cancTeacherNoSchool', { name: esc(data.recipientName) })
+      : emailT(L, 'cancStudent', {
+          name: esc(data.recipientName),
+          student: esc(data.studentName ?? emailT(L, 'cancAStudent')),
+        });
   const outro =
     data.cancelledBy === 'teacher'
-      ? 'Sorry for the inconvenience — you can book a new time whenever suits you.'
-      : 'No action needed; your availability updated automatically.';
+      ? emailT(L, 'cancOutroTeacher')
+      : emailT(L, 'cancOutroStudent');
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Lesson cancelled</h1>
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'cancHeading')}</h1>
     <p style="color:#52525b">${intro}</p>
-    ${infoBox(`<p style="margin:0;font-size:16px"><strong>${esc(data.date)} at ${esc(data.time)}</strong></p>`)}
+    ${infoBox(`<p style="margin:0;font-size:16px"><strong>${emailT(L, 'dateAtTime', { date: esc(data.date), time: esc(data.time) })}</strong></p>`)}
     <p style="color:#52525b">${outro}</p>`;
   return sendEmail({
     to,
-    subject: `Lesson cancelled — ${data.date} at ${data.time}${subjectTag(data.brand)}`,
-    html: layout('Lesson cancelled', body, data.brand),
+    subject: `${emailT(L, 'subjCancelled', { date: data.date, time: data.time })}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleCancelled'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -375,16 +417,21 @@ export function sendReviewRequest(
   to: string,
   data: { studentName: string; reviewUrl: string; brand?: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">How was your lesson?</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, thanks for driving with ${school ? `<strong>${esc(school)}</strong>` : 'us'} today. A short review helps other students choose their instructor — it takes less than a minute.</p>
-    <p>${button(data.reviewUrl, 'Leave a review')}</p>
-    <p style="color:#a1a1aa;font-size:13px">Or open this link: ${esc(data.reviewUrl)}</p>`;
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'revHeading')}</h1>
+    <p style="color:#52525b">${
+      school
+        ? emailT(L, 'revBodyWithSchool', { name: esc(data.studentName), school: esc(school) })
+        : emailT(L, 'revBodyNoSchool', { name: esc(data.studentName) })
+    }</p>
+    <p>${button(data.reviewUrl, emailT(L, 'revBtn'))}</p>
+    <p style="color:#a1a1aa;font-size:13px">${emailT(L, 'orOpenLink', { url: esc(data.reviewUrl) })}</p>`;
   return sendEmail({
     to,
-    subject: `How was your lesson?${subjectTag(data.brand)}`,
-    html: layout('Leave a review', body, data.brand),
+    subject: `${emailT(L, 'subjReview')}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleReview'), body, data.brand),
     brand: data.brand,
   });
 }
@@ -419,15 +466,20 @@ export function sendWelcomeEnrollment(
   to: string,
   data: { studentName: string; bookingUrl: string; brand: EmailBrand }
 ) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand.schoolName;
   const body = `
-    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Welcome to ${esc(school)}</h1>
-    <p style="color:#52525b">Hi ${esc(data.studentName)}, you're enrolled${school ? ` at <strong>${esc(school)}</strong>` : ''}. Each morning you'll get an email when booking opens, and you can book a lesson anytime.</p>
-    <p>${button(data.bookingUrl, 'Book your first lesson')}</p>`;
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'welHeading', { school: esc(school) })}</h1>
+    <p style="color:#52525b">${
+      school
+        ? emailT(L, 'welBodyWithSchool', { name: esc(data.studentName), school: esc(school) })
+        : emailT(L, 'welBodyNoSchool', { name: esc(data.studentName) })
+    }</p>
+    <p>${button(data.bookingUrl, emailT(L, 'welBtn'))}</p>`;
   return sendEmail({
     to,
-    subject: `You're enrolled at ${school}`,
-    html: layout('Welcome', body, data.brand),
+    subject: emailT(L, 'subjWelcome', { school: safeName(school) }),
+    html: layout(emailT(L, 'titleWelcome'), body, data.brand),
     brand: data.brand,
   });
 }
