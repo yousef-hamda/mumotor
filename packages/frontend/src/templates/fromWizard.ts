@@ -91,13 +91,31 @@ function buildStats(s: TemplateStrings, level: string, price: number, duration: 
   return out;
 }
 
-function buildAreas(s: TemplateStrings, address: string): Area[] {
-  const parts = address.split(/[,/]/).map((p) => p.trim()).filter(Boolean);
+/** Join a street address + city WITHOUT duplicating the city when the address
+ *  already contains it as a segment. Idempotent, so it also heals already-published
+ *  sites whose stored contact.address was pre-combined ("…, Netanya, Netanya"). */
+export function composeAddress(address: string, city: string): string {
+  const a = (address || '').trim();
+  const c = (city || '').trim();
+  if (!c) return a;
+  if (!a) return c;
+  const segs = a.split(/[,/]/).map((p) => p.trim().toLowerCase());
+  return segs.includes(c.toLowerCase()) ? a : `${a}, ${c}`;
+}
+
+function buildAreas(s: TemplateStrings, city: string, address: string): Area[] {
   const out: Area[] = [];
-  if (parts.length) out.push({ name: parts[0], note: s.areaHomeBase });
-  parts.slice(1, 3).forEach((p) => out.push({ name: p }));
+  if (city) out.push({ name: city, note: s.areaHomeBase }); // home base is the CITY, not the street
+  // Any additional locality segments from the address (skip the numeric street line and the city itself).
+  address
+    .split(/[,/]/)
+    .map((p) => p.trim())
+    .filter((p) => p && !/\d/.test(p) && p.toLowerCase() !== city.toLowerCase())
+    .slice(0, 2)
+    .forEach((p) => out.push({ name: p }));
   out.push({ name: s.areaTestRoutes }, { name: s.areaEveningWeekend }, { name: s.areaPickup });
-  return out.slice(0, 6);
+  const seen = new Set<string>();
+  return out.filter((a) => { const k = a.name.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 6);
 }
 
 /** Localized coverage list used when the teacher entered no city/address
@@ -153,7 +171,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
   // site, localize it (EN is untouched); custom + empty taglines are unaffected.
   const tagline = c.tagline.trim() === DEFAULT_TAGLINE_EN && c.locale !== 'en' ? DEFAULT_TAGLINE[c.locale] : c.tagline;
   const area = c.city || c.address.split(/[,/]/)[0]?.trim() || '';
-  const addressFull = [c.address, c.city].filter(Boolean).join(', ');
+  const addressFull = composeAddress(c.address, c.city);
   const heroImg = c.carPhoto || c.gallery[0] || sampleData.hero.image;
   const aboutImg = c.gallery[1] || c.carPhoto || sampleData.about.image;
 
@@ -187,7 +205,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
     hero: {
       ...sampleData.hero,
       eyebrow: area ? fmt(s.heroEyebrowIn, { area }) : s.heroEyebrow,
-      headline: tagline || (c.locale === 'en' ? sampleData.hero.headline : s.taglineDefault),
+      headline: tagline || s.heroHeadlineDefault,
       sub: c.description || fmt(area ? s.heroSubIn : s.heroSub, { teacher, area }),
       ctaPrimary: d.heroCtaPrimary,
       ctaSecondary: d.heroCtaSecondary,
@@ -202,7 +220,7 @@ function buildTemplateData(c: CoreInput): TemplateData {
       checklist: [...d.aboutChecklist],
       image: aboutImg,
     },
-    areas: area ? buildAreas(s, addressFull) : defaultAreas(s),
+    areas: area ? buildAreas(s, c.city || area, addressFull) : defaultAreas(s),
     // Real approved reviews when provided; never fabricated (templates hide the empty section).
     reviews: c.reviews ?? [],
     faqs: defaultFaqs(c.locale, { price: c.price, duration: c.duration, area, transmission: c.transmission }),

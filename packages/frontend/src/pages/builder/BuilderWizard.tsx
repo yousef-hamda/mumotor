@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, Check, ExternalLink, Eye, EyeOff, Plus, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
-import { apiError, drivingSchoolApi, websiteApi, wizardDraftApi, type PublishResult } from '../../lib/api';
+import { apiError, drivingSchoolApi, mediaApi, websiteApi, wizardDraftApi, type PublishResult } from '../../lib/api';
 import { track } from '../../lib/analytics';
 import { useAuth } from '../../lib/auth';
 import { Logo, LogoMark } from '../../components/Logo';
@@ -292,6 +292,33 @@ export default function BuilderWizard() {
     </div>
   );
 
+  // Upload any base64 data-URI images to real hosted URLs and PATCH them back onto
+  // the site's configuration. Best-effort per image — a failed upload keeps the
+  // base64 so publishing never breaks. (M11/H4)
+  async function swapDataUrlImages(websiteId: string) {
+    const patch: Record<string, unknown> = {};
+    const up = async (dataUrl: string | undefined, type: 'LOGO' | 'CAR_PHOTO' | 'AVATAR' | 'GALLERY') => {
+      if (!isDataUrl(dataUrl)) return dataUrl;
+      try {
+        return (await mediaApi.upload(websiteId, { dataUrl: dataUrl!, type })).url;
+      } catch {
+        return dataUrl;
+      }
+    };
+    const logo = await up(config.logoSrc, 'LOGO');
+    if (logo !== config.logoSrc) patch.logoSrc = logo;
+    const car = await up(config.carPhoto, 'CAR_PHOTO');
+    if (car !== config.carPhoto) patch.carPhoto = car;
+    const instructor = await up(config.instructorPhoto, 'AVATAR');
+    if (instructor !== config.instructorPhoto) patch.instructorPhoto = instructor;
+    if ((config.gallery ?? []).some(isDataUrl)) {
+      patch.gallery = await Promise.all((config.gallery ?? []).map((g) => up(g, 'GALLERY')));
+    }
+    if (Object.keys(patch).length) {
+      await websiteApi.update(websiteId, { configuration: patch } as never);
+    }
+  }
+
   async function doPublish() {
     setPublishing(true);
     try {
@@ -302,6 +329,10 @@ export default function BuilderWizard() {
         locale: config.locale,
         configuration: toBusinessConfig(config),
       });
+      // Swap any base64 data-URI images for real hosted URLs (best-effort): keeps
+      // megabytes of base64 out of the DB/cache and lets the logo render in emails,
+      // which strip data: URIs (M11/H4). If an upload fails we keep the base64.
+      await swapDataUrlImages(website.id);
       await drivingSchoolApi.updateSettings(website.id, {
         classDuration: config.classDuration,
         advanceBookingDays: 1,
@@ -844,14 +875,20 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
   const { t } = useTranslation();
   const { login, register } = useAuth();
   const [mode, setMode] = useState<'register' | 'login'>('register');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Phone is required at signup (the backend registerSchema requires it) — validate
+    // here so registering-to-publish actually succeeds instead of 400ing (C1).
+    if (mode === 'register' && !/^[+\d][\d\s-]{6,18}$/.test(form.phone.trim())) {
+      return toast.error(t('auth.errPhone'));
+    }
     setBusy(true);
     try {
-      if (mode === 'register') await register({ name: form.name, email: form.email, password: form.password });
+      if (mode === 'register')
+        await register({ name: form.name, email: form.email, phone: form.phone.trim(), password: form.password });
       else await login(form.email, form.password);
       onAuthed();
     } catch (err) {
@@ -869,6 +906,7 @@ function AccountStep({ onAuthed, onBack, publishing }: { onAuthed: () => void; o
         <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
           {mode === 'register' && <Field label={t('builder.account.fullName')}><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" /></Field>}
           <Field label={t('builder.account.email')}><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" /></Field>
+          {mode === 'register' && <Field label={t('auth.phone')} hint={t('auth.phoneHint')}><Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required autoComplete="tel" /></Field>}
           <Field label={t('builder.account.password')} hint={mode === 'register' ? t('builder.account.passwordHint') : undefined}>
             <div className="relative">
               <Input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className="pe-11" />

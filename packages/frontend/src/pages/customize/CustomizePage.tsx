@@ -34,6 +34,7 @@ export default function CustomizePage() {
       template: website.selectedPreset ?? (cfg.templateChoice as string) ?? null,
       logoSrc: (cfg.logoSrc as string) || null,
       carPhoto: (cfg.carPhoto as string) || null,
+      instructorPhoto: (cfg.instructorPhoto as string) || null,
       gallery: (cfg.gallery as string[]) || null,
       city: (cfg.city as string) || null,
       businessHours: website.settings?.businessHours ?? null,

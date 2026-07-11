@@ -132,5 +132,20 @@ describe('publicToTemplateData', () => {
     expect(d.enrollUrl).toBe('/p/pub-school/enroll');
     expect(d.packages).toHaveLength(1);
     expect(d.instructor.photo).toBe('data:me');
+    // H1: the city must not be duplicated in the address or the areas list.
+    expect(d.contact.address).toBe('Eilat');
+    expect(d.areas.filter((a) => a.name === 'Eilat')).toHaveLength(1);
+    expect(d.areas[0]).toEqual({ name: 'Eilat', note: expect.any(String) }); // home base = city
+  });
+
+  it('does not duplicate the city when the stored address already contains it', () => {
+    const input: PublicSiteData = {
+      name: 'S', slug: 's', locale: 'EN', template: 'mumotor',
+      city: 'Netanya',
+      contact: { phone: '', email: '', address: '22 Herzl Street, Netanya' },
+    } as PublicSiteData;
+    const d = publicToTemplateData(input);
+    expect(d.contact.address).toBe('22 Herzl Street, Netanya'); // not "…, Netanya, Netanya"
+    expect(d.areas.filter((a) => a.name === 'Netanya')).toHaveLength(1);
   });
 });
