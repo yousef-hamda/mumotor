@@ -26,6 +26,7 @@ export interface PrStrings extends TemplateStrings {
   feature2Body: string;
   heroImageAlt: string;
   aboutImageAlt: string;
+  bookUnpublishedTitle: string;
 }
 
 const en: PrStrings = {
@@ -52,6 +53,7 @@ const en: PrStrings = {
   feature2Body: 'Picked up from home, work or college — at no extra cost.',
   heroImageAlt: 'Driving lesson in progress',
   aboutImageAlt: 'Instructor with a learner driver',
+  bookUnpublishedTitle: 'Available once your site is published',
 };
 
 const he: PrStrings = {
@@ -78,6 +80,7 @@ const he: PrStrings = {
   feature2Body: 'איסוף מהבית, מהעבודה או מהלימודים — בלי תוספת מחיר.',
   heroImageAlt: 'שיעור נהיגה בעיצומו',
   aboutImageAlt: 'מורה נהיגה עם תלמיד',
+  bookUnpublishedTitle: 'זמין לאחר פרסום האתר',
 };
 
 const ar: PrStrings = {
@@ -104,6 +107,7 @@ const ar: PrStrings = {
   feature2Body: 'نصطحبك من المنزل أو العمل أو الجامعة — بلا تكلفة إضافية.',
   heroImageAlt: 'درس قيادة جارٍ',
   aboutImageAlt: 'مدرّب قيادة مع متعلّم',
+  bookUnpublishedTitle: 'متاح بعد نشر موقعك',
 };
 
 const PR: Record<Locale, PrStrings> = { en, he, ar };

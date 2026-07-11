@@ -256,12 +256,44 @@ export function loadWizard(): WizardConfig {
   return { ...defaultWizardConfig };
 }
 
-export function saveWizard(c: WizardConfig) {
+const isDataUrlStr = (s: unknown): s is string => typeof s === 'string' && s.startsWith('data:');
+
+/** A lighter copy without base64 image data-URLs, used as a fallback when the full
+ *  config exceeds the localStorage quota (a single 5 MB photo can blow the cap). */
+function withoutHeavyImages(c: WizardConfig): WizardConfig {
+  const out = {
+    ...c,
+    logoSrc: isDataUrlStr(c.logoSrc) ? undefined : c.logoSrc,
+    carPhoto: isDataUrlStr(c.carPhoto) ? undefined : c.carPhoto,
+    instructorPhoto: isDataUrlStr(c.instructorPhoto) ? undefined : c.instructorPhoto,
+    gallery: (c.gallery ?? []).filter((g) => !isDataUrlStr(g)),
+  } as WizardConfig;
+  const cz = (c as { customization?: { fields?: Record<string, unknown> } }).customization;
+  if (cz?.fields) {
+    const fields: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(cz.fields)) if (!isDataUrlStr(v)) fields[k] = v;
+    (out as { customization?: unknown }).customization = { ...cz, fields };
+  }
+  return out;
+}
+
+/** Returns true if the config was saved in full (with images), false if it had to
+ *  fall back to a text-only save (or couldn't save at all) — the UI can warn then. */
+export function saveWizard(c: WizardConfig): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
     localStorage.setItem(`${STORAGE_KEY}_saved_at`, String(Date.now()));
+    return true;
   } catch {
-    /* ignore */
+    // Over quota (usually a big base64 photo) — at least keep the typed data so a
+    // refresh doesn't silently lose everything.
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(withoutHeavyImages(c)));
+      localStorage.setItem(`${STORAGE_KEY}_saved_at`, String(Date.now()));
+    } catch {
+      /* give up quietly */
+    }
+    return false;
   }
 }
 
@@ -297,6 +329,12 @@ export function buildBusinessHours(c: WizardConfig): BusinessHours {
   return hours;
 }
 
+/** Hour (0-23) from an "HH:MM" string; `fallback` only when unset/invalid — NOT for "00". */
+export function hourOf(time: string | undefined, fallback: number): number {
+  const h = Number((time || '').split(':')[0]);
+  return Number.isInteger(h) && h >= 0 && h <= 23 ? h : fallback;
+}
+
 /** Map wizard fields → the generator/config blob stored on Website.configuration. */
 export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
   return {
@@ -309,7 +347,7 @@ export function toBusinessConfig(c: WizardConfig): Record<string, unknown> {
     plans: c.plans,
     experienceLevel: c.experienceLevel,
     advanceBookingDays: 1,
-    bookingCutoffHour: Number((c.reportTime || '18:00').split(':')[0]) || 18,
+    bookingCutoffHour: hourOf(c.reportTime, 18),
     dailyCodeEnabled: true,
     restMinutes: c.restEnabled ? c.restMinutes : 0,
     breakTimes: c.breakTimes,

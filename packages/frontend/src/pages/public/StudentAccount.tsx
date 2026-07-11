@@ -184,11 +184,23 @@ function Account({
   const unread = useUnreadCount(websiteId);
 
   useEffect(() => {
-    if (me.isError && apiError(me.error).status === 401) onLogout();
+    // 401 (expired session) or 403 (enrollment paused → session revoked) → sign out.
+    const status = me.isError ? apiError(me.error).status : 0;
+    if (status === 401 || status === 403) onLogout();
   }, [me.isError, me.error, onLogout]);
 
   if (me.isLoading) return <BookSpinner label={bookT(L, 'loadingAccount')} />;
-  if (!me.data) return <BookSpinner label="…" />;
+  // Any other error (500 / network / rate-limit) shows a retry instead of an
+  // infinite spinner the student can't escape (M21).
+  if (me.isError) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+        <p className="book-muted" style={{ marginBottom: '1rem' }}>{bookT(L, 'accountLoadError')}</p>
+        <BookButton variant="primary" onClick={() => me.refetch()}>{bookT(L, 'retry')}</BookButton>
+      </div>
+    );
+  }
+  if (!me.data) return <BookSpinner label={bookT(L, 'loadingAccount')} />;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

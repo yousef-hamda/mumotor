@@ -44,15 +44,28 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-/** Build N upcoming calendar dates (YYYY-MM-DD) starting today (UTC-aligned). */
+/**
+ * Build N upcoming calendar dates (YYYY-MM-DD) starting with TODAY in Israel
+ * (Asia/Jerusalem) wall-clock time — NOT the browser's UTC date. This must match
+ * the backend's `appTodayUtcMidnight(APP_TIMEZONE)` so the student's "tomorrow"
+ * and the server's booking-date validation always agree, including the 2-3h window
+ * each night where the Israel date has rolled but UTC hasn't.
+ */
 export function upcomingDates(days: number): string[] {
   const out: string[] = [];
-  const now = new Date();
-  const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  // "en-CA" formats as YYYY-MM-DD; timeZone gives the Israel-local calendar date.
+  const todayYmd = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jerusalem',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  const [y, m, d] = todayYmd.split('-').map(Number);
+  const base = new Date(Date.UTC(y, m - 1, d));
   for (let i = 0; i < days; i++) {
-    const d = new Date(base);
-    d.setUTCDate(base.getUTCDate() + i);
-    out.push(d.toISOString().slice(0, 10));
+    const dt = new Date(base);
+    dt.setUTCDate(base.getUTCDate() + i);
+    out.push(dt.toISOString().slice(0, 10));
   }
   return out;
 }

@@ -26,6 +26,9 @@ export interface AuStrings extends TemplateStrings {
   feature2Body: string;
   heroImageAlt: string;
   aboutImageAlt: string;
+  mainNavAria: string;
+  goToTopAria: string;
+  publishNote: string;
 }
 
 const en: AuStrings = {
@@ -52,6 +55,9 @@ const en: AuStrings = {
   feature2Body: 'Picked up from home, work or college — at no extra cost.',
   heroImageAlt: 'Driving lesson in progress',
   aboutImageAlt: 'Instructor with a learner driver',
+  mainNavAria: 'Main navigation',
+  goToTopAria: 'Go to top',
+  publishNote: 'Available once your site is published',
 };
 
 const he: AuStrings = {
@@ -78,6 +84,9 @@ const he: AuStrings = {
   feature2Body: 'איסוף מהבית, מהעבודה או מהלימודים — בלי תוספת מחיר.',
   heroImageAlt: 'שיעור נהיגה בעיצומו',
   aboutImageAlt: 'מורה נהיגה עם תלמיד',
+  mainNavAria: 'ניווט ראשי',
+  goToTopAria: 'חזרה לראש הדף',
+  publishNote: 'יהיה זמין לאחר פרסום האתר',
 };
 
 const ar: AuStrings = {
@@ -104,6 +113,9 @@ const ar: AuStrings = {
   feature2Body: 'نصطحبك من المنزل أو العمل أو الجامعة — بلا تكلفة إضافية.',
   heroImageAlt: 'درس قيادة جارٍ',
   aboutImageAlt: 'مدرّب مع متعلّم قيادة',
+  mainNavAria: 'التنقل الرئيسي',
+  goToTopAria: 'العودة إلى الأعلى',
+  publishNote: 'متاح بعد نشر موقعك',
 };
 
 const AU: Record<Locale, AuStrings> = { en, he, ar };

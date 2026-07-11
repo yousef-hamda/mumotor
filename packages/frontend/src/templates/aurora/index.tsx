@@ -52,9 +52,9 @@ function AuNav({ data, active }: { data: TemplateData; active: string }) {
   const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
-    <nav className="au-nav" aria-label="Main navigation">
+    <nav className="au-nav" aria-label={s.mainNavAria}>
       <div className="au-nav-inner">
-        <button className="au-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label="Go to top">
+        <button className="au-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="#0B1220" fg="#F6F8FC" radius={9} />
           </span>
@@ -227,6 +227,19 @@ function AuAbout({ data }: { data: TemplateData }) {
           <Reveal delay={0.05}><h2 className="au-h2 au-h2-left" data-edit="about.heading" data-edit-type="text">{about.heading}</h2></Reveal>
           {about.body.map((p, i) => <Reveal key={i} as="p" className="au-body" delay={0.1 + i * 0.06}><span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span></Reveal>)}
           <Reveal delay={0.22}><ul className="au-checklist">{about.checklist.map((item, i) => <li key={i} data-edit-item={`about.checklist.${i}`}><Check size={16} aria-hidden="true" /><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>)}</ul></Reveal>
+          {instructor.bio && <Reveal as="p" className="au-body" delay={0.26}><span data-edit="instructor.bio" data-edit-type="text">{instructor.bio}</span></Reveal>}
+          {instructor.credentials.length > 0 && (
+            <Reveal delay={0.3}>
+              <div className="au-creds">
+                {instructor.credentials.map((c, i) => (
+                  <span key={i} className="au-cred" data-edit-item={`instructor.credentials.${i}`}>
+                    <Check size={14} aria-hidden="true" />
+                    <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          )}
         </div>
       </div>
     </section>
@@ -348,7 +361,7 @@ function AuBook({ data }: { data: TemplateData }) {
           {data.bookingUrl ? (
             <a href={data.bookingUrl} className="au-btn au-btn-primary au-btn-lg" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></a>
           ) : (
-            <button type="button" className="au-btn au-btn-primary au-btn-lg" title="Available once your site is published" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></button>
+            <button type="button" className="au-btn au-btn-primary au-btn-lg" title={s.publishNote} disabled aria-disabled="true" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></button>
           )}
           {data.enrollUrl && <a href={data.enrollUrl} className="au-btn au-btn-ghost au-btn-lg"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span></a>}
         </div>
@@ -407,7 +420,7 @@ export default function Aurora({ data = sampleData }: { data?: TemplateData }) {
         <AuHero data={data} />
         <AuStats stats={data.stats} />
         <AuWhy data={data} />
-        <AuPackages data={data} />
+        {data.packages.length > 0 && <AuPackages data={data} />}
         <AuAbout data={data} />
         <AuAreas data={data} />
         {data.reviews.length > 0 && <AuReviews data={data} />}

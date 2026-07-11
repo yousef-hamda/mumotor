@@ -241,6 +241,18 @@ function StudentsTab({ website }: { website: Website }) {
           <GraduationCap className="h-4 w-4" />
         </button>
       )}
+      {/* Un-complete: reactivate a student marked completed by mistake, instead of
+          having to delete + re-enroll them (L11). toggle-status COMPLETED→ACTIVE. */}
+      {s.status === 'COMPLETED' && (
+        <button
+          aria-label={t('dashboard.school.students.activateStudent')}
+          title={t('dashboard.school.students.activate')}
+          onClick={() => toggle.mutate(s.id)}
+          className="flex items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
+        >
+          <PlayCircle className="h-4 w-4" />
+        </button>
+      )}
       <button
         aria-label={t('dashboard.school.students.deleteStudent')}
         title={t('dashboard.school.students.deleteShort')}
@@ -509,6 +521,8 @@ function ScheduleTab({ website }: { website: Website }) {
       setAssignTime(null);
       setStudentSearch('');
       invalidateReport();
+      // The student's lesson count changed — refresh the Students tab too (M16).
+      qc.invalidateQueries({ queryKey: ['students', website.id] });
     },
     onError: (e) => toast.error(apiError(e).message),
   });
@@ -908,9 +922,11 @@ function SettingsTab({ website }: { website: Website }) {
       restMinutes: form.restMinutes,
       workingHours: form.workingHours,
       teacherName: form.teacherName,
-      pricePerClass: form.pricePerClass ?? undefined,
-      experienceYears: form.experienceYears ?? undefined,
-      passRate: form.passRate ?? undefined,
+      // Send the actual value (incl. null when cleared) — `?? undefined` was dropped by
+      // JSON serialization, so clearing a field silently did nothing (M13).
+      pricePerClass: form.pricePerClass,
+      experienceYears: form.experienceYears,
+      passRate: form.passRate,
     });
   };
 

@@ -95,6 +95,9 @@ export interface TemplateStrings {
   // Experience label — {n} interpolated
   experienceYears: string;
   taglineDefault: string;
+  // A distinct default hero HEADLINE (must differ from taglineDefault so a blank-tagline
+  // site doesn't print the same sentence twice — H13).
+  heroHeadlineDefault: string;
   instructorRole: string;
 }
 
@@ -179,6 +182,7 @@ const en: TemplateStrings = {
 
   experienceYears: '{n}+ years',
   taglineDefault: 'Pass first time, drive for life.',
+  heroHeadlineDefault: 'Learn to drive with someone who actually keeps you calm.',
   instructorRole: 'Driving instructor',
 };
 
@@ -259,6 +263,7 @@ const he: TemplateStrings = {
 
   experienceYears: '{n}+ שנים',
   taglineDefault: 'עוברים טסט בפעם הראשונה, נוהגים לכל החיים.',
+  heroHeadlineDefault: 'ללמוד לנהוג עם מדריך שבאמת שומר עליכם רגועים.',
   instructorRole: 'מורה לנהיגה',
 };
 
@@ -339,6 +344,7 @@ const ar: TemplateStrings = {
 
   experienceYears: '{n}+ سنوات',
   taglineDefault: 'انجح من أول مرة، وقُد مدى الحياة.',
+  heroHeadlineDefault: 'تعلّم القيادة مع مدرّب يمنحك الطمأنينة فعلاً.',
   instructorRole: 'مدرّب قيادة',
 };
 

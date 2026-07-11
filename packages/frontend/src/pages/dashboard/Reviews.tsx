@@ -121,8 +121,9 @@ export default function Reviews() {
                     </button>
                     <button
                       aria-label={t('dashboard.reviews.delete')}
-                      onClick={() => remove.mutate(r.id)}
-                      className="flex items-center justify-center rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 coarse:min-h-11 coarse:min-w-11"
+                      disabled={remove.isPending}
+                      onClick={() => { if (window.confirm(t('dashboard.reviews.deleteConfirm'))) remove.mutate(r.id); }}
+                      className="flex items-center justify-center rounded-lg p-2 text-ember-600 transition-colors hover:bg-ember-50 disabled:opacity-40 coarse:min-h-11 coarse:min-w-11"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

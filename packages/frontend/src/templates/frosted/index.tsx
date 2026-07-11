@@ -169,7 +169,7 @@ function FrHero({ data }: { data: TemplateData }) {
               </button>
             </Reveal>
             <Reveal className="fr-hero-trust" delay={0.30}>
-              {data.instructor.credentials.slice(0, 3).map((c, i) => (
+              {data.instructor.credentials.map((c, i) => (
                 <span key={i} className="fr-trust-chip" data-edit-item={`instructor.credentials.${i}`}>
                   <Check size={13} aria-hidden="true" />
                   <span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
@@ -597,7 +597,7 @@ function FrBook({ data }: { data: TemplateData }) {
                     {bookLabel} <ArrowRight size={17} aria-hidden="true" />
                   </a>
                 ) : (
-                  <button type="button" className="fr-btn fr-btn-primary fr-btn-lg" title="Available once your site is published" data-edit="labels.bookCta" data-edit-type="text">
+                  <button type="button" className="fr-btn fr-btn-primary fr-btn-lg" title={s.bookUnpublishedTitle} disabled aria-disabled="true" data-edit="labels.bookCta" data-edit-type="text">
                     {bookLabel} <ArrowRight size={17} aria-hidden="true" />
                   </button>
                 )}
@@ -734,7 +734,7 @@ export default function Frosted({ data = sampleData }: { data?: TemplateData }) 
         <FrHero data={data} />
         <FrStats stats={data.stats} />
         <FrWhy data={data} />
-        <FrPackages data={data} />
+        {data.packages.length > 0 && <FrPackages data={data} />}
         <FrAbout data={data} />
         <FrAreas data={data} />
         {data.reviews.length > 0 && <FrReviews data={data} />}

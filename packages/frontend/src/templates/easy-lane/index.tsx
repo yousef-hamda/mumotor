@@ -205,7 +205,7 @@ function Journey({ data }: { data: TemplateData }) {
         </Reveal>
         <div className="el-journey-track" role="list">
           {JOURNEY_STEPS(s).map(({ icon, label, sub }, i) => (
-            <Reveal key={label} delay={i * 0.13}>
+            <Reveal key={i} delay={i * 0.13}>
               <div className="el-journey-step" role="listitem">
                 <motion.div
                   className="el-journey-dot"
@@ -243,8 +243,8 @@ function PackageCard({
         {pkg.unit && <span className="el-pkg-unit" data-edit={`packages.${i}.unit`} data-edit-type="text">{pkg.unit}</span>}
       </div>
       {pkg.duration && (
-        <p className="el-pkg-detail">
-          <Clock size={13} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+        <p className="el-pkg-detail" data-edit={`packages.${i}.duration`} data-edit-type="text">
+          <Clock size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
           {pkg.lessons ? `${pkg.lessons} × ` : ''}{pkg.duration}{(pkg.lessons ?? 1) !== 1 ? s.minLessonsSuffix : s.minLessonSuffix}
         </p>
       )}
@@ -330,7 +330,7 @@ function About({ data }: { data: TemplateData }) {
               <div className="el-credentials">
                 {data.instructor.credentials.map((c, i) => (
                   <span key={i} className="el-credential-chip" data-edit-item={`instructor.credentials.${i}`}>
-                    <Award size={11} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
+                    <Award size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /><span data-edit={`instructor.credentials.${i}`} data-edit-type="text">{c}</span>
                   </span>
                 ))}
               </div>
@@ -362,7 +362,7 @@ function Areas({ data }: { data: TemplateData }) {
                 whileHover={{ scale: 1.07, y: -3 }}
                 transition={{ type: 'spring', stiffness: 360, damping: 18 }}
               >
-                <Navigation size={13} style={{ display: 'inline', marginRight: 5, verticalAlign: 'middle' }} />
+                <Navigation size={13} style={{ display: 'inline', verticalAlign: 'middle' }} />
                 <span data-edit={`areas.${i}.name`} data-edit-type="text">{area.name}</span>
                 {area.note && <span className="el-area-note"> · <span data-edit={`areas.${i}.note`} data-edit-type="text">{area.note}</span></span>}
               </motion.div>
@@ -531,7 +531,7 @@ function Book({ data }: { data: TemplateData }) {
                 )}
               </>
             ) : (
-              <button type="button" className={btnClass} title="Available once your site is published" data-edit="labels.bookCta" data-edit-type="text">{bookLabel}</button>
+              <button type="button" disabled aria-disabled="true" className={btnClass} title={s.publishTooltip} data-edit="labels.bookCta" data-edit-type="text">{bookLabel}</button>
             )}
           </div>
         </Reveal>
@@ -629,7 +629,7 @@ export default function EasyLane({ data = sampleData }: { data?: TemplateData })
       <Hero data={data} />
       <Stats data={data} />
       <Journey data={data} />
-      <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />
+      {data.packages.length > 0 && <Packages data={data} selectedId={selectedPkg} onSelect={setSelectedPkg} />}
       <About data={data} />
       <Areas data={data} />
       {data.reviews.length > 0 && <Reviews data={data} />}

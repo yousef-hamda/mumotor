@@ -46,6 +46,10 @@ api.interceptors.response.use(
       const url = error.config?.url ?? '';
       if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
         tokenStore.clear();
+        // Tell the auth context to drop the in-memory user so ProtectedRoute
+        // redirects to /login immediately, instead of rendering a broken session
+        // until a hard reload (M31).
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('mm-unauthorized'));
       }
     }
     return Promise.reject(error);

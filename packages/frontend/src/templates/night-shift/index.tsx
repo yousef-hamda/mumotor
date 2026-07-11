@@ -89,7 +89,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
   const s = nsStrings(data.locale);
   const reduced = usePrefersReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeFaq, setActiveFaq] = useState<string | null>(null);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const editing = useIsEditing();
 
   // Parallax hero beams
@@ -241,7 +241,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                 data-edit-type="text"
                 onClick={() => scrollToSection(SECTION_IDS.packages)}
               >
-                {data.hero.ctaSecondary} &rarr;
+                {data.hero.ctaSecondary} <span className="ns-cta-arrow">&rarr;</span>
               </button>
             </div>
           </Reveal>
@@ -256,6 +256,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
       </section>
 
       {/* ── PACKAGES ── */}
+      {data.packages.length > 0 && (
       <section id={SECTION_IDS.packages} className="ns-section">
         <div className="ns-container">
           <Reveal><h2 className="ns-section-title" data-edit="copy.packagesHeading" data-edit-type="text">{data.copy?.packagesHeading ?? s.packagesHeadingNs}</h2></Reveal>
@@ -275,7 +276,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                   {pkg.duration && (
                     <p className="ns-pkg-meta">
                       <Clock size={12} aria-hidden="true" />
-                      {' '}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? s.lessonDurationSuffix}</span>
+                      {' '}{pkg.lessons ? `${pkg.lessons} × ` : ''}<span data-edit={`packages.${i}.duration`} data-edit-type="text">{pkg.duration}</span><span data-edit="copy.lessonDurationSuffix" data-edit-type="text">{data.copy?.lessonDurationSuffix ?? s.lessonDurationSuffix}</span>
                     </p>
                   )}
                   <ul className="ns-pkg-features" aria-label={s.ariaFeatures}>
@@ -303,6 +304,7 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           </div>
         </div>
       </section>
+      )}
 
       {/* ── ABOUT ── */}
       <section id={SECTION_IDS.about} className="ns-section ns-about-section">
@@ -444,13 +446,13 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
           <Reveal><h2 className="ns-section-title" data-edit="copy.faqHeading" data-edit-type="text">{data.copy?.faqHeading ?? s.faqHeadingNs}</h2></Reveal>
           <div className="ns-faq-list">
             {data.faqs.map((faq, i) => (
-              <Reveal key={faq.q} delay={i * 0.06}>
+              <Reveal key={i} delay={i * 0.06}>
                 <FaqItem
                   index={i}
                   q={faq.q}
                   a={faq.a}
-                  open={editing || activeFaq === faq.q}
-                  onToggle={() => setActiveFaq(v => v === faq.q ? null : faq.q)}
+                  open={editing || activeFaq === i}
+                  onToggle={() => setActiveFaq(v => v === i ? null : i)}
                 />
               </Reveal>
             ))}
@@ -478,12 +480,14 @@ export default function NightShift({ data = sampleData }: { data?: TemplateData 
                     {data.labels?.bookCta ?? s.bookCta}
                   </a>
                   {data.enrollUrl && (
-                    <a href={data.enrollUrl} className="ns-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> &rarr;</a>
+                    <a href={data.enrollUrl} className="ns-btn-ghost"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span> <span className="ns-cta-arrow">&rarr;</span></a>
                   )}
                 </>
               ) : (
                 <button
                   type="button"
+                  disabled
+                  aria-disabled="true"
                   title={s.publishTooltip}
                   className="ns-btn-primary ns-glow-pulse"
                   data-edit="labels.bookCta"

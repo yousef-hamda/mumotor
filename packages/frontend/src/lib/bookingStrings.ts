@@ -102,6 +102,8 @@ export interface BookStrings {
   newStudent: string;
   enrollWithCode: string;
   loadingAccount: string;
+  accountLoadError: string;
+  retry: string;
   welcomeBackEyebrow: string;
   signOut: string;
   tabLessons: string;
@@ -223,6 +225,8 @@ const en: BookStrings = {
   newStudent: 'New student?',
   enrollWithCode: 'Enroll with your code',
   loadingAccount: 'Loading your account…',
+  accountLoadError: "We couldn't load your account. Please try again.",
+  retry: 'Try again',
   welcomeBackEyebrow: 'Welcome back',
   signOut: 'Sign out',
   tabLessons: 'Lessons',
@@ -342,6 +346,8 @@ const he: BookStrings = {
   newStudent: 'תלמיד חדש?',
   enrollWithCode: 'הרשמה עם הקוד שלכם',
   loadingAccount: 'טוען את האזור שלך…',
+  accountLoadError: 'לא הצלחנו לטעון את החשבון שלך. נסו שוב.',
+  retry: 'נסו שוב',
   welcomeBackEyebrow: 'ברוכים השבים',
   signOut: 'התנתקות',
   tabLessons: 'שיעורים',
@@ -461,6 +467,8 @@ const ar: BookStrings = {
   newStudent: 'طالب جديد؟',
   enrollWithCode: 'سجّل برمزك',
   loadingAccount: 'جارٍ تحميل حسابك…',
+  accountLoadError: 'تعذّر تحميل حسابك. يُرجى المحاولة مرة أخرى.',
+  retry: 'حاول مرة أخرى',
   welcomeBackEyebrow: 'مرحباً بعودتك',
   signOut: 'تسجيل الخروج',
   tabLessons: 'الدروس',

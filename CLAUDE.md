@@ -159,10 +159,13 @@ template design** — they are NOT the old app "sand" look.
   surfaces it as a friendly 409.
 - **Student account** (`/p/:slug/account`, `StudentAccount.tsx`): a per-site login area. **Login = EMAIL ONLY** for a
   returning student (`POST /:websiteId/student/login {email}` → ACTIVE enrollment → `signStudentToken`, `middleware/auth.ts`
-  `requireStudent`); the one-time enrollment code is only the gate for NEW students at `/enroll`. Tabs: Lessons (next-lesson
-  highlight, view/book — **students CANNOT cancel** (July 5): they see "contact your instructor to change/cancel"; only the
-  teacher cancels), real `stats` from `/student/me` = completed/upcoming/total — NOT the double-counting
-  `classCount`, Chat (two-way, polling), Profile. A **"My account" button is in every template's nav** (desktop + mobile,
+  `requireStudent`); the one-time enrollment code is only the gate for NEW students at `/enroll`. **Hardened July 11:** the
+  student JWT is **7-day** (was 30d); `loadStudentEnrollment`/`proveStudentIdentity` re-check ACTIVE on every request (pause/
+  complete instantly revokes the session); `check-enrollment` returns only `{enrolled,active}` (no name/status leak). Tabs:
+  Lessons (next-lesson highlight, view/book — **students CANNOT cancel**: both cancel routes now hard-return 403; only the
+  teacher cancels), real `stats` from `/student/me` = completed/upcoming/total — NOT the double-counting `classCount` (the
+  teacher "Classes" column + daily report also now show a **derived non-cancelled count**, not the raw column), Chat
+  (two-way, polling), Profile. A **"My account" button is in every template's nav** (desktop + mobile,
   `data.accountUrl`, per-template ghost class — contrast-checked light/dark; `navAccount` in `templates/strings.ts`).
   Separate `studentApi` axios instance so the teacher token never leaks.
 - **Student pages are fully localized (July 5)** to the SITE's locale (not the browser). All copy in Enroll/BookLesson/
@@ -196,6 +199,17 @@ template design** — they are NOT the old app "sand" look.
 - After editing `tailwind.config.js`, the Vite dev server can serve **stale CSS** — restart it (and clear
   `packages/frontend/node_modules/.vite`) to pick up token changes.
 - Typecheck before shipping: `npm run typecheck --workspace @mumotor/frontend`.
+- **Dates = Israel wall-clock (July 11):** for any "today/tomorrow" use `appTodayUtcMidnight(env.APP_TIMEZONE)`
+  / `appTomorrowUtcMidnight(tz)` in `utils/time.ts` (returns a UTC-midnight Date of the Asia/Jerusalem date) —
+  the old `todayUtcMidnight`/`tomorrowUtcMidnight` were removed (they used server UTC and drifted a day each
+  night). Lesson-time diffs use `minutesUntilLessonInZone` (wall-clock, DST-safe). Frontend `upcomingDates()`
+  computes the Israel date the same way so it always agrees with the backend's booking-date validation.
+- **Backend email i18n (July 11):** emails render in the SITE's language via `services/email/strings.ts`
+  (`emailT(locale,key,vars)`, `he`/`ar` typed `typeof en` so missing keys fail the build). Locale threads
+  through `siteBrand` — **if a Prisma `select` feeds `siteBrand`, include `locale: true`.** Account emails
+  (reset/verify) stay English; EN output is byte-identical; dates keep Latin digits.
+- **Slugs (July 11):** `utils/slug.ts` transliterates Hebrew/Arabic → Latin + reserved-word guard, so HE/AR
+  business names get a real slug instead of collapsing to `driving-school`.
 
 ## Responsive / device-adaptive (July 8, 2026 — the whole app works on phone · tablet · desktop)
 The ENTIRE product adapts to the device **automatically** — there is deliberately NO user "mobile/desktop"

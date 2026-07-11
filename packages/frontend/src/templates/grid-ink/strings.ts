@@ -17,6 +17,7 @@ export interface GiStrings extends TemplateStrings {
   bookBodyGi: string;
   heroImageAlt: string;
   aboutImageAlt: string;
+  bookUnpublishedTitle: string;
   ariaGoTop: string;
   ariaMainNav: string;
   ariaOpenMenu: string;
@@ -43,6 +44,7 @@ const en: GiStrings = {
   bookBodyGi: "Ready to get on the road? Pick a time that works for you and we'll take it from there.",
   heroImageAlt: 'Driving lesson in progress',
   aboutImageAlt: 'Instructor with learner driver in car',
+  bookUnpublishedTitle: 'Available once your site is published',
   ariaGoTop: 'Go to top',
   ariaMainNav: 'Main navigation',
   ariaOpenMenu: 'Open menu',
@@ -69,6 +71,7 @@ const he: GiStrings = {
   bookBodyGi: 'מוכנים לעלות על הכביש? בוחרים זמן שמתאים לכם ואנחנו נדאג לכל השאר.',
   heroImageAlt: 'שיעור נהיגה בעיצומו',
   aboutImageAlt: 'מורה נהיגה עם תלמיד ברכב',
+  bookUnpublishedTitle: 'זמין לאחר פרסום האתר',
   ariaGoTop: 'לראש העמוד',
   ariaMainNav: 'ניווט ראשי',
   ariaOpenMenu: 'פתיחת תפריט',
@@ -95,6 +98,7 @@ const ar: GiStrings = {
   bookBodyGi: 'جاهز للانطلاق على الطريق؟ اختر وقتاً يناسبك ونحن نتكفّل بالباقي.',
   heroImageAlt: 'درس قيادة جارٍ',
   aboutImageAlt: 'مدرّب قيادة مع متعلّم في السيارة',
+  bookUnpublishedTitle: 'متاح بعد نشر موقعك',
   ariaGoTop: 'إلى الأعلى',
   ariaMainNav: 'التنقل الرئيسي',
   ariaOpenMenu: 'فتح القائمة',

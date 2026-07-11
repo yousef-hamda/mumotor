@@ -26,6 +26,7 @@ export interface FrStrings extends TemplateStrings {
   bookBodyFr: string;
   heroImageAlt: string;
   aboutImageAlt: string;
+  bookUnpublishedTitle: string;
 }
 
 const en: FrStrings = {
@@ -52,6 +53,7 @@ const en: FrStrings = {
   bookBodyFr: "Pick a time that works for you and we'll take it from there.",
   heroImageAlt: 'Driving lesson in progress',
   aboutImageAlt: 'Instructor with a learner driver',
+  bookUnpublishedTitle: 'Available once your site is published',
 };
 
 const he: FrStrings = {
@@ -78,6 +80,7 @@ const he: FrStrings = {
   bookBodyFr: 'בוחרים זמן שמתאים לכם ואנחנו נדאג לכל השאר.',
   heroImageAlt: 'שיעור נהיגה בעיצומו',
   aboutImageAlt: 'מורה נהיגה עם תלמיד',
+  bookUnpublishedTitle: 'זמין לאחר פרסום האתר',
 };
 
 const ar: FrStrings = {
@@ -104,6 +107,7 @@ const ar: FrStrings = {
   bookBodyFr: 'اختر وقتاً يناسبك ونحن نتكفّل بالباقي.',
   heroImageAlt: 'درس قيادة جارٍ',
   aboutImageAlt: 'مدرّب مع متعلّم قيادة',
+  bookUnpublishedTitle: 'متاح بعد نشر موقعك',
 };
 
 const FR: Record<Locale, FrStrings> = { en, he, ar };

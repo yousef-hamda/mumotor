@@ -119,6 +119,9 @@
 .tmpl-aurora .au-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 13px; }
 .tmpl-aurora .au-checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 16px; color: var(--au-ink); }
 .tmpl-aurora .au-checklist svg { color: var(--au-teal); flex-shrink: 0; margin-top: 2px; }
+.tmpl-aurora .au-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }
+.tmpl-aurora .au-cred { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--au-ink); background: var(--au-glass); border: 1px solid var(--au-glass-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.tmpl-aurora .au-cred svg { color: var(--au-blue); flex-shrink: 0; }
 
 /* Areas */
 .tmpl-aurora .au-areas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 48px; }
@@ -190,8 +193,8 @@
 }
 
 /* Instructor reply to a review */
-.au-review-reply-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
-.au-review-reply-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
+.au-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.au-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
 
 /* ── Responsive: phone tuning + RTL (device pass) ──────────────────────────────
    Additive only — the desktop/tablet layout above is unchanged. This template

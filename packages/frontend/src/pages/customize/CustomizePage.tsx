@@ -34,6 +34,7 @@ export default function CustomizePage() {
       template: website.selectedPreset ?? (cfg.templateChoice as string) ?? null,
       logoSrc: (cfg.logoSrc as string) || null,
       carPhoto: (cfg.carPhoto as string) || null,
+      instructorPhoto: (cfg.instructorPhoto as string) || null,
       gallery: (cfg.gallery as string[]) || null,
       city: (cfg.city as string) || null,
       businessHours: website.settings?.businessHours ?? null,
@@ -59,8 +60,9 @@ export default function CustomizePage() {
       await websiteApi.update(id, { configuration });
       // Bottom-center so it never covers the top-right Save/Done buttons.
       toast.success('Saved', { position: 'bottom-center' });
-    } catch {
+    } catch (e) {
       toast.error("Couldn't save changes", { position: 'bottom-center' });
+      throw e; // rethrow so the editor keeps the state dirty instead of marking it saved (H7)
     }
   };
 

@@ -31,6 +31,12 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     }
   }
 
+  // A malformed value that reaches a typed column (e.g. a non-UUID id in the URL)
+  // is a bad request, not a server fault — surface it as 400, not 500 (L9).
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    return res.status(400).json({ error: 'Invalid request', code: 'BAD_REQUEST' });
+  }
+
   logger.error('Unhandled error', err instanceof Error ? err.stack : err);
   res.status(500).json({
     error: 'Internal server error',

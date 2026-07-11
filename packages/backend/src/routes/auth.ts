@@ -9,6 +9,7 @@ import { signToken, verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, conflict, unauthorized } from '../utils/errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
+import { hashToken } from '../utils/crypto.js';
 import { sendEmailVerification, sendPasswordReset } from '../services/email/emailService.js';
 
 const router = Router();
@@ -38,7 +39,7 @@ function publicUser(u: { id: string; email: string; name: string; phone: string 
 const VERIFY_TTL_SECONDS = 24 * 3600;
 async function sendVerification(user: { id: string; email: string; name: string }): Promise<void> {
   const token = nanoid(48);
-  await kv.setex(`emailverify:${token}`, VERIFY_TTL_SECONDS, user.id);
+  await kv.setex(`emailverify:${hashToken(token)}`, VERIFY_TTL_SECONDS, user.id);
   void sendEmailVerification(user.email, {
     name: user.name,
     verifyUrl: `${env.FRONTEND_URL}/verify-email?token=${token}`,
@@ -115,6 +116,9 @@ router.patch(
 router.post(
   '/change-password',
   verifyToken,
+  // Throttle current-password guessing by a holder of a (possibly stolen) token,
+  // keyed by the account rather than the IP (M32).
+  rateLimit({ keyPrefix: 'change-pw', windowSeconds: 900, max: 10, keyFn: (req) => req.user?.id ?? req.ip ?? 'anon' }),
   asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = z
       .object({ currentPassword: z.string().min(1), newPassword: passwordSchema })
@@ -134,7 +138,7 @@ router.post(
   rateLimit({ keyPrefix: 'verify-email', windowSeconds: 900, max: 15 }),
   asyncHandler(async (req, res) => {
     const { token } = z.object({ token: z.string().min(20).max(80) }).parse(req.body);
-    const userId = await kv.getdel(`emailverify:${token}`); // atomic: one use only
+    const userId = await kv.getdel(`emailverify:${hashToken(token)}`); // atomic: one use only
     if (!userId) throw badRequest('Verification link is invalid or expired', 'VERIFY_INVALID');
     await prisma.user.update({ where: { id: userId }, data: { emailVerified: true } });
     res.json({ verified: true });
@@ -149,11 +153,17 @@ router.post(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user) throw unauthorized('Account not found');
+    // This caller is authenticated (no enumeration concern), so tell them the truth:
+    // report sent:false when already verified or when the per-hour cap suppressed it (L3).
+    let sent = false;
     if (!user.emailVerified) {
       const perEmail = await kv.incrWithExpiry(`verify-email-sends:${user.email}`, 3600);
-      if (perEmail <= 5) await sendVerification(user);
+      if (perEmail <= 5) {
+        await sendVerification(user);
+        sent = true;
+      }
     }
-    res.json({ sent: true });
+    res.json({ sent });
   })
 );
 
@@ -172,7 +182,7 @@ router.post(
       const user = await prisma.user.findUnique({ where: { email: normalized } });
       if (user) {
         const token = nanoid(48);
-        await kv.setex(`pwreset:${token}`, RESET_TTL_SECONDS, user.id);
+        await kv.setex(`pwreset:${hashToken(token)}`, RESET_TTL_SECONDS, user.id);
         void sendPasswordReset(user.email, {
           name: user.name,
           resetUrl: `${env.FRONTEND_URL}/reset-password?token=${token}`,
@@ -192,7 +202,7 @@ router.post(
       .object({ token: z.string().min(20).max(80), newPassword: passwordSchema })
       .parse(req.body);
 
-    const userId = await kv.getdel(`pwreset:${token}`); // atomic: one use only
+    const userId = await kv.getdel(`pwreset:${hashToken(token)}`); // atomic: one use only
     if (!userId) throw badRequest('Reset link is invalid or expired', 'RESET_INVALID');
 
     await prisma.user.update({

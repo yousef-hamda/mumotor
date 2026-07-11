@@ -67,7 +67,7 @@ router.get(
     const websites = await prisma.website.findMany({
       where: { userId: req.user!.id },
       orderBy: { createdAt: 'asc' },
-      include: { _count: { select: { enrollments: true, bookings: true } } },
+      include: { _count: { select: { enrollments: true, bookings: { where: { status: { not: 'CANCELLED' } } } } } },
     });
     res.json({ websites });
   })
@@ -114,7 +114,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const website = await prisma.website.findUnique({
       where: { id: req.params.id },
-      include: { settings: true, _count: { select: { enrollments: true, bookings: true } } },
+      include: { settings: true, _count: { select: { enrollments: true, bookings: { where: { status: { not: 'CANCELLED' } } } } } },
     });
     if (!website) throw notFound('Website not found');
     if (website.userId !== req.user!.id) throw forbidden('Not your website');

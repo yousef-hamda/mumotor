@@ -62,9 +62,9 @@ function MmNav({ data, active }: { data: TemplateData; active: string }) {
   const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
-    <nav className="mm-nav" aria-label="Main navigation">
+    <nav className="mm-nav" aria-label={s.mainNavAria}>
       <div className="mm-nav-inner">
-        <button className="mm-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label="Go to top">
+        <button className="mm-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="var(--mm-ink)" fg="#fff" radius={9} />
           </span>
@@ -251,6 +251,7 @@ function MmAbout({ data }: { data: TemplateData }) {
           <h2 className="mm-h2 mm-h2-left" data-edit="about.heading" data-edit-type="text">{about.heading}</h2>
           {about.body.map((p, i) => <p key={i} className="mm-body"><span data-edit={`about.body.${i}`} data-edit-type="text">{p}</span></p>)}
           <ul className="mm-checklist">{about.checklist.map((item, i) => <li key={i} data-edit-item={`about.checklist.${i}`}><span className="mm-tick"><Check size={13} strokeWidth={3} aria-hidden="true" /></span><span data-edit={`about.checklist.${i}`} data-edit-type="text">{item}</span></li>)}</ul>
+          {instructor.bio && <p className="mm-body"><span data-edit="instructor.bio" data-edit-type="text">{instructor.bio}</span></p>}
           <div className="mm-instructor">
             <img src={instructor.photo} alt={instructor.name} className="mm-instructor-photo" data-edit="instructor.photo" data-edit-type="image" />
             <div><p className="mm-instructor-name" data-edit="instructor.name" data-edit-type="text">{instructor.name}</p><p className="mm-instructor-title" data-edit="instructor.title" data-edit-type="text">{instructor.title}</p></div>
@@ -399,7 +400,7 @@ function MmBook({ data }: { data: TemplateData }) {
             {data.bookingUrl ? (
               <a href={data.bookingUrl} className="mm-btn mm-btn-primary mm-btn-lg" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></a>
             ) : (
-              <button type="button" className="mm-btn mm-btn-primary mm-btn-lg" title="Available once your site is published" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></button>
+              <button type="button" className="mm-btn mm-btn-primary mm-btn-lg" title={s.publishNote} disabled aria-disabled="true" data-edit="labels.bookCta" data-edit-type="text">{bookLabel} <ArrowRight size={17} aria-hidden="true" /></button>
             )}
             {data.enrollUrl && <a href={data.enrollUrl} className="mm-btn mm-btn-glass-dark mm-btn-lg"><span data-edit="copy.enrollCta" data-edit-type="text">{data.copy?.enrollCta ?? s.enrollLabel}</span></a>}
           </div>
@@ -461,7 +462,7 @@ export default function Mumotor({ data = sampleData }: { data?: TemplateData }) 
           <MmHero data={data} />
           <MmStats stats={data.stats} />
           <MmWhy data={data} />
-          <MmPackages data={data} />
+          {data.packages.length > 0 && <MmPackages data={data} />}
           <MmAbout data={data} />
           <MmAreas data={data} />
           {data.reviews.length > 0 && <MmReviews data={data} />}

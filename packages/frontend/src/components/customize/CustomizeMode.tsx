@@ -57,7 +57,7 @@ export default function CustomizeMode({
   baseData: TemplateData;
   templateSlug: string;
   value?: Customization;
-  onSave: (c: Customization) => void;
+  onSave: (c: Customization) => void | Promise<void>;
   onDone: () => void;
   websiteId?: string;
 }) {
@@ -72,6 +72,7 @@ export default function CustomizeMode({
   const hoverRef = useRef<{ path: string; rect: Rect } | null>(null);
   useEffect(() => { hoverRef.current = hover; }, [hover]);
   const [hoverEdit, setHoverEdit] = useState<Rect | null>(null);
+  const [saving, setSaving] = useState(false);
   const [themePanel, setThemePanel] = useState(false);
   const [picker, setPicker] = useState<{ path: string; query: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -369,14 +370,25 @@ export default function CustomizeMode({
     commitField(path, url);
   }, [websiteId, commitField]);
 
-  const doSave = () => {
+  const doSave = async () => {
+    if (saving) return;
     const e = takeEditing();
     const c = e ? computeCommit(hist.current, e.path, e.text) : hist.current;
     if (e) hist.set(c);
-    onSave(c);
-    savedRef.current = JSON.stringify(c);
+    setSaving(true);
+    try {
+      // Await the persist and only mark "Saved" if it actually succeeded — otherwise
+      // Done would think there's nothing to save and silently discard the edit (H7).
+      await Promise.resolve(onSave(c));
+      savedRef.current = JSON.stringify(c);
+    } catch {
+      // onSave surfaces its own error toast; leave the state dirty so the user can retry.
+    } finally {
+      setSaving(false);
+    }
   };
   const doDone = () => {
+    if (saving) return;
     const e = takeEditing();
     const c = e ? computeCommit(hist.current, e.path, e.text) : hist.current;
     if (e) hist.set(c);
@@ -412,10 +424,10 @@ export default function CustomizeMode({
             <Paintbrush className="h-4 w-4" /> <span className="hidden sm:inline">{t('customize.colours')}</span>
           </button>
           <span className="mx-1 h-5 w-px bg-white/20 sm:mx-1.5" />
-          <button onClick={doSave} className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 coarse:min-h-11 sm:px-4">
-            <Save className="h-3.5 w-3.5" /> {dirty ? t('customize.save') : t('customize.saved')}
+          <button onClick={doSave} disabled={saving} className="inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-60 coarse:min-h-11 sm:px-4">
+            <Save className="h-3.5 w-3.5" /> {saving ? t('customize.saving') : dirty ? t('customize.save') : t('customize.saved')}
           </button>
-          <button onClick={doDone} className="ms-1 rounded-full border border-white/20 px-3 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 coarse:min-h-11 sm:px-4">{t('customize.done')}</button>
+          <button onClick={doDone} disabled={saving} className="ms-1 rounded-full border border-white/20 px-3 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 disabled:opacity-60 coarse:min-h-11 sm:px-4">{t('customize.done')}</button>
         </div>
       </div>
 
@@ -467,10 +479,10 @@ export default function CustomizeMode({
             onDragEnd={() => { dragSrc.current = null; setDropTarget(null); }}
             className="hidden h-7 w-7 cursor-grab place-items-center rounded-md bg-white text-sand-500 shadow ring-1 ring-sand-200 hover:text-sand-800 active:cursor-grabbing mouse:grid"
           ><GripVertical className="h-4 w-4" /></button>
-          <button title={t('customize.moveUp')} aria-label={t('customize.moveUp')} disabled={idx <= 0} onClick={() => moveItem(hover.path, -1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronUp className="h-4 w-4" /></button>
-          <button title={t('customize.moveDown')} aria-label={t('customize.moveDown')} disabled={idx >= len - 1} onClick={() => moveItem(hover.path, 1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronDown className="h-4 w-4" /></button>
-          <button title={t('customize.addItem')} aria-label={t('customize.addItem')} onClick={() => listOp(hover.path, 'add')} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500 coarse:h-11 coarse:w-11"><Plus className="h-4 w-4" /></button>
-          <button title={t('customize.removeItem')} aria-label={t('customize.removeItem')} onClick={() => listOp(hover.path, 'remove')} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50 coarse:h-11 coarse:w-11"><Trash2 className="h-4 w-4" /></button>
+          <button title={t('customize.moveUp')} aria-label={t('customize.moveUp')} disabled={idx <= 0} onClick={() => { commitEditing(); moveItem(hover.path, -1); }} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronUp className="h-4 w-4" /></button>
+          <button title={t('customize.moveDown')} aria-label={t('customize.moveDown')} disabled={idx >= len - 1} onClick={() => { commitEditing(); moveItem(hover.path, 1); }} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronDown className="h-4 w-4" /></button>
+          <button title={t('customize.addItem')} aria-label={t('customize.addItem')} onClick={() => { commitEditing(); listOp(hover.path, 'add'); }} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500 coarse:h-11 coarse:w-11"><Plus className="h-4 w-4" /></button>
+          <button title={t('customize.removeItem')} aria-label={t('customize.removeItem')} onClick={() => { commitEditing(); listOp(hover.path, 'remove'); }} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50 coarse:h-11 coarse:w-11"><Trash2 className="h-4 w-4" /></button>
         </div>
         );
       })()}
