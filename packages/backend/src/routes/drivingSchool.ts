@@ -75,6 +75,10 @@ async function proveStudentIdentity(websiteId: string, rawEmail: string, enrollm
   if (!enrollment || !verifyEnrollmentCode(enrollmentCode.trim(), enrollment.enrollmentCode)) {
     throw unauthorized('Email or code is incorrect', 'BAD_IDENTITY');
   }
+  // A paused/completed student can't act through the legacy email+code path either (L10).
+  if (enrollment.status !== 'ACTIVE') {
+    throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
+  }
   return { email, enrollment };
 }
 
@@ -119,7 +123,7 @@ router.post(
     const submitted = data.enrollmentCode.trim();
 
     const website = await prisma.website.findUnique({ where: { id: data.websiteId } });
-    if (!website) throw notFound('Driving school not found');
+    if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
     const cfg = normalizeConfig(website);
 
@@ -305,13 +309,12 @@ router.get(
     });
 
     if (!enrollment) return res.json({ enrolled: false });
-    // Deliberately no phone number here — this endpoint is public and only
-    // gated by knowing an email address.
+    // This endpoint is public and only gated by knowing an email. Return the two
+    // booleans the booking flow needs (enrolled / active) but NOT the student's
+    // name or fine-grained status — those were a PII/enumeration leak (H8).
     res.json({
       enrolled: true,
       active: enrollment.status === 'ACTIVE',
-      status: enrollment.status,
-      studentName: enrollment.studentName,
     });
   })
 );
@@ -329,7 +332,7 @@ router.get(
       where: { id: req.params.websiteId },
       include: { settings: true },
     });
-    if (!website) throw notFound('Driving school not found');
+    if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
     // must be an enrolled, active student
     const enrollment = await prisma.clientEnrollment.findUnique({
@@ -344,6 +347,11 @@ router.get(
     const diffDays = diffDaysUtc(today, bookingDate);
 
     if (diffDays < 0) return res.json({ date, slots: [], classDuration: cfg.classDuration });
+    // Never offer slots the student couldn't actually book — mirror the
+    // advance-booking cap enforced by POST /book-lesson (M5).
+    if (diffDays > (cfg.advanceBookingDays ?? 1)) {
+      return res.json({ date, slots: [], classDuration: cfg.classDuration });
+    }
 
     const hours = getDayHours(website.settings, bookingDate);
     if (!hours) return res.json({ date, slots: [], classDuration: cfg.classDuration, closed: true });
@@ -398,7 +406,7 @@ router.post(
       where: { id: websiteId },
       include: { settings: true },
     });
-    if (!website) throw notFound('Driving school not found');
+    if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
     const cfg = normalizeConfig(website);
 
@@ -681,7 +689,7 @@ router.get(
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
 
     const where: Prisma.ClientEnrollmentWhereInput = { websiteId: website.id };
-    if (status && ['ACTIVE', 'INACTIVE', 'COMPLETED', 'SUSPENDED'].includes(status)) {
+    if (status && ['ACTIVE', 'INACTIVE', 'COMPLETED'].includes(status)) {
       where.status = status as Prisma.ClientEnrollmentWhereInput['status'];
     }
     if (search) {
@@ -712,7 +720,14 @@ router.get(
       prisma.clientEnrollment.count({ where }),
     ]);
 
-    res.json({ students, total, page, limit, totalPages: Math.ceil(total / limit) });
+    // Show the honest, non-cancelled lesson count (not the double-counting column).
+    const counts = await nonCancelledCountsByEmail(
+      website.id,
+      students.map((s) => s.studentEmail)
+    );
+    const withCounts = students.map((s) => ({ ...s, classCount: counts.get(s.studentEmail) ?? 0 }));
+
+    res.json({ students: withCounts, total, page, limit, totalPages: Math.ceil(total / limit) });
   })
 );
 
@@ -788,6 +803,22 @@ async function loadEnrollment(websiteId: string, enrollmentId: string) {
   return enrollment;
 }
 
+/** Real, non-cancelled lesson count per student email (the honest "Classes" number).
+ *  The ClientEnrollment.classCount column is incremented per booking and never
+ *  decremented on cancel, so it double-counts — derive from Booking rows instead (M1). */
+async function nonCancelledCountsByEmail(
+  websiteId: string,
+  emails: string[]
+): Promise<Map<string, number>> {
+  if (!emails.length) return new Map();
+  const grouped = await prisma.booking.groupBy({
+    by: ['customerEmail'],
+    where: { websiteId, customerEmail: { in: emails }, status: { not: 'CANCELLED' } },
+    _count: { _all: true },
+  });
+  return new Map(grouped.map((g) => [g.customerEmail, g._count._all]));
+}
+
 // PATCH /driving-school/:websiteId/students/:enrollmentId/finish
 router.patch(
   '/:websiteId/students/:enrollmentId/finish',
@@ -825,8 +856,25 @@ router.delete(
   ...teacher,
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
-    await loadEnrollment(website.id, req.params.enrollmentId);
-    await prisma.clientEnrollment.delete({ where: { id: req.params.enrollmentId } });
+    const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);
+    const today = appTodayUtcMidnight(env.APP_TIMEZONE);
+    // Booking has no FK to the enrollment (matched by email), so deleting the row
+    // alone would leave the student's FUTURE lessons occupying their slots forever,
+    // and those ghost bookings would bleed onto anyone who re-enrolls with the same
+    // email. Cancel the future ones in the same transaction to free the slots (H5).
+    // Past bookings are left untouched so the teacher's history/reports stay intact.
+    await prisma.$transaction([
+      prisma.booking.updateMany({
+        where: {
+          websiteId: website.id,
+          customerEmail: enrollment.studentEmail,
+          status: { in: ['CONFIRMED', 'PENDING'] },
+          bookingDate: { gte: today },
+        },
+        data: { status: 'CANCELLED' },
+      }),
+      prisma.clientEnrollment.delete({ where: { id: req.params.enrollmentId } }),
+    ]);
     res.json({ deleted: true });
   })
 );
@@ -872,15 +920,9 @@ router.get(
     const { date } = resolveScheduleDate(req.query.day);
     const schedule = await buildDaySchedule(website, website.settings, date);
 
-    // enrich with classCount per student
+    // enrich with the honest, non-cancelled lesson count per student (M1)
     const emails = schedule.slots.filter((s) => s.booked && s.studentEmail).map((s) => s.studentEmail!);
-    const enrollments = emails.length
-      ? await prisma.clientEnrollment.findMany({
-          where: { websiteId: website.id, studentEmail: { in: emails } },
-          select: { studentEmail: true, classCount: true },
-        })
-      : [];
-    const countByEmail = new Map(enrollments.map((e) => [e.studentEmail, e.classCount]));
+    const countByEmail = await nonCancelledCountsByEmail(website.id, emails);
 
     res.json({
       date: schedule.date,
@@ -1080,49 +1122,16 @@ router.post(
 );
 
 // POST /driving-school/:websiteId/bookings/:bookingId/cancel-by-student
+// Legacy email+code path. Policy: students cannot cancel — always refuse (M3).
 router.post(
   '/:websiteId/bookings/:bookingId/cancel-by-student',
   rateLimit({ keyPrefix: 'cancel-booking', windowSeconds: 60, max: 10 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req) => {
     const data = z
       .object({ email: z.string().email(), enrollmentCode: z.string().min(1) })
       .parse(req.body);
-    const { email } = await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
-
-    const booking = await prisma.booking.findUnique({
-      where: { id: req.params.bookingId },
-      include: { website: { include: { user: { select: { email: true, name: true } } } } },
-    });
-    // Anti-IDOR: the booking must belong to this site AND to the proven student.
-    if (!booking || booking.websiteId !== req.params.websiteId || booking.customerEmail !== email) {
-      throw notFound('Booking not found');
-    }
-    if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
-    if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
-      throw badRequest(
-        'Please contact your instructor to change or cancel a lesson.',
-        'CANCEL_TOO_LATE'
-      );
-    }
-
-    await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
-
-    const date = booking.bookingDate.toISOString().slice(0, 10);
-    void sendBookingCancelled(booking.website.user.email, {
-      recipientName: booking.website.user.name,
-      date,
-      time: booking.bookingTime,
-      cancelledBy: 'student',
-      studentName: booking.customerName,
-      brand: siteBrand(booking.website),
-    });
-    void createNotification(booking.website.userId, {
-      type: 'BOOKING',
-      title: 'Lesson cancelled by student',
-      body: `${booking.customerName} cancelled ${date} at ${booking.bookingTime} — the slot is free again`,
-    });
-
-    res.json({ cancelled: true });
+    await proveStudentIdentity(req.params.websiteId, data.email, data.enrollmentCode);
+    throw forbidden('Please contact your instructor to change or cancel a lesson.', 'STUDENT_CANNOT_CANCEL');
   })
 );
 
@@ -1131,13 +1140,18 @@ router.post(
 // token (email + enrollment code → JWT with kind:'student', scoped to the site).
 // ===========================================================================
 
-/** Load the enrollment behind a valid student session (scoped to its site). */
+/** Load the enrollment behind a valid student session (scoped to its site).
+ *  Re-checks ACTIVE on every request so pausing/completing a student immediately
+ *  revokes their session (a 7-day token must not outlive their access — L10). */
 async function loadStudentEnrollment(req: Request) {
   const s = req.student!;
   const enrollment = await prisma.clientEnrollment.findFirst({
     where: { id: s.enrollmentId, websiteId: s.websiteId },
   });
   if (!enrollment) throw unauthorized('Your session has expired', 'BAD_IDENTITY');
+  if (enrollment.status !== 'ACTIVE') {
+    throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
+  }
   return enrollment;
 }
 
@@ -1257,42 +1271,15 @@ router.get(
 );
 
 // POST /driving-school/:websiteId/student/lessons/:bookingId/cancel (session auth).
+// Policy: students CANNOT cancel — only the teacher can. The route stays mounted
+// (so the client gets a clean, localized 403 rather than a 404) but always refuses.
 router.post(
   '/:websiteId/student/lessons/:bookingId/cancel',
   requireStudent,
   rateLimit({ keyPrefix: 'student-cancel', windowSeconds: 60, max: 10 }),
-  asyncHandler(async (req, res) => {
-    const enrollment = await loadStudentEnrollment(req);
-    const booking = await prisma.booking.findUnique({
-      where: { id: req.params.bookingId },
-      include: { website: { include: { user: { select: { email: true, name: true } } } } },
-    });
-    if (!booking || booking.websiteId !== req.params.websiteId || booking.customerEmail !== enrollment.studentEmail) {
-      throw notFound('Booking not found');
-    }
-    if (booking.status !== 'CONFIRMED') throw badRequest('This lesson is not active', 'NOT_ACTIVE');
-    if (minutesUntilLesson(booking.bookingDate, booking.bookingTime) <= STUDENT_CANCEL_CUTOFF_MINUTES) {
-      throw badRequest(
-        'Please contact your instructor to change or cancel a lesson.',
-        'CANCEL_TOO_LATE'
-      );
-    }
-    await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CANCELLED' } });
-    const date = booking.bookingDate.toISOString().slice(0, 10);
-    void sendBookingCancelled(booking.website.user.email, {
-      recipientName: booking.website.user.name,
-      date,
-      time: booking.bookingTime,
-      cancelledBy: 'student',
-      studentName: booking.customerName,
-      brand: siteBrand(booking.website),
-    });
-    void createNotification(booking.website.userId, {
-      type: 'BOOKING',
-      title: 'Lesson cancelled by student',
-      body: `${booking.customerName} cancelled ${date} at ${booking.bookingTime} — the slot is free again`,
-    });
-    res.json({ cancelled: true });
+  asyncHandler(async (req) => {
+    await loadStudentEnrollment(req); // still require a valid, active session
+    throw forbidden('Please contact your instructor to change or cancel a lesson.', 'STUDENT_CANNOT_CANCEL');
   })
 );
 
@@ -1484,6 +1471,12 @@ router.post(
     const website = getWebsite(res);
     const data = bulkEmailSchema.parse(req.body);
 
+    // "Specific students" mode with an empty selection must NOT silently fall back
+    // to emailing the whole site — reject it (M8).
+    if (data.enrollmentIds && data.enrollmentIds.length === 0) {
+      throw badRequest('Select at least one student to email', 'NO_RECIPIENTS');
+    }
+
     const selectingSpecificStudents = Boolean(data.enrollmentIds && data.enrollmentIds.length > 0);
 
     let recipients: { studentName: string; studentEmail: string }[];
@@ -1497,7 +1490,7 @@ router.post(
     } else {
       const where: Prisma.ClientEnrollmentWhereInput = { websiteId: website.id };
       if (data.targetGroup === 'active') where.status = 'ACTIVE';
-      if (data.targetGroup === 'inactive') where.status = { in: ['INACTIVE', 'SUSPENDED'] };
+      if (data.targetGroup === 'inactive') where.status = 'INACTIVE';
       recipients = await prisma.clientEnrollment.findMany({
         where,
         select: { studentName: true, studentEmail: true },

@@ -121,7 +121,6 @@ export default function BookLesson() {
         return;
       }
       setNeedsEnrollment(!res.enrolled);
-      if (res.studentName) setStudentName(res.studentName);
       setStep(res.enrolled ? 'time' : 'details');
     },
     onError: (e) => toast.error(apiError(e).message),

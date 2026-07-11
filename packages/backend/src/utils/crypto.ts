@@ -33,3 +33,10 @@ export function verifyEnrollmentCode(code: string, stored: string): boolean {
 export function generateDailyCodeValue(): string {
   return randomBytes(3).toString('hex').toUpperCase();
 }
+
+/** One-way hash of a high-entropy single-use token, used as the KV key so the raw
+ *  token is never stored (only lives in the emailed URL). No salt: nanoid(48) is
+ *  already unguessable, and a hash makes any KV log/backup leak non-usable (L1). */
+export function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}

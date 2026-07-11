@@ -170,8 +170,6 @@ export interface PublicSettings {
 export interface CheckEnrollment {
   enrolled: boolean;
   active?: boolean;
-  status?: EnrollmentStatus;
-  studentName?: string;
 }
 
 export interface AvailabilityResponse {

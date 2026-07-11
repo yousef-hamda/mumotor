@@ -8,9 +8,10 @@ export function signToken(payload: AuthPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN } as jwt.SignOptions);
 }
 
-/** Sign a student-portal session token. Short-lived; scoped to one website. */
+/** Sign a student-portal session token. Scoped to one website; 7-day lifetime
+ *  (passwordless email login is a weak factor — keep the session short). */
 export function signStudentToken(payload: StudentAuthPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '30d' } as jwt.SignOptions);
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '7d' } as jwt.SignOptions);
 }
 
 function extractToken(req: Request): string | null {
