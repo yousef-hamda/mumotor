@@ -72,6 +72,8 @@ export interface SendArgs {
   html: string;
   text?: string;
   brand?: EmailBrand;
+  /** Optional BCC — e.g. the Trustpilot AFS auto-invite on INSTRUCTOR emails only. */
+  bcc?: string | string[];
 }
 
 /** From header as an RFC 5322 string ("Name <addr>") for the Resend API. */
@@ -80,7 +82,7 @@ function fromString(brand?: EmailBrand): string {
   return typeof f === 'string' ? f : `${f.name} <${f.address}>`;
 }
 
-async function sendViaResend({ to, subject, html, text, brand }: SendArgs): Promise<boolean> {
+async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -90,6 +92,7 @@ async function sendViaResend({ to, subject, html, text, brand }: SendArgs): Prom
     body: JSON.stringify({
       from: fromString(brand),
       to: [to],
+      ...(bcc ? { bcc: Array.isArray(bcc) ? bcc : [bcc] } : {}),
       subject,
       html,
       text: text ?? stripHtml(html),
@@ -105,12 +108,13 @@ async function sendViaResend({ to, subject, html, text, brand }: SendArgs): Prom
   return true;
 }
 
-export async function sendEmail({ to, subject, html, text, brand }: SendArgs): Promise<boolean> {
+export async function sendEmail({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
   try {
-    if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand });
+    if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand, bcc });
     const info = await transporter.sendMail({
       from: fromField(brand),
       to,
+      ...(bcc ? { bcc } : {}),
       subject,
       html,
       text: text ?? stripHtml(html),
@@ -449,6 +453,15 @@ export function sendPasswordReset(to: string, data: { name?: string; resetUrl: s
   });
 }
 
+/**
+ * Trustpilot AFS (Automatic Feedback Service): a unique BCC address that makes
+ * Trustpilot auto-send a review invitation to the recipient a few days later.
+ * BCC it ONLY on INSTRUCTOR emails (Mumotor's own customers) — never on student
+ * booking/enrollment emails (students review their instructor, not the platform).
+ * Overridable via TRUSTPILOT_AFS_BCC env; falls back to the verified address.
+ */
+const TRUSTPILOT_AFS_BCC = process.env.TRUSTPILOT_AFS_BCC || 'mumotor.com+f1498a9e3f@invite.trustpilot.com';
+
 export function sendEmailVerification(to: string, data: { name?: string; verifyUrl: string }) {
   const body = `
     <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">Verify your email</h1>
@@ -459,6 +472,8 @@ export function sendEmailVerification(to: string, data: { name?: string; verifyU
     to,
     subject: 'Verify your Mumotor email',
     html: layout('Verify email', body),
+    // Instructor sign-up email → Trustpilot auto-invites them to review Mumotor.
+    bcc: TRUSTPILOT_AFS_BCC,
   });
 }
 
