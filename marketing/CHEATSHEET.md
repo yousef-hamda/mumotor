@@ -34,10 +34,11 @@ one of the strongest signals. Never fake reviews — ask real instructors who us
 
 ### Trustpilot  ✅ DONE — profile created + domain VERIFIED (via Cloudflare DNS TXT)
 - Business account live at business.trustpilot.com. Domain mumotor.com verified.
-- **AFS auto-invite BCC address:** `mumotor.com+f1498a9e3f@invite.trustpilot.com`
-  → BCC this ONLY on **instructor** emails (Mumotor's customers), NEVER on student
-  booking emails. To auto-collect reviews, wire it into the instructor welcome email
-  (backend), or manually invite real instructors from the Trustpilot dashboard.
+- **AFS auto-invite: ✅ WIRED into the backend** — the Trustpilot BCC is now on the
+  instructor sign-up (email-verification) email, so **every new instructor is
+  auto-invited to review Mumotor** a few days after signing up. Student emails are
+  deliberately untouched. (Address: `mumotor.com+f1498a9e3f@invite.trustpilot.com`,
+  overridable via `TRUSTPILOT_AFS_BCC` env.)
 - Get reviews: ask real driving instructors who use Mumotor (never fake).
 
 ### Google Business Profile — SKIP (doesn't fit an online business)
