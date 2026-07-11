@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Check, CreditCard, Rocket, Zap } from 'lucide-react';
+import { Check, CreditCard, Rocket, Zap, Sparkles, Lock } from 'lucide-react';
 import { apiError, subscriptionApi } from '../../lib/api';
 import { Button, CenteredSpinner } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -43,6 +43,7 @@ export default function Billing() {
 
   if (isLoading || !data) return <CenteredSpinner />;
   const current = data.subscription.plan;
+  const account = data.account;
 
   // Highlight a "recommended" plan only when there's more than one to compare.
   const recommended = data.plans.length > 1 ? 'PRO' : null;
@@ -59,6 +60,32 @@ export default function Billing() {
           </p>
         </div>
       </FadeUp>
+
+      {account?.onTrial && (
+        <FadeUp>
+          <div className="flex items-start gap-3 rounded-xl border border-sun-200 bg-sun-50 px-5 py-4 text-sun-800">
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">
+                {account.trialDaysLeft <= 1 ? t('dashboard.trial.bannerLastDay') : t('dashboard.trial.bannerDays', { days: account.trialDaysLeft })}
+              </p>
+              <p className="text-sm opacity-80">{t('dashboard.trial.firstMonthFree', { price: account.websitePrice })}</p>
+            </div>
+          </div>
+        </FadeUp>
+      )}
+
+      {account?.locked && (
+        <FadeUp>
+          <div className="flex items-start gap-3 rounded-xl border border-sand-300 bg-sand-50 px-5 py-4">
+            <Lock className="mt-0.5 h-5 w-5 shrink-0 text-sand-900" />
+            <div>
+              <p className="font-semibold text-sand-900">{t('dashboard.trial.lockTitle')}</p>
+              <p className="text-sm text-sand-600">{t('dashboard.trial.onBillingHint')}</p>
+            </div>
+          </div>
+        </FadeUp>
+      )}
 
       <Stagger
         className={cn('grid gap-5', data.plans.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'mx-auto max-w-md')}

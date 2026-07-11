@@ -349,9 +349,13 @@ can no longer cancel + no "2-hour" wording; teacher **Today/Tomorrow schedule** 
 **"Email me the schedule"**; **email specific students**; open-road **footer scrollbar-flicker** fixed
 (`overflow-x:hidden` + px grain keyframes).
 
+**Free trial + per-website paywall (July 11 — Stripe-ready, Stripe DORMANT):** New teachers get **one website free for the first month** (30d from signup, `TRIAL_DAYS`). After that, unpaid → account **LOCKED** and the published site **FROZEN** (`WebsiteStatus.SUSPENDED` → goes dark + a themed "paused" page) + one localized "free month ended" email; extra websites / reactivation = **₪199/mo each**. Single source of truth is `services/billing/accountState.ts` `getAccountState()` (reused by the `POST /websites` 402 guard, `requireActiveAccount` on teacher writes, `/auth/me`, `/subscriptions`, and the hourly `processExpiredTrials` cron). Freeze/restore = `services/billing/siteFreeze.ts`, wired into the demo-checkout path AND the Stripe webhook. Frontend: `lib/useAccount.ts` → `DashboardLayout` trial-banner + full lock screen (only Billing reachable); `PublicSite` themed paused screen. Migration `20260711123432_trial_and_website_quota` backfills existing users to `now+30d` so nothing freezes on deploy. Details in the `free-trial-and-marketing-video` memory.
+
+**Landing demo video (July 11):** `public/media/marketing.{mp4,webm}` + poster — a ~59s Apple-keynote demo built from REAL product screenshots (Playwright → HTML scenes → numpy-synth music → ffmpeg; sources in the session scratchpad). `components/VideoLightbox.tsx` + `hero/CinematicHero.tsx` replaced the "View a live demo" link with a **"Watch the demo"** button + a play-overlay on the hero video.
+
 **Still open (real):**
 - **Media storage ephemeral**: uploads to local `/uploads` are on a Railway volume now, but `Media.cdnUrl` is still null (no S3/R2/CDN).
-- **No plan enforcement**: billing plans are display-only; FREE and STUDIO have identical API access. Stripe not wired (paid checkout 503 by design).
+- **Stripe not wired**: keys/price ids unset, so paid checkout still 503s in prod (demo-switch in dev). The trial/quota/freeze system above is fully in place and reactivates automatically once Stripe keys + `STRIPE_PRICE_*` are configured (webhook already restores frozen sites).
 - **Per-teacher subdomains dormant**: code done, wildcard DNS not live (Railway Hobby plan caps custom domains) — sites are at `/p/:slug`.
 - **Daily email volume at scale**: the every-5-min cron loads all active enrollments into memory and emails every student daily → the first scaling cost (batch/queue + paginate the cron before ~hundreds of teachers). See the capacity report in the advertising-report memory.
 - **Session tokens in localStorage + no CSP** (student + teacher) — residual XSS surface.

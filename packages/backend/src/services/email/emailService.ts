@@ -477,6 +477,31 @@ export function sendEmailVerification(to: string, data: { name?: string; verifyU
   });
 }
 
+/**
+ * Free-month-ended notice (Mumotor → the teacher). Rendered in the teacher's own
+ * preferredLanguage (en/he/ar). Not school-branded — this is from Mumotor about
+ * their account, so it uses the plain Mumotor layout + Trustpilot AFS BCC.
+ */
+export function sendTrialExpired(
+  to: string,
+  data: { name?: string; billingUrl: string; price: number; locale?: EmailLocale }
+) {
+  const L: EmailLocale = data.locale ?? 'en';
+  const rtl = L === 'he' || L === 'ar';
+  const greet = data.name ? `${esc(data.name)}` : '';
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'trialHeading')}</h1>
+    <p style="color:#52525b;line-height:1.6">${emailT(L, 'trialBody', { name: greet })}</p>
+    <p style="color:#52525b;line-height:1.6">${emailT(L, 'trialSub', { price: String(data.price) })}</p>
+    <p style="text-align:${rtl ? 'right' : 'left'}">${button(data.billingUrl, emailT(L, 'trialBtn'))}</p>`;
+  return sendEmail({
+    to,
+    subject: emailT(L, 'subjTrialExpired', { price: String(data.price) }),
+    html: layout(emailT(L, 'titleTrialExpired'), body),
+    bcc: TRUSTPILOT_AFS_BCC,
+  });
+}
+
 export function sendWelcomeEnrollment(
   to: string,
   data: { studentName: string; bookingUrl: string; brand: EmailBrand }

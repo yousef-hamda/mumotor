@@ -29,8 +29,25 @@ export interface Plan {
   note?: string;
 }
 
+/** Free-trial + per-website paywall state — mirrors the backend getAccountState(). */
+export interface AccountState {
+  plan: 'FREE' | 'PRO' | 'STUDIO';
+  status: string;
+  onTrial: boolean;
+  trialDaysLeft: number;
+  trialEndsAt: string | null;
+  paid: boolean;
+  quota: number;
+  websiteCount: number;
+  publishedCount: number;
+  canAddWebsite: boolean;
+  locked: boolean;
+  websitePrice: number;
+}
+
 export interface SubscriptionInfo {
   subscription: { plan: 'FREE' | 'PRO' | 'STUDIO'; status: string; currentPeriodEnd: string | null };
+  account?: AccountState;
   plans: Plan[];
 }
 

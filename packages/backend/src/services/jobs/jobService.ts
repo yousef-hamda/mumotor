@@ -17,8 +17,12 @@ import {
   sendDailyBookingOpen,
   sendEnhancedDailyReport,
   sendReviewRequest,
+  sendTrialExpired,
   siteBrand,
 } from '../email/emailService.js';
+import { emailLocale } from '../email/strings.js';
+import { freezeUserSites } from '../billing/siteFreeze.js';
+import { WEBSITE_PRICE } from '../billing/accountState.js';
 
 const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
 const REVIEW_REQUEST_DELAY_MINUTES = 60; // ask ~1h after the lesson ended
@@ -251,6 +255,48 @@ export async function processDailyRhythmTick(): Promise<{ codes: number; booking
   return { codes, bookingOpen, reports };
 }
 
+/**
+ * Freeze accounts whose free month has lapsed: for each FREE subscription past
+ * its trialEndsAt that hasn't been handled yet, suspend the teacher's live
+ * site(s), email them (once) that the trial is over, and stamp the guard so we
+ * never re-freeze or re-email. Data is never deleted — the site is only paused.
+ */
+export async function processExpiredTrials(): Promise<number> {
+  const now = new Date();
+  const expired = await prisma.subscription.findMany({
+    where: {
+      plan: 'FREE',
+      trialEndsAt: { not: null, lt: now },
+      trialExpiredNotifiedAt: null,
+    },
+    include: { user: { select: { id: true, email: true, name: true, preferredLanguage: true } } },
+  });
+
+  let handled = 0;
+  for (const sub of expired) {
+    try {
+      const frozen = await freezeUserSites(sub.userId);
+      await sendTrialExpired(sub.user.email, {
+        name: sub.user.name,
+        billingUrl: `${env.FRONTEND_URL}/dashboard/billing`,
+        price: WEBSITE_PRICE,
+        locale: emailLocale(sub.user.preferredLanguage),
+      });
+      // Mark handled + reflect the lapsed state on the subscription row.
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { trialExpiredNotifiedAt: now, status: 'CANCELED' },
+      });
+      handled++;
+      if (frozen) logger.info(`Trial expired: froze ${frozen} site(s) for ${sub.user.email}`);
+    } catch (e) {
+      logger.error(`trial-expiry handling failed for user ${sub.userId}`, e);
+    }
+  }
+  if (handled) logger.info(`Trial expirations processed: ${handled}`);
+  return handled;
+}
+
 let started = false;
 export function startCronJobs() {
   if (!env.ENABLE_CRON) {
@@ -280,5 +326,14 @@ export function startCronJobs() {
     { noOverlap: true }
   );
 
-  logger.info('Cron jobs scheduled (reminders */15m, daily rhythm */5m)');
+  // Hourly: freeze accounts whose free month has ended + email them once.
+  cron.schedule(
+    '17 * * * *',
+    () => {
+      processExpiredTrials().catch((e) => logger.error('trial-expiry job failed', e));
+    },
+    { noOverlap: true }
+  );
+
+  logger.info('Cron jobs scheduled (reminders */15m, daily rhythm */5m, trial-expiry hourly)');
 }

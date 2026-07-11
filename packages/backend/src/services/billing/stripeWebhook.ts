@@ -4,6 +4,7 @@ import { stripe } from '../../lib/stripe.js';
 import { env } from '../../config/env.js';
 import { prisma } from '../../lib/prisma.js';
 import { logger } from '../../lib/logger.js';
+import { restoreUserSites, freezeUserSites } from './siteFreeze.js';
 
 /** Stripe webhook — must receive the RAW request body for signature verification. */
 export async function stripeWebhookHandler(req: Request, res: Response): Promise<void> {
@@ -29,19 +30,26 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
       if (userId && plan) {
         await prisma.subscription.upsert({
           where: { userId },
-          update: { plan, status: 'ACTIVE', stripeCustomerId: String(s.customer), stripeSubscriptionId: String(s.subscription) },
+          update: { plan, status: 'ACTIVE', trialExpiredNotifiedAt: null, stripeCustomerId: String(s.customer), stripeSubscriptionId: String(s.subscription) },
           create: { userId, plan, status: 'ACTIVE', stripeCustomerId: String(s.customer), stripeSubscriptionId: String(s.subscription) },
         });
+        // Payment succeeded → bring any frozen site back online.
+        await restoreUserSites(userId);
       }
     } else if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object as Stripe.Subscription;
+      const row = await prisma.subscription.findFirst({ where: { stripeSubscriptionId: sub.id }, select: { userId: true } });
       await prisma.subscription.updateMany({ where: { stripeSubscriptionId: sub.id }, data: { status: 'CANCELED', plan: 'FREE' } });
+      // Paid subscription ended → freeze the site(s) until they resubscribe.
+      if (row) await freezeUserSites(row.userId);
     } else if (event.type === 'customer.subscription.updated') {
       const sub = event.data.object as Stripe.Subscription;
-      await prisma.subscription.updateMany({
-        where: { stripeSubscriptionId: sub.id },
-        data: { status: sub.status === 'active' ? 'ACTIVE' : sub.status === 'past_due' ? 'PAST_DUE' : 'INCOMPLETE' },
-      });
+      const status = sub.status === 'active' ? 'ACTIVE' : sub.status === 'past_due' ? 'PAST_DUE' : 'INCOMPLETE';
+      await prisma.subscription.updateMany({ where: { stripeSubscriptionId: sub.id }, data: { status } });
+      if (status === 'ACTIVE') {
+        const row = await prisma.subscription.findFirst({ where: { stripeSubscriptionId: sub.id }, select: { userId: true } });
+        if (row) await restoreUserSites(row.userId);
+      }
     }
   } catch (e) {
     logger.error('Stripe webhook handling error', (e as Error).message);

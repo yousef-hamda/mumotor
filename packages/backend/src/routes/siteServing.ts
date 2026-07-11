@@ -14,6 +14,22 @@ function notFoundHtml(slug: string): string {
   <p style="color:#71717a">No published site found at <code>/${slug}</code>.</p></div></body></html>`;
 }
 
+/** On-brand "temporarily paused" page for a frozen site (uses its own template colours). */
+function pausedHtml(name: string, template: string | null, theme: Record<string, unknown>): string {
+  const c = resolveSiteColors(template, theme);
+  const onAccent = luminance(c.accent) > 0.55 ? '#000' : '#fff';
+  const safe = escapeXml(name || 'This site');
+  const initial = escapeXml(siteInitial(name || 'M'));
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safe} — paused</title>
+  <style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:${c.bg};color:${c.ink};text-align:center;padding:24px}
+  .badge{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;background:${c.accent};color:${onAccent};font-size:38px;font-weight:700;margin:0 auto 22px;box-shadow:0 12px 40px -12px ${c.accent}66}
+  h1{font-size:clamp(24px,5vw,32px);font-weight:600;letter-spacing:-.02em;margin:0 0 10px}
+  p{max-width:30rem;margin:0 auto;color:${c.ink};opacity:.62;font-size:16px;line-height:1.55}</style></head>
+  <body><div><div class="badge">${initial}</div>
+  <h1>${safe} is taking a short break</h1>
+  <p>This website is temporarily paused. Please check back soon.</p></div></body></html>`;
+}
+
 // ── PWA branding per template ────────────────────────────────────────────────
 // Mirrors the frontend COLOR_SLOTS / templateTheme accent map (packages/frontend/
 // src/templates/customize/overrides.ts + lib/templateTheme.ts) so the installed
@@ -183,6 +199,17 @@ router.get(
     }
 
     const website = await prisma.website.findUnique({ where: { slug } });
+    // Frozen site (owner's free month lapsed) → on-brand "paused" page, not a 404.
+    if (website && website.status === 'SUSPENDED') {
+      const raw = (website.configuration ?? {}) as Record<string, unknown>;
+      const theme = ((raw.customization as { theme?: Record<string, unknown> } | undefined)?.theme) ?? {};
+      res
+        .status(503)
+        .set('Retry-After', '86400')
+        .type('html')
+        .send(pausedHtml(website.name, website.selectedPreset ?? (raw.templateChoice as string) ?? null, theme));
+      return;
+    }
     if (!website || website.status !== 'PUBLISHED' || !website.publishedHtml) {
       res.status(404).type('html').send(notFoundHtml(slug));
       return;

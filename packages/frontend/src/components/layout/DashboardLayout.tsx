@@ -2,9 +2,10 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { LayoutDashboard, GraduationCap, Star, MessageSquare, Rocket, CreditCard, Settings as SettingsIcon, LogOut, MailWarning, Menu, X } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, Star, MessageSquare, Rocket, CreditCard, Settings as SettingsIcon, LogOut, MailWarning, Menu, X, Lock, Sparkles } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { apiError, authApi } from '../../lib/api';
+import { useAccount } from '../../lib/useAccount';
 import { cn } from '../../lib/utils';
 import { Logo } from '../Logo';
 import { LanguageSwitcher } from '../LanguageSwitcher';
@@ -49,6 +50,42 @@ function VerifyEmailBanner() {
   );
 }
 
+/** Slim blue banner during the free month; blocks nothing. */
+function TrialBanner() {
+  const { t } = useTranslation();
+  const { data: account } = useAccount();
+  if (!account?.onTrial) return null;
+  const label = account.trialDaysLeft <= 1 ? t('dashboard.trial.bannerLastDay') : t('dashboard.trial.bannerDays', { days: account.trialDaysLeft });
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-sun-200 bg-sun-50 px-4 py-2.5 text-sm text-sun-800 sm:px-6">
+      <Sparkles className="h-4 w-4 shrink-0" />
+      <span className="font-medium">{label}</span>
+      <Link to="/dashboard/billing" className="ms-auto font-semibold text-sun-700 underline underline-offset-2 hover:opacity-80">
+        {t('dashboard.trial.subscribe')}
+      </Link>
+    </div>
+  );
+}
+
+/** Full-panel paywall shown in place of the page content when the account is locked. */
+function AccountLocked({ price }: { price: number }) {
+  const { t } = useTranslation();
+  return (
+    <div className="grid min-h-[60vh] place-items-center px-4">
+      <div className="w-full max-w-md rounded-3xl border border-sand-200 bg-white p-8 text-center shadow-card">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-sand-900 text-white">
+          <Lock className="h-6 w-6" />
+        </div>
+        <h2 className="text-xl font-semibold tracking-tight text-sand-900">{t('dashboard.trial.lockTitle')}</h2>
+        <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-sand-600">{t('dashboard.trial.lockBody')}</p>
+        <Link to="/dashboard/billing" className="btn-primary mt-6 px-7 py-3 text-base">
+          {t('dashboard.trial.lockCta', { price })}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 const nav = [
   { to: '/dashboard', labelKey: 'common.overview', icon: LayoutDashboard, exact: true },
   { to: '/dashboard/driving-school', labelKey: 'common.drivingTeacher', icon: GraduationCap },
@@ -63,7 +100,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
+  const { data: account } = useAccount();
   const [open, setOpen] = useState(false);
+
+  // When locked (free month over, unpaid) every page except Billing is gated so
+  // the only path forward is to subscribe.
+  const onBilling = location.pathname.startsWith('/dashboard/billing');
+  const gated = Boolean(account?.locked) && !onBilling;
 
   // Mobile drawer: lock body scroll + close on Escape while it's open.
   useEffect(() => {
@@ -178,7 +221,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <VerifyEmailBanner />
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <TrialBanner />
+        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+          {gated ? <AccountLocked price={account?.websitePrice ?? 199} /> : children}
+        </main>
       </div>
     </div>
   );

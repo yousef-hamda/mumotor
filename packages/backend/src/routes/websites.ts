@@ -5,7 +5,8 @@ import { kv } from '../lib/redis.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { badRequest, forbidden, notFound } from '../utils/errors.js';
+import { ApiError, badRequest, forbidden, notFound } from '../utils/errors.js';
+import { getAccountState, WEBSITE_PRICE } from '../services/billing/accountState.js';
 import { slugify } from '../utils/slug.js';
 import { DEFAULTS } from '../services/scheduling/schedulingService.js';
 import { generateWebsite, configToSiteConfig } from '../services/ai/generator.js';
@@ -77,6 +78,18 @@ router.get(
 router.post(
   '/',
   asyncHandler(async (req, res) => {
+    // One website per account on the free plan; extra sites are ₪199/mo each.
+    const state = await getAccountState(req.user!.id);
+    if (!state.canAddWebsite) {
+      throw new ApiError(
+        402,
+        state.locked
+          ? `Your free month has ended. Subscribe for ₪${WEBSITE_PRICE}/month to keep your website online.`
+          : `Your plan includes ${state.quota} website${state.quota === 1 ? '' : 's'}. Additional websites are ₪${WEBSITE_PRICE}/month each.`,
+        'PAYMENT_REQUIRED'
+      );
+    }
+
     const data = createSchema.parse(req.body);
     const slug = await ensureUniqueSlug(slugify(data.slug || data.name));
 
@@ -153,6 +166,16 @@ router.post(
   '/:id/publish',
   asyncHandler(async (req, res) => {
     const website = await loadOwned(req.params.id, req.user!.id);
+
+    // A locked account (free month over, not subscribed) cannot (re)publish.
+    const state = await getAccountState(req.user!.id);
+    if (state.locked) {
+      throw new ApiError(
+        402,
+        `Your free month has ended. Subscribe for ₪${WEBSITE_PRICE}/month to publish your website.`,
+        'PAYMENT_REQUIRED'
+      );
+    }
 
     const config = configToSiteConfig(website.configuration as Record<string, unknown>);
     const { html } = generateWebsite({

@@ -11,6 +11,7 @@ import { badRequest, conflict, unauthorized } from '../utils/errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { hashToken } from '../utils/crypto.js';
 import { sendEmailVerification, sendPasswordReset } from '../services/email/emailService.js';
+import { getAccountState, TRIAL_DAYS } from '../services/billing/accountState.js';
 
 const router = Router();
 
@@ -58,8 +59,16 @@ router.post(
     if (existing) throw conflict('An account with this email already exists', 'EMAIL_TAKEN');
 
     const passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
+    // Start the free month at signup: one website, free for TRIAL_DAYS days.
+    const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
     const user = await prisma.user.create({
-      data: { email, passwordHash, name: data.name.trim(), phone: data.phone.trim() },
+      data: {
+        email,
+        passwordHash,
+        name: data.name.trim(),
+        phone: data.phone.trim(),
+        subscription: { create: { plan: 'FREE', status: 'TRIALING', trialEndsAt, websiteQuota: 1 } },
+      },
     });
 
     void sendVerification(user); // fire-and-forget; registration never blocks on email
@@ -95,7 +104,8 @@ router.get(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user) throw unauthorized('Account not found');
-    res.json({ user: publicUser(user) });
+    const account = await getAccountState(user.id);
+    res.json({ user: publicUser(user), account });
   })
 );
 

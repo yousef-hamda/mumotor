@@ -124,6 +124,16 @@ const en = {
     "Hi {name}, you're enrolled. Each morning you'll get an email when booking opens, and you can book a lesson anytime.",
   welBtn: 'Book your first lesson',
   subjWelcome: "You're enrolled at {school}",
+
+  // ── free-month ended (Mumotor → teacher, in the teacher's own language) ──
+  titleTrialExpired: 'Free month ended',
+  trialHeading: 'Your free month has ended',
+  trialBody:
+    'Hi {name}, your free month on Mumotor has ended — so your website is now paused and students can no longer book. Nothing is lost: all of your data is safe and waiting for you.',
+  trialSub:
+    'Reactivate for just ₪{price}/month to bring your site back online and keep everything running — bookings, reminders and your daily schedule.',
+  trialBtn: 'Reactivate my website',
+  subjTrialExpired: 'Your free month has ended — reactivate for ₪{price}/month',
 };
 
 const he: typeof en = {
@@ -215,6 +225,16 @@ const he: typeof en = {
     'שלום {name}, נרשמת. כל בוקר תקבל/י אימייל כשההזמנה נפתחת, ואפשר להזמין שיעור בכל עת.',
   welBtn: 'הזמנת השיעור הראשון',
   subjWelcome: 'נרשמת ל{school}',
+
+  // ── free-month ended (Mumotor → teacher) ──
+  titleTrialExpired: 'החודש החינם הסתיים',
+  trialHeading: 'החודש החינם שלך הסתיים',
+  trialBody:
+    'שלום {name}, החודש החינם שלך ב-Mumotor הסתיים — ולכן האתר שלך מושהה כעת והתלמידים אינם יכולים לקבוע שיעורים. שום דבר לא אבד: כל המידע שלך שמור וממתין לך.',
+  trialSub:
+    'הפעל/י מחדש בעלות של ₪{price} לחודש בלבד כדי להחזיר את האתר לאוויר ולשמור על הכול פעיל — הזמנות, תזכורות ולוח הזמנים היומי שלך.',
+  trialBtn: 'הפעלה מחדש של האתר',
+  subjTrialExpired: 'החודש החינם שלך הסתיים — הפעלה מחדש ב-₪{price} לחודש',
 };
 
 const ar: typeof en = {
@@ -307,6 +327,16 @@ const ar: typeof en = {
     'مرحباً {name}، تم تسجيلك. كل صباح ستصلك رسالة عند فتح الحجز، ويمكنك حجز درس في أي وقت.',
   welBtn: 'احجز درسك الأول',
   subjWelcome: 'تم تسجيلك في {school}',
+
+  // ── free-month ended (Mumotor → teacher) ──
+  titleTrialExpired: 'انتهى الشهر المجاني',
+  trialHeading: 'انتهى شهرك المجاني',
+  trialBody:
+    'مرحباً {name}، انتهى شهرك المجاني على Mumotor — لذا أصبح موقعك متوقفاً مؤقتاً ولم يعد بإمكان الطلاب حجز الدروس. لم يُفقد شيء: جميع بياناتك محفوظة وبانتظارك.',
+  trialSub:
+    'أعد التفعيل مقابل ₪{price} شهرياً فقط لإعادة موقعك إلى الإنترنت والحفاظ على كل شيء يعمل — الحجوزات والتذكيرات وجدولك اليومي.',
+  trialBtn: 'إعادة تفعيل موقعي',
+  subjTrialExpired: 'انتهى شهرك المجاني — أعد التفعيل مقابل ₪{price} شهرياً',
 };
 
 const DICTS: Record<EmailLocale, typeof en> = { en, he, ar };

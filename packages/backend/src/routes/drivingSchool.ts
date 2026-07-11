@@ -6,7 +6,8 @@ import { prisma } from '../lib/prisma.js';
 import { verifyToken, requireStudent, signStudentToken } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
+import { ApiError, badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
+import { getAccountState } from '../services/billing/accountState.js';
 import {
   hashEnrollmentCode,
   timingSafeEqualStr,
@@ -59,7 +60,18 @@ const requireOwnership = asyncHandler(async (req: Request, res: Response, next: 
   res.locals.website = website;
   next();
 });
-const teacher = [verifyToken, requireOwnership];
+
+// Block teacher WRITE actions when the account is locked (free month over, unpaid).
+// Reads (GET) still work so the dashboard can render behind the paywall.
+const requireActiveAccount = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
+  if (req.method === 'GET') return next();
+  const state = await getAccountState(req.user!.id);
+  if (state.locked) {
+    throw new ApiError(402, 'Your free month has ended. Subscribe to keep managing your driving school.', 'ACCOUNT_LOCKED');
+  }
+  next();
+});
+const teacher = [verifyToken, requireOwnership, requireActiveAccount];
 
 const normalizeEmail = (e: string) => e.trim().toLowerCase();
 
@@ -253,7 +265,22 @@ router.get(
       where: { slug: req.params.websiteSlug },
       include: { settings: true, services: true },
     });
-    if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
+    if (!website) throw notFound('Driving school not found');
+    // A frozen site (owner's free month lapsed) → return a themed "paused" marker
+    // so the public page shows an on-brand "temporarily paused" screen, not an error.
+    if (website.status === 'SUSPENDED') {
+      const raw = (website.configuration ?? {}) as Record<string, unknown>;
+      res.json({
+        suspended: true,
+        name: website.name,
+        locale: website.locale ?? null,
+        template: website.selectedPreset ?? (raw.templateChoice as string | undefined) ?? null,
+        logoSrc: (raw.logoSrc as string | undefined) ?? null,
+        customization: (raw.customization as Record<string, unknown> | undefined) ?? null,
+      });
+      return;
+    }
+    if (website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
     const cfg = normalizeConfig(website);
     const raw = (website.configuration ?? {}) as Record<string, unknown>;

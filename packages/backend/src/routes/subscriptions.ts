@@ -6,6 +6,8 @@ import { stripe, PRICE_IDS } from '../lib/stripe.js';
 import { ApiError } from '../utils/errors.js';
 import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { getAccountState } from '../services/billing/accountState.js';
+import { restoreUserSites } from '../services/billing/siteFreeze.js';
 
 const router = Router();
 
@@ -37,10 +39,12 @@ router.get(
   '/',
   asyncHandler(async (req, res) => {
     const subscription = await prisma.subscription.findUnique({ where: { userId: req.user!.id } });
+    const account = await getAccountState(req.user!.id);
     res.json({
       subscription: subscription
         ? { plan: subscription.plan, status: subscription.status, currentPeriodEnd: subscription.currentPeriodEnd }
         : { plan: 'FREE', status: 'ACTIVE', currentPeriodEnd: null },
+      account,
       plans: PLANS,
     });
   })
@@ -86,13 +90,17 @@ router.post(
     // Demo fallback (and FREE downgrades): switch plan immediately
     const subscription = await prisma.subscription.upsert({
       where: { userId },
-      update: { plan, status: 'ACTIVE' },
+      update: { plan, status: 'ACTIVE', ...(plan !== 'FREE' ? { trialExpiredNotifiedAt: null } : {}) },
       create: { userId, plan, status: 'ACTIVE' },
     });
+    // Paying re-activates a frozen account: bring any paused site back online.
+    let restored = 0;
+    if (plan !== 'FREE') restored = await restoreUserSites(userId);
     res.json({
       success: true,
       mode: 'demo',
       plan: subscription.plan,
+      restored,
       note: 'Demo mode: plan switched without payment. Set STRIPE_SECRET_KEY + price ids for real checkout.',
     });
   })

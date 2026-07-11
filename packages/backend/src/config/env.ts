@@ -35,6 +35,11 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_STUDIO: z.string().optional(),
+  // Per-website price (₪) charged after the free month — Stripe-ready, display + copy.
+  STRIPE_PRICE_WEBSITE: z.string().optional(),
+
+  // Free trial: how many days the first website is free from signup (default 30).
+  TRIAL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 
   // Unsplash (photo search proxy — used by Customize "find a photo").
   // Only the access key is used (sent as a Client-ID); no secret is stored.

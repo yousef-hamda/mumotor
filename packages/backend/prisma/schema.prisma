@@ -414,6 +414,17 @@ model Subscription {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
+  // Free-trial + per-website paywall (Stripe-ready, Stripe-dormant):
+  //  - trialEndsAt: when the FREE month runs out (set at signup). A FREE account
+  //    with trialEndsAt in the future is "on trial"; once it passes, the account
+  //    is "locked" until it pays (its published site is frozen → SUSPENDED).
+  //  - websiteQuota: how many live websites the account is entitled to. FREE/trial
+  //    = 1 (enforced in code); a paid account = the Stripe subscription quantity
+  //    (₪199 per website). Additional websites are billed as extra quantity.
+  //  - trialExpiredNotifiedAt: guard so the "trial over" email is sent exactly once.
+  trialEndsAt            DateTime?
+  websiteQuota           Int              @default(1)
+  trialExpiredNotifiedAt DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)

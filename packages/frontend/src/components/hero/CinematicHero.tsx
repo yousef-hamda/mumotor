@@ -1,15 +1,18 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, CalendarCheck, ShieldCheck } from 'lucide-react';
+import { Play, CalendarCheck, ShieldCheck } from 'lucide-react';
 import { FadeUp, ScrollTilt } from '../motion';
+import { VideoLightbox } from '../VideoLightbox';
 
 /**
  * Apple-style hero: centered oversized type, near-monochrome with one blue accent,
- * a glass secondary CTA, and a large real driving-lesson video that rises and
- * flattens on scroll (3D). Renders instantly (no intro gate).
+ * a glass secondary CTA that opens the product demo video, and a large real
+ * driving-lesson video that rises and flattens on scroll (3D). Renders instantly.
  */
 export function CinematicHero() {
   const { t } = useTranslation();
+  const [videoOpen, setVideoOpen] = useState(false);
 
   return (
     <section className="relative overflow-hidden">
@@ -35,22 +38,17 @@ export function CinematicHero() {
             <Link to="/builder" className="btn-primary px-7 py-3 text-base">
               {t('landing.ctaButton')}
             </Link>
-            <a
-              href="/p/davids-driving"
-              target="_blank"
-              rel="noreferrer"
-              className="btn-glass px-6 py-3 text-base"
-            >
-              {t('common.viewDemo')}
-              <ChevronRight className="h-4 w-4 rtl:rotate-180" strokeWidth={2.5} aria-hidden />
-            </a>
+            <button type="button" onClick={() => setVideoOpen(true)} className="btn-glass px-6 py-3 text-base">
+              <Play className="h-4 w-4 fill-current" strokeWidth={0} aria-hidden />
+              {t('common.watchDemo')}
+            </button>
           </div>
         </FadeUp>
       </div>
 
-      {/* Large real driving-lesson video — 3D scroll reveal */}
+      {/* Large real driving-lesson video — 3D scroll reveal. Click to play the full demo. */}
       <ScrollTilt className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="relative overflow-hidden rounded-[1.75rem] border border-white/60 bg-white shadow-elevated ring-1 ring-black/5">
+        <div className="group relative overflow-hidden rounded-[1.75rem] border border-white/60 bg-white shadow-elevated ring-1 ring-black/5">
           <video
             className="aspect-[16/9] w-full object-cover"
             poster="/media/hero-car-poster.jpg"
@@ -84,8 +82,29 @@ export function CinematicHero() {
             <ShieldCheck className="h-4 w-4 text-sun-600" strokeWidth={2} aria-hidden />
             {t('landing.heroTrustChip')}
           </div>
+
+          {/* full-cover play affordance — clicking the hero opens the demo video */}
+          <button
+            type="button"
+            onClick={() => setVideoOpen(true)}
+            aria-label={t('common.watchDemo')}
+            className="absolute inset-0 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-sun-500/60"
+          >
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white/85 text-sand-900 shadow-elevated backdrop-blur-md transition-transform duration-300 group-hover:scale-105">
+              <Play className="ms-1 h-8 w-8 fill-current" strokeWidth={0} aria-hidden />
+            </span>
+          </button>
         </div>
       </ScrollTilt>
+
+      <VideoLightbox
+        open={videoOpen}
+        onClose={() => setVideoOpen(false)}
+        title={t('common.videoTitle')}
+        mp4="/media/marketing.mp4"
+        webm="/media/marketing.webm"
+        poster="/media/marketing-poster.jpg"
+      />
     </section>
   );
 }

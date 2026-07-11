@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authApi, tokenStore } from './api';
 import type { User } from './types';
 
@@ -14,6 +15,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,17 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const { token, user } = await authApi.login({ email, password });
     tokenStore.set(token);
+    qc.clear(); // never serve a previous account's cached data (e.g. trial/paywall state)
     setUser(user);
   };
 
   const register = async (data: { email: string; password: string; name: string; phone?: string }) => {
     const { token, user } = await authApi.register(data);
     tokenStore.set(token);
+    qc.clear();
     setUser(user);
   };
 
   const logout = () => {
     tokenStore.clear();
+    qc.clear();
     setUser(null);
   };
 

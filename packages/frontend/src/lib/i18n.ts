@@ -16,7 +16,7 @@ export function applyDir(lang: string) {
 }
 
 const en = {
-  common: { signIn: 'Sign in', buildSite: 'Build your site', getStarted: 'Get started', dashboard: 'Go to dashboard', overview: 'Overview', drivingTeacher: 'Driving Teacher', reviews: 'Reviews', messages: 'Messages', publishing: 'Publishing', billing: 'Billing', settings: 'Settings', signOut: 'Sign out', newSite: 'New site', viewDemo: 'View a live demo', language: 'Language', navTemplates: 'Templates', navFeatures: 'Features', navHowItWorks: 'How it works', navFaq: 'FAQ', menu: 'Menu', close: 'Close', allRightsReserved: 'All rights reserved.' },
+  common: { signIn: 'Sign in', buildSite: 'Build your site', getStarted: 'Get started', dashboard: 'Go to dashboard', overview: 'Overview', drivingTeacher: 'Driving Teacher', reviews: 'Reviews', messages: 'Messages', publishing: 'Publishing', billing: 'Billing', settings: 'Settings', signOut: 'Sign out', newSite: 'New site', viewDemo: 'View a live demo', watchDemo: 'Watch the demo', videoTitle: 'See Mumotor in action', language: 'Language', navTemplates: 'Templates', navFeatures: 'Features', navHowItWorks: 'How it works', navFaq: 'FAQ', menu: 'Menu', close: 'Close', allRightsReserved: 'All rights reserved.' },
   pwa: { install: 'Install app', title: 'Install Mumotor', iosHint: 'Tap the Share button, then choose “Add to Home Screen”.' },
   templates: {
     gallery: {
@@ -439,6 +439,18 @@ const en = {
       closeMenu: 'Close navigation menu',
       openMenu: 'Open navigation menu',
     },
+    trial: {
+      bannerDays: 'Free month · {{days}} days left',
+      bannerLastDay: 'Your free month ends today',
+      subscribe: 'Subscribe',
+      lockTitle: 'Your free month has ended',
+      lockBody: 'Your website is paused and your data is safely on hold — nothing is deleted. Subscribe to bring your students, bookings and site back online.',
+      lockCta: 'Subscribe · ₪{{price}}/month',
+      onBillingHint: 'Choose your plan below to reactivate your website.',
+      addWebsiteTitle: 'One website per plan',
+      addWebsiteBody: 'Your plan includes one website. Additional websites are ₪{{price}}/month each.',
+      firstMonthFree: 'Your first month is free — then just ₪{{price}}/month.',
+    },
     weekdays: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' },
   },
   auth: {
@@ -533,7 +545,7 @@ const en = {
   },
 };
 const he: typeof en = {
-  common: { signIn: 'התחברות', buildSite: 'בנו אתר', getStarted: 'בואו נתחיל', dashboard: 'לוח הבקרה', overview: 'סקירה', drivingTeacher: 'מורה לנהיגה', reviews: 'ביקורות', messages: 'הודעות', publishing: 'פרסום', billing: 'חיוב', settings: 'הגדרות', signOut: 'התנתקות', newSite: 'אתר חדש', viewDemo: 'צפו בדמו', language: 'שפה', navTemplates: 'תבניות', navFeatures: 'יכולות', navHowItWorks: 'איך זה עובד', navFaq: 'שאלות נפוצות', menu: 'תפריט', close: 'סגירה', allRightsReserved: 'כל הזכויות שמורות.' },
+  common: { signIn: 'התחברות', buildSite: 'בנו אתר', getStarted: 'בואו נתחיל', dashboard: 'לוח הבקרה', overview: 'סקירה', drivingTeacher: 'מורה לנהיגה', reviews: 'ביקורות', messages: 'הודעות', publishing: 'פרסום', billing: 'חיוב', settings: 'הגדרות', signOut: 'התנתקות', newSite: 'אתר חדש', viewDemo: 'צפו בדמו', watchDemo: 'צפו בהדגמה', videoTitle: 'ראו את מומוטור בפעולה', language: 'שפה', navTemplates: 'תבניות', navFeatures: 'יכולות', navHowItWorks: 'איך זה עובד', navFaq: 'שאלות נפוצות', menu: 'תפריט', close: 'סגירה', allRightsReserved: 'כל הזכויות שמורות.' },
   pwa: { install: 'התקנת אפליקציה', title: 'התקנת Mumotor', iosHint: 'הקישו על כפתור השיתוף ואז על ״הוספה למסך הבית״.' },
   templates: {
     gallery: {
@@ -956,6 +968,18 @@ const he: typeof en = {
       closeMenu: 'סגירת תפריט הניווט',
       openMenu: 'פתיחת תפריט הניווט',
     },
+    trial: {
+      bannerDays: 'חודש חינם · נותרו {{days}} ימים',
+      bannerLastDay: 'החודש החינם שלך מסתיים היום',
+      subscribe: 'למנוי',
+      lockTitle: 'החודש החינם שלך הסתיים',
+      lockBody: 'האתר שלך מושהה והמידע שלך שמור בבטחה — שום דבר לא נמחק. הירשמו למנוי כדי להחזיר את התלמידים, ההזמנות והאתר לאוויר.',
+      lockCta: 'מנוי · ₪{{price}} לחודש',
+      onBillingHint: 'בחרו תוכנית למטה כדי להפעיל מחדש את האתר שלכם.',
+      addWebsiteTitle: 'אתר אחד לכל תוכנית',
+      addWebsiteBody: 'התוכנית שלך כוללת אתר אחד. אתרים נוספים עולים ₪{{price}} לחודש כל אחד.',
+      firstMonthFree: 'החודש הראשון שלך חינם — ואז רק ₪{{price}} לחודש.',
+    },
     weekdays: { monday: 'יום שני', tuesday: 'יום שלישי', wednesday: 'יום רביעי', thursday: 'יום חמישי', friday: 'יום שישי', saturday: 'שבת', sunday: 'יום ראשון' },
   },
   auth: {
@@ -1050,7 +1074,7 @@ const he: typeof en = {
   },
 };
 const ar: typeof en = {
-  common: { signIn: 'تسجيل الدخول', buildSite: 'أنشئ موقعك', getStarted: 'ابدأ الآن', dashboard: 'لوحة التحكم', overview: 'نظرة عامة', drivingTeacher: 'مدرّب القيادة', reviews: 'التقييمات', messages: 'الرسائل', publishing: 'النشر', billing: 'الفوترة', settings: 'الإعدادات', signOut: 'تسجيل الخروج', newSite: 'موقع جديد', viewDemo: 'شاهد عرضاً حياً', language: 'اللغة', navTemplates: 'القوالب', navFeatures: 'الميزات', navHowItWorks: 'كيف يعمل', navFaq: 'الأسئلة الشائعة', menu: 'القائمة', close: 'إغلاق', allRightsReserved: 'جميع الحقوق محفوظة.' },
+  common: { signIn: 'تسجيل الدخول', buildSite: 'أنشئ موقعك', getStarted: 'ابدأ الآن', dashboard: 'لوحة التحكم', overview: 'نظرة عامة', drivingTeacher: 'مدرّب القيادة', reviews: 'التقييمات', messages: 'الرسائل', publishing: 'النشر', billing: 'الفوترة', settings: 'الإعدادات', signOut: 'تسجيل الخروج', newSite: 'موقع جديد', viewDemo: 'شاهد عرضاً حياً', watchDemo: 'شاهد العرض', videoTitle: 'شاهد Mumotor أثناء العمل', language: 'اللغة', navTemplates: 'القوالب', navFeatures: 'الميزات', navHowItWorks: 'كيف يعمل', navFaq: 'الأسئلة الشائعة', menu: 'القائمة', close: 'إغلاق', allRightsReserved: 'جميع الحقوق محفوظة.' },
   pwa: { install: 'تثبيت التطبيق', title: 'تثبيت Mumotor', iosHint: 'اضغط زر المشاركة ثم اختر «أضف إلى الشاشة الرئيسية».' },
   templates: {
     gallery: {
@@ -1472,6 +1496,18 @@ const ar: typeof en = {
       mumotorHome: 'Mumotor — الصفحة الرئيسية',
       closeMenu: 'إغلاق قائمة التنقل',
       openMenu: 'فتح قائمة التنقل',
+    },
+    trial: {
+      bannerDays: 'شهر مجاني · تبقّى {{days}} يوماً',
+      bannerLastDay: 'ينتهي شهرك المجاني اليوم',
+      subscribe: 'اشترك',
+      lockTitle: 'انتهى شهرك المجاني',
+      lockBody: 'موقعك متوقف مؤقتاً وبياناتك محفوظة بأمان — لم يُحذف شيء. اشترك لإعادة طلابك وحجوزاتك وموقعك إلى الإنترنت.',
+      lockCta: 'اشترك · ₪{{price}} شهرياً',
+      onBillingHint: 'اختر خطتك أدناه لإعادة تفعيل موقعك.',
+      addWebsiteTitle: 'موقع واحد لكل خطة',
+      addWebsiteBody: 'تتضمّن خطتك موقعاً واحداً. المواقع الإضافية بسعر ₪{{price}} شهرياً لكل موقع.',
+      firstMonthFree: 'شهرك الأول مجاني — ثم فقط ₪{{price}} شهرياً.',
     },
     weekdays: { monday: 'الإثنين', tuesday: 'الثلاثاء', wednesday: 'الأربعاء', thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت', sunday: 'الأحد' },
   },
