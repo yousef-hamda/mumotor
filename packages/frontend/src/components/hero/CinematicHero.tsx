@@ -101,9 +101,9 @@ export function CinematicHero() {
         open={videoOpen}
         onClose={() => setVideoOpen(false)}
         title={t('common.videoTitle')}
-        mp4="/media/marketing.mp4"
-        webm="/media/marketing.webm"
-        poster="/media/marketing-poster.jpg"
+        mp4="/media/marketing.mp4?v=2"
+        webm="/media/marketing.webm?v=2"
+        poster="/media/marketing-poster.jpg?v=2"
       />
     </section>
   );
