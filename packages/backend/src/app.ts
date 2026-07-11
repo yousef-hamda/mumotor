@@ -7,6 +7,7 @@ import routes from './routes/index.js';
 import siteServingRoutes from './routes/siteServing.js';
 import seoRoutes from './routes/seo.js';
 import contentRoutes from './routes/content.js';
+import prerenderRoutes from './routes/prerender.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { env, isProd } from './config/env.js';
 import { uploadsDir } from './lib/uploads.js';
@@ -74,7 +75,8 @@ export function createApp() {
   app.use('/api', notFoundHandler); // JSON 404 for unknown API routes
   app.use(siteServingRoutes); // GET /site/:slug (published teacher sites)
   app.use(seoRoutes); // GET /robots.txt + /sitemap.xml + /llms.txt (search + AI engines)
-  app.use(contentRoutes); // GET /guides + /guides/:slug (server-rendered GEO content)
+  app.use(contentRoutes); // GET /guides + /guides/:slug (server-rendered GEO content, trilingual)
+  app.use(prerenderRoutes); // bot-only server-rendered snapshots of / and /templates
 
   // Single-service deploy (Railway-only): serve the built SPA from this server.
   // /api, /site and /uploads are handled above; everything else → the SPA shell.

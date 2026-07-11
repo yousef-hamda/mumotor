@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { guideSlugs } from './content.js';
+import { guideSitemapPaths } from './content.js';
 
 const router = Router();
 
@@ -136,8 +136,7 @@ router.get(
     const staticPages = [
       { loc: `${baseUrl}/`, priority: '1.0' },
       { loc: `${baseUrl}/templates`, priority: '0.8' },
-      { loc: `${baseUrl}/guides`, priority: '0.7' },
-      ...guideSlugs.map((slug) => ({ loc: `${baseUrl}/guides/${slug}`, priority: '0.7' })),
+      ...guideSitemapPaths().map((p) => ({ loc: `${baseUrl}${p}`, priority: '0.7' })),
     ];
 
     const urls = [
