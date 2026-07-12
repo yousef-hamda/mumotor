@@ -109,17 +109,6 @@ classes never needed renaming.
   Lists (packages/faqs/areas/stats) have `data-edit-item` + hover +/trash. Add new editable text/icons by tagging with
   `data-edit="copy.X"|"icons.X"` + the matching `data-edit-type`. New templates must add a `COLOR_SLOTS[<slug>]` entry in
   `overrides.ts` mapping their 5 CSS vars + a `TemplateConcept` case + (for shaders) a CSS-gradient fallback on the shader container.
-- **Customize mode** (`components/customize/CustomizeMode.tsx`, route `/customize/:id`, also from the builder
-  preview): full-screen live site, **no side panel**, persists only on **Save**. Overrides =
-  `Customization {fields, theme, styles, copy, icons}` applied by `applyOverrides` (in `templates/customize/overrides.ts`).
-  Click any `[data-edit]` element: **text** → contentEditable + popover with **Text** and **Fill** colour
-  (`styles[path].{color,background}`, injected as scoped CSS by `TemplateRender`); **background** → palette; **image**
-  → upload/Find (Unsplash); **icon** → searchable **full lucide icon-library** picker (`templates/DynamicIcon.tsx`,
-  `data.icons` overrides). ALL hardcoded headings/subtitles are editable via free-form `data.copy` (`{copy.key ?? 'literal'}`).
-  Toolbar has a **"Colours"** button (theme panel for background/colours) so it's discoverable; hovering shows a dashed
-  outline on every editable region. In Customize NOTHING navigates — any `<a>/<button>` click is intercepted to select-to-edit.
-  Lists (packages/faqs/areas/stats) have `data-edit-item` + hover +/trash. Add new editable text/icons by tagging with
-  `data-edit="copy.X"|"icons.X"` + the matching `data-edit-type`.
 - **Delete a website**: `DELETE /api/websites/:id` requires body `{confirm:"DELETE"}` (else 400 `CONFIRM_REQUIRED`);
   cascades all the site's rows + clears the `site:<slug>` cache. UI = danger-zone in `pages/dashboard/Settings.tsx`
   (type-DELETE modal). The mumotor logo links to `/` everywhere.
