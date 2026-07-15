@@ -151,7 +151,9 @@ function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
   const name = brand?.schoolName || 'Mumotor';
   const header = brand?.logoUrl
     ? `<img src="${esc(brand.logoUrl)}" alt="${esc(name)}" height="40" style="height:40px;max-height:44px;max-width:220px;display:inline-block;border:0;outline:0">`
-    : `<div style="font-size:19px;font-weight:700;color:#18181b;letter-spacing:-0.3px">${esc(name)}</div>`;
+    : brand?.schoolName
+      ? `<div style="font-size:19px;font-weight:700;color:#18181b;letter-spacing:-0.3px">${esc(name)}</div>`
+      : `<img src="${env.APP_URL}/img/logo-wordmark.png" alt="Mumotor" height="34" style="height:34px;max-height:38px;max-width:200px;display:inline-block;border:0;outline:0">`;
   return `<!doctype html>
 <html${rtl ? ' dir="rtl"' : ''}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title></head>
