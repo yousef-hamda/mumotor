@@ -11,8 +11,11 @@ import { VideoLightbox } from '../VideoLightbox';
  * driving-lesson video that rises and flattens on scroll (3D). Renders instantly.
  */
 export function CinematicHero() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [videoOpen, setVideoOpen] = useState(false);
+  // The demo video follows the site language: en / he / ar.
+  const lang = i18n.language === 'he' ? 'he' : i18n.language === 'ar' ? 'ar' : 'en';
+  const V = 5; // cache-bust version
 
   return (
     <section className="relative overflow-hidden">
@@ -89,9 +92,9 @@ export function CinematicHero() {
         open={videoOpen}
         onClose={() => setVideoOpen(false)}
         title={t('common.videoTitle')}
-        mp4="/media/marketing.mp4?v=4"
-        webm="/media/marketing.webm?v=4"
-        poster="/media/marketing-poster.jpg?v=4"
+        mp4={`/media/marketing.${lang}.mp4?v=${V}`}
+        webm={`/media/marketing.${lang}.webm?v=${V}`}
+        poster={`/media/marketing-${lang}-poster.jpg?v=${V}`}
       />
     </section>
   );
