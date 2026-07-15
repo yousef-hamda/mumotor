@@ -1,3 +1,19 @@
+# Handoff — July 15, 2026 (New logo everywhere + rebuilt trilingual, language-aware demo video)
+
+Shipped + deployed to mumotor.com. Two deliverables.
+
+## New brand logo — everywhere
+The old gradient-"M" monogram is fully replaced by the user's new **road-themed "M"** (lane-marking dots + speed lines) + the **"Mumotor" wordmark** on a dotted-road underline. Source PNGs processed with **PIL** (corner-seeded flood-fill background removal from `#f4f8fd`; white-silhouette variants for dark) → `packages/frontend/public/img/logo-{m,m-white,wordmark,wordmark-white}.png`. Swapped in: `components/Logo.tsx` (`LogoMark` = M in a white squircle; `Logo` = the wordmark, light/dark), `public/favicon.svg` + `icons/icon.svg` (SVG wrapping the mark as base64), the PNG app icons (`icon-192/512`, `apple-touch-icon`, `img/brand-*`), the Mumotor email header (`services/email/emailService.ts`), and — for Google — the JSON-LD `Organization.logo` (via favicon.svg). Regenerate: scratchpad `logo/process.py`. Left `templates/BrandMark.tsx` (per-teacher default = instructor initial). Commit `ab40ea9`.
+
+## Rebuilt demo video — trilingual + language-aware + explains how to use it
+Prior cuts skipped *how you create the site and get started*; the new ~42s cinematic film shows the journey: chaos → logo → **Pick a design** → **Add your details** → **Publish, you're online** → **Share your link** → they book → **daily schedule email** → offer → "You asked. We listened." → end. Frame-filling, new logo, few words.
+- **Language-aware:** `hero/CinematicHero.tsx` picks `marketing.${i18n.language}.{mp4,webm}` (en/he/ar, fallback en, cache-bust `?v=5`). Switching the site language switches the demo.
+- **Fully localized HE + AR** (not just captions): translated captions with RTL, AND localized product screenshots — HE/AR Eli sites created (`setup-eli-lang.mjs`) and captured (`capture-lang.mjs` → `shots-{he,ar}/`).
+- **Pipeline:** one `film-multi.html?lang=…` (GSAP frame-stepper) + a `T` caption dictionary → `render-multi.mjs <lang>` → `build-multi.py <lang>` → `public/media/marketing.{en,he,ar}.*` + posters. GOTCHA: bake ONE caption DOM element per beat (`caption(k,h,at,out)`) — a shared caption set at build time bleeds the last text onto every scene on seek; and `window.__seek` must be a block-body arrow.
+- Commits: `49a2219` (EN + wiring, HE/AR placeholders), then the HE/AR videos.
+
+---
+
 # Handoff — July 11, 2026 (Free-month trial + one-website paywall, and a landing demo video)
 
 Shipped + **deployed to mumotor.com** (commit `d790416`; migration applied to the Railway prod DB; verified live — the demo video plays on the homepage). Two deliverables.
