@@ -193,6 +193,12 @@ template design** — they are NOT the old app "sand" look.
   the old `todayUtcMidnight`/`tomorrowUtcMidnight` were removed (they used server UTC and drifted a day each
   night). Lesson-time diffs use `minutesUntilLessonInZone` (wall-clock, DST-safe). Frontend `upcomingDates()`
   computes the Israel date the same way so it always agrees with the backend's booking-date validation.
+- **Email transport (July 16):** `services/email/emailService.ts` picks a transport in priority order
+  **Amazon SES → Resend → SMTP → console**. SES (`sendViaSES`, SDK `@aws-sdk/client-sesv2`, HTTPS) is active only
+  when `SES_ENABLED=true` AND `SES_REGION`/`SES_ACCESS_KEY_ID`/`SES_SECRET_ACCESS_KEY` are set — creds are
+  pre-loaded on Railway but `SES_ENABLED` is OFF (still Resend) until AWS grants SES production access; flip it
+  with `railway variables --service mumotor --set SES_ENABLED=true`. SES is ~10× cheaper ($0.10/1k). Domain
+  `mumotor.com` verified in eu-north-1 (DKIM + `mail.mumotor.com` MAIL FROM). Details in the `amazon-ses-email` memory.
 - **Backend email i18n (July 11):** emails render in the SITE's language via `services/email/strings.ts`
   (`emailT(locale,key,vars)`, `he`/`ar` typed `typeof en` so missing keys fail the build). Locale threads
   through `siteBrand` — **if a Prisma `select` feeds `siteBrand`, include `locale: true`.** Account emails
