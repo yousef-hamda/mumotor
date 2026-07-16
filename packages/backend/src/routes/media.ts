@@ -56,7 +56,12 @@ router.post(
   asyncHandler(async (req, res) => {
     await ownWebsite(req.params.websiteId, req.user!.id);
     const { dataUrl, type } = z
-      .object({ dataUrl: z.string().min(1), type: z.enum(['CAR_PHOTO', 'GALLERY', 'AVATAR', 'LOGO', 'OTHER']).default('GALLERY') })
+      .object({
+        // ~9 MB string bound so a giant base64 payload is rejected before it's
+        // decoded into a Buffer (the 6 MB decoded-size check is further below).
+        dataUrl: z.string().min(1).max(9 * 1024 * 1024),
+        type: z.enum(['CAR_PHOTO', 'GALLERY', 'AVATAR', 'LOGO', 'OTHER']).default('GALLERY'),
+      })
       .parse(req.body);
 
     const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);

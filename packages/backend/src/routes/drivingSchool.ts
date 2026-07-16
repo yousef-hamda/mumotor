@@ -29,6 +29,7 @@ import {
   getDayHours,
   normalizeConfig,
 } from '../services/scheduling/schedulingService.js';
+import { hhmm, weekdayHoursSchema } from '../utils/validation.js';
 import { consumeMagicToken, generateMagicToken } from '../services/auth/magicLinkService.js';
 import { createNotification } from '../services/notifications/notificationService.js';
 import { logEvent } from '../services/analytics.js';
@@ -328,7 +329,7 @@ router.get(
   '/:websiteId/check-enrollment',
   rateLimit({ keyPrefix: 'check-enroll', windowSeconds: 60, max: 10 }),
   asyncHandler(async (req, res) => {
-    const email = normalizeEmail(String(req.query.email ?? ''));
+    const email = normalizeEmail(String(req.query.email ?? '').slice(0, 200));
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw badRequest('Valid email required');
 
     const enrollment = await prisma.clientEnrollment.findUnique({
@@ -351,8 +352,8 @@ router.get(
   '/:websiteId/public-availability',
   rateLimit({ keyPrefix: 'availability', windowSeconds: 60, max: 20 }),
   asyncHandler(async (req, res) => {
-    const date = String(req.query.date ?? '');
-    const email = normalizeEmail(String(req.query.email ?? ''));
+    const date = String(req.query.date ?? '').slice(0, 32);
+    const email = normalizeEmail(String(req.query.email ?? '').slice(0, 200));
     if (!/^\d{4}-\d{2}-\d{2}/.test(date)) throw badRequest('Valid date (YYYY-MM-DD) required');
 
     const website = await prisma.website.findUnique({
@@ -642,9 +643,9 @@ const settingsSchema = z.object({
   bookingWindowEnd: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   reportTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   dailyCodeEnabled: z.boolean().optional(),
-  breakTimes: z.array(z.object({ start: z.string(), end: z.string() })).optional(),
+  breakTimes: z.array(z.object({ start: hhmm, end: hhmm })).max(20).optional(),
   restMinutes: z.number().int().min(0).max(120).optional(),
-  workingHours: z.record(z.object({ isOpen: z.boolean(), open: z.string(), close: z.string() })).optional(),
+  workingHours: weekdayHoursSchema.optional(),
   teacherName: z.string().max(120).optional(),
   // Nullable so the teacher can CLEAR these (send null) — not just set them (M13).
   pricePerClass: z.union([z.number().min(0), z.string().max(20)]).nullable().optional(),
@@ -712,7 +713,8 @@ router.get(
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const status = req.query.status ? String(req.query.status).toUpperCase() : undefined;
-    const search = req.query.search ? String(req.query.search).trim() : '';
+    // Cap the search string so it can't drive a huge LIKE scan / log-bloat.
+    const search = req.query.search ? String(req.query.search).trim().slice(0, 100) : '';
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
 
@@ -770,6 +772,9 @@ const addStudentSchema = z.object({
 router.post(
   '/:websiteId/students',
   ...teacher,
+  // Sends a welcome email to an attacker-chosen address — cap per site so a stolen
+  // teacher token can't email-bomb third parties.
+  rateLimit({ keyPrefix: 'add-student', windowSeconds: 3600, max: 60, keyFn: (req) => req.params.websiteId }),
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const data = addStudentSchema.parse(req.body);
@@ -1083,6 +1088,8 @@ router.post(
 router.post(
   '/:websiteId/schedule/email-me',
   ...teacher,
+  // Triggers an email send — throttle per site.
+  rateLimit({ keyPrefix: 'schedule-email', windowSeconds: 3600, max: 30, keyFn: (req) => req.params.websiteId }),
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const { day } = z.object({ day: z.enum(['today', 'tomorrow']) }).parse(req.body);
@@ -1451,6 +1458,8 @@ router.get(
 router.post(
   '/:websiteId/students/:enrollmentId/messages',
   ...teacher,
+  // Student→teacher sends are limited; mirror that on the teacher side.
+  rateLimit({ keyPrefix: 'teacher-message', windowSeconds: 60, max: 30, keyFn: (req) => req.params.websiteId }),
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);

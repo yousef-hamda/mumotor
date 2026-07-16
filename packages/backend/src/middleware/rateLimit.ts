@@ -11,10 +11,15 @@ interface RateLimitOptions {
   keyFn?: (req: Request) => string;
 }
 
-function clientIp(req: Request): string {
-  const fwd = req.headers['x-forwarded-for'];
-  if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim();
-  return req.ip || req.socket.remoteAddress || 'unknown';
+/**
+ * The rate-limit subject IP. Uses Express's `req.ip`, which — with
+ * `app.set('trust proxy', 1)` — is the real client address (the last hop appended
+ * by our own proxy). We deliberately do NOT parse `X-Forwarded-For` ourselves: its
+ * FIRST token is fully attacker-controlled, so trusting it let anyone rotate the
+ * rate-limit key per request by spoofing the header, defeating every IP-keyed limit.
+ */
+export function clientIp(req: Request): string {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 
 /** Sliding-window-ish fixed-window rate limiter backed by the KV store. */

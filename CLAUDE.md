@@ -346,19 +346,36 @@ can no longer cancel + no "2-hour" wording; teacher **Today/Tomorrow schedule** 
 
 **Earlier landing demo video (July 12, v3 — superseded by the trilingual rebuild above):** `public/media/marketing.{mp4,webm}` + poster — a ~34s **cinematic "chaos → calm" film** with only ~5 words, built with a **GSAP-driven frame-stepped renderer** (a mini-Remotion, all free/permissive): a `gsap.timeline({paused:true})` in `film-v3.html` choreographs real product screenshots + CSS/SVG motion; Playwright seeks it frame-by-frame (`render-v3.mjs`) → PNG sequence → ffmpeg + numpy music (`music-v3.py`, `build-v3.py`) — all in the session scratchpad. Beats: notification **chaos** on a phone → **implodes into the Mumotor M** → **Eli's open-road site builds itself** (the teacher's site, not the mumotor look) → **a booking taps + checkmark ("Booked.")** → schedule → **the daily-report email slides in** → **"You asked. We listened."** → offer chip. (Tooling research: GSAP is 100% free since Apr 2025; Remotion is source-available (≤3-person free) so avoided; Motion Canvas lacks solid headless render.) The 59s v1 and 40s v2 cuts are archived at `marketing/video-archive/marketing-v{1,2}.*` (git-tracked, NOT served) — revert by copying one back over `public/media/marketing.*`. `hero/CinematicHero.tsx` cache-busts the sources with `?v=3`; the demo opens **only** via the **"Watch the demo"** button — the old play-overlay on the decorative hero video was removed.
 
+**Security hardening — 4 pillars (July 16):** full audit + hardening of **Authentication, Rate Limiting, Row-Level Security,
+Server-Side Validation** (details in the `security-hardening-four-pillars` memory). Auth: JWT **pinned to HS256**, teacher tokens
+carry `kind:'teacher'`, **`User.tokenVersion` revocation** (`verifyToken` is now ASYNC + does a `tokenVersion` lookup; bumped +
+token reissued on `change-password`, bumped on `reset-password`; migration `20260716124401_add_user_token_version`), **cookie-token
+trust removed** (Bearer-only → no CSRF), login dummy-bcrypt (anti-timing), weak-password denylist. Rate: **`clientIp`→`req.ip`**
+(unspoofable; `middleware/rateLimit.ts`, needs `trust proxy`=real hop count, =1 for Railway), new limits on add-student/schedule-email/
+teacher-messages/checkout/publish/website-create/wizard-draft, per-email login counter, **global `/api` 1000/min/IP backstop** (`app.ts`).
+RLS: audit found no IDOR (all queries `websiteId`-scoped, cascade complete), `requireStudent` fail-closed. Validation: shared
+`utils/validation.ts` (`phoneSchema`, `hhmm`, `weekdayHoursSchema`, `boundedRecord()`, `weakPasswordReason`) — `configuration`/
+`businessConfig` capped ~2 MB, settings HH:MM + weekday allowlist, misc string/uuid bounds. New suites: `test/security.integration.mjs`
+(26) + `test/ratelimit.unit.mjs` (5). **⚠️ the tokenVersion migration must be applied to prod** (separate step per railway.toml;
+additive/zero-downtime): `DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy`.
+
 **Still open (real):**
 - **Media storage ephemeral**: uploads to local `/uploads` are on a Railway volume now, but `Media.cdnUrl` is still null (no S3/R2/CDN).
 - **Stripe not wired**: keys/price ids unset, so paid checkout still 503s in prod (demo-switch in dev). The trial/quota/freeze system above is fully in place and reactivates automatically once Stripe keys + `STRIPE_PRICE_*` are configured (webhook already restores frozen sites).
 - **Per-teacher subdomains dormant**: code done, wildcard DNS not live (Railway Hobby plan caps custom domains) — sites are at `/p/:slug`.
 - **Daily email volume at scale**: the every-5-min cron loads all active enrollments into memory and emails every student daily → the first scaling cost (batch/queue + paginate the cron before ~hundreds of teachers). See the capacity report in the advertising-report memory.
-- **Session tokens in localStorage + no CSP** (student + teacher) — residual XSS surface.
+- **Session tokens in localStorage + no CSP** (student + teacher) — residual XSS surface (CSRF surface itself is now closed:
+  auth is Bearer-only, the `token` cookie is no longer trusted). A stolen teacher token can now be revoked by changing the password.
 - **Dead models**: `Page`/`Section` (and `Domain`, until subdomains ship) are unused.
 - **AI branding**: still zero real AI calls — opportunity for Claude bio/SEO copy.
 
-## Testing (all green: unit 26/26 · integration 74/74 · E2E 90/90, 0 console errors)
+## Testing (all green: unit 26/26 · integration 74/74 · security 26/26 · E2E 90/90, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
   then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.
+- Backend **security** suite (same running API): `npm run test:security --workspace @mumotor/backend` (`test/security.integration.mjs` —
+  auth forgery/revocation, cross-tenant isolation, validation bounds). Plus `npm run test:ratelimit` (`test/ratelimit.unit.mjs`, imports
+  `dist/` so build first). Rate-limit **429s** only fire outside `NODE_ENV=test` — verify live with a dev-mode server.
 - Frontend E2E: `WEB=http://localhost:<port> node packages/frontend/e2e/features.e2e.mjs`. Playwright/chromium live in
   `packages/frontend/node_modules` (not global) — run from the repo root so the local package resolves.
 - GOTCHAS: the integration "tomorrow excludes booked 09:00/10:00" check needs a **fresh** `npm run db:seed` (the seed

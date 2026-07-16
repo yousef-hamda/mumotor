@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { kv } from '../lib/redis.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError, badRequest, forbidden, notFound } from '../utils/errors.js';
 import { getAccountState, WEBSITE_PRICE } from '../services/billing/accountState.js';
@@ -12,6 +13,7 @@ import { DEFAULTS } from '../services/scheduling/schedulingService.js';
 import { generateWebsite, configToSiteConfig } from '../services/ai/generator.js';
 import { logEvent } from '../services/analytics.js';
 import { getPreset } from '../services/ai/templatePresets.js';
+import { boundedRecord } from '../utils/validation.js';
 
 const router = Router();
 
@@ -41,7 +43,7 @@ const createSchema = z.object({
   tagline: z.string().max(160).optional(),
   selectedPreset: z.string().max(40).optional(),
   locale: z.enum(['HE', 'AR', 'EN']).optional(),
-  configuration: z.record(z.any()).optional(),
+  configuration: boundedRecord().optional(),
 });
 
 const updateSchema = z.object({
@@ -49,7 +51,7 @@ const updateSchema = z.object({
   tagline: z.string().max(160).optional(),
   selectedPreset: z.string().max(40).optional(),
   locale: z.enum(['HE', 'AR', 'EN']).optional(),
-  configuration: z.record(z.any()).optional(),
+  configuration: boundedRecord().optional(),
 });
 
 router.use(verifyToken);
@@ -77,6 +79,7 @@ router.get(
 // POST /websites — create a site (draft) + default settings + default service
 router.post(
   '/',
+  rateLimit({ keyPrefix: 'website-create', windowSeconds: 3600, max: 30, keyFn: (req) => req.user?.id ?? req.ip ?? 'anon' }),
   asyncHandler(async (req, res) => {
     // One website per account on the free plan; extra sites are ₪199/mo each.
     const state = await getAccountState(req.user!.id);
@@ -164,6 +167,8 @@ router.patch(
 // POST /websites/:id/publish — (re)generate with the real slug, cache, snapshot
 router.post(
   '/:id/publish',
+  // Expensive: full HTML regen + versioned snapshot + cache eviction. Cap per account.
+  rateLimit({ keyPrefix: 'publish', windowSeconds: 600, max: 30, keyFn: (req) => req.user?.id ?? req.ip ?? 'anon' }),
   asyncHandler(async (req, res) => {
     const website = await loadOwned(req.params.id, req.user!.id);
 

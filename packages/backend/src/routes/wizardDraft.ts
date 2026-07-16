@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { verifyToken } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -26,6 +27,8 @@ router.get(
 // PUT /wizard-draft — upsert the user's single draft
 router.put(
   '/',
+  // Autosave-friendly but bounded (per user) so it can't be used as a write flood.
+  rateLimit({ keyPrefix: 'wizard-draft', windowSeconds: 60, max: 120, keyFn: (req) => req.user?.id ?? req.ip ?? 'anon' }),
   asyncHandler(async (req, res) => {
     const { config } = z.object({ config: z.record(z.unknown()) }).parse(req.body);
     if (JSON.stringify(config).length > MAX_CONFIG_BYTES) {

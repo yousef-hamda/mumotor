@@ -1,3 +1,35 @@
+# Handoff — July 16, 2026 (Backend security hardening — 4 pillars)
+
+Full audit + hardening of **Authentication · Rate Limiting · Row-Level Security · Server-Side Validation** (from a 4-agent
+audit — the codebase was already disciplined, so these close the residual gaps). All changes are **additive/backward-compatible**
+(legacy 7-day tokens keep working). Detail in the `security-hardening-four-pillars` memory + `SECURITY_HARDENING_PLAN.md`.
+
+- **Authentication**: JWT **pinned to HS256** (sign+verify); teacher tokens carry `kind:'teacher'`; **session revocation** via
+  new `User.tokenVersion` (`verifyToken` is now ASYNC + checks it; `change-password` bumps it **and returns a fresh token** — the
+  frontend `changePassword` stores it; `reset-password` bumps it → all old sessions die); **cookie-token trust removed** (Bearer-only,
+  no CSRF); login runs a dummy `bcrypt.compare` on unknown emails (anti-timing); weak-password denylist; `JWT_SECRET` floor 16→32.
+- **Rate Limiting**: **`clientIp` now uses `req.ip`** (was the spoofable first `X-Forwarded-For` token — fixed all IP-keyed limiters);
+  new limits on add-student (email-bomb), schedule/email-me, teacher→student messages, checkout, publish, website-create, wizard-draft;
+  per-email login counter; **global `/api` 1000/min/IP backstop**.
+- **Row-Level Security**: audit found **no cross-tenant IDOR** (all queries `websiteId`-scoped, ownership-gated, cascade complete on
+  all 13 tables); `requireStudent` hardened fail-closed. Added cross-tenant regression tests.
+- **Server-Side Validation**: `configuration`/`businessConfig` bounded ~2 MB (`boundedRecord()`); settings `breakTimes`/`workingHours`
+  get `HH:MM` + weekday-allowlist; search/name/phone/dataUrl/presetId/uuid bounds. Shared `utils/validation.ts`.
+
+**Tests**: integration 74/74, **new security 26/26** (`test/security.integration.mjs`), **new ratelimit-unit 5/5**
+(`test/ratelimit.unit.mjs`), E2E 90/90 (0 console errors), live 429 confirmed. Both packages build; frontend typecheck clean.
+
+**⚠️ ONE MANUAL STEP — apply the prod migration.** Migrations are a SEPARATE step (railway.toml), and the sandbox can't reach the
+Railway Postgres public proxy (TCP port blocked). Migration `20260716124401_add_user_token_version` is additive (add column, default 0)
+and **safe to run against the current live code** (old code ignores it) → zero downtime. Run from a non-sandboxed machine:
+```
+cd packages/backend
+DATABASE_URL="$(railway variables --service Postgres --kv | grep '^DATABASE_PUBLIC_URL=' | cut -d= -f2-)" npx prisma migrate deploy
+```
+If the new code deploys BEFORE this is applied, teacher requests 500 (missing `tokenVersion` column) until it's run — so run it right away.
+
+---
+
 # Handoff — July 15, 2026 (New logo everywhere + rebuilt trilingual, language-aware demo video)
 
 Shipped + deployed to mumotor.com. Two deliverables.

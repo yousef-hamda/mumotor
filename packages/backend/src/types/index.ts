@@ -12,6 +12,12 @@ declare global {
 export interface AuthPayload {
   id: string;
   email: string;
+  /** Positive type marker. New teacher tokens set 'teacher'; legacy tokens omit it
+   *  (verifyToken treats absent as teacher for backward compatibility). */
+  kind?: 'teacher';
+  /** Token version — must equal the user's current `tokenVersion`. Bumped on
+   *  password change/reset so old sessions are revoked. Absent = 0 (legacy tokens). */
+  tv?: number;
 }
 
 /** Student portal session token payload. `kind: 'student'` keeps it from ever

@@ -9,6 +9,7 @@ import seoRoutes from './routes/seo.js';
 import contentRoutes from './routes/content.js';
 import prerenderRoutes from './routes/prerender.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { rateLimit } from './middleware/rateLimit.js';
 import { env, isProd } from './config/env.js';
 import { uploadsDir } from './lib/uploads.js';
 import { logger } from './lib/logger.js';
@@ -71,6 +72,10 @@ export function createApp() {
   app.use(cookieParser());
 
   app.use('/uploads', express.static(uploadsDir, { maxAge: '7d' }));
+  // Baseline per-IP backstop across the whole API — a generous ceiling that never
+  // touches normal dashboard/booking traffic but caps any single IP flooding a route
+  // that lacks its own (tighter) limiter. Per-route limits still apply on top.
+  app.use('/api', rateLimit({ keyPrefix: 'api-global', windowSeconds: 60, max: 1000 }));
   app.use('/api', routes);
   app.use('/api', notFoundHandler); // JSON 404 for unknown API routes
   app.use(siteServingRoutes); // GET /site/:slug (published teacher sites)

@@ -177,7 +177,12 @@ export const authApi = {
   updateMe: (data: { name?: string; phone?: string; preferredLanguage?: 'HE' | 'AR' | 'EN' }) =>
     api.patch<{ user: User }>('/auth/me', data).then((r) => r.data.user),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
-    api.post<{ success: boolean }>('/auth/change-password', data).then((r) => r.data),
+    // The server bumps tokenVersion (revoking old sessions) and returns a fresh
+    // token for THIS session — store it so the current login keeps working.
+    api.post<{ success: boolean; token?: string }>('/auth/change-password', data).then((r) => {
+      if (r.data.token) tokenStore.set(r.data.token);
+      return r.data;
+    }),
   forgotPassword: (email: string) =>
     api.post<{ sent: boolean }>('/auth/forgot-password', { email }).then((r) => r.data),
   resetPassword: (token: string, newPassword: string) =>

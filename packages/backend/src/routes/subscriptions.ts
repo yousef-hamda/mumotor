@@ -5,6 +5,7 @@ import { env, isProd } from '../config/env.js';
 import { stripe, PRICE_IDS } from '../lib/stripe.js';
 import { ApiError } from '../utils/errors.js';
 import { verifyToken } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getAccountState } from '../services/billing/accountState.js';
 import { restoreUserSites } from '../services/billing/siteFreeze.js';
@@ -53,6 +54,8 @@ router.get(
 // POST /subscriptions/checkout — real Stripe Checkout when configured, else demo switch
 router.post(
   '/checkout',
+  // Creates Stripe customers + Checkout sessions (external API cost) — cap per account.
+  rateLimit({ keyPrefix: 'checkout', windowSeconds: 3600, max: 20, keyFn: (req) => req.user?.id ?? req.ip ?? 'anon' }),
   asyncHandler(async (req, res) => {
     const { plan } = z.object({ plan: z.enum(['FREE', 'PRO', 'STUDIO']) }).parse(req.body);
     const userId = req.user!.id;

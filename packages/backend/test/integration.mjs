@@ -75,7 +75,7 @@ async function main() {
     ok('GET /auth/me without token → 401', noTok.status === 401, noTok.status);
 
     const reg = await req('POST', '/auth/register', {
-      body: { email: email('teacher2'), password: 'password123', name: 'Second Teacher', phone: '+972 50 111 2222' },
+      body: { email: email('teacher2'), password: 'Str0ng-Pass-9x2!', name: 'Second Teacher', phone: '+972 50 111 2222' },
     });
     ok('register second teacher → 201', reg.status === 201 && !!reg.json?.token, reg.json);
     token2 = reg.json?.token;

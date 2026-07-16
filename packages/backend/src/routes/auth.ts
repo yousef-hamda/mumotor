@@ -10,6 +10,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, conflict, unauthorized } from '../utils/errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { hashToken } from '../utils/crypto.js';
+import { weakPasswordReason, phoneSchema } from '../utils/validation.js';
 import { sendEmailVerification, sendPasswordReset } from '../services/email/emailService.js';
 import { getAccountState, TRIAL_DAYS } from '../services/billing/accountState.js';
 
@@ -17,14 +18,23 @@ const router = Router();
 
 const BCRYPT_ROUNDS = 12;
 const passwordSchema = z.string().min(8, 'Password must be at least 8 characters').max(128);
+// A fixed hash to compare against when the account doesn't exist, so login takes
+// the same time whether or not the email is registered (anti user-enumeration by timing).
+const DUMMY_HASH = bcrypt.hashSync('unmatchable-placeholder-password', BCRYPT_ROUNDS);
+
+/** Throw a 400 if the password is trivially weak (common / echoes the email). */
+function assertStrongPassword(password: string, email?: string): void {
+  const reason = weakPasswordReason(password, email);
+  if (reason) throw badRequest(reason, 'WEAK_PASSWORD');
+}
 
 const registerSchema = z.object({
   email: z.string().email(),
   password: passwordSchema,
-  name: z.string().min(1),
+  name: z.string().min(1).max(120),
   // Phone is required at signup — the teacher's own contact number, same
-  // validation style as the public enroll form's studentPhone.
-  phone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required'),
+  // validation as the public enroll form's studentPhone (shared phoneSchema).
+  phone: phoneSchema,
 });
 
 const loginSchema = z.object({
@@ -58,6 +68,7 @@ router.post(
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) throw conflict('An account with this email already exists', 'EMAIL_TAKEN');
 
+    assertStrongPassword(data.password, email);
     const passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
     // Start the free month at signup: one website, free for TRIAL_DAYS days.
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
@@ -73,7 +84,7 @@ router.post(
 
     void sendVerification(user); // fire-and-forget; registration never blocks on email
 
-    const token = signToken({ id: user.id, email: user.email });
+    const token = signToken({ id: user.id, email: user.email, tv: user.tokenVersion });
     res.status(201).json({ token, user: publicUser(user) });
   })
 );
@@ -86,13 +97,18 @@ router.post(
     const data = loginSchema.parse(req.body);
     const email = data.email.toLowerCase().trim();
 
+    // Secondary per-email throttle (independent of the per-IP limiter above) so a
+    // single account can't be brute-forced by rotating IPs. 20 attempts / 15 min.
+    const attempts = await kv.incrWithExpiry(`login-email:${email}`, 900);
+    if (attempts > 20) throw unauthorized('Too many attempts. Please try again later.', 'RATE_LIMITED');
+
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw unauthorized('Invalid email or password', 'BAD_CREDENTIALS');
+    // Always run a bcrypt compare (real hash, or a dummy) so response timing does
+    // not reveal whether the email is registered.
+    const ok = await bcrypt.compare(data.password, user?.passwordHash ?? DUMMY_HASH);
+    if (!user || !ok) throw unauthorized('Invalid email or password', 'BAD_CREDENTIALS');
 
-    const ok = await bcrypt.compare(data.password, user.passwordHash);
-    if (!ok) throw unauthorized('Invalid email or password', 'BAD_CREDENTIALS');
-
-    const token = signToken({ id: user.id, email: user.email });
+    const token = signToken({ id: user.id, email: user.email, tv: user.tokenVersion });
     res.json({ token, user: publicUser(user) });
   })
 );
@@ -115,7 +131,7 @@ router.patch(
   verifyToken,
   asyncHandler(async (req, res) => {
     const data = z
-      .object({ name: z.string().min(1).max(120).optional(), phone: z.string().max(40).optional(), preferredLanguage: z.enum(['HE', 'AR', 'EN']).optional() })
+      .object({ name: z.string().min(1).max(120).optional(), phone: phoneSchema.optional(), preferredLanguage: z.enum(['HE', 'AR', 'EN']).optional() })
       .parse(req.body);
     const user = await prisma.user.update({ where: { id: req.user!.id }, data });
     res.json({ user: publicUser(user) });
@@ -137,8 +153,15 @@ router.post(
     if (!user) throw unauthorized('Account not found');
     const ok = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!ok) throw badRequest('Current password is incorrect', 'BAD_PASSWORD');
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, BCRYPT_ROUNDS) } });
-    res.json({ success: true });
+    assertStrongPassword(newPassword, user.email);
+    // Bump tokenVersion → every previously-issued session is revoked; hand the
+    // caller a fresh token so THIS session keeps working.
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await bcrypt.hash(newPassword, BCRYPT_ROUNDS), tokenVersion: { increment: 1 } },
+    });
+    const token = signToken({ id: updated.id, email: updated.email, tv: updated.tokenVersion });
+    res.json({ success: true, token });
   })
 );
 
@@ -215,9 +238,11 @@ router.post(
     const userId = await kv.getdel(`pwreset:${hashToken(token)}`); // atomic: one use only
     if (!userId) throw badRequest('Reset link is invalid or expired', 'RESET_INVALID');
 
+    // Bump tokenVersion so any session created before the reset (e.g. by whoever
+    // triggered it, or a stolen token) is immediately invalidated.
     await prisma.user.update({
       where: { id: userId },
-      data: { passwordHash: await bcrypt.hash(newPassword, BCRYPT_ROUNDS) },
+      data: { passwordHash: await bcrypt.hash(newPassword, BCRYPT_ROUNDS), tokenVersion: { increment: 1 } },
     });
     res.json({ success: true });
   })

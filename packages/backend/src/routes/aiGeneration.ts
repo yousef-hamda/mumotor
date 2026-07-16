@@ -6,6 +6,7 @@ import { slugify } from '../utils/slug.js';
 import { PRESET_SUMMARIES, getPreset } from '../services/ai/templatePresets.js';
 import { generateWebsite } from '../services/ai/generator.js';
 import type { GeneratedSiteConfig } from '../services/ai/templateBuilder.js';
+import { boundedRecord } from '../utils/validation.js';
 
 const router = Router();
 
@@ -17,8 +18,8 @@ router.get('/quick-templates', (_req, res) => {
 // POST /ai/v2/generate-website — deterministic preview build (no persistence)
 const genSchema = z.object({
   name: z.string().min(1).max(80).optional(),
-  presetId: z.string().optional(),
-  businessConfig: z.record(z.any()).optional(),
+  presetId: z.string().max(64).optional(),
+  businessConfig: boundedRecord().optional(),
 });
 router.post(
   '/generate-website',

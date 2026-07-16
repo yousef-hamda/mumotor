@@ -58,7 +58,7 @@ router.use(verifyToken);
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const websiteId = String(req.query.websiteId ?? '');
+    const websiteId = z.string().uuid().parse(String(req.query.websiteId ?? ''));
     const site = await prisma.website.findUnique({ where: { id: websiteId } });
     if (!site) throw notFound('Website not found');
     if (site.userId !== req.user!.id) throw forbidden('Not your website');
