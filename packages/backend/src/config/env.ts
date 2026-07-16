@@ -17,9 +17,21 @@ const schema = z.object({
   APP_URL: z.string().default('http://localhost:4000'),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
 
-  // Email — RESEND_API_KEY sends via Resend's HTTPS API (works on hosts that
-  // block outbound SMTP ports, e.g. Railway); otherwise SMTP_* is used, and
-  // with neither set mail falls back to the console transport.
+  // Email transport priority: Amazon SES (SES_* set) → Resend (RESEND_API_KEY) →
+  // SMTP (SMTP_*) → console. SES + Resend both use an HTTPS API, so they work on
+  // hosts that block outbound SMTP ports (e.g. Railway).
+  // Amazon SES v2 — cheapest at scale (~$0.10 / 1,000). Needs a verified domain +
+  // production access (out of sandbox). Send from a verified mumotor.com address.
+  SES_REGION: z.string().optional(),
+  SES_ACCESS_KEY_ID: z.string().optional(),
+  SES_SECRET_ACCESS_KEY: z.string().optional(),
+  // Explicit on-switch so the SES keys can be pre-loaded (encrypted) before the
+  // AWS account leaves the sandbox; flip to true only once production access is
+  // granted, then SES takes over from Resend on the next restart.
+  SES_ENABLED: z
+    .union([z.boolean(), z.string()])
+    .transform((v) => v === true || v === 'true')
+    .default(false),
   RESEND_API_KEY: z.string().optional(),
   // SMTP (optional — falls back to console transport if unset)
   SMTP_HOST: z.string().optional(),

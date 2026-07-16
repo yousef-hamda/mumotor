@@ -1,10 +1,27 @@
 import nodemailer, { type Transporter } from 'nodemailer';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { env } from '../../config/env.js';
 import { logger } from '../../lib/logger.js';
 import { emailLocale, emailT, type EmailLocale } from './strings.js';
 
 let transporter: Transporter;
 let usingConsole = false;
+
+// Amazon SES v2 over HTTPS (cheapest at scale, works where SMTP is blocked).
+// Active only when SES_ENABLED=true AND all three SES_* creds are present — the
+// creds can be pre-loaded while the AWS account is still in the sandbox, then
+// switched on (SES_ENABLED) once production access is granted.
+const useSES = !!(env.SES_ENABLED && env.SES_REGION && env.SES_ACCESS_KEY_ID && env.SES_SECRET_ACCESS_KEY);
+let sesClient: SESv2Client | null = null;
+function getSes(): SESv2Client {
+  if (!sesClient) {
+    sesClient = new SESv2Client({
+      region: env.SES_REGION,
+      credentials: { accessKeyId: env.SES_ACCESS_KEY_ID!, secretAccessKey: env.SES_SECRET_ACCESS_KEY! },
+    });
+  }
+  return sesClient;
+}
 
 function buildTransport(): Transporter {
   if (env.SMTP_HOST && env.SMTP_PORT) {
@@ -22,8 +39,9 @@ function buildTransport(): Transporter {
 }
 
 transporter = buildTransport();
-if (env.RESEND_API_KEY) logger.info('Email: using Resend API transport');
-else if (usingConsole) logger.info('Email: using console transport (set RESEND_API_KEY or SMTP_* to send real email)');
+if (useSES) logger.info(`Email: using Amazon SES transport (${env.SES_REGION})`);
+else if (env.RESEND_API_KEY) logger.info('Email: using Resend API transport');
+else if (usingConsole) logger.info('Email: using console transport (set SES_*, RESEND_API_KEY or SMTP_* to send real email)');
 
 // ---------------------------------------------------------------------------
 // Per-school branding
@@ -108,8 +126,32 @@ async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs):
   return true;
 }
 
+async function sendViaSES({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
+  const bccList = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined;
+  const out = await getSes().send(
+    new SendEmailCommand({
+      // Must be a verified SES identity (the mumotor.com domain). The friendly
+      // per-school name rides on top of the verified address.
+      FromEmailAddress: fromString(brand),
+      Destination: { ToAddresses: [to], ...(bccList ? { BccAddresses: bccList } : {}) },
+      Content: {
+        Simple: {
+          Subject: { Data: subject, Charset: 'UTF-8' },
+          Body: {
+            Html: { Data: html, Charset: 'UTF-8' },
+            Text: { Data: text ?? stripHtml(html), Charset: 'UTF-8' },
+          },
+        },
+      },
+    })
+  );
+  logger.info(`📧 Email sent → ${to} :: ${subject} (ses ${out.MessageId})`);
+  return true;
+}
+
 export async function sendEmail({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
   try {
+    if (useSES) return await sendViaSES({ to, subject, html, text, brand, bcc });
     if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand, bcc });
     const info = await transporter.sendMail({
       from: fromField(brand),
