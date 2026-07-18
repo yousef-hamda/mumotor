@@ -1,0 +1,470 @@
+/* Circuit — motorsport pit-wall telemetry. All selectors scoped to .tmpl-circuit.
+   Carbon-fibre dark, racing red, one live timing-green. Broadcast graphics, not a
+   game: precise, data-rich, elegant. ONE accent (--ci-red) → CTAs / links / active
+   / the car / stars. --ci-green is status-only (live / cleared sector). Every tint
+   derives with color-mix() from the vars below, so Customize recolouring holds.
+   First 5 vars are user-recolourable (COLOR_SLOTS); the rest are internal. */
+
+.tmpl-circuit {
+  /* User-recolourable */
+  --ci-carbon: #0C0D10;  /* carbon — page bg */
+  --ci-panel: #15171C;   /* panels / cards */
+  --ci-ink: #EDF1F5;     /* cool off-white text */
+  --ci-red: #FF2E3D;     /* racing red — the ONE accent */
+  --ci-green: #37E07A;   /* timing green — live / status only */
+  /* Internal */
+  --ci-muted: #9AA1AC;   /* secondary text (≥4.5:1 on --ci-panel) */
+  --ci-line: rgba(237, 241, 245, 0.12);        /* hairlines */
+  --ci-line-strong: rgba(237, 241, 245, 0.24); /* stronger hairline / empty star */
+
+  --ci-display: 'Saira', system-ui, sans-serif;
+  --ci-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  position: relative;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 2px, color-mix(in srgb, var(--ci-ink) 3%, transparent) 2px 3px),
+    var(--ci-carbon);
+  color: var(--ci-ink);
+  font-family: 'Public Sans', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-circuit *, .tmpl-circuit *::before, .tmpl-circuit *::after { box-sizing: border-box; }
+.tmpl-circuit img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable on a dark surface. */
+.tmpl-circuit :focus-visible { outline: 2px solid var(--ci-red); outline-offset: 2px; }
+
+/* ── SIGNATURE: the fixed pit-wall (timing tower + circuit + car) ─────────────
+   Gated to ≥1180px (see media query) so it sits in the margin beside the content
+   column. pointer-events:none + z below content: a broadcast overlay that never
+   catches clicks and never adds page width. */
+.tmpl-circuit .ci-plane {
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-end: 18px;
+  transform: translateY(-50%);
+  width: 170px;
+  z-index: 2;
+  pointer-events: none;
+  display: none;
+}
+.tmpl-circuit .ci-tower {
+  background: color-mix(in srgb, var(--ci-panel) 82%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--ci-line);
+  border-radius: 6px;
+  padding: 12px 14px 14px;
+  margin-bottom: 12px;
+}
+.tmpl-circuit .ci-tower-head {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--ci-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ci-green);
+}
+.tmpl-circuit .ci-tower-label {
+  display: block; margin-top: 10px;
+  font-family: var(--ci-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ci-muted);
+}
+.tmpl-circuit .ci-lap {
+  display: block; margin-top: 2px;
+  font-family: var(--ci-display); font-weight: 700; font-size: 26px; line-height: 1.05;
+  letter-spacing: 0.01em; color: var(--ci-ink); font-variant-numeric: tabular-nums;
+}
+.tmpl-circuit .ci-sectors { margin-top: 12px; display: grid; gap: 6px; }
+.tmpl-circuit .ci-sector {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px;
+  padding: 6px 9px; border-radius: 4px;
+  background: color-mix(in srgb, var(--ci-carbon) 55%, transparent);
+  border: 1px solid var(--ci-line);
+  font-family: var(--ci-mono); font-variant-numeric: tabular-nums;
+  color: var(--ci-muted); transition: color 0.25s ease, border-color 0.25s ease;
+}
+.tmpl-circuit .ci-sector-l { font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.tmpl-circuit .ci-sector-t { font-size: 11px; font-weight: 500; text-align: end; }
+.tmpl-circuit .ci-sector-check { display: none; align-items: center; justify-content: center; color: var(--ci-green); }
+/* Cleared sector = green AND a check glyph appears (never colour alone). */
+.tmpl-circuit .ci-sector.is-clear { color: var(--ci-green); border-color: color-mix(in srgb, var(--ci-green) 50%, transparent); }
+.tmpl-circuit .ci-sector.is-clear .ci-sector-check { display: inline-flex; }
+
+.tmpl-circuit .ci-track-wrap { position: relative; width: 150px; height: 620px; margin: 0 auto; }
+.tmpl-circuit .ci-track { display: block; width: 150px; height: 620px; overflow: visible; }
+.tmpl-circuit .ci-track-ribbon { stroke: var(--ci-line-strong); stroke-width: 9; stroke-linejoin: round; stroke-linecap: round; }
+.tmpl-circuit .ci-track-line { stroke: color-mix(in srgb, var(--ci-red) 70%, transparent); stroke-width: 1.5; stroke-linejoin: round; }
+.tmpl-circuit .ci-track-sf { stroke: var(--ci-ink); stroke-width: 3; opacity: 0.7; }
+
+/* The car — a red chevron riding the track via CSS Motion Path. It reads the
+   inherited --ci-prog (written from scroll). offset-distance/transform only ⇒
+   buttery smooth. ⚠️ The path() below MUST match TRACK_D in index.tsx. */
+.tmpl-circuit .ci-car {
+  position: absolute; top: 0; left: 0; width: 15px; height: 12px;
+  background: var(--ci-red);
+  clip-path: polygon(0 0, 100% 50%, 0 100%, 28% 50%);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ci-red) 80%, transparent));
+  offset-path: path('M 60 24 L 90 24 C 114 24 126 36 126 60 L 126 246 C 126 272 100 282 100 310 C 100 338 126 348 126 374 L 126 560 C 126 584 114 596 90 596 L 60 596 C 36 596 24 584 24 560 L 24 60 C 24 36 36 24 60 24 Z');
+  offset-rotate: auto;
+  offset-distance: var(--ci-prog, 0%);
+  will-change: offset-distance;
+}
+
+.tmpl-circuit .ci-livedot { width: 7px; height: 7px; border-radius: 50%; background: var(--ci-green); flex-shrink: 0; animation: ci-pulse 1.8s ease-in-out infinite; }
+@keyframes ci-pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--ci-green) 60%, transparent); } 50% { opacity: 0.55; box-shadow: 0 0 0 4px transparent; } }
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.tmpl-circuit .ci-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-circuit .ci-section { position: relative; padding: 108px 0; }
+
+/* ── Type ─────────────────────────────────────────────────────────────────────
+   Saira signage for headings — headings MUST set an explicit colour (a global h1
+   rule otherwise paints them near-black on the dark bg). */
+.tmpl-circuit .ci-h1 {
+  font-family: var(--ci-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2.6rem, 6.2vw, 4.6rem); line-height: 1.02; letter-spacing: -0.01em;
+  margin: 18px 0 0; max-width: 15ch; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-h2 {
+  font-family: var(--ci-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.06; letter-spacing: -0.005em;
+  margin: 0; max-width: 20ch; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-circuit .ci-h1, .tmpl-circuit .ci-h2 { overflow-wrap: break-word; }
+
+.tmpl-circuit .ci-eyebrow {
+  font-family: var(--ci-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ci-red);
+  margin: 0 0 14px;
+}
+.tmpl-circuit .ci-eyebrow-center { text-align: center; }
+.tmpl-circuit .ci-lead { color: var(--ci-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 54ch; margin: 18px 0 0; }
+.tmpl-circuit .ci-body { color: var(--ci-muted); font-size: 16px; margin: 16px 0 0; max-width: 58ch; }
+
+/* ── Buttons — square-ish carbon panels, mechanical press ─────────────────────
+   Primary = red fill with DARK ink text (dark-on-#FF2E3D ≈ 5.3:1 ✓; white would
+   fail at ~3.3:1). Ghost = 1px hairline, ink text. */
+.tmpl-circuit .ci-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 4px; cursor: pointer;
+  font-family: var(--ci-mono); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none;
+  padding: 13px 22px; min-height: 44px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-circuit .ci-btn-sm { padding: 9px 15px; min-height: 36px; font-size: 11px; }
+.tmpl-circuit .ci-btn-block { width: 100%; margin-top: auto; }
+.tmpl-circuit .ci-btn-primary { color: var(--ci-carbon); background: var(--ci-red); border-color: var(--ci-red); }
+.tmpl-circuit .ci-btn-primary:hover { background: color-mix(in srgb, var(--ci-red) 88%, #fff); border-color: color-mix(in srgb, var(--ci-red) 88%, #fff); }
+.tmpl-circuit .ci-btn-primary:active { transform: translateY(1px); }
+.tmpl-circuit .ci-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-circuit .ci-btn-primary:disabled:active { transform: none; }
+.tmpl-circuit .ci-btn-ghost { color: var(--ci-ink); background: transparent; border-color: var(--ci-line-strong); }
+.tmpl-circuit .ci-btn-ghost:hover { border-color: var(--ci-red); color: var(--ci-red); }
+.tmpl-circuit .ci-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: the pit-wall header ─────────────────────────────────────────────────
+   Sticky, translucent carbon, red bottom hairline, a pulsing green LIVE dot. */
+.tmpl-circuit .ci-nav { position: sticky; top: 0; z-index: 60; }
+.tmpl-circuit .ci-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
+  background: color-mix(in srgb, var(--ci-carbon) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ci-red) 45%, transparent);
+}
+.tmpl-circuit .ci-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--ci-display); font-size: 18px; font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-circuit .ci-nav-link {
+  position: relative;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--ci-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ci-muted);
+  padding: 10px 12px; border-radius: 4px;
+  transition: color 0.18s ease;
+}
+.tmpl-circuit .ci-nav-link:hover { color: var(--ci-ink); }
+/* Active = red text AND a 2px red underline (never colour alone). */
+.tmpl-circuit .ci-nav-link.is-active { color: var(--ci-red); }
+.tmpl-circuit .ci-nav-link.is-active::after {
+  content: ''; position: absolute; inset-inline: 12px; bottom: 3px; height: 2px;
+  background: var(--ci-red); border-radius: 1px;
+}
+.tmpl-circuit .ci-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-circuit .ci-nav-live {
+  display: none; align-items: center; gap: 6px;
+  font-family: var(--ci-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ci-green);
+}
+.tmpl-circuit .ci-menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; padding: 6px;
+  background: none; border: 0; cursor: pointer; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-nav-mobile {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px;
+  background: var(--ci-carbon); border-bottom: 1px solid var(--ci-line);
+}
+.tmpl-circuit .ci-nav-mobile button, .tmpl-circuit .ci-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--ci-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ci-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--ci-line);
+}
+
+/* ── Hero: broadcast title | framed telemetry panel ───────────────────────────*/
+.tmpl-circuit .ci-hero { padding-top: clamp(56px, 8vw, 92px); }
+.tmpl-circuit .ci-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-circuit .ci-hero-sub { color: var(--ci-muted); font-size: clamp(1.02rem, 1.6vw, 1.16rem); max-width: 46ch; margin: 22px 0 0; }
+.tmpl-circuit .ci-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 0; }
+.tmpl-circuit .ci-hero-tele {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 26px 0 0;
+  font-family: var(--ci-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ci-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tmpl-circuit .ci-hero-tele b { color: var(--ci-ink); font-weight: 600; }
+.tmpl-circuit .ci-tele-sep { color: var(--ci-line-strong); }
+.tmpl-circuit .ci-tele-flag { width: 9px; height: 9px; background: var(--ci-red); flex-shrink: 0; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+.tmpl-circuit .ci-figure { margin: 0; }
+.tmpl-circuit .ci-panel { position: relative; border: 1px solid var(--ci-line-strong); border-radius: 8px; padding: 6px; background: var(--ci-panel); box-shadow: inset 0 1px 0 var(--ci-line); }
+.tmpl-circuit .ci-hero-frame { overflow: hidden; }
+.tmpl-circuit .ci-hero-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 4px; }
+.tmpl-circuit .ci-hero-tag {
+  position: absolute; left: 14px; bottom: 14px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 4px;
+  background: color-mix(in srgb, var(--ci-carbon) 78%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--ci-line);
+  font-family: var(--ci-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ci-green);
+}
+.tmpl-circuit .ci-figcap {
+  font-family: var(--ci-mono); font-size: 10px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ci-muted);
+  text-align: start; margin: 10px 4px 2px; padding-top: 8px; border-top: 1px solid var(--ci-line);
+}
+
+/* ── Stats: telemetry readouts on a hairline band ─────────────────────────────*/
+.tmpl-circuit .ci-stats { position: relative; padding: 52px 0; border-top: 1px solid var(--ci-line); border-bottom: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-circuit .ci-stat { text-align: start; }
+.tmpl-circuit .ci-stat-num {
+  display: block; font-family: var(--ci-display); font-weight: 700;
+  font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1; letter-spacing: -0.01em;
+  color: var(--ci-ink); font-variant-numeric: tabular-nums;
+}
+.tmpl-circuit .ci-spark { display: block; width: 60px; height: 18px; margin: 10px 0 0; opacity: 0.85; }
+.tmpl-circuit .ci-stat-label {
+  display: block; margin-top: 10px;
+  font-family: var(--ci-mono); font-size: 10.5px; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ci-muted);
+}
+
+/* ── Why: the pit wall ────────────────────────────────────────────────────────*/
+.tmpl-circuit .ci-why-grid { display: grid; grid-template-columns: 1fr; gap: 36px 32px; margin-top: 52px; }
+.tmpl-circuit .ci-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 6px;
+  border: 1px solid var(--ci-line-strong); background: var(--ci-panel); color: var(--ci-red);
+}
+.tmpl-circuit .ci-why-title { font-family: var(--ci-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.01em; font-size: 20px; line-height: 1.18; margin: 18px 0 0; color: var(--ci-ink); }
+.tmpl-circuit .ci-why-body { color: var(--ci-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: pit-strategy tiers ─────────────────────────────────────────────*/
+.tmpl-circuit .ci-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 48px; }
+.tmpl-circuit .ci-pkg {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 28px; border-radius: 8px;
+  border: 1px solid var(--ci-line-strong); background: var(--ci-panel);
+  box-shadow: inset 0 1px 0 var(--ci-line);
+}
+.tmpl-circuit .ci-pkg.is-popular { border-color: var(--ci-red); box-shadow: inset 0 1px 0 var(--ci-line), 0 0 0 1px var(--ci-red); }
+.tmpl-circuit .ci-pkg-badge {
+  align-self: flex-start; margin-bottom: 16px; padding: 5px 10px; border-radius: 4px;
+  font-family: var(--ci-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ci-carbon); background: var(--ci-red);
+}
+.tmpl-circuit .ci-pkg-name {
+  margin: 0; font-family: var(--ci-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ci-muted);
+}
+.tmpl-circuit .ci-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.tmpl-circuit .ci-pkg-amount { font-family: var(--ci-display); font-weight: 700; font-size: 46px; line-height: 1; letter-spacing: -0.01em; color: var(--ci-ink); font-variant-numeric: tabular-nums; }
+.tmpl-circuit .ci-pkg-unit { font-family: var(--ci-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ci-muted); }
+.tmpl-circuit .ci-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--ci-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-circuit .ci-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--ci-ink); }
+.tmpl-circuit .ci-check { color: var(--ci-red); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ────────────────────────────────────────────────────────────────────*/
+.tmpl-circuit .ci-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-circuit .ci-about-img { aspect-ratio: 4 / 5; }
+.tmpl-circuit .ci-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-instructor-photo { width: 132px; height: 132px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--ci-line-strong); }
+.tmpl-circuit .ci-instructor-id { min-width: 0; }
+.tmpl-circuit .ci-instructor-name { margin: 0; font-family: var(--ci-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 20px; line-height: 1.2; color: var(--ci-ink); }
+.tmpl-circuit .ci-instructor-title { margin: 4px 0 0; font-family: var(--ci-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ci-muted); }
+.tmpl-circuit .ci-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-circuit .ci-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--ci-ink); }
+.tmpl-circuit .ci-checklist .ci-check { margin-top: 2px; }
+.tmpl-circuit .ci-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-circuit .ci-cred {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: 4px; border: 1px solid var(--ci-line-strong);
+  font-family: var(--ci-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-cred svg { color: var(--ci-red); flex-shrink: 0; }
+
+/* ── Areas: sectors / zones covered ───────────────────────────────────────────*/
+.tmpl-circuit .ci-areas { list-style: none; margin: 44px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-area {
+  display: flex; align-items: center; gap: 12px; padding: 14px 0;
+  border-bottom: 1px solid var(--ci-line);
+  font-family: var(--ci-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ci-ink);
+}
+.tmpl-circuit .ci-area-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ci-green); flex-shrink: 0; }
+.tmpl-circuit .ci-area-note { margin-inline-start: auto; font-size: 10px; font-weight: 400; letter-spacing: 0.06em; color: var(--ci-muted); text-align: end; }
+
+/* ── Reviews: panel cards ─────────────────────────────────────────────────────*/
+.tmpl-circuit .ci-reviews { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 48px; }
+.tmpl-circuit .ci-review { padding: 28px; border-radius: 8px; border: 1px solid var(--ci-line-strong); background: var(--ci-panel); height: 100%; box-shadow: inset 0 1px 0 var(--ci-line); }
+.tmpl-circuit .ci-stars { display: inline-flex; gap: 2px; }
+.tmpl-circuit .ci-review-text { font-size: 16px; line-height: 1.6; color: var(--ci-ink); margin: 14px 0 20px; }
+.tmpl-circuit .ci-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-avatar { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+.tmpl-circuit .ci-review-name { margin: 0; font-family: var(--ci-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 15px; color: var(--ci-ink); }
+.tmpl-circuit .ci-review-sub { margin: 2px 0 0; font-family: var(--ci-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ci-muted); }
+
+/* ── Gallery ──────────────────────────────────────────────────────────────────*/
+.tmpl-circuit .ci-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 48px; }
+.tmpl-circuit .ci-gallery-cell { border: 1px solid var(--ci-line-strong); border-radius: 8px; padding: 5px; background: var(--ci-panel); }
+.tmpl-circuit .ci-gallery-cell img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; }
+
+/* ── FAQ: hairline rows, mono +/− ─────────────────────────────────────────────*/
+.tmpl-circuit .ci-faq-wrap { max-width: 780px; }
+.tmpl-circuit .ci-faq-list { margin-top: 40px; border-top: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-faq-item { border-bottom: 1px solid var(--ci-line); }
+.tmpl-circuit .ci-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--ci-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.01em;
+  font-size: 18px; line-height: 1.3; color: var(--ci-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-circuit .ci-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; color: var(--ci-red); }
+.tmpl-circuit .ci-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-circuit .ci-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-circuit .ci-faq-panel-in { overflow: hidden; }
+.tmpl-circuit .ci-faq-panel p { color: var(--ci-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: lights out / grid ──────────────────────────────────────────────────*/
+.tmpl-circuit .ci-book {
+  max-width: 720px; margin: 0 auto; text-align: center;
+  padding: 56px 32px; border-radius: 10px;
+  border: 1px solid var(--ci-line-strong); background: var(--ci-panel);
+  box-shadow: inset 0 1px 0 var(--ci-line);
+}
+.tmpl-circuit .ci-grid-lights { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; }
+.tmpl-circuit .ci-grid-lights span {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--ci-red);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--ci-red) 55%, transparent);
+}
+.tmpl-circuit .ci-book .ci-h2 { max-width: none; }
+.tmpl-circuit .ci-book .ci-lead { margin-inline: auto; }
+.tmpl-circuit .ci-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ─────────────────────────────────────────────────────────*/
+.tmpl-circuit .ci-footer { position: relative; padding: 76px 0 44px; border-top: 1px solid var(--ci-line-strong); }
+.tmpl-circuit .ci-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-circuit .ci-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.tmpl-circuit .ci-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--ci-ink); text-decoration: none; font-size: 15px; }
+.tmpl-circuit .ci-contact-link svg { color: var(--ci-red); flex-shrink: 0; }
+.tmpl-circuit .ci-contact-link:hover { color: var(--ci-red); }
+.tmpl-circuit .ci-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.tmpl-circuit .ci-social {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 4px;
+  border: 1px solid var(--ci-line-strong); color: var(--ci-ink);
+  transition: transform 0.12s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-circuit .ci-social:hover { color: var(--ci-red); border-color: var(--ci-red); }
+.tmpl-circuit .ci-social:active { transform: translateY(1px); }
+.tmpl-circuit .ci-hours { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.tmpl-circuit .ci-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--ci-line); color: var(--ci-ink); }
+.tmpl-circuit .ci-hours td:last-child { text-align: end; font-family: var(--ci-mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--ci-muted); font-variant-numeric: tabular-nums; }
+.tmpl-circuit .ci-hours tr.is-closed td { color: var(--ci-muted); }
+.tmpl-circuit .ci-footer-bottom {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--ci-line);
+  font-family: var(--ci-mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ci-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────*/
+@media (min-width: 720px) {
+  .tmpl-circuit .ci-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-circuit .ci-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-circuit .ci-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-circuit .ci-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-circuit .ci-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-circuit .ci-areas { grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+  .tmpl-circuit .ci-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-circuit .ci-about { grid-template-columns: 0.85fr 1.15fr; }
+  .tmpl-circuit .ci-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-circuit .ci-nav-links { display: flex; }
+  .tmpl-circuit .ci-nav-live { display: inline-flex; }
+  .tmpl-circuit .ci-menu { display: none; }
+}
+/* The pit-wall lives in the sheet MARGIN — only show it once the viewport is wide
+   enough that the 1080px content column mostly clears it. */
+@media (min-width: 1180px) {
+  .tmpl-circuit .ci-plane { display: block; }
+}
+@media (max-width: 520px) {
+  .tmpl-circuit .ci-nav-end .ci-btn-ghost { display: none; }
+  .tmpl-circuit .ci-section { padding: 72px 0; }
+  .tmpl-circuit .ci-book { padding: 40px 22px; }
+  .tmpl-circuit .ci-instructor-photo { width: 96px; height: 96px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-circuit .ci-btn,
+  .tmpl-circuit .ci-btn-sm,
+  .tmpl-circuit .ci-social,
+  .tmpl-circuit .ci-nav-link,
+  .tmpl-circuit .ci-nav-mobile button,
+  .tmpl-circuit .ci-nav-mobile-link { min-height: 44px; }
+  .tmpl-circuit .ci-social { min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-circuit .ci-btn:active,
+  .tmpl-circuit .ci-social:active { transform: none; }
+  .tmpl-circuit .ci-livedot { animation: none; }
+  .tmpl-circuit .ci-faq-panel { transition: none; }
+}
+
+/* ── RTL: the pit-wall is edge-anchored via logical props already; the SVG path
+   itself need not mirror (a physical circuit layout). Only the hardcoded-LTR
+   hero tag needs flipping. ──────────────────────────────────────────────────*/
+.tmpl-circuit[dir='rtl'] .ci-hero-tag { left: auto; right: 14px; }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.ci-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.ci-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

@@ -7,7 +7,7 @@ import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConc
 import { FadeUp, Stagger } from '../../components/motion';
 import { useSeo } from '../../lib/seo';
 
-const COUNT_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][TEMPLATES.length] ?? `${TEMPLATES.length}`;
+const COUNT_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen'][TEMPLATES.length] ?? `${TEMPLATES.length}`;
 
 export default function TemplatesGallery() {
   const { t } = useTranslation();

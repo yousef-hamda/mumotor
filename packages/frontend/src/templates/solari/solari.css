@@ -1,0 +1,495 @@
+/* Solari — the split-flap departure board. All selectors scoped to .tmpl-solari.
+   Mechanical, tactile, industrial: a warm-black board in a brushed-brass frame,
+   departure-amber as the ONE accent. Every tint derives with color-mix() from
+   the 7 vars below, so Customize recolouring holds. First 5 are user-recolourable
+   (COLOR_SLOTS); --sl-muted and --sl-line are internal. */
+
+.tmpl-solari {
+  /* User-recolourable */
+  --sl-board: #17140F;   /* the board — warm near-black, page bg */
+  --sl-flap: #221D16;    /* individual flap face — panels / cards */
+  --sl-text: #EDE7D8;    /* chalk — flap character text, body text */
+  --sl-amber: #F5A623;   /* departure amber — the ONE accent */
+  --sl-brass: #8C7A4B;   /* brushed brass — frame, secondary, muted */
+  /* Internal */
+  --sl-muted: #A79C82;   /* secondary text (≥4.5:1 on --sl-flap) */
+  --sl-line: rgba(237, 231, 216, 0.12); /* hairlines */
+
+  --sl-display: 'Oswald', system-ui, sans-serif;
+  --sl-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  position: relative;
+  background: var(--sl-board);
+  color: var(--sl-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-solari *, .tmpl-solari *::before, .tmpl-solari *::after { box-sizing: border-box; }
+.tmpl-solari img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-solari :focus-visible { outline: 2px solid var(--sl-amber); outline-offset: 2px; }
+
+/* ── The brushed-brass frame + corner rivets (fixed, over content, under nav) ── */
+.tmpl-solari .sl-frame {
+  position: fixed;
+  inset: 12px;
+  z-index: 40;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 70%, transparent);
+  border-radius: 3px;
+  background-image:
+    radial-gradient(circle, var(--sl-brass) 0 2px, transparent 2.5px),
+    radial-gradient(circle, var(--sl-brass) 0 2px, transparent 2.5px),
+    radial-gradient(circle, var(--sl-brass) 0 2px, transparent 2.5px),
+    radial-gradient(circle, var(--sl-brass) 0 2px, transparent 2.5px);
+  background-repeat: no-repeat;
+  background-position: 7px 7px, right 7px top 7px, left 7px bottom 7px, right 7px bottom 7px;
+  background-size: 12px 12px;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.tmpl-solari .sl-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-solari .sl-section { position: relative; padding: 108px 0; }
+
+/* ── Type ─────────────────────────────────────────────────────────────────────
+   Oswald signage for headings; long HE/AR words never overflow the big clamp(). */
+.tmpl-solari .sl-h1 {
+  font-family: var(--sl-display); font-weight: 600; text-transform: uppercase;
+  font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.05; letter-spacing: 0.005em;
+  margin: 20px 0 0; max-width: 16ch; color: var(--sl-text);
+}
+.tmpl-solari .sl-h2 {
+  font-family: var(--sl-display); font-weight: 600; text-transform: uppercase;
+  font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.08; letter-spacing: 0.005em;
+  margin: 0; max-width: 20ch; color: var(--sl-text);
+}
+.tmpl-solari .sl-h2-tight { max-width: 15ch; }
+.tmpl-solari .sl-h1, .tmpl-solari .sl-h2 { overflow-wrap: break-word; }
+
+.tmpl-solari .sl-eyebrow {
+  font-family: var(--sl-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--sl-amber);
+  margin: 0 0 14px;
+}
+.tmpl-solari .sl-eyebrow-center { text-align: center; }
+.tmpl-solari .sl-lead { color: var(--sl-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 54ch; margin: 18px 0 0; }
+.tmpl-solari .sl-body { color: var(--sl-muted); font-size: 16px; margin: 16px 0 0; max-width: 58ch; }
+
+/* ── The split-flap tiles (the core motif) ─────────────────────────────────────
+   A row reads as a real board: each tile is a small flap cell with a horizontal
+   seam across the middle + a static inset shadow (brass light-catch top, shade
+   bottom) so it reads 3D. The .sl-cover is the decorative flap that flips. */
+.tmpl-solari .sl-flaps {
+  display: inline-flex; flex-wrap: wrap; align-items: flex-end;
+  gap: 4px 0; perspective: 480px;
+}
+.tmpl-solari .sl-flaps-plain { display: inline; perspective: none; }
+.tmpl-solari .sl-word { display: inline-flex; gap: 3px; }
+.tmpl-solari .sl-gap { display: inline-block; width: 0.36em; }
+.tmpl-solari .sl-flaps-big .sl-gap { width: 0.28em; }
+
+.tmpl-solari .sl-tile {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 0.82em; padding: 0.08em 0.1em;
+  background: var(--sl-flap);
+  border-radius: 2px;
+  color: var(--sl-text);
+  font-family: var(--sl-mono); font-weight: 500; font-variant-numeric: tabular-nums;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--sl-brass) 40%, transparent),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.45);
+}
+/* the seam — the split between the two flap halves */
+.tmpl-solari .sl-tile::after {
+  content: ''; position: absolute; inset-inline: 0; top: 50%; height: 1px;
+  background: var(--sl-board); opacity: 0.9; transform: translateY(-0.5px); pointer-events: none;
+}
+.tmpl-solari .sl-char { position: relative; z-index: 0; line-height: 1; }
+
+/* the flipping cover — decorative, aria-hidden; only present while animating */
+.tmpl-solari .sl-cover {
+  position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none;
+  border-radius: inherit; transform-origin: 50% 50%; backface-visibility: hidden;
+  background:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--sl-flap) 82%, #fff 8%) 0 49.5%,
+      rgba(0, 0, 0, 0.55) 49.5% 50.5%,
+      color-mix(in srgb, var(--sl-flap) 90%, #000 10%) 50.5% 100%);
+}
+.tmpl-solari .sl-tile.is-flip .sl-cover {
+  animation: sl-flip 620ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes sl-flip {
+  0%     { opacity: 1; transform: rotateX(90deg); }
+  15%    { opacity: 1; transform: rotateX(0deg); }
+  30%    { opacity: 1; transform: rotateX(-90deg); }
+  30.01% { opacity: 1; transform: rotateX(90deg); }
+  45%    { opacity: 1; transform: rotateX(0deg); }
+  60%    { opacity: 1; transform: rotateX(-90deg); }
+  60.01% { opacity: 1; transform: rotateX(90deg); }
+  75%    { opacity: 1; transform: rotateX(0deg); }
+  90%    { opacity: 1; transform: rotateX(-90deg); }
+  100%   { opacity: 0; transform: rotateX(-90deg); }
+}
+
+/* Big marquee flaps (hero / book headline): Oswald, uppercase, larger cells. */
+.tmpl-solari .sl-flaps-big { gap: 6px 4px; }
+.tmpl-solari .sl-flaps-big .sl-word { gap: 5px; }
+.tmpl-solari .sl-flaps-big .sl-tile { min-width: 0.72em; padding: 0.1em 0.12em 0.14em; border-radius: 3px; }
+.tmpl-solari .sl-flaps-big .sl-char { font-family: var(--sl-display); font-weight: 600; text-transform: uppercase; }
+
+/* Numeric flap readouts (stats) — forced LTR so digits never reverse in RTL. */
+.tmpl-solari .sl-flaps-num { direction: ltr; gap: 3px; }
+
+/* Eyebrow flaps stay clean amber mono (no heavy flap cell) — the flip still
+   plays via the .sl-cover, but the character reads as a plain amber readout. */
+.tmpl-solari .sl-eyebrow .sl-flaps { gap: 2px; }
+.tmpl-solari .sl-eyebrow .sl-word { gap: 2px; }
+.tmpl-solari .sl-eyebrow .sl-tile { background: transparent; box-shadow: none; min-width: 0; padding: 0 0.03em; }
+.tmpl-solari .sl-eyebrow .sl-tile::after { display: none; }
+.tmpl-solari .sl-eyebrow .sl-char { color: var(--sl-amber); }
+
+/* ── Buttons: 2px radius, brass border, amber fill for primary, mechanical press ── */
+.tmpl-solari .sl-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 2px; cursor: pointer;
+  font-family: var(--sl-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none;
+  padding: 13px 22px; min-height: 44px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-solari .sl-btn-sm { padding: 9px 15px; min-height: 36px; font-size: 11px; }
+.tmpl-solari .sl-btn-block { width: 100%; margin-top: auto; }
+.tmpl-solari .sl-btn-primary { color: var(--sl-board); background: var(--sl-amber); border-color: var(--sl-amber); }
+.tmpl-solari .sl-btn-primary:hover { background: color-mix(in srgb, var(--sl-amber) 88%, #fff); }
+.tmpl-solari .sl-btn-primary:active { transform: translateY(1px); }
+.tmpl-solari .sl-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-solari .sl-btn-primary:disabled:active { transform: none; }
+.tmpl-solari .sl-btn-ghost { color: var(--sl-text); background: transparent; border-color: color-mix(in srgb, var(--sl-brass) 75%, transparent); }
+.tmpl-solari .sl-btn-ghost:hover { border-color: var(--sl-amber); color: var(--sl-amber); }
+.tmpl-solari .sl-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: the sticky board header ────────────────────────────────────────────── */
+.tmpl-solari .sl-nav { position: sticky; top: 0; z-index: 60; }
+.tmpl-solari .sl-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
+  background: color-mix(in srgb, var(--sl-board) 90%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent);
+}
+.tmpl-solari .sl-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--sl-display); font-size: 17px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--sl-text);
+}
+.tmpl-solari .sl-nav-links { display: none; align-items: center; gap: 4px; }
+.tmpl-solari .sl-nav-link {
+  position: relative;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--sl-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--sl-muted);
+  padding: 10px 12px; border-radius: 2px;
+  transition: color 0.18s ease;
+}
+.tmpl-solari .sl-nav-link:hover { color: var(--sl-text); }
+/* Active = an amber flap-tab beneath + the chalk colour (never colour alone). */
+.tmpl-solari .sl-nav-link.is-active { color: var(--sl-text); }
+.tmpl-solari .sl-nav-link.is-active::after {
+  content: ''; position: absolute; inset-inline: 12px; bottom: 3px; height: 2px;
+  background: var(--sl-amber); border-radius: 1px;
+}
+.tmpl-solari .sl-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-solari .sl-menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; padding: 6px;
+  background: none; border: 0; cursor: pointer; color: var(--sl-text);
+}
+.tmpl-solari .sl-nav-mobile {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px;
+  background: var(--sl-board); border-bottom: 1px solid var(--sl-line);
+}
+.tmpl-solari .sl-nav-mobile button, .tmpl-solari .sl-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--sl-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--sl-text);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--sl-line);
+}
+
+/* ── Hero: board headline | framed media panel ───────────────────────────────── */
+.tmpl-solari .sl-hero { padding-top: clamp(56px, 8vw, 92px); }
+.tmpl-solari .sl-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-solari .sl-hero-sub { color: var(--sl-muted); font-size: clamp(1.02rem, 1.6vw, 1.16rem); max-width: 46ch; margin: 22px 0 0; }
+.tmpl-solari .sl-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 0; }
+
+/* Framed board-panel with a brass edge + a mono caption strip */
+.tmpl-solari .sl-panel { margin: 0; border: 1px solid color-mix(in srgb, var(--sl-brass) 60%, transparent); border-radius: 4px; padding: 6px; background: var(--sl-flap); }
+.tmpl-solari .sl-panel-crop { position: relative; border-radius: 2px; overflow: hidden; }
+.tmpl-solari .sl-panel-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; }
+.tmpl-solari .sl-panel-tag {
+  position: absolute; left: 14px; bottom: 14px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 2px;
+  background: color-mix(in srgb, var(--sl-board) 82%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent);
+  font-family: var(--sl-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-amber);
+}
+.tmpl-solari .sl-panel-cap {
+  font-family: var(--sl-mono); font-size: 10px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-muted);
+  text-align: start; margin: 10px 4px 2px; padding-top: 8px; border-top: 1px solid var(--sl-line);
+}
+.tmpl-solari .sl-live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sl-amber); flex-shrink: 0; }
+
+/* ── The departures board ────────────────────────────────────────────────────── */
+.tmpl-solari .sl-board {
+  margin-top: clamp(48px, 7vw, 76px);
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent);
+  border-radius: 4px; background: var(--sl-flap); overflow: hidden;
+}
+.tmpl-solari .sl-board-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 20px; border-bottom: 1px solid var(--sl-line);
+  background: color-mix(in srgb, var(--sl-board) 55%, transparent);
+}
+.tmpl-solari .sl-board-title {
+  font-family: var(--sl-display); font-size: 16px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--sl-text);
+}
+.tmpl-solari .sl-board-live {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--sl-mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-amber);
+}
+.tmpl-solari .sl-board-cols, .tmpl-solari .sl-board-row {
+  display: grid; grid-template-columns: 0.7fr 1.6fr 1fr; gap: 12px; align-items: center;
+  padding: 12px 20px;
+}
+.tmpl-solari .sl-board-cols {
+  font-family: var(--sl-mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-muted);
+  border-bottom: 1px solid var(--sl-line);
+}
+.tmpl-solari .sl-board-rows { list-style: none; margin: 0; padding: 0; }
+.tmpl-solari .sl-board-row { border-bottom: 1px solid var(--sl-line); }
+.tmpl-solari .sl-board-row:last-child { border-bottom: 0; }
+.tmpl-solari .sl-board-time .sl-flaps { font-size: 13px; }
+.tmpl-solari .sl-board-dest {
+  font-family: var(--sl-display); font-size: 16px; font-weight: 500;
+  letter-spacing: 0.02em; text-transform: uppercase; color: var(--sl-text);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tmpl-solari .sl-board-stat {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--sl-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--sl-amber);
+}
+.tmpl-solari .sl-stat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sl-amber); flex-shrink: 0; }
+
+/* ── Stats: rolling flap readouts on a hairline band ──────────────────────────── */
+.tmpl-solari .sl-stats { position: relative; padding: 52px 0; border-top: 1px solid var(--sl-line); border-bottom: 1px solid var(--sl-line); }
+.tmpl-solari .sl-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-solari .sl-stat { text-align: start; }
+.tmpl-solari .sl-stat-num { display: block; }
+.tmpl-solari .sl-stat-num .sl-flaps-num { font-size: clamp(1.7rem, 4vw, 2.5rem); align-items: center; }
+.tmpl-solari .sl-stat-num .sl-tile { color: var(--sl-amber); min-width: 0.66em; padding: 0.08em 0.06em; }
+.tmpl-solari .sl-stat-label {
+  display: block; margin-top: 12px;
+  font-family: var(--sl-mono); font-size: 10.5px; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--sl-muted);
+}
+
+/* ── Why: the board's key services ───────────────────────────────────────────── */
+.tmpl-solari .sl-why-grid { display: grid; grid-template-columns: 1fr; gap: 36px 32px; margin-top: 52px; }
+.tmpl-solari .sl-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent);
+  background: var(--sl-flap); color: var(--sl-amber);
+}
+.tmpl-solari .sl-why-title { font-family: var(--sl-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.01em; font-size: 20px; line-height: 1.2; margin: 18px 0 0; color: var(--sl-text); }
+.tmpl-solari .sl-why-body { color: var(--sl-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: board panels ──────────────────────────────────────────────────── */
+.tmpl-solari .sl-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 48px; }
+.tmpl-solari .sl-pkg {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 28px; border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); background: var(--sl-flap);
+}
+.tmpl-solari .sl-pkg.is-popular { border-color: var(--sl-amber); box-shadow: 0 0 0 1px var(--sl-amber); }
+.tmpl-solari .sl-pkg-badge {
+  align-self: flex-start; margin-bottom: 16px; padding: 5px 10px; border-radius: 2px;
+  font-family: var(--sl-mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--sl-board); background: var(--sl-amber);
+}
+.tmpl-solari .sl-pkg-name {
+  margin: 0; font-family: var(--sl-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-muted);
+}
+.tmpl-solari .sl-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.tmpl-solari .sl-pkg-amount { font-family: var(--sl-display); font-weight: 600; font-size: 46px; line-height: 1; letter-spacing: 0.005em; color: var(--sl-text); font-variant-numeric: tabular-nums; }
+.tmpl-solari .sl-pkg-unit { font-family: var(--sl-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sl-muted); }
+.tmpl-solari .sl-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--sl-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-solari .sl-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--sl-text); }
+.tmpl-solari .sl-check { color: var(--sl-amber); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ────────────────────────────────────────────────────────────────────── */
+.tmpl-solari .sl-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-solari .sl-about-img { aspect-ratio: 4 / 5; }
+.tmpl-solari .sl-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--sl-line); }
+.tmpl-solari .sl-instructor-photo { width: 132px; height: 132px; border-radius: 3px; object-fit: cover; flex-shrink: 0; border: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent); }
+.tmpl-solari .sl-instructor-id { min-width: 0; }
+.tmpl-solari .sl-instructor-name { margin: 0; font-family: var(--sl-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 20px; line-height: 1.2; color: var(--sl-text); }
+.tmpl-solari .sl-instructor-title { margin: 4px 0 0; font-family: var(--sl-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sl-muted); }
+.tmpl-solari .sl-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-solari .sl-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--sl-text); }
+.tmpl-solari .sl-checklist .sl-check { margin-top: 2px; }
+.tmpl-solari .sl-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-solari .sl-cred {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--sl-brass) 50%, transparent);
+  font-family: var(--sl-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--sl-text);
+}
+.tmpl-solari .sl-cred svg { color: var(--sl-amber); flex-shrink: 0; }
+
+/* ── Areas: a departures list ────────────────────────────────────────────────── */
+.tmpl-solari .sl-areas { list-style: none; margin: 44px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--sl-line); }
+.tmpl-solari .sl-area {
+  display: flex; align-items: center; gap: 12px; padding: 14px 0;
+  border-bottom: 1px solid var(--sl-line);
+  font-family: var(--sl-display); font-size: 15px; font-weight: 500;
+  letter-spacing: 0.02em; text-transform: uppercase; color: var(--sl-text);
+}
+.tmpl-solari .sl-area-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sl-amber); flex-shrink: 0; }
+.tmpl-solari .sl-area-note { margin-inline-start: auto; font-family: var(--sl-mono); font-size: 10px; font-weight: 400; letter-spacing: 0.06em; color: var(--sl-muted); text-align: end; }
+
+/* ── Reviews: flap-panel cards ───────────────────────────────────────────────── */
+.tmpl-solari .sl-reviews { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 48px; }
+.tmpl-solari .sl-review { padding: 28px; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--sl-brass) 40%, transparent); background: var(--sl-flap); height: 100%; }
+.tmpl-solari .sl-stars { display: inline-flex; gap: 2px; }
+.tmpl-solari .sl-review-text { font-size: 16px; line-height: 1.6; color: var(--sl-text); margin: 14px 0 20px; }
+.tmpl-solari .sl-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--sl-line); }
+.tmpl-solari .sl-avatar { width: 40px; height: 40px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
+.tmpl-solari .sl-review-name { margin: 0; font-family: var(--sl-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; font-size: 15px; color: var(--sl-text); }
+.tmpl-solari .sl-review-sub { margin: 2px 0 0; font-family: var(--sl-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sl-muted); }
+
+/* ── Gallery: framed plates ──────────────────────────────────────────────────── */
+.tmpl-solari .sl-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 48px; }
+.tmpl-solari .sl-gallery-cell { border: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); border-radius: 4px; padding: 5px; background: var(--sl-flap); }
+.tmpl-solari .sl-gallery-cell img { width: 100%; height: 220px; object-fit: cover; border-radius: 2px; }
+
+/* ── FAQ: hairline board rows, mono +/− ──────────────────────────────────────── */
+.tmpl-solari .sl-faq-wrap { max-width: 780px; }
+.tmpl-solari .sl-faq-list { margin-top: 40px; border-top: 1px solid var(--sl-line); }
+.tmpl-solari .sl-faq-item { border-bottom: 1px solid var(--sl-line); }
+.tmpl-solari .sl-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--sl-display); font-weight: 500; text-transform: uppercase; letter-spacing: 0.01em;
+  font-size: 18px; line-height: 1.3; color: var(--sl-text); padding: 22px 0; min-height: 44px;
+}
+.tmpl-solari .sl-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; color: var(--sl-amber); }
+.tmpl-solari .sl-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-solari .sl-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-solari .sl-faq-panel-in { overflow: hidden; }
+.tmpl-solari .sl-faq-panel p { color: var(--sl-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: one large board panel — "NEXT DEPARTURE" ──────────────────────────── */
+.tmpl-solari .sl-book {
+  max-width: 720px; margin: 0 auto; text-align: center;
+  padding: 56px 32px; border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 55%, transparent); background: var(--sl-flap);
+}
+.tmpl-solari .sl-book .sl-h2 { max-width: none; }
+.tmpl-solari .sl-book .sl-flaps-big { justify-content: center; }
+.tmpl-solari .sl-book .sl-lead { margin-inline: auto; }
+.tmpl-solari .sl-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ────────────────────────────────────────────────────────── */
+.tmpl-solari .sl-footer { position: relative; padding: 76px 0 44px; border-top: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); }
+.tmpl-solari .sl-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-solari .sl-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.tmpl-solari .sl-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--sl-text); text-decoration: none; font-size: 15px; }
+.tmpl-solari .sl-contact-link svg { color: var(--sl-amber); flex-shrink: 0; }
+.tmpl-solari .sl-contact-link:hover { color: var(--sl-amber); }
+.tmpl-solari .sl-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.tmpl-solari .sl-social {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 50%, transparent); color: var(--sl-text);
+  transition: transform 0.12s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-solari .sl-social:hover { color: var(--sl-amber); border-color: var(--sl-amber); }
+.tmpl-solari .sl-social:active { transform: translateY(1px); }
+.tmpl-solari .sl-hours { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.tmpl-solari .sl-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--sl-line); color: var(--sl-text); }
+.tmpl-solari .sl-hours td:last-child { text-align: end; font-family: var(--sl-mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--sl-muted); font-variant-numeric: tabular-nums; }
+.tmpl-solari .sl-hours tr.is-closed td { color: var(--sl-muted); }
+.tmpl-solari .sl-footer-bottom {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--sl-line);
+  font-family: var(--sl-mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--sl-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-solari .sl-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-solari .sl-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-solari .sl-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-solari .sl-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-solari .sl-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-solari .sl-areas { grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+  .tmpl-solari .sl-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-solari .sl-about { grid-template-columns: 0.85fr 1.15fr; }
+  .tmpl-solari .sl-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-solari .sl-nav-links { display: flex; }
+  .tmpl-solari .sl-menu { display: none; }
+}
+@media (max-width: 520px) {
+  .tmpl-solari .sl-frame { inset: 8px; }
+  .tmpl-solari .sl-nav-end .sl-btn-ghost { display: none; }
+  .tmpl-solari .sl-section { padding: 72px 0; }
+  .tmpl-solari .sl-book { padding: 40px 22px; }
+  .tmpl-solari .sl-instructor-photo { width: 96px; height: 96px; }
+  .tmpl-solari .sl-board-cols, .tmpl-solari .sl-board-row { grid-template-columns: 0.8fr 1.4fr; padding-inline: 16px; }
+  .tmpl-solari .sl-board-cols span:last-child, .tmpl-solari .sl-board-stat { display: none; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-solari .sl-btn,
+  .tmpl-solari .sl-btn-sm,
+  .tmpl-solari .sl-social,
+  .tmpl-solari .sl-nav-link,
+  .tmpl-solari .sl-nav-mobile button,
+  .tmpl-solari .sl-nav-mobile-link { min-height: 44px; }
+  .tmpl-solari .sl-social { min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-solari .sl-btn:active,
+  .tmpl-solari .sl-social:active { transform: none; }
+  .tmpl-solari .sl-tile.is-flip .sl-cover { animation: none; }
+  .tmpl-solari .sl-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned decoration needs flipping (everything
+   else uses logical properties). ──────────────────────────────────────────── */
+.tmpl-solari[dir='rtl'] .sl-panel-tag { left: auto; right: 14px; }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.sl-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.sl-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

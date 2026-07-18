@@ -1,0 +1,601 @@
+/* Bezel — the instrument. Cool charcoal anodized metal, knurled edges, one signal
+   needle. All depth is STATIC machined layering (box-shadow), never an animated
+   blur/scale layer — so it is cheap by construction (see CLAUDE.md perf rule).
+   All selectors scoped to .tmpl-bezel. */
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+.tmpl-bezel {
+  /* The 5 editor-mapped palette vars */
+  --bz-case:   #16181B;   /* the case  — page background, charcoal          */
+  --bz-face:   #24272B;   /* the dial face — panels / cards                 */
+  --bz-ink:    #EDEBE6;   /* warm off-white dial print — body text          */
+  --bz-signal: #E5484D;   /* the needle — the ONE accent                    */
+  --bz-metal:  #8E9299;   /* anodized aluminium — bezel rings, secondary    */
+
+  /* Internal — derived from the above, not separately editable */
+  --bz-muted: #9BA1A8;
+  --bz-line: rgba(237, 235, 230, 0.12);
+
+  /* The machined edge: top light-catch + bottom shade + a cast 1px drop.
+     STATIC — never animated. This one stack is what makes a panel read as
+     milled aluminium. */
+  --bz-milled:
+    inset 0 1px 0 color-mix(in srgb, var(--bz-metal) 40%, transparent),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  /* Knurled grip: 2px hairlines of anodized metal. Cheap, static, no blur. */
+  --bz-knurling: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bz-metal) 34%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+  --bz-radius: 10px;
+
+  position: relative;
+  min-height: 100%;
+  background: var(--bz-case);
+  color: var(--bz-ink);
+  font-family: 'Familjen Grotesk', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-bezel *, .tmpl-bezel *::before, .tmpl-bezel *::after { box-sizing: border-box; }
+.tmpl-bezel img { display: block; max-width: 100%; }
+.tmpl-bezel a { color: inherit; }
+
+/* Visible focus on every interactive element (dark template — must be obvious). */
+.tmpl-bezel :focus-visible { outline: 2px solid var(--bz-signal); outline-offset: 2px; }
+
+/* ── Layout: the instrument column ─────────────────────────────────────────── */
+.tmpl-bezel .bz-wrap    { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+.tmpl-bezel .bz-section { padding: 104px 0; }
+
+/* ── The bezel panel — the template's one surface primitive ────────────────── */
+.tmpl-bezel .bz-panel {
+  position: relative;
+  background: var(--bz-face);
+  border: 1px solid var(--bz-line);
+  border-radius: var(--bz-radius);
+  box-shadow: var(--bz-milled);
+}
+
+/* Knurling strip — used along panel/nav edges as the texture motif. */
+.tmpl-bezel .bz-knurl {
+  display: block;
+  height: 3px;
+  background-image: var(--bz-knurling);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Typography ────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-h1 {
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--bz-ink);
+  margin: 16px auto 0;
+  max-width: 17ch;
+  overflow-wrap: break-word;
+}
+.tmpl-bezel .bz-h2 {
+  font-weight: 600;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--bz-ink);
+  margin: 0;
+  max-width: 20ch;
+  overflow-wrap: break-word;
+}
+.tmpl-bezel .bz-h2-start { max-width: 17ch; }
+/* Mono utility voice — eyebrows, badges, nav, numerals. Machined, engraved. */
+.tmpl-bezel .bz-eyebrow {
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bz-signal);
+  margin: 0 0 14px;
+}
+.tmpl-bezel .bz-lead { color: var(--bz-muted); font-size: 17px; max-width: 54ch; margin: 18px 0 0; }
+.tmpl-bezel .bz-body { color: var(--bz-muted); font-size: 16.5px; margin: 16px 0 0; max-width: 56ch; }
+
+/* ── Buttons — machined, not pills. Press feedback is the tactile core. ────── */
+.tmpl-bezel .bz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  padding: 13px 22px;
+  min-height: 46px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0, 0.2, 1),
+    background 160ms cubic-bezier(0.2, 0, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tmpl-bezel .bz-btn-sm    { padding: 9px 16px; min-height: 38px; font-size: 11.5px; }
+.tmpl-bezel .bz-btn-lg    { padding: 16px 26px; min-height: 52px; font-size: 14px; }
+.tmpl-bezel .bz-btn-block { width: 100%; margin-top: auto; }
+.tmpl-bezel .bz-btn:disabled { cursor: default; opacity: 0.55; }
+
+/* Primary: the signal, darkened just enough that #fff clears 4.5:1 (see report).
+   Hover lifts it back toward the pure signal. */
+.tmpl-bezel .bz-btn-primary {
+  color: #FFFFFF;
+  background: color-mix(in srgb, var(--bz-signal) 82%, #0A0B0C);
+  box-shadow: var(--bz-milled);
+}
+.tmpl-bezel .bz-btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--bz-signal) 92%, #0A0B0C); }
+.tmpl-bezel .bz-btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55), inset 0 -1px 0 color-mix(in srgb, var(--bz-metal) 22%, transparent);
+}
+/* Ghost: transparent + a 1px anodized edge. */
+.tmpl-bezel .bz-btn-ghost {
+  color: var(--bz-ink);
+  background: transparent;
+  border: 1px solid var(--bz-metal);
+}
+.tmpl-bezel .bz-btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--bz-metal) 12%, transparent); }
+.tmpl-bezel .bz-btn-ghost:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Nav ───────────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--bz-case) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--bz-line);
+}
+.tmpl-bezel .bz-nav-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+}
+.tmpl-bezel .bz-nav-knurl { position: absolute; inset-inline: 0; bottom: 0; }
+.tmpl-bezel .bz-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: 'Familjen Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  color: var(--bz-ink);
+}
+.tmpl-bezel .bz-nav-links { display: none; gap: 2px; }
+.tmpl-bezel .bz-nav-link {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bz-metal);
+  padding: 8px 12px 6px;
+  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tmpl-bezel .bz-nav-link:hover      { color: var(--bz-ink); }
+/* Active is signalled by colour AND a 2px bar — never colour alone. */
+.tmpl-bezel .bz-nav-link.is-active  { color: var(--bz-signal); border-bottom-color: var(--bz-signal); }
+.tmpl-bezel .bz-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-bezel .bz-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--bz-ink);
+  padding: 6px;
+}
+.tmpl-bezel .bz-nav-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px 16px;
+  background: var(--bz-case);
+  border-bottom: 1px solid var(--bz-line);
+}
+.tmpl-bezel .bz-nav-mobile button,
+.tmpl-bezel .bz-nav-mobile .bz-nav-mobile-link {
+  background: none;
+  border: 0;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--bz-ink);
+  padding: 12px 8px;
+  border-radius: 8px;
+  min-height: 44px;
+}
+.tmpl-bezel .bz-nav-mobile button:hover,
+.tmpl-bezel .bz-nav-mobile .bz-nav-mobile-link:hover { background: color-mix(in srgb, var(--bz-metal) 12%, transparent); }
+
+/* ── Hero — centred, tight column ──────────────────────────────────────────── */
+.tmpl-bezel .bz-hero      { padding: clamp(64px, 10vw, 112px) 0 clamp(40px, 6vw, 72px); }
+.tmpl-bezel .bz-hero-copy { text-align: center; }
+.tmpl-bezel .bz-hero-sub  { color: var(--bz-muted); font-size: clamp(1rem, 1.8vw, 1.2rem); max-width: 46ch; margin: 22px auto 0; }
+.tmpl-bezel .bz-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 30px 0 0; }
+.tmpl-bezel .bz-hero-tilt { margin-top: clamp(44px, 6vw, 72px); }
+
+/* The bezel-framed viewport: image inside a panel, machined ring on top. */
+.tmpl-bezel .bz-viewport      { padding: 7px; overflow: hidden; }
+.tmpl-bezel .bz-viewport-img  { width: 100%; height: clamp(280px, 42vw, 460px); object-fit: cover; border-radius: 5px; }
+.tmpl-bezel .bz-viewport-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 6px var(--bz-face),
+    inset 0 0 0 7px color-mix(in srgb, var(--bz-metal) 50%, transparent);
+}
+
+/* ── Stats — THE GAUGE CLUSTER ─────────────────────────────────────────────── */
+.tmpl-bezel .bz-stats     { padding: 56px 0; border-top: 1px solid var(--bz-line); border-bottom: 1px solid var(--bz-line); }
+.tmpl-bezel .bz-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 16px; }
+.tmpl-bezel .bz-stat      { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+.tmpl-bezel .bz-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bz-face);
+  border: 1px solid var(--bz-line);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--bz-metal) 40%, transparent),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 5px color-mix(in srgb, var(--bz-metal) 14%, transparent),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+/* Decorative dial furniture — ticks, needle, hub. aria-hidden in the markup;
+   the VALUE below is real text. */
+.tmpl-bezel .bz-dial-face { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+.tmpl-bezel .bz-tick      { position: absolute; inset: 0; }
+.tmpl-bezel .bz-tick::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  inset-inline-start: calc(50% - 0.5px);
+  width: 1px;
+  height: 7px;
+  background: var(--bz-metal);
+  opacity: 0.55;
+}
+.tmpl-bezel .bz-tick.is-major::before { height: 11px; opacity: 0.9; }
+/* The needle pivots at the dial centre (so the sweep maths stays trivial) but only
+   its OUTER span is painted — the inner run is transparent. That keeps the readout
+   at the centre legible instead of having a red bar drawn straight through it. */
+.tmpl-bezel .bz-needle {
+  position: absolute;
+  inset-inline-start: calc(50% - 1px);
+  bottom: 50%;
+  width: 2px;
+  height: 44px;
+  background: linear-gradient(to top, transparent 0 58%, var(--bz-signal) 58% 100%);
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+.tmpl-bezel .bz-stat-num {
+  position: relative;
+  margin-top: 22px;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--bz-ink);
+}
+.tmpl-bezel .bz-stat-label {
+  display: block;
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--bz-muted);
+  max-width: 18ch;
+}
+
+/* ── Why ───────────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-why-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 48px; }
+.tmpl-bezel .bz-why      { height: 100%; padding: 28px; }
+.tmpl-bezel .bz-why-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  color: var(--bz-signal);
+  background: color-mix(in srgb, var(--bz-signal) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bz-metal) 30%, transparent);
+}
+.tmpl-bezel .bz-why-title { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; margin: 18px 0 0; color: var(--bz-ink); }
+.tmpl-bezel .bz-why-body  { color: var(--bz-muted); font-size: 15px; margin: 8px 0 0; }
+
+/* ── Packages ──────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 48px; }
+.tmpl-bezel .bz-pkg      { display: flex; flex-direction: column; height: 100%; padding: 28px; }
+.tmpl-bezel .bz-pkg.is-popular {
+  box-shadow: var(--bz-milled), inset 0 0 0 1px var(--bz-signal);
+}
+.tmpl-bezel .bz-pkg-badge {
+  align-self: flex-start;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bz-signal);
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--bz-signal) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bz-signal) 45%, transparent);
+  margin-bottom: 16px;
+}
+.tmpl-bezel .bz-pkg-name  { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; margin: 0; color: var(--bz-ink); }
+.tmpl-bezel .bz-pkg-price { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 0; }
+.tmpl-bezel .bz-pkg-amount {
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  color: var(--bz-ink);
+}
+.tmpl-bezel .bz-pkg-unit  { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.04em; color: var(--bz-muted); }
+.tmpl-bezel .bz-pkg-features { list-style: none; margin: 22px 0 26px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.tmpl-bezel .bz-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--bz-ink); }
+.tmpl-bezel .bz-check { color: var(--bz-signal); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ─────────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-about       { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-bezel .bz-about-media { position: relative; }
+.tmpl-bezel .bz-about-img   { height: clamp(280px, 38vw, 420px); }
+.tmpl-bezel .bz-instructor {
+  position: absolute;
+  inset-inline-start: 20px;
+  bottom: -22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.tmpl-bezel .bz-instructor-photo {
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bz-metal) 40%, transparent);
+}
+.tmpl-bezel .bz-instructor-name  { font-weight: 600; font-size: 15px; margin: 0; color: var(--bz-ink); }
+.tmpl-bezel .bz-instructor-title { font-size: 12.5px; color: var(--bz-muted); margin: 2px 0 0; }
+.tmpl-bezel .bz-checklist    { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-bezel .bz-checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; color: var(--bz-ink); }
+.tmpl-bezel .bz-checklist svg { color: var(--bz-signal); flex-shrink: 0; margin-top: 3px; }
+.tmpl-bezel .bz-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }
+.tmpl-bezel .bz-cred {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--bz-ink);
+  background: var(--bz-face);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bz-metal) 30%, transparent), inset 0 0 0 1px var(--bz-line);
+}
+.tmpl-bezel .bz-cred svg { color: var(--bz-signal); flex-shrink: 0; }
+
+/* ── Areas — mono chips with a machined edge ───────────────────────────────── */
+.tmpl-bezel .bz-areas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 44px; }
+.tmpl-bezel .bz-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 6px;
+  background: var(--bz-face);
+  box-shadow: var(--bz-milled), inset 0 0 0 1px var(--bz-line);
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--bz-ink);
+}
+.tmpl-bezel .bz-area-note { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--bz-metal); }
+
+/* ── Reviews ───────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-reviews     { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 48px; }
+.tmpl-bezel .bz-review      { padding: 26px; }
+.tmpl-bezel .bz-stars       { display: inline-flex; gap: 2px; }
+.tmpl-bezel .bz-review-text { font-size: 16px; line-height: 1.6; color: var(--bz-ink); margin: 14px 0 18px; }
+.tmpl-bezel .bz-review-meta { display: flex; align-items: center; gap: 12px; }
+.tmpl-bezel .bz-avatar      { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px var(--bz-line); }
+.tmpl-bezel .bz-review-name { font-weight: 600; font-size: 14.5px; margin: 0; color: var(--bz-ink); }
+.tmpl-bezel .bz-review-sub  { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--bz-muted); margin: 3px 0 0; }
+
+/* ── Gallery ───────────────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-gallery      { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 48px; }
+.tmpl-bezel .bz-gallery-cell { padding: 5px; overflow: hidden; }
+.tmpl-bezel .bz-gallery-cell img { width: 100%; height: 190px; object-fit: cover; border-radius: 5px; }
+
+/* ── FAQ — hairline rows on the case, no panel ─────────────────────────────── */
+.tmpl-bezel .bz-faq-wrap { max-width: 760px; }
+.tmpl-bezel .bz-faq-list { margin-top: 44px; border-top: 1px solid var(--bz-line); }
+.tmpl-bezel .bz-faq-item { border-bottom: 1px solid var(--bz-line); }
+.tmpl-bezel .bz-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16.5px;
+  color: var(--bz-ink);
+  padding: 20px 0;
+  text-align: start;
+  min-height: 44px;
+}
+.tmpl-bezel .bz-faq-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  color: var(--bz-signal);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bz-metal) 34%, transparent);
+}
+.tmpl-bezel .bz-faq-panel    { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms cubic-bezier(0.2, 0, 0.2, 1); }
+.tmpl-bezel .bz-faq-panel.is-open { grid-template-rows: 1fr; }
+.tmpl-bezel .bz-faq-panel-in { overflow: hidden; }
+.tmpl-bezel .bz-faq-panel-in p { color: var(--bz-muted); font-size: 15.5px; margin: 0; padding: 0 0 20px; max-width: 62ch; }
+
+/* ── Book — one large centred panel ────────────────────────────────────────── */
+.tmpl-bezel .bz-book { padding: clamp(40px, 6vw, 64px) clamp(24px, 4vw, 44px); text-align: center; }
+.tmpl-bezel .bz-book .bz-h2   { margin: 0 auto; }
+.tmpl-bezel .bz-book .bz-lead { margin: 16px auto 0; }
+.tmpl-bezel .bz-book-ctas     { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ──────────────────────────────────────────────────────── */
+.tmpl-bezel .bz-footer       { padding: 72px 0 44px; border-top: 1px solid var(--bz-line); }
+.tmpl-bezel .bz-footer-grid  { display: grid; grid-template-columns: 1fr; gap: 36px; }
+.tmpl-bezel .bz-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.tmpl-bezel .bz-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--bz-ink);
+  text-decoration: none;
+  font-size: 15px;
+  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tmpl-bezel .bz-contact-link svg   { color: var(--bz-signal); flex-shrink: 0; }
+.tmpl-bezel .bz-contact-link:hover { color: var(--bz-signal); }
+.tmpl-bezel .bz-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-bezel .bz-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: var(--bz-ink);
+  background: var(--bz-face);
+  box-shadow: var(--bz-milled), inset 0 0 0 1px var(--bz-line);
+  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1), transform 160ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tmpl-bezel .bz-social:hover  { color: var(--bz-signal); }
+.tmpl-bezel .bz-social:active { transform: translateY(1px); }
+.tmpl-bezel .bz-hours { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.tmpl-bezel .bz-hours td {
+  padding: 10px 0;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--bz-line);
+  color: var(--bz-ink);
+}
+.tmpl-bezel .bz-hours td:last-child   { text-align: end; color: var(--bz-muted); }
+.tmpl-bezel .bz-hours tr.is-closed td { color: var(--bz-metal); }
+.tmpl-bezel .bz-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid var(--bz-line);
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--bz-muted);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-bezel .bz-stats-row   { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-bezel .bz-why-grid    { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-bezel .bz-pkg-grid    { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-bezel .bz-reviews     { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-bezel .bz-gallery     { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-bezel .bz-about       { grid-template-columns: 1fr 1fr; }
+  .tmpl-bezel .bz-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-bezel .bz-nav-links { display: flex; }
+  .tmpl-bezel .bz-menu      { display: none; }
+}
+/* Phone: drop the nav account pill (still in the mobile menu), calm the section
+   rhythm, and shrink the dial + floating instructor photo so nothing overruns. */
+@media (max-width: 520px) {
+  .tmpl-bezel .bz-nav-end .bz-btn-ghost { display: none; }
+  .tmpl-bezel .bz-section { padding: 72px 0; }
+  .tmpl-bezel .bz-dial    { width: 104px; }
+  .tmpl-bezel .bz-needle  { height: 38px; }
+  .tmpl-bezel .bz-instructor-photo { width: 96px; height: 96px; }
+}
+/* Touch: real 44px targets + no iOS focus-zoom on the small mono controls. */
+@media (pointer: coarse) {
+  .tmpl-bezel .bz-btn-sm    { min-height: 44px; }
+  .tmpl-bezel .bz-nav-link  { min-height: 44px; }
+  .tmpl-bezel .bz-social    { min-height: 44px; min-width: 44px; }
+  .tmpl-bezel .bz-contact-link { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-bezel .bz-faq-panel { transition: none; }
+  .tmpl-bezel .bz-btn:active, .tmpl-bezel .bz-social:active { transform: none; }
+}
+
+/* ── RTL ───────────────────────────────────────────────────────────────────── */
+/* Everything positional already uses logical props (the floating instructor panel
+   and the dial furniture flip themselves), so the only thing left is the one
+   directional glyph: mirror the CTA arrow so it points the way the text reads. */
+.tmpl-bezel[dir='rtl'] .bz-btn svg { transform: scaleX(-1); }
+
+/* Instructor reply to a review (global, matching every other template) */
+.bz-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.bz-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

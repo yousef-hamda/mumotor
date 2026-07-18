@@ -1,0 +1,416 @@
+/* Meridian — the survey sheet (an atlas plate). All selectors scoped to .tmpl-meridian.
+   Engraved, not decorated: neatline + contour plane + one plotted route line.
+   ONE accent var (--mr-route, survey magenta) → CTAs / links / active / route / keys.
+   Every tint derives with color-mix() from the vars, so Customize recolouring holds. */
+
+.tmpl-meridian {
+  /* User-recolourable */
+  --mr-paper: #E6E7E0;
+  --mr-ink: #1A1F1D;
+  --mr-route: #B03060;
+  --mr-contour: #A8AC9E;
+  --mr-water: #2E6E7E;
+  /* Internal */
+  --mr-muted: #5B6360;
+  --mr-line: rgba(26, 31, 29, 0.14);
+
+  --mr-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --mr-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  position: relative;
+  background: var(--mr-paper);
+  color: var(--mr-ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-meridian *, .tmpl-meridian *::before, .tmpl-meridian *::after { box-sizing: border-box; }
+.tmpl-meridian img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-meridian :focus-visible { outline: 2px solid var(--mr-route); outline-offset: 2px; }
+
+/* ── Plane 1: contour lines (fixed, viewport-sized, translate-only parallax) ──
+   Never blurred and never page-tall: a fixed layer + transform:translate is a cheap
+   compositor op, so scrolling stays at 60fps. */
+.tmpl-meridian .mr-planes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.tmpl-meridian .mr-contours {
+  position: fixed;
+  inset: -120px;
+  opacity: 0.35;
+  will-change: transform;
+  background-image:
+    repeating-radial-gradient(circle at 20% 14%, transparent 0 21px, var(--mr-contour) 21px 22px),
+    repeating-radial-gradient(circle at 82% 58%, transparent 0 25px, var(--mr-contour) 25px 26px),
+    repeating-radial-gradient(circle at 44% 104%, transparent 0 29px, var(--mr-contour) 29px 30px);
+}
+
+/* ── Plane 2: the plotted route (draws itself with scroll) ─────────────────── */
+.tmpl-meridian .mr-route-svg {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 46px;
+  width: 40px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  display: none;
+}
+
+/* ── The neatline: the map-sheet border, over the content, under the nav ───── */
+.tmpl-meridian .mr-neatline {
+  position: fixed;
+  inset: 14px;
+  z-index: 50;
+  pointer-events: none;
+  border: 1px solid var(--mr-contour);
+}
+
+/* ── Plane 3: content ─────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-content { position: relative; z-index: 3; }
+.tmpl-meridian .mr-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-meridian .mr-section { position: relative; padding: 112px 0; }
+
+/* ── Margin coordinate ticks (cartographic annotation of the section order) ── */
+.tmpl-meridian .mr-tick {
+  position: absolute;
+  top: 112px;
+  inset-inline-start: 44px;
+  display: none;
+  font-family: var(--mr-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mr-muted);
+  white-space: nowrap;
+}
+.tmpl-meridian .mr-tick-sep { color: var(--mr-contour); }
+
+/* ── Type ─────────────────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-h1 {
+  font-family: var(--mr-serif); font-weight: 400;
+  font-size: clamp(2.9rem, 6.4vw, 5rem); line-height: 1.02; letter-spacing: -0.012em;
+  margin: 18px 0 0; max-width: 15ch; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-h2 {
+  font-family: var(--mr-serif); font-weight: 400;
+  font-size: clamp(2.1rem, 4.2vw, 3.2rem); line-height: 1.06; letter-spacing: -0.008em;
+  margin: 0; max-width: 20ch; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-meridian .mr-h1, .tmpl-meridian .mr-h2 { overflow-wrap: break-word; }
+
+.tmpl-meridian .mr-eyebrow {
+  font-family: var(--mr-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--mr-route);
+  margin: 0 0 14px;
+}
+.tmpl-meridian .mr-lead { color: var(--mr-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 54ch; margin: 18px 0 0; }
+.tmpl-meridian .mr-body { color: var(--mr-muted); font-size: 16px; margin: 16px 0 0; max-width: 58ch; }
+
+/* Legend key marker — a small filled square. Never the only signal for a state. */
+.tmpl-meridian .mr-key { width: 7px; height: 7px; flex-shrink: 0; background: var(--mr-route); }
+
+/* ── Corner crop-marks (pure CSS, on any .mr-crop plate) ───────────────────── */
+.tmpl-meridian .mr-crop { position: relative; }
+.tmpl-meridian .mr-crop::before {
+  content: ''; position: absolute; inset: 5px; pointer-events: none; z-index: 1;
+  background:
+    linear-gradient(var(--mr-route), var(--mr-route)) left top / 9px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) left top / 1px 9px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right top / 9px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right top / 1px 9px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) left bottom / 9px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) left bottom / 1px 9px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right bottom / 9px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right bottom / 1px 9px no-repeat;
+}
+
+/* ── Buttons: square-ish, 2px radius, 1px border, no shadow ────────────────── */
+.tmpl-meridian .mr-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 2px; cursor: pointer;
+  font-family: var(--mr-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+  padding: 13px 22px; min-height: 44px;
+  border: 1px solid transparent;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-meridian .mr-btn-sm { padding: 9px 15px; min-height: 36px; font-size: 11px; }
+.tmpl-meridian .mr-btn-block { width: 100%; margin-top: auto; }
+.tmpl-meridian .mr-btn-primary { color: var(--mr-paper); background: var(--mr-route); border-color: var(--mr-route); }
+.tmpl-meridian .mr-btn-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--mr-route) 86%, var(--mr-ink)); }
+.tmpl-meridian .mr-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-meridian .mr-btn-primary:disabled:hover { transform: none; }
+.tmpl-meridian .mr-btn-ghost { color: var(--mr-ink); background: transparent; border-color: var(--mr-ink); }
+.tmpl-meridian .mr-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--mr-ink) 6%, transparent); }
+
+/* ── Nav: the legend bar ──────────────────────────────────────────────────── */
+.tmpl-meridian .mr-nav { position: sticky; top: 0; z-index: 60; }
+.tmpl-meridian .mr-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
+  background: color-mix(in srgb, var(--mr-paper) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--mr-line);
+}
+.tmpl-meridian .mr-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--mr-mono); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-nav-links { display: none; align-items: center; gap: 4px; }
+.tmpl-meridian .mr-nav-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--mr-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted);
+  padding: 8px 12px; border-radius: 2px;
+  transition: color 0.18s ease;
+}
+.tmpl-meridian .mr-nav-link::before {
+  content: ''; width: 6px; height: 6px; flex-shrink: 0;
+  background: transparent; transition: background 0.18s ease;
+}
+.tmpl-meridian .mr-nav-link:hover { color: var(--mr-ink); }
+/* Active = a filled legend key AND the ink colour + weight (never colour alone). */
+.tmpl-meridian .mr-nav-link.is-active { color: var(--mr-ink); font-weight: 600; }
+.tmpl-meridian .mr-nav-link.is-active::before { background: var(--mr-route); }
+.tmpl-meridian .mr-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-meridian .mr-menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; padding: 6px;
+  background: none; border: 0; cursor: pointer; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-nav-mobile {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px;
+  background: var(--mr-paper); border-bottom: 1px solid var(--mr-line);
+}
+.tmpl-meridian .mr-nav-mobile button, .tmpl-meridian .mr-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--mr-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--mr-line);
+}
+
+/* ── Hero: engraved title | map plate ─────────────────────────────────────── */
+.tmpl-meridian .mr-hero { padding-top: clamp(64px, 9vw, 104px); }
+.tmpl-meridian .mr-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-meridian .mr-hero-sub { color: var(--mr-muted); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 44ch; margin: 22px 0 0; }
+.tmpl-meridian .mr-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 0; }
+.tmpl-meridian .mr-figure { margin: 0; }
+.tmpl-meridian .mr-plate { position: relative; border: 1px solid var(--mr-contour); border-radius: 2px; padding: 5px; background: var(--mr-paper); }
+.tmpl-meridian .mr-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 0; }
+.tmpl-meridian .mr-caption {
+  font-family: var(--mr-mono); font-size: 10px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--mr-muted);
+  text-align: start; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--mr-line);
+}
+
+/* ── Stats: serif numeral over a hairline rule ─────────────────────────────── */
+.tmpl-meridian .mr-stats { position: relative; padding: 56px 0; border-top: 1px solid var(--mr-line); border-bottom: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-stats .mr-tick { top: 56px; }
+.tmpl-meridian .mr-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-meridian .mr-stat { text-align: start; }
+.tmpl-meridian .mr-stat-num {
+  display: block; font-family: var(--mr-serif); font-weight: 400;
+  font-size: clamp(2.6rem, 5vw, 3.6rem); line-height: 1; letter-spacing: -0.01em;
+  color: var(--mr-ink); padding-bottom: 12px; border-bottom: 1px solid var(--mr-contour);
+}
+.tmpl-meridian .mr-stat-label {
+  display: block; margin-top: 10px;
+  font-family: var(--mr-mono); font-size: 10.5px; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted);
+}
+
+/* ── Why (the legend) ─────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; margin-top: 56px; }
+.tmpl-meridian .mr-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 2px;
+  border: 1px solid var(--mr-contour); color: var(--mr-route);
+}
+.tmpl-meridian .mr-why-title { font-family: var(--mr-serif); font-weight: 400; font-size: 24px; line-height: 1.18; margin: 18px 0 0; color: var(--mr-ink); }
+.tmpl-meridian .mr-why-body { color: var(--mr-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: map plates ─────────────────────────────────────────────────── */
+.tmpl-meridian .mr-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 52px; }
+.tmpl-meridian .mr-pkg {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 30px; border-radius: 2px;
+  border: 1px solid var(--mr-contour); background: var(--mr-paper);
+}
+.tmpl-meridian .mr-pkg.is-popular { border-color: var(--mr-water); }
+.tmpl-meridian .mr-pkg-badge {
+  align-self: flex-start; margin-bottom: 16px; padding: 4px 9px; border-radius: 2px;
+  font-family: var(--mr-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--mr-paper); background: var(--mr-water);
+}
+.tmpl-meridian .mr-pkg-name {
+  margin: 0; font-family: var(--mr-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--mr-muted);
+}
+.tmpl-meridian .mr-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.tmpl-meridian .mr-pkg-amount { font-family: var(--mr-serif); font-weight: 400; font-size: 48px; line-height: 1; letter-spacing: -0.01em; color: var(--mr-ink); }
+.tmpl-meridian .mr-pkg-unit { font-family: var(--mr-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-muted); }
+.tmpl-meridian .mr-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--mr-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-meridian .mr-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--mr-ink); }
+.tmpl-meridian .mr-check { color: var(--mr-route); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ────────────────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-meridian .mr-about-img { aspect-ratio: 4 / 5; }
+.tmpl-meridian .mr-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-instructor-photo { width: 120px; height: 120px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--mr-contour); }
+.tmpl-meridian .mr-instructor-id { min-width: 0; }
+.tmpl-meridian .mr-instructor-name { margin: 0; font-family: var(--mr-serif); font-weight: 400; font-size: 22px; line-height: 1.2; color: var(--mr-ink); }
+.tmpl-meridian .mr-instructor-title { margin: 4px 0 0; font-family: var(--mr-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-muted); }
+.tmpl-meridian .mr-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-meridian .mr-checklist li { display: flex; align-items: center; gap: 12px; font-size: 15.5px; color: var(--mr-ink); }
+.tmpl-meridian .mr-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-meridian .mr-cred {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: 2px; border: 1px solid var(--mr-contour);
+  font-family: var(--mr-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-cred svg { color: var(--mr-route); flex-shrink: 0; }
+
+/* ── Areas: a legend list ─────────────────────────────────────────────────── */
+.tmpl-meridian .mr-areas { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-area {
+  display: flex; align-items: center; gap: 12px; padding: 14px 0;
+  border-bottom: 1px solid var(--mr-line);
+  font-family: var(--mr-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-ink);
+}
+.tmpl-meridian .mr-area-note { margin-inline-start: auto; font-size: 10px; font-weight: 400; letter-spacing: 0.08em; color: var(--mr-muted); text-align: end; }
+
+/* ── Reviews: quiet cards ─────────────────────────────────────────────────── */
+.tmpl-meridian .mr-reviews { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 52px; }
+.tmpl-meridian .mr-review { padding: 28px; border-radius: 2px; border: 1px solid var(--mr-contour); background: var(--mr-paper); height: 100%; }
+.tmpl-meridian .mr-stars { display: inline-flex; gap: 2px; }
+.tmpl-meridian .mr-review-text { font-size: 16px; line-height: 1.62; color: var(--mr-ink); margin: 14px 0 20px; }
+.tmpl-meridian .mr-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-avatar { width: 40px; height: 40px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+.tmpl-meridian .mr-review-name { margin: 0; font-weight: 600; font-size: 14px; color: var(--mr-ink); }
+.tmpl-meridian .mr-review-sub { margin: 2px 0 0; font-family: var(--mr-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-muted); }
+
+/* ── Gallery: plates ──────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 52px; }
+.tmpl-meridian .mr-gallery-cell { border: 1px solid var(--mr-contour); border-radius: 2px; padding: 5px; background: var(--mr-paper); }
+.tmpl-meridian .mr-gallery-cell img { width: 100%; height: 220px; object-fit: cover; }
+
+/* ── FAQ: hairline rows, mono +/− ─────────────────────────────────────────── */
+.tmpl-meridian .mr-faq-wrap { max-width: 780px; }
+.tmpl-meridian .mr-faq-list { margin-top: 44px; border-top: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-faq-item { border-bottom: 1px solid var(--mr-line); }
+.tmpl-meridian .mr-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--mr-serif); font-weight: 400; font-size: 21px; line-height: 1.25;
+  color: var(--mr-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-meridian .mr-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; color: var(--mr-route); }
+.tmpl-meridian .mr-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-meridian .mr-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-meridian .mr-faq-panel-in { overflow: hidden; }
+.tmpl-meridian .mr-faq-panel p { color: var(--mr-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: a centred plate, the route passing behind it ────────────────────── */
+.tmpl-meridian .mr-book {
+  max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 56px 32px; border-radius: 2px;
+  border: 1px solid var(--mr-contour); background: var(--mr-paper);
+}
+.tmpl-meridian .mr-book .mr-h2 { max-width: none; }
+.tmpl-meridian .mr-book .mr-lead { margin-inline: auto; }
+.tmpl-meridian .mr-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ─────────────────────────────────────────────────────── */
+.tmpl-meridian .mr-footer { position: relative; padding: 80px 0 44px; border-top: 1px solid var(--mr-contour); }
+.tmpl-meridian .mr-footer .mr-tick { top: 80px; }
+.tmpl-meridian .mr-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-meridian .mr-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.tmpl-meridian .mr-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--mr-ink); text-decoration: none; font-size: 15px; }
+.tmpl-meridian .mr-contact-link svg { color: var(--mr-route); flex-shrink: 0; }
+.tmpl-meridian .mr-contact-link:hover { color: var(--mr-route); }
+.tmpl-meridian .mr-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.tmpl-meridian .mr-social {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 2px;
+  border: 1px solid var(--mr-contour); color: var(--mr-ink);
+  transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-meridian .mr-social:hover { transform: translateY(-1px); color: var(--mr-route); border-color: var(--mr-route); }
+.tmpl-meridian .mr-hours { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.tmpl-meridian .mr-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--mr-line); color: var(--mr-ink); }
+.tmpl-meridian .mr-hours td:last-child { text-align: end; font-family: var(--mr-mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--mr-muted); font-variant-numeric: tabular-nums; }
+.tmpl-meridian .mr-hours tr.is-closed td { color: var(--mr-muted); }
+.tmpl-meridian .mr-footer-bottom {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--mr-line);
+  font-family: var(--mr-mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--mr-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-meridian .mr-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-meridian .mr-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-meridian .mr-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-meridian .mr-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-meridian .mr-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-meridian .mr-areas { grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+  .tmpl-meridian .mr-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-meridian .mr-about { grid-template-columns: 0.85fr 1.15fr; }
+  .tmpl-meridian .mr-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-meridian .mr-nav-links { display: flex; }
+  .tmpl-meridian .mr-menu { display: none; }
+}
+/* The route + margin ticks live in the sheet MARGIN — only show them once the
+   viewport is wide enough that the 1080px content column can't reach them. */
+@media (min-width: 1280px) {
+  .tmpl-meridian .mr-route-svg { display: block; }
+  .tmpl-meridian .mr-tick { display: block; }
+}
+@media (max-width: 520px) {
+  .tmpl-meridian .mr-neatline { inset: 8px; }
+  .tmpl-meridian .mr-nav-end .mr-btn-ghost { display: none; }
+  .tmpl-meridian .mr-section { padding: 72px 0; }
+  .tmpl-meridian .mr-book { padding: 40px 22px; }
+  .tmpl-meridian .mr-instructor-photo { width: 92px; height: 92px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-meridian .mr-btn,
+  .tmpl-meridian .mr-btn-sm,
+  .tmpl-meridian .mr-social,
+  .tmpl-meridian .mr-nav-link,
+  .tmpl-meridian .mr-nav-mobile button,
+  .tmpl-meridian .mr-nav-mobile-link { min-height: 44px; }
+  .tmpl-meridian .mr-social { min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-meridian .mr-btn:hover,
+  .tmpl-meridian .mr-social:hover { transform: none; }
+  .tmpl-meridian .mr-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned decorations need flipping (everything
+   else uses logical properties). The route curve is mirrored so it reads the
+   same way from the right-hand margin. ───────────────────────────────────── */
+.tmpl-meridian[dir='rtl'] .mr-route-svg { transform: scaleX(-1); }
+
+/* Instructor reply to a review */
+.mr-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.mr-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

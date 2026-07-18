@@ -74,12 +74,23 @@ classes never needed renaming.
 
 ## Templates & Customize (the user-facing site)
 - Published teacher sites are the **React** route `GET /p/:slug` (`pages/public/PublicSite.tsx`), rendering 1 of
-  **12 self-contained templates** in `src/templates/<slug>/` from a shared `TemplateData` via `TemplateRender.tsx`.
-  **`mumotor`** (first — the app's own Apple-minimal design: glass nav, soft `color-mix(--mm-accent)` aurora orbs,
-  FadeUp/Stagger/ScrollTilt, ScrollTilt hero media with floating glass cards, ScrollTilt "Today's schedule" showcase,
-  dark band, btn-glass) + six originals (grid-ink, open-road, night-shift, easy-lane, prestige, full-throttle) + five
-  **glass-forward** (aurora=Apple, bento=Vercel/Notion, prism=Rivian/Polestar automotive, obsidian=smoked dark,
-  frosted=photo-led). All driven off the `TEMPLATES` registry — adding one auto-wires gallery/builder/preview/public/customize.
+  **18 self-contained templates** in `src/templates/<slug>/` from a shared `TemplateData` via `TemplateRender.tsx`.
+  (Big overhaul Jul 17–18 2026 — see the `template-overhaul-2026-07` memory.) Registry order: `mumotor` (Apple-minimal,
+  accent-picker) · **13 signature designs** — `meridian` (topo survey, self-drawing route line), `bezel` (machined
+  instrument, needle-sweep dials), `solari` (split-flap departures), `cadence` (kinetic variable-font type), `circuit`
+  (motorsport telemetry, car laps a circuit via CSS motion-path), `press` (letterpress deboss + wax seal), `reel` (35mm
+  cinema, scroll-scrubbed filmstrip), `slate` (chalkboard, chalk diagrams draw themselves), `folio` (glossy magazine,
+  full-bleed cover photography), `primary` (Bauhaus geometry), `gallery` (museum, spotlight-follow), `gilt` (foil-stamped
+  luxury), `sumi` (sumi-e ink wash, brushed enso + hanko seal) — plus the 4 kept originals `obsidian` `grid-ink`
+  `open-road` `easy-lane`. **Deleted:** aurora, prism, frosted, night-shift, full-throttle, prestige, bento, daylight,
+  vantage; `templates/webgl/` (ShaderBackground) was removed with them (no template uses WebGL now). All templates are
+  **full-width desktop** (1440 wrap + full-bleed nav/bands) and default to the owner's real driving-lesson + instructor
+  photos (`/img/default-*.jpg` via `sampleData.IMG`). All driven off the `TEMPLATES` registry — but adding/removing one
+  means touching ~10 slug-keyed maps in lockstep (registry, COLOR_SLOTS, templateTheme×5, backend TEMPLATE_THEME,
+  i18n×3, TemplateConcept, overrides.test, e2e, prerender); several fall back SILENTLY so grep the slug to verify.
+  **ANIMATION GOTCHAS (bit us repeatedly):** framer `whileInView` intermittently sticks hidden for above-fold elements
+  → use the shared `Reveal`/ref-`useInView`; `EnterTilt` pre-settles for a top-of-page hero → use a mount `initial→animate`
+  for hero entrances; headings must set an explicit `color: var(--xx-ink)` or a global `h1` rule wins (dark-on-dark).
   **mumotor accent picker**: its card shows bottom-right colour dots (`MumotorAccentDots` in `TemplateConcept.tsx`) that
   set `customization.theme['--mm-accent']` — recolouring only the one restrained accent (CTA/links/active/popular/orbs).
   Builder `BrowseCard` persists it to config (flows to live preview + publish via `wizardToTemplateData`→`applyOverrides`);

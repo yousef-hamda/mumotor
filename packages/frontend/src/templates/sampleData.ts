@@ -6,10 +6,13 @@ import type { TemplateData } from './types';
  * URLs are the direct CDN links returned by the Unsplash MCP.
  */
 export const IMG = {
-  womanDriving: 'https://images.unsplash.com/photo-1527593167147-e9c94a5883e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
-  lessonTwoUp: 'https://images.unsplash.com/photo-1537211790624-e6f568af4b13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
-  manWomanCar: 'https://images.unsplash.com/photo-1667020854803-0305af085242?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
-  daytimeDrive: 'https://images.unsplash.com/photo-1596649714492-a8f90ecb3776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
+  // Local default photos supplied by the owner: a real driving lesson (instructor
+  // beside a learner at the wheel) for the hero/about, and an instructor portrait.
+  // Served from packages/frontend/public → these paths resolve in the React app.
+  womanDriving: '/img/default-lesson.jpg',
+  lessonTwoUp: '/img/default-lesson.jpg',
+  manWomanCar: '/img/default-lesson.jpg',
+  daytimeDrive: '/img/default-lesson.jpg',
   audiRoad: 'https://images.unsplash.com/photo-1523821393989-a61a1f006c8b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
   roadTrees: 'https://images.unsplash.com/photo-1486673748761-a8d18475c757?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
   yellowLines: 'https://images.unsplash.com/photo-1593571560705-aeb8f2e978f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
@@ -18,7 +21,7 @@ export const IMG = {
   handWheel: 'https://images.unsplash.com/photo-1615563164538-89e1da13fcc4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
   winterTrip: 'https://images.unsplash.com/photo-1550517636-ad7bac40dc28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
   forestDrive: 'https://images.unsplash.com/photo-1524114051012-0a2aa8dae4e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600',
-  instructor: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200',
+  instructor: '/img/default-teacher.jpg',
   reviewerWoman: 'https://images.unsplash.com/photo-1653511386010-a283d6c6dcc4?crop=faces&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=200&h=200',
   reviewerMan: 'https://images.unsplash.com/photo-1639747279286-c07eecb47a0b?crop=faces&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=200&h=200',
   reviewerMan2: 'https://images.unsplash.com/photo-1769636929354-59165ba73c7e?crop=faces&cs=tinysrgb&fit=crop&fm=jpg&q=80&w=200&h=200',

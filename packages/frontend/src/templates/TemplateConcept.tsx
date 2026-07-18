@@ -83,13 +83,165 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
           </div>
         </>
       );
-    case 'aurora':
+    case 'meridian':
       return (
         <>
-          <span className="tc-blob tc-aurora-1" style={{ background: c1 }} />
-          <span className="tc-blob tc-aurora-2" style={{ background: c2 }} />
-          <span className="tc-blob tc-aurora-3" style={{ background: c3 }} />
-          <div className="tc-card tc-card--glass-light"><Lines title="#0B1220" line="rgba(11,18,32,0.16)" btn={`linear-gradient(135deg, ${c1}, ${c3})`} /></div>
+          <div className="tc-mr-contours" />
+          <span className="tc-mr-neat" />
+          <svg className="tc-mr-route" viewBox="0 0 100 60" preserveAspectRatio="none" fill="none">
+            <path d="M6 54 C 26 46, 20 26, 42 20 S 74 16, 94 4" stroke={c1} strokeWidth="1.4" pathLength={1} />
+            <circle cx="42" cy="20" r="2.4" fill={meta.bg} stroke={c1} strokeWidth="1" />
+          </svg>
+          <div className="tc-card tc-card--plate tc-mr-card">
+            <Lines title="#1A1F1D" line="rgba(26,31,29,0.20)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'bezel':
+      return (
+        <>
+          <div className="tc-bz-knurl" />
+          <div className="tc-bz-dial">
+            <span className="tc-bz-ticks" />
+            <span className="tc-bz-needle" style={{ background: c1 }} />
+            <span className="tc-bz-cap" style={{ background: c2 }} />
+          </div>
+          <div className="tc-card tc-card--face tc-bz-card">
+            <Lines title="#EDEBE6" line="rgba(237,235,230,0.20)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'solari':
+      return (
+        <>
+          <span className="tc-sl-frame" />
+          <div className="tc-card tc-card--flap tc-sl-card">
+            <div className="tc-sl-row" aria-hidden="true">
+              {['B', 'O', 'O', 'K'].map((ch, i) => (
+                <span key={i} className={cx('tc-sl-flap', i % 2 === 0 && 'is-flip')} style={{ color: c1, animationDelay: `${i * 0.14}s` }}>{ch}</span>
+              ))}
+            </div>
+            <span className="tc-l" style={{ background: 'rgba(237,231,216,0.26)', width: '72%' }} />
+            <span className="tc-btn" style={{ background: c1 }} />
+          </div>
+        </>
+      );
+    case 'cadence':
+      return (
+        <>
+          <span className="tc-cd-ghost" aria-hidden="true" style={{ color: c3 }}>Aa</span>
+          <span className="tc-cd-word" aria-hidden="true" style={{ color: accent }}>DRIVE</span>
+          <span className="tc-cd-marquee" style={{ background: accent }} />
+          <div className="tc-card tc-card--paper tc-cd-card">
+            <Lines title="#141318" line="rgba(20,19,24,0.22)" btn={accent} />
+          </div>
+        </>
+      );
+    case 'circuit':
+      return (
+        <>
+          <span className="tc-ci-weave" />
+          <svg className="tc-ci-track" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+            <path d="M18 46 C 6 40, 8 20, 26 16 S 60 22, 74 14 S 96 20, 88 36 S 60 52, 40 48 S 26 52, 18 46 Z" stroke={c3} strokeWidth="4" strokeLinejoin="round" />
+            <path className="tc-ci-line" d="M18 46 C 6 40, 8 20, 26 16 S 60 22, 74 14 S 96 20, 88 36 S 60 52, 40 48 S 26 52, 18 46 Z" stroke={c1} strokeWidth="1" />
+            <circle className="tc-ci-car" r="2.4" fill={c1} />
+          </svg>
+          <div className="tc-card tc-card--carbon tc-ci-card">
+            <span className="tc-ci-live"><span className="tc-ci-dot" style={{ background: c2 }} /></span>
+            <Lines title="#EDF1F5" line="rgba(237,241,245,0.24)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'press':
+      return (
+        <>
+          <span className="tc-ps-grain" />
+          <span className="tc-ps-word" aria-hidden="true" style={{ color: meta.ink }}>ABC</span>
+          <span className="tc-ps-seal" style={{ background: `radial-gradient(circle at 38% 34%, ${c2}, color-mix(in srgb, ${c2} 55%, #000) 90%)` }} />
+          <div className="tc-card tc-card--paperpress tc-ps-card">
+            <Lines title="#1B1A18" line="rgba(27,26,24,0.2)" btn={accent} />
+          </div>
+        </>
+      );
+    case 'reel':
+      return (
+        <>
+          <span className="tc-rl-bar tc-rl-bar-top" />
+          <span className="tc-rl-bar tc-rl-bar-bot" />
+          <div className="tc-rl-strip" aria-hidden="true">
+            {[0, 1, 2, 3, 4].map((i) => <span key={i} className="tc-rl-frame" style={{ background: c3 }} />)}
+          </div>
+          <div className="tc-card tc-card--matte tc-rl-card">
+            <Lines title="#F4F1EA" line="rgba(244,241,234,0.24)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'slate':
+      return (
+        <>
+          <span className="tc-st-grain" />
+          <svg className="tc-st-draw" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+            <circle className="tc-st-p" cx="74" cy="30" r="15" stroke={c1} strokeWidth="1.5" pathLength={1} />
+            <path className="tc-st-p" d="M56 30 H92 M74 12 V48" stroke={c2} strokeWidth="1.2" pathLength={1} />
+          </svg>
+          <div className="tc-card tc-card--chalk tc-st-card">
+            <Lines title="#EDEAE0" line="rgba(237,234,224,0.30)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'folio':
+      return (
+        <>
+          <span className="tc-fo-photo" />
+          <span className="tc-fo-scrim" />
+          <span className="tc-fo-mast" aria-hidden="true">Folio</span>
+          <span className="tc-fo-rule" style={{ background: c1 }} />
+          <span className="tc-fo-kicker" style={{ color: c1 }}>ISSUE 01</span>
+        </>
+      );
+    case 'primary':
+      return (
+        <>
+          <span className="tc-pm-shape tc-pm-circle" style={{ background: c1 }} />
+          <span className="tc-pm-shape tc-pm-tri" style={{ borderBottomColor: c2 }} />
+          <span className="tc-pm-shape tc-pm-sq" style={{ background: c3 }} />
+          <span className="tc-pm-shape tc-pm-bar" style={{ background: meta.ink }} />
+          <div className="tc-card tc-card--paperpm tc-pm-card">
+            <Lines title="#161514" line="rgba(22,21,20,0.2)" btn={c1} />
+          </div>
+        </>
+      );
+    case 'gallery':
+      return (
+        <>
+          <span className="tc-ga-spot" />
+          <div className="tc-ga-frame"><span className="tc-ga-art" style={{ background: `linear-gradient(150deg, ${c2}, color-mix(in srgb, ${c2} 60%, #000))` }} /></div>
+          <span className="tc-ga-plate"><span className="tc-l" style={{ background: c1, width: '60%', height: 5 }} /><span className="tc-l" style={{ background: 'rgba(28,26,23,0.3)', width: '80%', height: 4 }} /></span>
+        </>
+      );
+    case 'gilt':
+      return (
+        <>
+          <span className="tc-gt-seal" style={{ background: `radial-gradient(circle at 38% 34%, ${c1}, ${c2} 90%)` }} />
+          <div className="tc-card tc-card--charcoalgt tc-gt-card">
+            <span className="tc-gt-foil" aria-hidden="true" style={{ backgroundImage: `linear-gradient(110deg, ${c2}, ${c1}, #F4E9C8, ${c1}, ${c2})` }}>GILT</span>
+            <span className="tc-l" style={{ background: 'rgba(239,233,221,0.24)', width: '72%' }} />
+            <span className="tc-btn" style={{ background: c1 }} />
+          </div>
+        </>
+      );
+    case 'sumi':
+      return (
+        <>
+          <span className="tc-su-grain" />
+          <span className="tc-su-wash" style={{ background: c2 }} />
+          <svg className="tc-su-enso" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <path className="tc-su-p" d="M62 22 A32 32 0 1 0 78 40" stroke={meta.ink} strokeWidth="6" strokeLinecap="round" pathLength={1} />
+          </svg>
+          <span className="tc-su-seal" style={{ background: c1 }} aria-hidden="true">木</span>
+          <div className="tc-card tc-card--washi tc-su-card">
+            <Lines title="#1A1815" line="rgba(26,24,21,0.2)" btn={c1} />
+          </div>
         </>
       );
     case 'obsidian':
@@ -97,36 +249,6 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
         <>
           <div className="tc-grid" />
           <div className="tc-card tc-card--glass-dark"><Lines title="#D7E3EE" line="rgba(234,238,242,0.22)" btn={meta.accent} /></div>
-        </>
-      );
-    case 'bento':
-      return (
-        <div className="tc-bento">
-          <div className="tc-tile tc-tile-a" />
-          <div className="tc-tile tc-tile-accent" />
-          <div className="tc-tile" />
-        </div>
-      );
-    case 'prism':
-      return (
-        <>
-          <div className="tc-iris" />
-          <div className="tc-card tc-card--glass-dark"><Lines title="#F4F5F7" line="rgba(244,245,247,0.22)" btn={`linear-gradient(110deg, ${c1}, ${c2}, ${c3})`} /></div>
-        </>
-      );
-    case 'frosted':
-      return (
-        <>
-          {meta.thumb && <div className="tc-photo" style={{ backgroundImage: `url(${meta.thumb})` }} />}
-          <div className="tc-card tc-card--glass-dark" style={{ background: 'rgba(255,255,255,0.16)' }}><Lines title="#FFFFFF" line="rgba(255,255,255,0.42)" btn={meta.accent} /></div>
-        </>
-      );
-    case 'night-shift':
-      return (
-        <>
-          <span className="tc-neon-1" style={{ background: c1 }} />
-          <span className="tc-neon-2" style={{ background: c2 }} />
-          <div className="tc-card tc-card--glass-dark"><Lines title="#EAF2FF" line="rgba(234,242,255,0.22)" btn={meta.accent} /></div>
         </>
       );
     case 'easy-lane':
@@ -150,21 +272,6 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
         <>
           <span className="tc-sun" />
           <span className="tc-road" />
-        </>
-      );
-    case 'prestige':
-      return (
-        <>
-          <div className="tc-gold-frame" />
-          <span className="tc-gold-line" />
-        </>
-      );
-    case 'full-throttle':
-      return (
-        <>
-          <span className="tc-block tc-b1" />
-          <span className="tc-block tc-b2" />
-          <span className="tc-block tc-b3" />
         </>
       );
     default:

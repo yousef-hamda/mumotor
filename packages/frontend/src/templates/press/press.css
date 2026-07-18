@@ -1,0 +1,428 @@
+/* Press — a fine letterpress-printed prospectus. All selectors scoped to
+   .tmpl-press. Type DEBOSSED into warm cotton paper, one-or-two inks (warm-black
+   + bottle-green), copper ornaments + a wax seal. The device is the IMPRESSION:
+   headings PRESS in on scroll (scale 1.05 → 1 + deboss blooms) and the wax seal
+   STAMPS. ONE accent (--ps-accent, bottle green) → CTAs / links / active / seal
+   isn't accent (copper). Every tint derives with color-mix() from the vars, so
+   Customize recolouring holds. First 5 vars are user-recolourable (COLOR_SLOTS);
+   --ps-muted and --ps-line are internal.
+
+   CONTRAST (verified, sRGB WCAG):
+     ink #1B1A18 on paper #F1EBDD  ≈ 14.6:1  ✓ (also 12.9:1 on --ps-band)
+     accent #1F4D3D on paper       ≈  8.1:1  ✓ (links), paper on accent ≈ 8.1:1 ✓ (buttons)
+     muted (see below) on paper    ≈  5.5:1  ✓ / on --ps-band ≈ 4.8:1 ✓
+   ⚠ copper #A8763E on paper is only ≈ 3.3:1 — it FAILS small-text contrast, so it
+     is used ONLY for ornaments, rules, the wax seal and large/decorative elements,
+     NEVER for body or secondary text (that is --ps-muted).
+   The deboss text-shadows are subtle and semi-transparent, so the ink/paper
+   contrast stays ≥14:1 and legibility is unaffected. */
+
+.tmpl-press {
+  /* User-recolourable (COLOR_SLOTS) */
+  --ps-paper: #F1EBDD;   /* warm cotton paper — page bg */
+  --ps-ink: #1B1A18;     /* warm near-black printing ink — text */
+  --ps-accent: #1F4D3D;  /* bottle-green letterpress ink — the ONE accent */
+  --ps-copper: #A8763E;  /* copper/gold — ornaments, rules, wax seal ONLY */
+  --ps-band: #E6DDC9;    /* a darker paper — alternating section bands */
+  /* Internal — NOT user-recolourable */
+  --ps-muted: #635D52;   /* secondary text — nudged darker than the brief's #6B655A
+                            so it clears 4.5:1 on BOTH paper AND --ps-band */
+  --ps-line: rgba(27, 26, 24, 0.16);
+
+  /* Deboss: light catch on the bottom lip + shadow in the well = pressed IN. */
+  --ps-deboss: 0 1px 0 rgba(255, 252, 245, 0.6), 0 -1px 1px rgba(0, 0, 0, 0.18);
+  --ps-deboss-soft: 0 1px 0 rgba(255, 252, 245, 0.5);
+
+  --ps-serif: 'Libre Caslon Display', Georgia, 'Times New Roman', serif;
+  --ps-sans: 'Libre Franklin', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background-color: var(--ps-paper);
+  /* Faint, STATIC letterpress paper grain (no animation). */
+  background-image:
+    radial-gradient(rgba(27, 26, 24, 0.018) 0.5px, transparent 0.6px),
+    radial-gradient(rgba(27, 26, 24, 0.013) 0.5px, transparent 0.6px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+  color: var(--ps-ink);
+  font-family: var(--ps-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-press *, .tmpl-press *::before, .tmpl-press *::after { box-sizing: border-box; }
+.tmpl-press img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-press :focus-visible { outline: 2px solid var(--ps-accent); outline-offset: 3px; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.tmpl-press .ps-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-press .ps-section { position: relative; padding: 116px 0; }
+.tmpl-press .ps-band { background: var(--ps-band); }
+.tmpl-press .ps-head { margin-bottom: 52px; max-width: 760px; }
+
+/* ── Type ───────────────────────────────────────────────────────────────────── */
+.tmpl-press .ps-h1 {
+  font-family: var(--ps-serif); font-weight: 400;
+  font-size: clamp(2.9rem, 6.2vw, 4.9rem); line-height: 1.04; letter-spacing: -0.01em;
+  margin: 16px 0 0; max-width: 15ch; color: var(--ps-ink); text-shadow: var(--ps-deboss);
+}
+.tmpl-press .ps-h2 {
+  font-family: var(--ps-serif); font-weight: 400;
+  font-size: clamp(2.1rem, 4.2vw, 3.15rem); line-height: 1.08; letter-spacing: -0.008em;
+  margin: 14px 0 0; max-width: 20ch; color: var(--ps-ink); text-shadow: var(--ps-deboss);
+}
+.tmpl-press .ps-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-press .ps-h1, .tmpl-press .ps-h2 { overflow-wrap: break-word; }
+
+.tmpl-press .ps-eyebrow {
+  font-family: var(--ps-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ps-accent);
+  margin: 0 0 12px; text-shadow: var(--ps-deboss-soft);
+}
+.tmpl-press .ps-folio {
+  display: block; font-family: var(--ps-sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.28em; text-transform: uppercase; color: var(--ps-copper);
+  margin: 0 0 16px; text-shadow: var(--ps-deboss-soft);
+}
+.tmpl-press .ps-fleuron { color: var(--ps-copper); line-height: 1; text-shadow: var(--ps-deboss-soft); }
+.tmpl-press .ps-fleuron-rule { display: block; text-align: center; margin: 6px 0 40px; font-size: 22px; }
+.tmpl-press .ps-lead { color: var(--ps-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 56ch; margin: 16px 0 0; }
+.tmpl-press .ps-body { color: var(--ps-muted); font-size: 16px; line-height: 1.7; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── The press: heading stamp (scale + deboss bloom on scroll-in) ───────────────
+   The heading stays a real editable element; only this wrapper class animates. */
+.tmpl-press .ps-stamp {
+  display: block; transform: scale(1.05); transform-origin: 50% 50%;
+  transition: transform 220ms cubic-bezier(0.2, 0.85, 0.2, 1); will-change: transform;
+}
+.tmpl-press .ps-stamp.is-pressed { transform: scale(1); }
+.tmpl-press .ps-stamp .ps-h1, .tmpl-press .ps-stamp .ps-h2 { transition: text-shadow 220ms ease; }
+.tmpl-press .ps-stamp:not(.is-pressed) .ps-h1,
+.tmpl-press .ps-stamp:not(.is-pressed) .ps-h2 { text-shadow: var(--ps-deboss-soft); }
+
+/* ── The wax seal (radial copper, embossed initial; STAMPS on scroll-in) ──────── */
+.tmpl-press .ps-seal {
+  position: relative; display: inline-grid; place-items: center; flex-shrink: 0;
+  border-radius: 50%;
+  font-family: var(--ps-serif); font-weight: 700;
+  color: color-mix(in srgb, var(--ps-copper) 34%, #241505);
+  background:
+    radial-gradient(circle at 38% 30%,
+      color-mix(in srgb, var(--ps-copper) 76%, #fff 24%),
+      color-mix(in srgb, var(--ps-copper) 96%, #000 4%) 52%,
+      color-mix(in srgb, var(--ps-copper) 60%, #000 40%) 100%);
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.35),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4),
+    0 2px 5px rgba(0, 0, 0, 0.22);
+  opacity: 0; transform: scale(1.2);
+}
+.tmpl-press .ps-seal::after {
+  content: ''; position: absolute; inset: 8%; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ps-copper) 45%, #000 30%);
+  opacity: 0.5; pointer-events: none;
+}
+.tmpl-press .ps-seal-initial { position: relative; z-index: 1; line-height: 1; text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.22); }
+.tmpl-press .ps-seal.is-stamped { opacity: 1; transform: scale(1); animation: ps-stamp 460ms cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+@keyframes ps-stamp {
+  0%   { opacity: 0; transform: scale(1.4) rotate(-7deg); }
+  55%  { opacity: 1; }
+  72%  { transform: scale(0.97) rotate(1.6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ── Buttons: square-ish (paper, not a rounded card), debossed, mechanical press ── */
+.tmpl-press .ps-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 2px; cursor: pointer;
+  font-family: var(--ps-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none;
+  padding: 13px 22px; min-height: 44px; border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.tmpl-press .ps-btn-sm { padding: 9px 15px; min-height: 36px; font-size: 11px; letter-spacing: 0.12em; }
+.tmpl-press .ps-btn-block { width: 100%; margin-top: auto; }
+.tmpl-press .ps-btn-primary {
+  color: var(--ps-paper); background: var(--ps-accent);
+  border-color: color-mix(in srgb, var(--ps-accent) 70%, #000);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ps-paper) 22%, transparent), 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.tmpl-press .ps-btn-primary:hover { background: color-mix(in srgb, var(--ps-accent) 88%, #000); }
+.tmpl-press .ps-btn-primary:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); }
+.tmpl-press .ps-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-press .ps-btn-primary:disabled:active { transform: none; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ps-paper) 22%, transparent), 0 1px 2px rgba(0, 0, 0, 0.18); }
+.tmpl-press .ps-btn-ghost {
+  color: var(--ps-ink); background: var(--ps-paper);
+  border-color: color-mix(in srgb, var(--ps-ink) 55%, transparent);
+  text-shadow: var(--ps-deboss-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5);
+}
+.tmpl-press .ps-btn-ghost:hover { border-color: var(--ps-ink); background: color-mix(in srgb, var(--ps-ink) 5%, var(--ps-paper)); }
+.tmpl-press .ps-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: the running header (translucent paper, copper hairline) ─────────────── */
+.tmpl-press .ps-nav { position: sticky; top: 0; z-index: 60; }
+.tmpl-press .ps-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
+  background: color-mix(in srgb, var(--ps-paper) 90%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ps-copper) 70%, transparent);
+}
+.tmpl-press .ps-logo { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ps-ink); }
+.tmpl-press .ps-logo-word { font-family: var(--ps-serif); font-size: 19px; font-weight: 400; letter-spacing: 0.01em; color: var(--ps-ink); text-shadow: var(--ps-deboss-soft); }
+.tmpl-press .ps-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-press .ps-nav-link {
+  position: relative; background: none; border: 0; cursor: pointer;
+  font-family: var(--ps-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ps-muted);
+  padding: 10px 12px; transition: color 0.18s ease;
+}
+.tmpl-press .ps-nav-link:hover { color: var(--ps-ink); }
+/* Active = accent + a 2px accent underline (never colour alone — also weight). */
+.tmpl-press .ps-nav-link.is-active { color: var(--ps-accent); font-weight: 700; }
+.tmpl-press .ps-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 12px; bottom: 2px; height: 2px; background: var(--ps-accent); }
+.tmpl-press .ps-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-press .ps-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--ps-ink); }
+.tmpl-press .ps-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--ps-paper); border-bottom: 1px solid var(--ps-line); }
+.tmpl-press .ps-nav-mobile button, .tmpl-press .ps-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--ps-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--ps-line);
+}
+
+/* ── Hero: engraved title + wax seal | tipped-in plate ─────────────────────────── */
+.tmpl-press .ps-hero { padding-top: clamp(56px, 8vw, 96px); }
+.tmpl-press .ps-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-press .ps-seal-row { display: flex; align-items: center; gap: 16px; margin: 26px 0 4px; }
+.tmpl-press .ps-seal-motto { font-family: var(--ps-sans); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ps-muted); max-width: 18ch; }
+.tmpl-press .ps-hero-sub { color: var(--ps-muted); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 44ch; margin: 20px 0 0; }
+.tmpl-press .ps-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0 0; }
+
+/* Tipped-in plate: a photo mounted on the paper with a thin keyline + faint drop
+   shadow + a slight rotation, like a plate pasted into a prospectus. */
+.tmpl-press .ps-figure { margin: 0; }
+.tmpl-press .ps-plate {
+  position: relative; background: var(--ps-paper);
+  border: 1px solid var(--ps-copper); padding: 8px; border-radius: 2px;
+  box-shadow: 0 18px 34px -22px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 252, 245, 0.6);
+}
+.tmpl-press .ps-plate::after { content: ''; position: absolute; inset: 8px; border: 1px solid color-mix(in srgb, var(--ps-ink) 22%, transparent); pointer-events: none; }
+.tmpl-press .ps-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; }
+.tmpl-press .ps-plate-tilt { transform: rotate(-1.2deg); }
+.tmpl-press .ps-caption { font-family: var(--ps-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ps-muted); margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--ps-line); }
+
+/* ── Stats: Caslon numeral over a copper hairline ─────────────────────────────── */
+.tmpl-press .ps-stats { position: relative; padding: 56px 0; border-top: 1px solid var(--ps-line); border-bottom: 1px solid var(--ps-line); background: var(--ps-band); }
+.tmpl-press .ps-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-press .ps-stat { text-align: start; }
+.tmpl-press .ps-stat-num {
+  display: block; font-family: var(--ps-serif); font-weight: 400;
+  font-size: clamp(2.6rem, 5vw, 3.6rem); line-height: 1; letter-spacing: -0.01em;
+  color: var(--ps-ink); padding-bottom: 12px; border-bottom: 1px solid var(--ps-copper); text-shadow: var(--ps-deboss);
+}
+.tmpl-press .ps-stat-label { display: block; margin-top: 12px; font-family: var(--ps-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ps-muted); }
+
+/* ── Why (the imprint) ────────────────────────────────────────────────────────── */
+.tmpl-press .ps-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; }
+.tmpl-press .ps-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 2px;
+  border: 1px solid var(--ps-copper); background: var(--ps-paper); color: var(--ps-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5);
+}
+.tmpl-press .ps-why-title { font-family: var(--ps-serif); font-weight: 400; font-size: 24px; line-height: 1.2; margin: 18px 0 0; color: var(--ps-ink); }
+.tmpl-press .ps-why-body { color: var(--ps-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: paper cards with a debossed keyline; popular gets a wax seal ────── */
+.tmpl-press .ps-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-press .ps-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 30px; border-radius: 3px; background: var(--ps-paper); border: 1px solid var(--ps-copper);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5), inset 0 0 0 1px color-mix(in srgb, var(--ps-ink) 6%, transparent), 0 12px 24px -20px rgba(0, 0, 0, 0.35);
+}
+.tmpl-press .ps-pkg.is-popular { border-color: var(--ps-accent); box-shadow: inset 0 0 0 1px var(--ps-accent), 0 16px 30px -20px rgba(31, 77, 61, 0.5); }
+.tmpl-press .ps-pkg-seal { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.tmpl-press .ps-pkg-badge { font-family: var(--ps-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ps-accent); text-shadow: var(--ps-deboss-soft); }
+.tmpl-press .ps-pkg-name { margin: 0; font-family: var(--ps-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ps-muted); }
+.tmpl-press .ps-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-press .ps-pkg-amount { font-family: var(--ps-serif); font-weight: 400; font-size: 48px; line-height: 1; letter-spacing: -0.01em; color: var(--ps-ink); text-shadow: var(--ps-deboss); }
+.tmpl-press .ps-pkg-unit { font-family: var(--ps-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ps-muted); }
+.tmpl-press .ps-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--ps-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-press .ps-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--ps-ink); }
+.tmpl-press .ps-check { color: var(--ps-accent); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About: drop cap opens the first paragraph ────────────────────────────────── */
+.tmpl-press .ps-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-press .ps-about-img { aspect-ratio: 4 / 5; }
+.tmpl-press .ps-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--ps-line); }
+.tmpl-press .ps-instructor-photo { width: 132px; height: 132px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--ps-copper); }
+.tmpl-press .ps-instructor-id { min-width: 0; }
+.tmpl-press .ps-instructor-name { margin: 0; font-family: var(--ps-serif); font-weight: 400; font-size: 22px; line-height: 1.2; color: var(--ps-ink); }
+.tmpl-press .ps-instructor-title { margin: 4px 0 0; font-family: var(--ps-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ps-muted); }
+.tmpl-press .ps-dropcap::first-letter {
+  float: left; font-family: var(--ps-serif); font-weight: 400;
+  font-size: 3.4em; line-height: 0.78; margin-inline-end: 0.06em; padding-top: 0.02em;
+  color: var(--ps-accent); text-shadow: var(--ps-deboss);
+}
+.tmpl-press .ps-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-press .ps-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--ps-ink); }
+.tmpl-press .ps-checklist .ps-check { margin-top: 3px; }
+.tmpl-press .ps-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-press .ps-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 2px;
+  border: 1px solid var(--ps-copper); font-family: var(--ps-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ps-ink); box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5);
+}
+.tmpl-press .ps-cred svg { color: var(--ps-accent); flex-shrink: 0; }
+
+/* ── Areas: a two-column ruled index with copper dotted leaders ────────────────── */
+.tmpl-press .ps-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--ps-line); }
+.tmpl-press .ps-area { display: flex; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--ps-line); }
+.tmpl-press .ps-area-name { font-family: var(--ps-sans); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-ink); flex-shrink: 0; }
+.tmpl-press .ps-leader { flex: 1; min-width: 16px; margin: 0 10px; border-bottom: 1px dotted var(--ps-copper); transform: translateY(-3px); }
+.tmpl-press .ps-area-note { font-family: var(--ps-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; color: var(--ps-muted); flex-shrink: 0; text-align: end; }
+
+/* ── Reviews: pull-quote cards, copper quote mark, accent stars ────────────────── */
+.tmpl-press .ps-reviews { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-press .ps-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 3px; background: var(--ps-paper);
+  border: 1px solid var(--ps-copper); height: 100%; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5), 0 12px 24px -22px rgba(0, 0, 0, 0.3);
+}
+.tmpl-press .ps-quote-mark { position: absolute; top: 6px; inset-inline-end: 20px; font-family: var(--ps-serif); font-size: 62px; line-height: 1; color: color-mix(in srgb, var(--ps-copper) 55%, transparent); text-shadow: var(--ps-deboss-soft); pointer-events: none; }
+.tmpl-press .ps-stars { display: inline-flex; gap: 2px; position: relative; }
+.tmpl-press .ps-review-text {
+  font-family: var(--ps-serif); font-size: 19px; line-height: 1.5; font-style: italic;
+  color: var(--ps-ink); margin: 16px 0 20px; padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--ps-copper) 50%, transparent);
+}
+.tmpl-press .ps-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--ps-line); }
+.tmpl-press .ps-avatar { width: 40px; height: 40px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--ps-copper); }
+.tmpl-press .ps-review-name { margin: 0; font-family: var(--ps-sans); font-weight: 700; font-size: 14px; color: var(--ps-ink); }
+.tmpl-press .ps-review-sub { margin: 2px 0 0; font-family: var(--ps-sans); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ps-muted); }
+
+/* ── Gallery: tipped-in plates ────────────────────────────────────────────────── */
+.tmpl-press .ps-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tmpl-press .ps-gallery-cell { background: var(--ps-paper); border: 1px solid var(--ps-copper); padding: 6px; border-radius: 2px; box-shadow: 0 12px 22px -20px rgba(0, 0, 0, 0.35); }
+.tmpl-press .ps-gallery-cell img { width: 100%; height: 220px; object-fit: cover; }
+
+/* ── FAQ: ruled rows ──────────────────────────────────────────────────────────── */
+.tmpl-press .ps-faq-wrap { max-width: 780px; }
+.tmpl-press .ps-faq-list { border-top: 1px solid var(--ps-line); }
+.tmpl-press .ps-faq-item { border-bottom: 1px solid var(--ps-line); }
+.tmpl-press .ps-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--ps-serif); font-weight: 400; font-size: 21px; line-height: 1.25;
+  color: var(--ps-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-press .ps-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--ps-copper); color: var(--ps-accent); }
+.tmpl-press .ps-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-press .ps-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-press .ps-faq-panel-in { overflow: hidden; }
+.tmpl-press .ps-faq-panel p { color: var(--ps-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: the formal invitation panel (the strongest impression) ─────────────── */
+.tmpl-press .ps-book {
+  max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 60px 40px; border-radius: 3px; background: var(--ps-paper); border: 1px solid var(--ps-copper);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ps-copper) 30%, transparent),
+    inset 0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.05),
+    0 1px 0 rgba(255, 252, 245, 0.6);
+}
+.tmpl-press .ps-book .ps-folio { text-align: center; }
+.tmpl-press .ps-book .ps-seal { display: grid; margin: 4px auto 22px; }
+.tmpl-press .ps-book .ps-h2 { max-width: none; }
+.tmpl-press .ps-book .ps-lead { margin-inline: auto; }
+.tmpl-press .ps-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
+
+/* ── Footer / Contact ─────────────────────────────────────────────────────────── */
+.tmpl-press .ps-footer { position: relative; padding: 80px 0 40px; border-top: 2px solid var(--ps-copper); }
+.tmpl-press .ps-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-press .ps-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-press .ps-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--ps-ink); text-decoration: none; font-size: 15px; }
+.tmpl-press .ps-contact-link svg { color: var(--ps-accent); flex-shrink: 0; }
+.tmpl-press .ps-contact-link:hover { color: var(--ps-accent); }
+.tmpl-press .ps-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-press .ps-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 2px; border: 1px solid var(--ps-copper); color: var(--ps-ink);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.12s ease; box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5);
+}
+.tmpl-press .ps-social:hover { color: var(--ps-accent); border-color: var(--ps-accent); }
+.tmpl-press .ps-social:active { transform: translateY(1px); }
+.tmpl-press .ps-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-press .ps-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--ps-line); color: var(--ps-ink); }
+.tmpl-press .ps-hours td:last-child { text-align: end; font-family: var(--ps-sans); font-size: 12px; letter-spacing: 0.04em; color: var(--ps-muted); font-variant-numeric: tabular-nums; }
+.tmpl-press .ps-hours tr.is-closed td { color: var(--ps-muted); }
+.tmpl-press .ps-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--ps-line);
+  font-family: var(--ps-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ps-muted);
+}
+.tmpl-press .ps-footer-bottom .ps-fleuron { font-size: 16px; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-press .ps-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-press .ps-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-press .ps-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-press .ps-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-press .ps-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-press .ps-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-press .ps-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-press .ps-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-press .ps-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-press .ps-nav-links { display: flex; }
+  .tmpl-press .ps-menu { display: none; }
+}
+@media (max-width: 520px) {
+  .tmpl-press .ps-nav-end .ps-btn-ghost { display: none; }
+  .tmpl-press .ps-section { padding: 76px 0; }
+  .tmpl-press .ps-stats { padding: 48px 0; }
+  .tmpl-press .ps-book { padding: 42px 24px; }
+  .tmpl-press .ps-instructor-photo { width: 100px; height: 100px; }
+  .tmpl-press .ps-plate-tilt { transform: none; }
+  .tmpl-press .ps-quote-mark { font-size: 48px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-press .ps-btn,
+  .tmpl-press .ps-btn-sm,
+  .tmpl-press .ps-social,
+  .tmpl-press .ps-nav-link,
+  .tmpl-press .ps-nav-mobile button,
+  .tmpl-press .ps-nav-mobile-link { min-height: 44px; }
+  .tmpl-press .ps-social { min-width: 44px; }
+}
+/* Reduced motion: no stamp animations — headings fully debossed + static, wax
+   seal pre-placed. */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-press .ps-stamp { transform: none; transition: none; }
+  .tmpl-press .ps-stamp .ps-h1, .tmpl-press .ps-stamp .ps-h2 { transition: none; }
+  .tmpl-press .ps-seal { opacity: 1; transform: none; }
+  .tmpl-press .ps-seal.is-stamped { animation: none; }
+  .tmpl-press .ps-btn:active, .tmpl-press .ps-social:active { transform: none; }
+  .tmpl-press .ps-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned / floated decorations need flipping
+   (everything else uses logical properties). ─────────────────────────────────── */
+.tmpl-press[dir='rtl'] .ps-plate-tilt { transform: rotate(1.2deg); }
+.tmpl-press[dir='rtl'] .ps-dropcap::first-letter { float: right; }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.ps-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.ps-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

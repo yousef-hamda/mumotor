@@ -1,0 +1,466 @@
+/* Sumi — a fine sumi-e (ink-wash) brush painting. All selectors scoped to
+   .tmpl-sumi. Warm washi paper, soft black sumi ink, one vermilion hanko seal.
+   Calm, meditative, artful — monochrome ink + one red seal, lots of quiet space.
+   ONE accent (--su-vermilion) → CTAs / links / active / seal / stars / popular.
+   Every tint derives with color-mix() from the vars, so Customize recolouring
+   holds. First 5 vars are user-recolourable (COLOR_SLOTS); --su-muted and
+   --su-line are internal.
+
+   SIGNATURE — the brushed ENSO draws itself on mount, an INK BLOOM diffuses into
+   the paper as each section enters view, and a vermilion HANKO SEAL stamps the
+   business initial. All decorative (aria-hidden); real headings stay real text.
+
+   CONTRAST (verified, sRGB WCAG, light template):
+     ink #1A1815 on paper #F2EEE4       ≈ 15.4:1 ✓ (≈ 13.6:1 on --su-band)
+     muted #625F57 on paper             ≈  5.5:1 ✓ (≈ 4.9:1 on --su-band)
+     vermilion #C4392E on paper         ≈  4.56:1 ✓ (raw — CTA bg / seal / stars / large)
+     paper on vermilion (button text)   ≈  4.56:1 ✓
+   ⚠ --su-vermilion on --su-band drops to ≈ 4.1:1, so all SMALL vermilion TEXT
+     (eyebrows / links / active nav) uses color-mix(vermilion 84%, #000) ≈ 5.2:1 on
+     BOTH paper AND band. Raw vermilion is used only for the CTA fill, seal, stars,
+     active-underline and other large/graphical marks.
+   ⚠ --su-wash #8A857A on paper is ≈ 3.2:1 — a mid-tone for MARKS only (enso wash,
+     dividers), never small text.
+   NOTE: --su-muted is nudged darker than the brief's #6E6A62 (which fails 4.5:1 on
+     --su-band) so secondary text clears 4.5:1 on both surfaces. */
+
+.tmpl-sumi {
+  /* User-recolourable (COLOR_SLOTS) */
+  --su-paper: #F2EEE4;     /* warm washi paper — page bg */
+  --su-ink: #1A1815;       /* soft sumi black — text */
+  --su-vermilion: #C4392E; /* hanko-seal vermilion — the ONE accent */
+  --su-wash: #8A857A;      /* grey ink wash — mid-tone marks (not small text) */
+  --su-band: #E7E1D3;      /* a deeper washi — alternating bands */
+  /* Internal — NOT user-recolourable */
+  --su-muted: #625F57;     /* secondary text — clears 4.5:1 on paper AND --su-band */
+  --su-line: rgba(26, 24, 21, 0.14);
+
+  /* Small vermilion TEXT (eyebrows/links/active) — darkened to clear band too. */
+  --su-verm-text: color-mix(in srgb, var(--su-vermilion) 84%, #000);
+
+  --su-serif: 'Zen Old Mincho', Georgia, 'Times New Roman', serif;
+  --su-sans: 'Zen Kaku Gothic New', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background-color: var(--su-paper);
+  /* Faint, STATIC washi paper-fibre grain (no animation → no cost). */
+  background-image:
+    radial-gradient(rgba(26, 24, 21, 0.020) 0.5px, transparent 0.6px),
+    radial-gradient(rgba(26, 24, 21, 0.014) 0.5px, transparent 0.6px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+  color: var(--su-ink);
+  font-family: var(--su-sans);
+  font-size: 16px;
+  line-height: 1.68;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-sumi *, .tmpl-sumi *::before, .tmpl-sumi *::after { box-sizing: border-box; }
+.tmpl-sumi img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-sumi :focus-visible { outline: 2px solid var(--su-vermilion); outline-offset: 3px; }
+
+/* ── A very subtle paper-wash parallax (fixed layer, translate-only) ──────────── */
+.tmpl-sumi .su-paper-wash {
+  position: fixed; inset: -10% -10% -30%; z-index: 0; pointer-events: none;
+  opacity: 0.5; will-change: transform;
+  transform: translateY(calc(var(--su-scroll, 0) * -46px));
+  background:
+    radial-gradient(42% 30% at 16% 8%, color-mix(in srgb, var(--su-wash) 12%, transparent), transparent 70%),
+    radial-gradient(46% 34% at 88% 40%, color-mix(in srgb, var(--su-ink) 5%, transparent), transparent 72%);
+}
+.tmpl-sumi > .su-nav, .tmpl-sumi > main { position: relative; z-index: 1; }
+
+/* ── Layout — full width, no empty side margins on a 1920px screen ────────────── */
+.tmpl-sumi .su-wrap { width: 100%; max-width: 1440px; margin-inline: auto; padding: 0 40px; }
+.tmpl-sumi .su-section { position: relative; padding: 118px 0; }
+.tmpl-sumi .su-band { background: var(--su-band); }
+.tmpl-sumi .su-head { position: relative; max-width: 760px; margin-bottom: 52px; }
+
+/* ── Type ───────────────────────────────────────────────────────────────────── */
+.tmpl-sumi .su-h1 {
+  font-family: var(--su-serif); font-weight: 600;
+  font-size: clamp(2.8rem, 6vw, 5rem); line-height: 1.14; letter-spacing: 0.005em;
+  margin: 16px 0 0; max-width: 15ch; color: var(--su-ink);
+}
+.tmpl-sumi .su-h2 {
+  font-family: var(--su-serif); font-weight: 600;
+  font-size: clamp(2rem, 4.1vw, 3.1rem); line-height: 1.2; letter-spacing: 0.005em;
+  margin: 12px 0 0; max-width: 20ch; color: var(--su-ink);
+}
+.tmpl-sumi .su-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-sumi .su-h1, .tmpl-sumi .su-h2 { overflow-wrap: break-word; }
+
+.tmpl-sumi .su-eyebrow {
+  position: relative;
+  font-family: var(--su-sans); font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.26em; text-transform: uppercase; color: var(--su-verm-text);
+  margin: 0 0 6px;
+}
+.tmpl-sumi .su-lead { color: var(--su-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 56ch; margin: 16px 0 0; }
+.tmpl-sumi .su-body { color: var(--su-muted); font-size: 16px; line-height: 1.78; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── The brushed enso (draws itself; stroke-dashoffset 1 → 0) ────────────────── */
+.tmpl-sumi .su-enso { display: block; overflow: visible; pointer-events: none; }
+.tmpl-sumi .su-enso-path, .tmpl-sumi .su-enso-tail {
+  fill: none; stroke: var(--su-ink); stroke-linecap: round; stroke-linejoin: round;
+  stroke-opacity: 0.82;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.7s cubic-bezier(0.62, 0, 0.2, 1);
+}
+.tmpl-sumi .su-enso-path { stroke-width: 8; }
+.tmpl-sumi .su-enso-tail { stroke-width: 3.5; transition-delay: 1.15s; }
+.tmpl-sumi .su-enso.is-drawn .su-enso-path,
+.tmpl-sumi .su-enso.is-drawn .su-enso-tail { stroke-dashoffset: 0; }
+
+/* ── Ink bloom — soft ink diffusing into the paper on scroll-in ──────────────── */
+.tmpl-sumi .su-bloom {
+  position: absolute; inset-block-start: -46px; inset-inline-start: -58px;
+  width: 210px; height: 210px; z-index: 0; pointer-events: none;
+  border-radius: 48% 52% 55% 45% / 52% 44% 56% 48%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--su-ink) 12%, transparent), transparent 72%);
+  filter: blur(6px);
+  opacity: 0; transform: scale(0.85);
+  transition: opacity 1s ease, transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tmpl-sumi .su-bloom.is-bloomed { opacity: 0.9; transform: scale(1); }
+.tmpl-sumi .su-bloom-start { inset-inline-start: -50px; }
+
+/* ── The hanko seal (vermilion stamp of the initial; STAMPS on scroll-in) ─────── */
+.tmpl-sumi .su-hanko {
+  position: relative; display: inline-grid; place-items: center; flex-shrink: 0;
+  border-radius: 6px;
+  font-family: var(--su-serif); font-weight: 700; color: var(--su-paper);
+  background: var(--su-vermilion);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--su-paper) 34%, transparent);
+  opacity: 0; transform: scale(1.25);
+}
+.tmpl-sumi .su-hanko::after {
+  content: ''; position: absolute; inset: 6px; border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--su-paper) 40%, transparent);
+  pointer-events: none;
+}
+.tmpl-sumi .su-hanko-face { position: relative; z-index: 1; line-height: 1; }
+.tmpl-sumi .su-hanko.is-stamped { opacity: 1; transform: scale(1); animation: su-stamp 440ms cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+@keyframes su-stamp {
+  0%   { opacity: 0; transform: scale(1.25) rotate(-3deg); }
+  60%  { opacity: 1; }
+  78%  { transform: scale(0.97) rotate(0.8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ── Buttons: quiet pill-less brush forms ───────────────────────────────────── */
+.tmpl-sumi .su-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 4px; cursor: pointer;
+  font-family: var(--su-sans); font-size: 13px; font-weight: 500;
+  letter-spacing: 0.08em; text-decoration: none;
+  padding: 13px 24px; min-height: 46px; border: 1px solid transparent;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-sumi .su-btn-sm { padding: 9px 16px; min-height: 38px; font-size: 12.5px; }
+.tmpl-sumi .su-btn-block { width: 100%; margin-top: auto; }
+.tmpl-sumi .su-btn-primary { color: var(--su-paper); background: var(--su-vermilion); border-color: var(--su-vermilion); }
+.tmpl-sumi .su-btn-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--su-vermilion) 88%, #000); }
+.tmpl-sumi .su-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-sumi .su-btn-primary:disabled:hover { transform: none; background: var(--su-vermilion); }
+.tmpl-sumi .su-btn-ghost { color: var(--su-ink); background: transparent; border-color: color-mix(in srgb, var(--su-ink) 40%, transparent); }
+.tmpl-sumi .su-btn-ghost:hover { transform: translateY(-1px); border-color: var(--su-ink); background: color-mix(in srgb, var(--su-ink) 5%, transparent); }
+
+/* ── Nav: full-bleed paper header, capped inner row ─────────────────────────── */
+.tmpl-sumi .su-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--su-paper) 90%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--su-line);
+}
+.tmpl-sumi .su-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin-inline: auto; padding: 13px 40px;
+}
+.tmpl-sumi .su-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--su-ink); }
+.tmpl-sumi .su-logo-word { font-family: var(--su-serif); font-size: 19px; font-weight: 600; letter-spacing: 0.02em; color: var(--su-ink); }
+.tmpl-sumi .su-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-sumi .su-nav-link {
+  position: relative; background: none; border: 0; cursor: pointer;
+  font-family: var(--su-sans); font-size: 13px; font-weight: 500;
+  letter-spacing: 0.04em; color: var(--su-muted);
+  padding: 10px 14px; transition: color 0.18s ease;
+}
+.tmpl-sumi .su-nav-link:hover { color: var(--su-ink); }
+/* Active = accent text + a 2px vermilion brush underline (weight change too). */
+.tmpl-sumi .su-nav-link.is-active { color: var(--su-verm-text); font-weight: 700; }
+.tmpl-sumi .su-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 12px; bottom: 3px; height: 2px; border-radius: 2px; background: var(--su-vermilion); }
+.tmpl-sumi .su-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-sumi .su-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--su-ink); }
+.tmpl-sumi .su-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 40px 16px; background: var(--su-paper); border-bottom: 1px solid var(--su-line); }
+.tmpl-sumi .su-nav-mobile button, .tmpl-sumi .su-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--su-sans); font-size: 15px; font-weight: 500; color: var(--su-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--su-line);
+}
+
+/* ── Hero: brush headline + ink art | ink-edged photo plate ─────────────────── */
+.tmpl-sumi .su-hero { padding-top: clamp(56px, 8vw, 100px); }
+.tmpl-sumi .su-hero-grid { display: grid; grid-template-columns: 1fr; gap: 52px; align-items: center; }
+.tmpl-sumi .su-hero-sub { color: var(--su-muted); font-size: clamp(1.04rem, 1.7vw, 1.2rem); max-width: 46ch; margin: 22px 0 0; }
+.tmpl-sumi .su-seal-row { display: flex; align-items: center; gap: 16px; margin: 30px 0 4px; }
+.tmpl-sumi .su-seal-motto { font-family: var(--su-sans); font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--su-muted); max-width: 16ch; }
+.tmpl-sumi .su-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 0; }
+
+.tmpl-sumi .su-hero-media { position: relative; }
+/* The large hero enso sits behind + around the photo. */
+.tmpl-sumi .su-hero-enso {
+  position: absolute; inset-block-start: -8%; inset-inline-end: -6%;
+  width: min(78%, 420px); height: auto; aspect-ratio: 1 / 1; z-index: 0; opacity: 0.9;
+}
+.tmpl-sumi .su-hero-enso .su-enso-path, .tmpl-sumi .su-hero-enso .su-enso-tail { stroke-opacity: 0.5; }
+
+/* Photo mounted on washi with a soft ink-brushed edge (a torn print feel). */
+.tmpl-sumi .su-figure { position: relative; margin: 0; z-index: 1; }
+.tmpl-sumi .su-plate {
+  position: relative; background: var(--su-paper);
+  padding: 9px; border-radius: 3px;
+  box-shadow: 0 20px 40px -26px rgba(26, 24, 21, 0.5), inset 0 0 0 1px var(--su-line);
+}
+.tmpl-sumi .su-plate::before {
+  /* An irregular sumi ink-wash keyline hugging the print (soft, hand-brushed). */
+  content: ''; position: absolute; inset: 4px; pointer-events: none; z-index: 2;
+  border: 1.5px solid color-mix(in srgb, var(--su-ink) 46%, transparent);
+  border-radius: 60% 40% 55% 45% / 3% 4% 3% 4%;
+  opacity: 0.35;
+}
+.tmpl-sumi .su-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 2px; }
+/* Two soft ink brush marks bleeding off the plate corners (sumi-e touch). */
+.tmpl-sumi .su-plate-brush { position: absolute; z-index: 3; pointer-events: none; filter: blur(1px); }
+.tmpl-sumi .su-plate-brush-a {
+  inset-block-start: -14px; inset-inline-start: 12%; width: 120px; height: 26px;
+  background: radial-gradient(60% 90% at 30% 50%, color-mix(in srgb, var(--su-ink) 44%, transparent), transparent 72%);
+  transform: rotate(-8deg);
+}
+.tmpl-sumi .su-plate-brush-b {
+  inset-block-end: -12px; inset-inline-end: 10%; width: 96px; height: 22px;
+  background: radial-gradient(60% 90% at 60% 50%, color-mix(in srgb, var(--su-ink) 38%, transparent), transparent 72%);
+  transform: rotate(6deg);
+}
+.tmpl-sumi .su-caption {
+  font-family: var(--su-sans); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--su-muted);
+  margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--su-line);
+}
+
+/* ── Stats: mincho numeral over an ink brush rule ───────────────────────────── */
+.tmpl-sumi .su-stats { position: relative; padding: 60px 0; border-top: 1px solid var(--su-line); border-bottom: 1px solid var(--su-line); }
+.tmpl-sumi .su-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px 24px; }
+.tmpl-sumi .su-stat { text-align: start; }
+.tmpl-sumi .su-stat-num {
+  display: block; font-family: var(--su-serif); font-weight: 600;
+  font-size: clamp(2.6rem, 5vw, 3.6rem); line-height: 1; letter-spacing: 0.005em;
+  color: var(--su-ink); padding-bottom: 14px;
+  border-bottom: 2px solid color-mix(in srgb, var(--su-ink) 55%, transparent);
+}
+.tmpl-sumi .su-stat-label { display: block; margin-top: 12px; font-family: var(--su-sans); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--su-muted); }
+
+/* ── Why (the practice) ─────────────────────────────────────────────────────── */
+.tmpl-sumi .su-why-grid { display: grid; grid-template-columns: 1fr; gap: 44px 36px; }
+.tmpl-sumi .su-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 6px;
+  border: 1px solid var(--su-line); background: color-mix(in srgb, var(--su-ink) 3%, transparent); color: var(--su-verm-text);
+}
+.tmpl-sumi .su-why-title { font-family: var(--su-serif); font-weight: 600; font-size: 24px; line-height: 1.28; margin: 20px 0 0; color: var(--su-ink); }
+.tmpl-sumi .su-why-body { color: var(--su-muted); font-size: 15px; margin: 10px 0 0; max-width: 36ch; }
+
+/* ── Packages: quiet paper cards, thin ink keyline ──────────────────────────── */
+.tmpl-sumi .su-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.tmpl-sumi .su-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 32px; border-radius: 6px; background: var(--su-paper);
+  border: 1px solid var(--su-line);
+}
+.tmpl-sumi .su-band .su-pkg { background: color-mix(in srgb, var(--su-paper) 70%, #fff); }
+.tmpl-sumi .su-pkg.is-popular { border-color: var(--su-vermilion); box-shadow: inset 0 0 0 1px var(--su-vermilion); }
+.tmpl-sumi .su-pkg-seal { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.tmpl-sumi .su-pkg-badge { font-family: var(--su-sans); font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--su-verm-text); }
+.tmpl-sumi .su-pkg-name { margin: 0; font-family: var(--su-sans); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--su-muted); }
+.tmpl-sumi .su-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-sumi .su-pkg-amount { font-family: var(--su-serif); font-weight: 600; font-size: 48px; line-height: 1; letter-spacing: 0.005em; color: var(--su-ink); }
+.tmpl-sumi .su-pkg-unit { font-family: var(--su-sans); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--su-muted); }
+.tmpl-sumi .su-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--su-line); display: flex; flex-direction: column; gap: 12px; }
+.tmpl-sumi .su-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--su-ink); }
+.tmpl-sumi .su-check { color: var(--su-vermilion); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ──────────────────────────────────────────────────────────────────── */
+.tmpl-sumi .su-about { display: grid; grid-template-columns: 1fr; gap: 52px; align-items: start; }
+.tmpl-sumi .su-about-copy { position: relative; }
+.tmpl-sumi .su-about-img { aspect-ratio: 4 / 5; }
+.tmpl-sumi .su-instructor { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--su-line); }
+.tmpl-sumi .su-instructor-photo { width: 132px; height: 132px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--su-line); }
+.tmpl-sumi .su-instructor-id { min-width: 0; }
+.tmpl-sumi .su-instructor-name { margin: 0; font-family: var(--su-serif); font-weight: 600; font-size: 22px; line-height: 1.24; color: var(--su-ink); }
+.tmpl-sumi .su-instructor-title { margin: 4px 0 0; font-family: var(--su-sans); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--su-muted); }
+.tmpl-sumi .su-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 13px; }
+.tmpl-sumi .su-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--su-ink); }
+.tmpl-sumi .su-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-sumi .su-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 4px;
+  border: 1px solid var(--su-line); font-family: var(--su-sans); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--su-ink);
+}
+.tmpl-sumi .su-cred svg { color: var(--su-vermilion); flex-shrink: 0; }
+
+/* ── Areas: a calm ink-brush list with vermilion seal-dots ──────────────────── */
+.tmpl-sumi .su-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--su-line); }
+.tmpl-sumi .su-area {
+  display: flex; align-items: center; gap: 14px; padding: 15px 0;
+  border-bottom: 1px solid var(--su-line);
+  font-size: 15px; font-weight: 500; color: var(--su-ink);
+}
+.tmpl-sumi .su-area-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--su-vermilion); }
+.tmpl-sumi .su-area-name { min-width: 0; }
+.tmpl-sumi .su-area-note { margin-inline-start: auto; font-family: var(--su-sans); font-size: 12px; font-weight: 400; color: var(--su-muted); text-align: end; }
+
+/* ── Reviews: quiet cards, mincho quote, vermilion stars ────────────────────── */
+.tmpl-sumi .su-reviews { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.tmpl-sumi .su-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 6px; height: 100%; overflow: hidden;
+  background: color-mix(in srgb, var(--su-band) 55%, var(--su-paper)); border: 1px solid var(--su-line);
+}
+.tmpl-sumi .su-quote-mark { position: absolute; top: 8px; inset-inline-end: 20px; font-family: var(--su-serif); font-size: 60px; line-height: 1; color: color-mix(in srgb, var(--su-ink) 12%, transparent); pointer-events: none; }
+.tmpl-sumi .su-stars { display: inline-flex; gap: 2px; position: relative; }
+.tmpl-sumi .su-review-text { font-family: var(--su-serif); font-size: 19px; line-height: 1.6; color: var(--su-ink); margin: 16px 0 20px; }
+.tmpl-sumi .su-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--su-line); }
+.tmpl-sumi .su-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--su-line); }
+.tmpl-sumi .su-review-name { margin: 0; font-family: var(--su-sans); font-weight: 700; font-size: 14px; color: var(--su-ink); }
+.tmpl-sumi .su-review-sub { margin: 2px 0 0; font-family: var(--su-sans); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--su-muted); }
+
+/* ── Gallery: ink-mounted plates ────────────────────────────────────────────── */
+.tmpl-sumi .su-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.tmpl-sumi .su-gallery-cell { padding: 8px; border-radius: 3px; background: var(--su-paper); box-shadow: inset 0 0 0 1px var(--su-line), 0 14px 28px -24px rgba(26, 24, 21, 0.5); }
+.tmpl-sumi .su-gallery-cell img { width: 100%; height: 240px; object-fit: cover; border-radius: 2px; }
+
+/* ── FAQ: ink-hairline rows ─────────────────────────────────────────────────── */
+.tmpl-sumi .su-faq-wrap { max-width: 820px; }
+.tmpl-sumi .su-faq-list { border-top: 1px solid var(--su-line); }
+.tmpl-sumi .su-faq-item { border-bottom: 1px solid var(--su-line); }
+.tmpl-sumi .su-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--su-serif); font-weight: 500; font-size: 21px; line-height: 1.32;
+  color: var(--su-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-sumi .su-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--su-vermilion) 55%, transparent); color: var(--su-vermilion); }
+.tmpl-sumi .su-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-sumi .su-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-sumi .su-faq-panel-in { overflow: hidden; }
+.tmpl-sumi .su-faq-panel p { color: var(--su-muted); font-size: 15.5px; margin: 0; max-width: 68ch; }
+
+/* ── Book: a full-bleed washi invitation (the calm climax) ──────────────────── */
+.tmpl-sumi .su-book-section { position: relative; padding: 118px 0; background: var(--su-band); }
+.tmpl-sumi .su-book {
+  position: relative; max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 8px 32px;
+}
+.tmpl-sumi .su-book-enso {
+  position: absolute; inset-block-start: 50%; inset-inline-start: 50%;
+  width: min(360px, 82%); height: auto; aspect-ratio: 1 / 1;
+  transform: translate(-50%, -52%); z-index: 0; opacity: 0.9; pointer-events: none;
+}
+.tmpl-sumi .su-book-enso .su-enso-path, .tmpl-sumi .su-book-enso .su-enso-tail { stroke-opacity: 0.4; }
+.tmpl-sumi .su-book .su-hanko { position: relative; z-index: 1; margin: 0 auto 22px; }
+.tmpl-sumi .su-book .su-h2 { position: relative; z-index: 1; max-width: none; }
+.tmpl-sumi .su-book .su-lead { position: relative; z-index: 1; margin-inline: auto; }
+.tmpl-sumi .su-book-ctas { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ───────────────────────────────────────────────────────── */
+.tmpl-sumi .su-footer { position: relative; padding: 80px 0 44px; border-top: 1px solid var(--su-line); }
+.tmpl-sumi .su-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-sumi .su-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-sumi .su-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--su-ink); text-decoration: none; font-size: 15px; }
+.tmpl-sumi .su-contact-link svg { color: var(--su-vermilion); flex-shrink: 0; }
+.tmpl-sumi .su-contact-link:hover { color: var(--su-verm-text); }
+.tmpl-sumi .su-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-sumi .su-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 6px; border: 1px solid var(--su-line); color: var(--su-ink);
+  transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-sumi .su-social:hover { transform: translateY(-1px); color: var(--su-verm-text); border-color: color-mix(in srgb, var(--su-vermilion) 55%, transparent); }
+.tmpl-sumi .su-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-sumi .su-hours td { padding: 11px 0; font-size: 14px; border-bottom: 1px solid var(--su-line); color: var(--su-ink); }
+.tmpl-sumi .su-hours td:last-child { text-align: end; font-family: var(--su-sans); font-size: 13px; letter-spacing: 0.02em; color: var(--su-muted); font-variant-numeric: tabular-nums; }
+.tmpl-sumi .su-hours tr.is-closed td { color: var(--su-muted); }
+.tmpl-sumi .su-footer-bottom {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+  margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--su-line);
+  font-family: var(--su-sans); font-size: 12px; letter-spacing: 0.04em; color: var(--su-muted);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-sumi .su-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-sumi .su-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-sumi .su-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-sumi .su-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-sumi .su-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-sumi .su-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-sumi .su-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-sumi .su-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-sumi .su-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-sumi .su-nav-links { display: flex; }
+  .tmpl-sumi .su-menu { display: none; }
+}
+/* Wide desktop — use the full width; the hero column can breathe wider. */
+@media (min-width: 1280px) {
+  .tmpl-sumi .su-hero .su-wrap { max-width: 1600px; }
+  .tmpl-sumi .su-areas { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 520px) {
+  .tmpl-sumi .su-wrap { padding: 0 22px; }
+  .tmpl-sumi .su-nav-inner { padding: 12px 22px; }
+  .tmpl-sumi .su-nav-mobile { padding: 8px 22px 16px; }
+  .tmpl-sumi .su-nav-end .su-btn-ghost { display: none; }
+  .tmpl-sumi .su-section, .tmpl-sumi .su-book-section { padding: 78px 0; }
+  .tmpl-sumi .su-hero { padding-top: 44px; }
+  .tmpl-sumi .su-stats { padding: 48px 0; }
+  .tmpl-sumi .su-instructor-photo { width: 104px; height: 104px; }
+  .tmpl-sumi .su-quote-mark { font-size: 46px; }
+  .tmpl-sumi .su-bloom { width: 150px; height: 150px; inset-inline-start: -30px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-sumi .su-btn,
+  .tmpl-sumi .su-btn-sm,
+  .tmpl-sumi .su-social,
+  .tmpl-sumi .su-nav-link,
+  .tmpl-sumi .su-nav-mobile button,
+  .tmpl-sumi .su-nav-mobile-link { min-height: 44px; }
+  .tmpl-sumi .su-social { min-width: 44px; }
+}
+/* Reduced motion: enso fully drawn, blooms pre-bloomed, seal pre-stamped, no drift. */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-sumi .su-enso-path, .tmpl-sumi .su-enso-tail { stroke-dashoffset: 0 !important; transition: none; }
+  .tmpl-sumi .su-bloom { opacity: 0.9 !important; transform: none !important; transition: none; }
+  .tmpl-sumi .su-hanko { opacity: 1; transform: none; }
+  .tmpl-sumi .su-hanko.is-stamped { animation: none; }
+  .tmpl-sumi .su-paper-wash { transform: none !important; }
+  .tmpl-sumi .su-btn:hover, .tmpl-sumi .su-social:hover { transform: none; }
+  .tmpl-sumi .su-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned / rotated decorations need flipping
+   (everything else uses logical properties). ─────────────────────────────────── */
+.tmpl-sumi[dir='rtl'] .su-hero-enso { transform: scaleX(-1); }
+.tmpl-sumi[dir='rtl'] .su-book-enso { transform: translate(50%, -52%) scaleX(-1); }
+.tmpl-sumi[dir='rtl'] .su-plate-brush-a { transform: rotate(8deg) scaleX(-1); }
+.tmpl-sumi[dir='rtl'] .su-plate-brush-b { transform: rotate(-6deg) scaleX(-1); }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.su-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.su-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

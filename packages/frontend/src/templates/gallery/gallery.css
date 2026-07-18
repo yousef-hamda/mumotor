@@ -1,0 +1,406 @@
+/* Gallery — the museum exhibition. All selectors scoped to .tmpl-gallery.
+   The instructor's work hung as fine-art PRINTS on a warm gallery wall: real
+   picture frames + museum wall-labels, a soft SPOTLIGHT that follows scroll,
+   generous air. Elegant, quiet, photography-forward. Not glass, not gradient,
+   not loud. ONE accent (--ga-accent, museum ochre) → CTAs / links / active /
+   label rules / markers. Every tint derives with color-mix() from the vars.
+
+   CONTRAST (verified, sRGB WCAG):
+     ink #1C1A17 on wall #EEEAE1        ≈ 14.5:1  ✓  (on band #E3DCCF ≈ 12.7:1 ✓)
+     muted #635D52 on wall              ≈  5.4:1  ✓  (on band ≈ 4.8:1 ✓)
+     --ga-accent-ink (readable ochre)   ≈  5.3:1  ✓  on wall — used for eyebrows,
+        links, active nav text AND the solid primary-button background so wall
+        text on it also clears ≈ 5.3:1 (raw ochre #B5662E is only 3.6:1 → used
+        ONLY for large numerals/graphics: price, stars, rules, markers, orbs).
+   Frames/mats/spotlight/shadows are decorative (aria-hidden / pseudo). */
+
+.tmpl-gallery {
+  /* User-recolourable (first five map to COLOR_SLOTS) */
+  --ga-wall: #EEEAE1;    /* warm gallery wall — page bg */
+  --ga-ink: #1C1A17;     /* near-black — text */
+  --ga-accent: #B5662E;  /* museum ochre/terracotta — the ONE accent */
+  --ga-band: #E3DCCF;    /* a deeper wall — alternating bands / the "floor" */
+  --ga-muted: #635D52;   /* secondary text — nudged darker than #6B655A so it
+                            clears 4.5:1 on BOTH the wall AND --ga-band */
+  /* Internal — NOT user-recolourable */
+  --ga-line: rgba(28, 26, 23, 0.16);
+  --ga-frame: #2A2622;   /* dark picture-frame colour */
+  /* Readable ochre for text/links + solid button bg (raw ochre fails small-text
+     contrast; this darkens it via color-mix while keeping the ochre identity). */
+  --ga-accent-ink: color-mix(in srgb, var(--ga-accent) 72%, var(--ga-ink));
+  /* Scroll spotlight position (0..1). JS updates it; this default rests the
+     light on the hero and is what reduced-motion keeps. */
+  --ga-spot: 0.28;
+
+  --ga-serif: 'Cormorant', Georgia, 'Times New Roman', serif;
+  --ga-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background: var(--ga-wall);
+  color: var(--ga-ink);
+  font-family: var(--ga-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-gallery *, .tmpl-gallery *::before, .tmpl-gallery *::after { box-sizing: border-box; }
+.tmpl-gallery img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-gallery :focus-visible { outline: 2px solid var(--ga-accent); outline-offset: 3px; }
+
+/* ── Fixed wall layers (behind content): the spotlight + a faint static grain ──
+   Fixed + transform/background only = cheap compositor work, so scroll stays
+   60fps. The spotlight follows --ga-spot down the wall as you scroll. */
+.tmpl-gallery .ga-light {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(52vw 40vw at 50% calc(var(--ga-spot) * 100%),
+      rgba(255, 251, 243, 0.55), rgba(255, 251, 243, 0.14) 44%, transparent 68%),
+    radial-gradient(130% 92% at 50% 38%, transparent 52%, rgba(28, 26, 23, 0.10) 100%);
+  will-change: background;
+}
+.tmpl-gallery .ga-texture {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55;
+  background-image:
+    radial-gradient(rgba(28, 26, 23, 0.020) 0.5px, transparent 0.6px),
+    radial-gradient(rgba(28, 26, 23, 0.014) 0.5px, transparent 0.6px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+}
+.tmpl-gallery .ga-content { position: relative; z-index: 1; }
+
+/* ── Layout: full-bleed wall, capped inner column ─────────────────────────────── */
+.tmpl-gallery .ga-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-gallery .ga-section { position: relative; padding: 120px 0; }
+/* Bands are the deeper "floor" — opaque, so the light rests between them. */
+.tmpl-gallery .ga-band { background: var(--ga-band); }
+.tmpl-gallery .ga-head { max-width: 760px; margin-bottom: 56px; }
+
+/* ── Type ─────────────────────────────────────────────────────────────────────── */
+.tmpl-gallery .ga-h1 {
+  font-family: var(--ga-serif); font-weight: 500;
+  font-size: clamp(3rem, 7vw, 5.6rem); line-height: 1.02; letter-spacing: -0.01em;
+  margin: 18px 0 0; max-width: 15ch; color: var(--ga-ink);
+}
+.tmpl-gallery .ga-h2 {
+  font-family: var(--ga-serif); font-weight: 500;
+  font-size: clamp(2.2rem, 4.6vw, 3.6rem); line-height: 1.06; letter-spacing: -0.006em;
+  margin: 14px 0 0; max-width: 20ch; color: var(--ga-ink);
+}
+.tmpl-gallery .ga-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-gallery .ga-h1, .tmpl-gallery .ga-h2 { overflow-wrap: break-word; }
+
+.tmpl-gallery .ga-eyebrow {
+  font-family: var(--ga-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ga-accent-ink);
+  margin: 0 0 6px;
+}
+.tmpl-gallery .ga-lead { color: var(--ga-muted); font-size: clamp(1rem, 1.5vw, 1.14rem); max-width: 56ch; margin: 18px 0 0; }
+.tmpl-gallery .ga-body { color: var(--ga-muted); font-size: 16px; line-height: 1.75; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── Buttons: squared museum labels (2px radius, no puffy shadow) ─────────────── */
+.tmpl-gallery .ga-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 2px; cursor: pointer; text-decoration: none;
+  font-family: var(--ga-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 14px 24px; min-height: 46px; border: 1px solid transparent;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-gallery .ga-btn-sm { padding: 10px 16px; min-height: 38px; font-size: 11px; letter-spacing: 0.12em; }
+.tmpl-gallery .ga-btn-block { width: 100%; margin-top: auto; }
+.tmpl-gallery .ga-btn-primary { color: var(--ga-wall); background: var(--ga-accent-ink); border-color: var(--ga-accent-ink); }
+.tmpl-gallery .ga-btn-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--ga-accent-ink) 86%, #000); }
+.tmpl-gallery .ga-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-gallery .ga-btn-primary:disabled:hover { transform: none; background: var(--ga-accent-ink); }
+.tmpl-gallery .ga-btn-ghost { color: var(--ga-ink); background: var(--ga-wall); border-color: color-mix(in srgb, var(--ga-ink) 55%, transparent); }
+.tmpl-gallery .ga-btn-ghost:hover { transform: translateY(-1px); border-color: var(--ga-ink); background: color-mix(in srgb, var(--ga-ink) 5%, var(--ga-wall)); }
+
+/* ── Nav: sticky, full-bleed translucent wall, ochre hairline ─────────────────── */
+.tmpl-gallery .ga-nav { position: sticky; top: 0; z-index: 60; }
+.tmpl-gallery .ga-nav-bar {
+  background: color-mix(in srgb, var(--ga-wall) 90%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ga-accent) 60%, transparent);
+}
+.tmpl-gallery .ga-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 15px 40px;
+}
+.tmpl-gallery .ga-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ga-ink); }
+.tmpl-gallery .ga-logo-word { font-family: var(--ga-serif); font-size: 22px; font-weight: 600; letter-spacing: 0.005em; color: var(--ga-ink); }
+.tmpl-gallery .ga-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-gallery .ga-nav-link {
+  position: relative; background: none; border: 0; cursor: pointer;
+  font-family: var(--ga-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ga-muted);
+  padding: 10px 13px; transition: color 0.18s ease;
+}
+.tmpl-gallery .ga-nav-link:hover { color: var(--ga-ink); }
+/* Active = accent text + weight + a 2px accent underline (never colour alone). */
+.tmpl-gallery .ga-nav-link.is-active { color: var(--ga-accent-ink); font-weight: 700; }
+.tmpl-gallery .ga-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 13px; bottom: 2px; height: 2px; background: var(--ga-accent); }
+.tmpl-gallery .ga-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-gallery .ga-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--ga-ink); }
+.tmpl-gallery .ga-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--ga-wall); border-bottom: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-nav-mobile button, .tmpl-gallery .ga-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--ga-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--ga-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--ga-line);
+}
+
+/* ── Framed works + museum wall-labels (the signature) ────────────────────────── */
+.tmpl-gallery .ga-work { margin: 0; }
+.tmpl-gallery .ga-frame {
+  position: relative; padding: clamp(14px, 1.7vw, 22px);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--ga-frame) 82%, #fff 18%), var(--ga-frame) 46%, color-mix(in srgb, var(--ga-frame) 78%, #000 22%));
+  border-radius: 2px;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.14),
+    0 30px 55px -30px rgba(28, 26, 23, 0.6);
+}
+/* Gilt inner lip of the frame. */
+.tmpl-gallery .ga-frame::before {
+  content: ''; position: absolute; inset: clamp(10px, 1.2vw, 16px); pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--ga-accent) 55%, #000 20%);
+  border-radius: 1px;
+}
+/* The mat / passe-partout the print is windowed into. */
+.tmpl-gallery .ga-mat {
+  position: relative; padding: clamp(12px, 1.6vw, 22px);
+  background: color-mix(in srgb, var(--ga-wall) 88%, #fff 12%);
+  box-shadow: inset 0 1px 3px rgba(28, 26, 23, 0.18);
+}
+.tmpl-gallery .ga-work-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; }
+/* The wall-label mounted beside/under the work. */
+.tmpl-gallery .ga-plate {
+  display: block; margin-top: 16px; padding-top: 14px;
+  border-top: 2px solid var(--ga-accent);
+  max-width: 30ch;
+}
+.tmpl-gallery .ga-plate-title { display: block; font-family: var(--ga-serif); font-style: italic; font-weight: 500; font-size: 21px; line-height: 1.15; color: var(--ga-ink); }
+.tmpl-gallery .ga-plate-rows { display: block; margin-top: 10px; }
+.tmpl-gallery .ga-plate-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; }
+.tmpl-gallery .ga-plate-k { flex-shrink: 0; min-width: 8ch; font-size: 9.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ga-muted); }
+.tmpl-gallery .ga-plate-v { font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ga-ink); }
+
+/* ── Hero: engraved title | large framed work ─────────────────────────────────── */
+.tmpl-gallery .ga-hero { padding-top: clamp(56px, 8vw, 104px); }
+.tmpl-gallery .ga-hero-grid { display: grid; grid-template-columns: 1fr; gap: 52px; align-items: center; }
+.tmpl-gallery .ga-hero-sub { color: var(--ga-muted); font-size: clamp(1.04rem, 1.7vw, 1.22rem); max-width: 46ch; margin: 24px 0 0; }
+.tmpl-gallery .ga-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 34px 0 0; }
+.tmpl-gallery .ga-hero-media { position: relative; }
+.tmpl-gallery .ga-work-hero { margin-inline: auto; max-width: 560px; }
+
+/* ── Stats: large Cormorant numerals over an ochre hairline ───────────────────── */
+.tmpl-gallery .ga-stats { position: relative; padding: 60px 0; border-top: 1px solid var(--ga-line); border-bottom: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px 24px; }
+.tmpl-gallery .ga-stat { text-align: start; }
+.tmpl-gallery .ga-stat-num {
+  display: block; font-family: var(--ga-serif); font-weight: 500;
+  font-size: clamp(2.8rem, 5.2vw, 3.9rem); line-height: 1; letter-spacing: -0.01em;
+  color: var(--ga-ink); padding-bottom: 14px; border-bottom: 1px solid var(--ga-accent);
+}
+.tmpl-gallery .ga-stat-label { display: block; margin-top: 12px; font-family: var(--ga-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ga-muted); }
+
+/* ── Why (the collection): matted feature cards ───────────────────────────────── */
+.tmpl-gallery .ga-why-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.tmpl-gallery .ga-why {
+  padding: 30px; border-radius: 2px; background: color-mix(in srgb, var(--ga-wall) 60%, #fff 40%);
+  border: 1px solid var(--ga-line); box-shadow: 0 18px 34px -28px rgba(28, 26, 23, 0.45);
+}
+.tmpl-gallery .ga-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 2px;
+  border: 1px solid var(--ga-accent); color: var(--ga-accent-ink);
+  background: color-mix(in srgb, var(--ga-accent) 8%, transparent);
+}
+.tmpl-gallery .ga-why-title { font-family: var(--ga-serif); font-weight: 600; font-size: 26px; line-height: 1.18; margin: 18px 0 0; color: var(--ga-ink); }
+.tmpl-gallery .ga-why-body { color: var(--ga-muted); font-size: 15px; margin: 8px 0 0; max-width: 34ch; }
+
+/* ── Packages: "acquisition" cards, matted keyline + label plate ──────────────── */
+.tmpl-gallery .ga-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.tmpl-gallery .ga-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 32px; border-radius: 2px; background: var(--ga-wall);
+  border: 1px solid var(--ga-line);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ga-ink) 5%, transparent), 0 20px 40px -32px rgba(28, 26, 23, 0.5);
+}
+.tmpl-gallery .ga-pkg.is-popular { border-color: var(--ga-accent); box-shadow: inset 0 0 0 1px var(--ga-accent), 0 22px 42px -30px rgba(181, 102, 46, 0.5); }
+.tmpl-gallery .ga-pkg-plate { display: inline-flex; align-items: center; gap: 9px; align-self: flex-start; margin-bottom: 18px; padding-bottom: 6px; border-bottom: 2px solid var(--ga-accent); }
+.tmpl-gallery .ga-pkg-plate-dot { width: 7px; height: 7px; flex-shrink: 0; background: var(--ga-accent); border-radius: 50%; }
+.tmpl-gallery .ga-pkg-badge { font-family: var(--ga-sans); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ga-accent-ink); }
+.tmpl-gallery .ga-pkg-name { margin: 0; font-family: var(--ga-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ga-muted); }
+.tmpl-gallery .ga-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-gallery .ga-pkg-amount { font-family: var(--ga-serif); font-weight: 600; font-size: 52px; line-height: 1; letter-spacing: -0.01em; color: var(--ga-accent); }
+.tmpl-gallery .ga-pkg-unit { font-family: var(--ga-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ga-muted); }
+.tmpl-gallery .ga-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--ga-line); display: flex; flex-direction: column; gap: 12px; }
+.tmpl-gallery .ga-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--ga-ink); }
+.tmpl-gallery .ga-check { color: var(--ga-accent-ink); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About (provenance): framed portrait + curator card ───────────────────────── */
+.tmpl-gallery .ga-about { display: grid; grid-template-columns: 1fr; gap: 52px; align-items: start; }
+.tmpl-gallery .ga-about-img { aspect-ratio: 4 / 5; }
+.tmpl-gallery .ga-instructor { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-instructor-photo { width: 132px; height: 132px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--ga-accent); }
+.tmpl-gallery .ga-instructor-id { min-width: 0; }
+.tmpl-gallery .ga-instructor-name { margin: 0; font-family: var(--ga-serif); font-weight: 600; font-size: 24px; line-height: 1.2; color: var(--ga-ink); }
+.tmpl-gallery .ga-instructor-title { margin: 4px 0 0; font-family: var(--ga-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ga-muted); }
+.tmpl-gallery .ga-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-gallery .ga-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--ga-ink); }
+.tmpl-gallery .ga-checklist .ga-check { margin-top: 3px; }
+.tmpl-gallery .ga-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-gallery .ga-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 2px;
+  border: 1px solid var(--ga-accent); font-family: var(--ga-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ga-ink);
+}
+.tmpl-gallery .ga-cred svg { color: var(--ga-accent-ink); flex-shrink: 0; }
+
+/* ── Areas (the floor plan): a small-caps collection index, ochre markers ──────── */
+.tmpl-gallery .ga-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-area { display: flex; align-items: center; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-area-key { width: 8px; height: 8px; flex-shrink: 0; background: var(--ga-accent); }
+.tmpl-gallery .ga-area-name { font-family: var(--ga-sans); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ga-ink); }
+.tmpl-gallery .ga-area-note { margin-inline-start: auto; font-family: var(--ga-sans); font-size: 10px; font-weight: 500; letter-spacing: 0.06em; color: var(--ga-muted); text-align: end; }
+
+/* ── Reviews: framed testimonial "plaques" ────────────────────────────────────── */
+.tmpl-gallery .ga-reviews { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.tmpl-gallery .ga-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 2px; background: var(--ga-wall);
+  border: 1px solid var(--ga-accent); height: 100%; overflow: hidden;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ga-accent) 22%, transparent), 0 16px 30px -26px rgba(28, 26, 23, 0.4);
+}
+.tmpl-gallery .ga-quote-mark { position: absolute; top: 4px; inset-inline-end: 20px; font-family: var(--ga-serif); font-style: italic; font-size: 66px; line-height: 1; color: color-mix(in srgb, var(--ga-accent) 34%, transparent); pointer-events: none; }
+.tmpl-gallery .ga-stars { display: inline-flex; gap: 2px; position: relative; }
+.tmpl-gallery .ga-review-text {
+  font-family: var(--ga-serif); font-size: 20px; line-height: 1.5; font-style: italic;
+  color: var(--ga-ink); margin: 16px 0 20px; padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--ga-accent) 45%, transparent);
+}
+.tmpl-gallery .ga-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-avatar { width: 40px; height: 40px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--ga-accent); }
+.tmpl-gallery .ga-review-name { margin: 0; font-family: var(--ga-sans); font-weight: 700; font-size: 14px; color: var(--ga-ink); }
+.tmpl-gallery .ga-review-sub { margin: 2px 0 0; font-family: var(--ga-sans); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ga-muted); }
+
+/* ── Gallery: the wall — framed works side by side ────────────────────────────── */
+.tmpl-gallery .ga-gallery { display: grid; grid-template-columns: 1fr; gap: 40px 28px; }
+.tmpl-gallery .ga-gcell .ga-plate { max-width: none; }
+
+/* ── FAQ (catalogue notes): hairline rows, small-caps +/− ─────────────────────── */
+.tmpl-gallery .ga-faq-wrap { max-width: 820px; }
+.tmpl-gallery .ga-faq-list { border-top: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-faq-item { border-bottom: 1px solid var(--ga-line); }
+.tmpl-gallery .ga-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--ga-serif); font-weight: 500; font-size: 23px; line-height: 1.25;
+  color: var(--ga-ink); padding: 24px 0; min-height: 44px;
+}
+.tmpl-gallery .ga-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--ga-accent); color: var(--ga-accent-ink); }
+.tmpl-gallery .ga-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-gallery .ga-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 24px; }
+.tmpl-gallery .ga-faq-panel-in { overflow: hidden; }
+.tmpl-gallery .ga-faq-panel p { color: var(--ga-muted); font-size: 15.5px; margin: 0; max-width: 64ch; }
+
+/* ── Book (the private view): the strongest spotlight, a centred plate ────────── */
+.tmpl-gallery .ga-book-section { position: relative; overflow: hidden; }
+.tmpl-gallery .ga-book-glow {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(48% 62% at 50% 42%, rgba(255, 251, 243, 0.7), rgba(255, 248, 236, 0.2) 46%, transparent 70%);
+}
+.tmpl-gallery .ga-book {
+  position: relative; z-index: 1; max-width: 720px; margin: 0 auto; text-align: center;
+  padding: 60px 40px; border-radius: 2px; background: color-mix(in srgb, var(--ga-wall) 78%, #fff 22%);
+  border: 1px solid var(--ga-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ga-accent) 24%, transparent), 0 30px 60px -40px rgba(28, 26, 23, 0.55);
+}
+.tmpl-gallery .ga-book .ga-h2 { max-width: none; margin-top: 0; }
+.tmpl-gallery .ga-book .ga-lead { margin-inline: auto; }
+.tmpl-gallery .ga-book-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ─────────────────────────────────────────────────────────── */
+.tmpl-gallery .ga-footer { position: relative; padding: 80px 0 44px; border-top: 2px solid var(--ga-accent); }
+.tmpl-gallery .ga-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-gallery .ga-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-gallery .ga-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--ga-ink); text-decoration: none; font-size: 15px; }
+.tmpl-gallery .ga-contact-link svg { color: var(--ga-accent-ink); flex-shrink: 0; }
+.tmpl-gallery .ga-contact-link:hover { color: var(--ga-accent-ink); }
+.tmpl-gallery .ga-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-gallery .ga-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 2px; border: 1px solid var(--ga-accent); color: var(--ga-ink);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.tmpl-gallery .ga-social:hover { color: var(--ga-accent-ink); transform: translateY(-1px); }
+.tmpl-gallery .ga-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-gallery .ga-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--ga-line); color: var(--ga-ink); }
+.tmpl-gallery .ga-hours td:last-child { text-align: end; font-family: var(--ga-sans); font-size: 12px; letter-spacing: 0.04em; color: var(--ga-muted); font-variant-numeric: tabular-nums; }
+.tmpl-gallery .ga-hours tr.is-closed td { color: var(--ga-muted); }
+.tmpl-gallery .ga-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--ga-line);
+  font-family: var(--ga-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ga-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-gallery .ga-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-gallery .ga-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-gallery .ga-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-gallery .ga-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-gallery .ga-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-gallery .ga-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-gallery .ga-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-gallery .ga-work-hero { margin-inline: 0; max-width: none; }
+  .tmpl-gallery .ga-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-gallery .ga-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-gallery .ga-nav-links { display: flex; }
+  .tmpl-gallery .ga-menu { display: none; }
+}
+/* Wide desktop: use the full width — a wider inner column and roomier air. */
+@media (min-width: 1280px) {
+  .tmpl-gallery .ga-wrap { max-width: 1680px; padding: 0 56px; }
+  .tmpl-gallery .ga-nav-inner { max-width: 1680px; padding-inline: 56px; }
+  .tmpl-gallery .ga-section { padding: 140px 0; }
+}
+@media (max-width: 520px) {
+  .tmpl-gallery .ga-nav-end .ga-btn-ghost { display: none; }
+  .tmpl-gallery .ga-section { padding: 76px 0; }
+  .tmpl-gallery .ga-stats { padding: 48px 0; }
+  .tmpl-gallery .ga-book { padding: 42px 24px; }
+  .tmpl-gallery .ga-instructor-photo { width: 100px; height: 100px; }
+  .tmpl-gallery .ga-quote-mark { font-size: 50px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-gallery .ga-btn,
+  .tmpl-gallery .ga-btn-sm,
+  .tmpl-gallery .ga-social,
+  .tmpl-gallery .ga-nav-link,
+  .tmpl-gallery .ga-nav-mobile button,
+  .tmpl-gallery .ga-nav-mobile-link { min-height: 44px; }
+  .tmpl-gallery .ga-social { min-width: 44px; }
+}
+/* Reduced motion: no button lift; the spotlight stays static (JS never binds). */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-gallery .ga-btn:hover,
+  .tmpl-gallery .ga-social:hover { transform: none; }
+  .tmpl-gallery .ga-faq-panel { transition: none; }
+}
+
+/* ── RTL: only decorations that hard-code a side need flipping (everything else
+   uses logical properties). ──────────────────────────────────────────────────── */
+.tmpl-gallery[dir='rtl'] .ga-quote-mark { transform: scaleX(-1); }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.ga-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.ga-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

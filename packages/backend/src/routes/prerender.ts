@@ -190,17 +190,23 @@ function landingHtml(): string {
 // ── The /templates snapshot (mirrors the templates registry) ────────────────
 const TEMPLATES: Array<[string, string, string]> = [
   ['Mumotor', 'Apple-minimal', 'The Mumotor look — clean white, one calm accent and soft aurora. Recolour the whole site with a tap.'],
-  ['Aurora', 'Liquid glass', 'Apple-style liquid glass — frosted panels float over a soft aurora gradient with pointer-follow light and depth parallax.'],
+  ['Meridian', 'Topographic survey', 'An atlas plate — engraved serif titles, contour hairlines and a route line that draws itself down the page as you scroll.'],
+  ['Bezel', 'Machined instrument', 'Precision-engineered — milled charcoal panels, knurled edges and stat dials whose needles sweep up like a real gauge.'],
+  ['Solari', 'Split-flap departures', 'A mechanical departure board — brushed brass, amber flaps and words that clatter into place as you scroll.'],
+  ['Cadence', 'Kinetic typography', 'Type is the whole design — oversized letters that lean with your scroll speed over a warm bone paper.'],
+  ['Circuit', 'Motorsport telemetry', 'A pit-wall broadcast — a car laps a hand-drawn circuit as you scroll while a live timing tower ticks off the sectors.'],
+  ['Press', 'Letterpress print', 'A fine letterpress prospectus — type debossed into cotton paper, copper fleurons and a wax seal that stamps as you scroll.'],
+  ['Reel', '35mm cinema', 'A film print — letterboxed hero, a sprocket-holed filmstrip that scrubs frame-by-frame as you scroll and an academy-leader countdown.'],
+  ['Slate', 'Chalkboard classroom', 'A schoolroom blackboard — hand-drawn chalk road diagrams that draw themselves and eraser-wipe transitions.'],
+  ['Folio', 'Glossy magazine', 'A fashion-magazine feature — full-bleed cover photography, a dramatic Bodoni masthead, pull-quotes and folios.'],
+  ['Primary', 'Bauhaus geometry', 'A Bauhaus poster — flat circles, triangles and bars in primary colours that assemble as you scroll.'],
+  ['Gallery', 'Museum exhibition', 'The work as a curated exhibition — framed prints with museum wall-labels and a spotlight that follows you down the wall.'],
+  ['Gilt', 'Foil-stamped luxury', 'A foil-stamped invitation — deep charcoal and champagne-gold headlines with a sheen that rakes across them as you scroll.'],
+  ['Sumi', 'Sumi-e ink wash', 'A sumi-e brush painting — warm washi paper, a hand-brushed enso that draws itself and a vermilion hanko seal that stamps as you scroll.'],
   ['Obsidian', 'Smoked dark glass', 'Luxury after-dark — smoked glass panels, a receding 3D grid horizon and slow cinematic reveals in cool ice-steel.'],
-  ['Bento', 'Glass bento grid', 'Everything at a glance — crisp frosted tiles in a tight bento grid that tilt in 3D and assemble as you scroll.'],
-  ['Prism', 'Holographic glass', 'Iridescent dichroic glass — borders that shift hue as you scroll and a refractive hero, restrained and premium.'],
-  ['Frosted', 'Photo + frosted glass', 'Photography-first — full-bleed driving photos with heavy frosted-glass cards and cinematic parallax. Editorial and warm.'],
   ['Grid & Ink', 'Swiss editorial', 'Strict typographic grid, hairline rules and numbered sections. Confident, magazine-grade, zero clutter.'],
   ['Open Road', 'Retro automotive', 'Warm 70s road-trip energy — sunburst hero, enamel badges, grain and dashed-road dividers.'],
-  ['Night Shift', 'Dark cinematic neon', 'A night-drive in neon — glass panels, headlight beams and a glowing call-to-action.'],
   ['Easy Lane', 'Soft & friendly', 'Reassuring and rounded — pastel blobs, springy motion and a "your journey" progress feel.'],
-  ['Prestige Drive', 'Luxury black & gold', 'Editorial luxury — black, gold hairlines, oversized serif numerals and slow curtain reveals.'],
-  ['Full Throttle', 'Neo-brutalist', 'Loud and structural — primary colours, thick borders, hard shadows and scroll-snap blocks.'],
 ];
 
 function templatesHtml(): string {

@@ -1,0 +1,415 @@
+/* Folio — the glossy magazine. All selectors scoped to .tmpl-folio.
+   Full-bleed photography + a dramatic Bodoni masthead + editorial spreads with
+   pull-quotes, folios and running heads. ONE accent (--fo-accent, bold editorial
+   red) → masthead rule / kickers / links / active / CTA / popular keyline / stars.
+   Every tint derives with color-mix() from the vars, so Customize recolouring
+   holds. First 5 vars are user-recolourable (COLOR_SLOTS); --fo-line + --fo-onaccent
+   are internal.
+
+   CONTRAST (verified, sRGB WCAG):
+     ink #16130F on paper #F7F4EF        ≈ 16.9:1 ✓ (on --fo-band ≈ 15.0:1 ✓)
+     muted #6A6459 on paper              ≈  5.4:1 ✓ (on --fo-band ≈ 4.8:1 ✓)
+     text/CTA red = color-mix(accent 84%,#000) #C01D17 on paper ≈ 5.6:1 ✓
+       (on --fo-band ≈ 5.0:1 ✓; paper-on-red button ≈ 5.6:1 ✓)
+   ⚠ RAW --fo-accent #E5231B on paper is only ≈ 4.2:1 — it FAILS small-text
+     contrast, so it is used ONLY for graphical/large elements (masthead & pull
+     rules, popular keyline, stars ≥16px, big quote marks, folios that pair with
+     ink text), NEVER for small text. Small accent text uses the darker mix above.
+   Text over the hero/book PHOTO sits on a strong dark scrim (+ text-shadow) so
+   the paper text clears 4.5:1 regardless of the image. */
+
+.tmpl-folio {
+  /* User-recolourable (COLOR_SLOTS) */
+  --fo-paper: #F7F4EF;   /* warm glossy editorial white — page bg */
+  --fo-ink: #16130F;     /* rich near-black ink — text */
+  --fo-accent: #E5231B;  /* bold editorial red — the ONE accent */
+  --fo-band: #ECE7DF;    /* a darker paper — alternating spread bands */
+  --fo-muted: #6A6459;   /* internal secondary text — ≥4.5:1 on paper AND band */
+  /* Internal — NOT user-recolourable */
+  --fo-line: rgba(22, 19, 15, 0.16);
+  --fo-onaccent: #F7F4EF;
+
+  --fo-display: 'Bodoni Moda', Georgia, 'Times New Roman', serif;
+  --fo-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background: var(--fo-paper);
+  color: var(--fo-ink);
+  font-family: var(--fo-sans);
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-folio *, .tmpl-folio *::before, .tmpl-folio *::after { box-sizing: border-box; }
+.tmpl-folio img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-folio :focus-visible { outline: 2px solid var(--fo-accent); outline-offset: 3px; }
+
+/* ── Layout: wide desktop. Text blocks cap at 1440; imagery bleeds full-width ── */
+.tmpl-folio .fo-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-folio .fo-section { position: relative; padding: 120px 0; }
+.tmpl-folio .fo-band-section { background: var(--fo-band); }
+.tmpl-folio .fo-head { margin-bottom: 56px; max-width: 900px; }
+
+/* ── Magazine furniture ─────────────────────────────────────────────────────── */
+.tmpl-folio .fo-folio {
+  display: block; font-family: var(--fo-sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--fo-accent) 84%, #000); margin: 0 0 14px;
+}
+.tmpl-folio .fo-runhead {
+  display: none; align-items: center; gap: 10px; margin: 0 0 18px;
+  font-family: var(--fo-sans); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.24em; text-transform: uppercase; color: var(--fo-muted);
+}
+.tmpl-folio .fo-runhead-mast { font-weight: 600; color: var(--fo-ink); }
+.tmpl-folio .fo-runhead-sep { color: color-mix(in srgb, var(--fo-accent) 84%, #000); }
+
+/* ── Type ───────────────────────────────────────────────────────────────────── */
+.tmpl-folio .fo-masthead {
+  font-family: var(--fo-display); font-weight: 700; font-style: normal;
+  font-size: clamp(3rem, 11vw, 10rem); line-height: 0.9; letter-spacing: -0.014em;
+  margin: 18px 0 0; max-width: 15ch; color: var(--fo-paper);
+}
+.tmpl-folio .fo-h2 {
+  font-family: var(--fo-display); font-weight: 600;
+  font-size: clamp(2.2rem, 5vw, 3.9rem); line-height: 1.02; letter-spacing: -0.012em;
+  margin: 14px 0 0; max-width: 18ch; color: var(--fo-ink);
+}
+.tmpl-folio .fo-h2-tight { max-width: 15ch; }
+.tmpl-folio .fo-book-h2 {
+  font-family: var(--fo-display); font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 5rem); line-height: 0.98; letter-spacing: -0.012em;
+  margin: 18px 0 0; max-width: 16ch; color: var(--fo-paper);
+}
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-folio .fo-masthead, .tmpl-folio .fo-h2, .tmpl-folio .fo-book-h2 { overflow-wrap: break-word; }
+
+.tmpl-folio .fo-eyebrow {
+  font-family: var(--fo-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--fo-accent) 84%, #000); margin: 0 0 12px;
+}
+.tmpl-folio .fo-lead { color: var(--fo-muted); font-size: clamp(1.02rem, 1.5vw, 1.16rem); max-width: 60ch; margin: 20px 0 0; }
+.tmpl-folio .fo-body { color: var(--fo-muted); font-size: 16.5px; line-height: 1.72; margin: 18px 0 0; max-width: 62ch; }
+
+/* Drop cap opens the About body. */
+.tmpl-folio .fo-dropcap::first-letter {
+  float: left; font-family: var(--fo-display); font-weight: 700;
+  font-size: 3.6em; line-height: 0.74; margin-inline-end: 0.08em; padding-top: 0.04em;
+  color: color-mix(in srgb, var(--fo-accent) 84%, #000);
+}
+
+/* Pull-quote: big Bodoni italic between red rule lines. */
+.tmpl-folio .fo-pull {
+  font-family: var(--fo-display); font-style: italic; font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 2.15rem); line-height: 1.22; letter-spacing: -0.008em;
+  color: var(--fo-ink); margin: 40px 0; padding: 26px 0; max-width: 22ch;
+  border-top: 2px solid var(--fo-accent); border-bottom: 2px solid var(--fo-accent);
+}
+
+/* ── Buttons: sharp editorial (2px radius), small-caps ───────────────────────── */
+.tmpl-folio .fo-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  border-radius: 2px; cursor: pointer;
+  font-family: var(--fo-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none;
+  padding: 14px 24px; min-height: 46px; border: 1px solid transparent;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-folio .fo-btn-sm { padding: 10px 16px; min-height: 38px; font-size: 11px; letter-spacing: 0.14em; }
+.tmpl-folio .fo-btn-lg { padding: 16px 30px; min-height: 52px; font-size: 12.5px; }
+.tmpl-folio .fo-btn-block { width: 100%; margin-top: auto; }
+.tmpl-folio .fo-btn-primary {
+  color: var(--fo-onaccent); background: color-mix(in srgb, var(--fo-accent) 84%, #000);
+  border-color: color-mix(in srgb, var(--fo-accent) 70%, #000);
+}
+.tmpl-folio .fo-btn-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--fo-accent) 72%, #000); }
+.tmpl-folio .fo-btn-primary:disabled { cursor: not-allowed; opacity: 0.55; }
+.tmpl-folio .fo-btn-primary:disabled:hover { transform: none; }
+.tmpl-folio .fo-btn-ghost {
+  color: var(--fo-ink); background: var(--fo-paper); border-color: var(--fo-ink);
+}
+.tmpl-folio .fo-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--fo-ink) 6%, var(--fo-paper)); }
+/* Paper pill for use over a dark photo (the Book enroll CTA). */
+.tmpl-folio .fo-btn-paper {
+  color: var(--fo-ink); background: var(--fo-paper); border-color: var(--fo-paper);
+}
+.tmpl-folio .fo-btn-paper:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--fo-paper) 88%, #000); }
+
+/* ── Nav: full-bleed running header, red hairline under it ───────────────────── */
+.tmpl-folio .fo-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--fo-paper) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--fo-accent) 66%, transparent);
+}
+.tmpl-folio .fo-nav-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 12px 40px;
+}
+.tmpl-folio .fo-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--fo-ink); }
+.tmpl-folio .fo-logo-word { font-family: var(--fo-display); font-size: 21px; font-weight: 700; letter-spacing: 0.005em; color: var(--fo-ink); }
+.tmpl-folio .fo-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-folio .fo-nav-link {
+  position: relative; background: none; border: 0; cursor: pointer;
+  font-family: var(--fo-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--fo-muted);
+  padding: 10px 14px; transition: color 0.18s ease;
+}
+.tmpl-folio .fo-nav-link:hover { color: var(--fo-ink); }
+/* Active = accent + a 2px accent underline (never colour alone — also weight). */
+.tmpl-folio .fo-nav-link.is-active { color: color-mix(in srgb, var(--fo-accent) 84%, #000); font-weight: 700; }
+.tmpl-folio .fo-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 14px; bottom: 3px; height: 2px; background: var(--fo-accent); }
+.tmpl-folio .fo-nav-end { display: flex; align-items: center; gap: 10px; }
+.tmpl-folio .fo-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--fo-ink); }
+.tmpl-folio .fo-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 40px 18px; background: var(--fo-paper); border-bottom: 1px solid var(--fo-line); }
+.tmpl-folio .fo-nav-mobile button, .tmpl-folio .fo-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--fo-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fo-ink);
+  padding: 13px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--fo-line);
+}
+
+/* ── Hero: FULL-BLEED cover photograph + giant masthead ─────────────────────── */
+.tmpl-folio .fo-hero {
+  position: relative; width: 100%; overflow: hidden; background: var(--fo-ink);
+  min-height: clamp(560px, 94svh, 980px);
+  display: flex; align-items: flex-end;
+}
+.tmpl-folio .fo-hero-photo { position: absolute; inset: 0; overflow: hidden; }
+.tmpl-folio .fo-hero-img { width: 100%; height: 112%; object-fit: cover; will-change: transform; }
+.tmpl-folio .fo-hero-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(8, 6, 5, 0.22) 0%, rgba(8, 6, 5, 0.30) 38%,
+    rgba(8, 6, 5, 0.66) 66%, rgba(8, 6, 5, 0.85) 100%);
+}
+.tmpl-folio .fo-hero-inner {
+  position: relative; z-index: 2; width: 100%; max-width: 1440px; margin: 0 auto;
+  padding: 0 40px 60px; color: var(--fo-paper);
+  text-shadow: 0 1px 22px rgba(0, 0, 0, 0.34);
+}
+.tmpl-folio .fo-hero-top { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.tmpl-folio .fo-issue { font-family: var(--fo-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: var(--fo-paper); }
+.tmpl-folio .fo-hero-rule { width: 46px; height: 2px; background: var(--fo-accent); flex-shrink: 0; }
+.tmpl-folio .fo-hero-dateline { margin: 0; font-family: var(--fo-sans); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: color-mix(in srgb, var(--fo-paper) 88%, transparent); }
+.tmpl-folio .fo-hero-sub { color: color-mix(in srgb, var(--fo-paper) 92%, transparent); font-size: clamp(1.04rem, 1.6vw, 1.24rem); line-height: 1.5; max-width: 46ch; margin: 26px 0 0; }
+.tmpl-folio .fo-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 0; }
+.tmpl-folio .fo-hero-caption { display: block; margin-top: 26px; font-family: var(--fo-sans); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--fo-paper) 74%, transparent); }
+
+/* ── Stats: big Bodoni numerals under hairlines ─────────────────────────────── */
+.tmpl-folio .fo-stats { position: relative; padding: 60px 0; border-bottom: 1px solid var(--fo-line); }
+.tmpl-folio .fo-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 36px 24px; }
+.tmpl-folio .fo-stat { text-align: start; }
+.tmpl-folio .fo-stat-num {
+  display: block; font-family: var(--fo-display); font-weight: 600;
+  font-size: clamp(2.8rem, 5.2vw, 4rem); line-height: 1; letter-spacing: -0.015em;
+  color: var(--fo-ink); padding-bottom: 14px; border-bottom: 1px solid var(--fo-accent);
+}
+.tmpl-folio .fo-stat-label { display: block; margin-top: 13px; font-family: var(--fo-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fo-muted); }
+
+/* ── Why (the feature) ──────────────────────────────────────────────────────── */
+.tmpl-folio .fo-why-grid { display: grid; grid-template-columns: 1fr; gap: 44px 40px; }
+.tmpl-folio .fo-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 2px;
+  border: 1px solid var(--fo-line); color: color-mix(in srgb, var(--fo-accent) 84%, #000);
+}
+.tmpl-folio .fo-why-title { font-family: var(--fo-display); font-weight: 600; font-size: 26px; line-height: 1.14; margin: 20px 0 0; color: var(--fo-ink); }
+.tmpl-folio .fo-why-body { color: var(--fo-muted); font-size: 15.5px; margin: 9px 0 0; max-width: 40ch; }
+
+/* ── Packages: editorial cards with hairline keyline + folio ────────────────── */
+.tmpl-folio .fo-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.tmpl-folio .fo-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 34px 30px; border-radius: 3px; background: var(--fo-paper);
+  border: 1px solid var(--fo-line);
+}
+.tmpl-folio .fo-band-section .fo-pkg { background: color-mix(in srgb, var(--fo-paper) 60%, #fff); }
+.tmpl-folio .fo-pkg.is-popular { border: 1.5px solid var(--fo-accent); }
+.tmpl-folio .fo-pkg-folio { display: block; font-family: var(--fo-display); font-size: 15px; font-style: italic; color: var(--fo-muted); margin-bottom: 12px; }
+.tmpl-folio .fo-pkg-badge {
+  align-self: flex-start; margin-bottom: 14px; padding: 4px 10px; border-radius: 2px;
+  font-family: var(--fo-sans); font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--fo-onaccent); background: color-mix(in srgb, var(--fo-accent) 84%, #000);
+}
+.tmpl-folio .fo-pkg-name { margin: 0; font-family: var(--fo-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fo-muted); }
+.tmpl-folio .fo-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-folio .fo-pkg-amount { font-family: var(--fo-display); font-weight: 600; font-size: 52px; line-height: 1; letter-spacing: -0.015em; color: var(--fo-ink); }
+.tmpl-folio .fo-pkg-unit { font-family: var(--fo-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fo-muted); }
+.tmpl-folio .fo-pkg-features { list-style: none; margin: 24px 0 28px; padding: 24px 0 0; border-top: 1px solid var(--fo-line); display: flex; flex-direction: column; gap: 12px; }
+.tmpl-folio .fo-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--fo-ink); }
+.tmpl-folio .fo-check { color: color-mix(in srgb, var(--fo-accent) 84%, #000); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About: a framed-plate spread ───────────────────────────────────────────── */
+.tmpl-folio .fo-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-folio .fo-plate { position: relative; margin: 0; border: 1px solid var(--fo-line); padding: 8px; background: var(--fo-paper); box-shadow: 0 24px 44px -30px rgba(0, 0, 0, 0.5); }
+.tmpl-folio .fo-plate-img { width: 100%; height: auto; object-fit: cover; }
+.tmpl-folio .fo-about-img { aspect-ratio: 4 / 5; }
+.tmpl-folio .fo-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--fo-line); }
+.tmpl-folio .fo-instructor-photo { width: 132px; height: 132px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--fo-line); }
+.tmpl-folio .fo-instructor-id { min-width: 0; }
+.tmpl-folio .fo-instructor-name { margin: 0; font-family: var(--fo-display); font-weight: 600; font-size: 23px; line-height: 1.16; color: var(--fo-ink); }
+.tmpl-folio .fo-instructor-title { margin: 5px 0 0; font-family: var(--fo-sans); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fo-muted); }
+.tmpl-folio .fo-checklist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 13px; }
+.tmpl-folio .fo-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--fo-ink); }
+.tmpl-folio .fo-checklist .fo-check { margin-top: 3px; }
+.tmpl-folio .fo-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; }
+.tmpl-folio .fo-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 2px;
+  border: 1px solid var(--fo-line); font-family: var(--fo-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--fo-ink);
+}
+.tmpl-folio .fo-cred svg { color: color-mix(in srgb, var(--fo-accent) 84%, #000); flex-shrink: 0; }
+
+/* ── Areas: a two-column editorial index with hairline leaders ──────────────── */
+.tmpl-folio .fo-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--fo-line); }
+.tmpl-folio .fo-area { display: flex; align-items: baseline; padding: 15px 0; border-bottom: 1px solid var(--fo-line); }
+.tmpl-folio .fo-area-name { font-family: var(--fo-display); font-size: 21px; font-weight: 500; color: var(--fo-ink); flex-shrink: 0; }
+.tmpl-folio .fo-leader { flex: 1; min-width: 16px; margin: 0 12px; border-bottom: 1px dotted var(--fo-line); transform: translateY(-4px); }
+.tmpl-folio .fo-area-note { font-family: var(--fo-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fo-muted); flex-shrink: 0; text-align: end; }
+
+/* ── Reviews: big Bodoni-italic pull-quote cards ────────────────────────────── */
+.tmpl-folio .fo-reviews { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.tmpl-folio .fo-review {
+  position: relative; padding: 34px 30px 28px; border-radius: 3px; background: var(--fo-paper);
+  border: 1px solid var(--fo-line); height: 100%; overflow: hidden;
+}
+.tmpl-folio .fo-quote-mark { position: absolute; top: 2px; inset-inline-end: 22px; font-family: var(--fo-display); font-size: 90px; line-height: 1; color: color-mix(in srgb, var(--fo-accent) 40%, transparent); pointer-events: none; }
+.tmpl-folio .fo-stars { display: inline-flex; gap: 3px; position: relative; }
+.tmpl-folio .fo-review-text {
+  font-family: var(--fo-display); font-size: 21px; line-height: 1.36; font-style: italic; font-weight: 500;
+  color: var(--fo-ink); margin: 18px 0 22px;
+}
+.tmpl-folio .fo-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--fo-line); }
+.tmpl-folio .fo-avatar { width: 44px; height: 44px; border-radius: 2px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--fo-line); }
+.tmpl-folio .fo-review-name { margin: 0; font-family: var(--fo-sans); font-weight: 700; font-size: 14px; color: var(--fo-ink); }
+.tmpl-folio .fo-review-sub { margin: 3px 0 0; font-family: var(--fo-sans); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fo-muted); }
+
+/* ── Gallery: a FULL-BLEED editorial photo strip ────────────────────────────── */
+.tmpl-folio .fo-gallery-section { position: relative; padding: 120px 0; }
+.tmpl-folio .fo-gallery-section .fo-head { margin-bottom: 48px; }
+.tmpl-folio .fo-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
+.tmpl-folio .fo-gallery-cell { overflow: hidden; }
+.tmpl-folio .fo-gallery-cell img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; }
+
+/* ── FAQ: hairline rows, small-caps +/− ─────────────────────────────────────── */
+.tmpl-folio .fo-faq-wrap { max-width: 900px; }
+.tmpl-folio .fo-faq-list { border-top: 1px solid var(--fo-line); }
+.tmpl-folio .fo-faq-item { border-bottom: 1px solid var(--fo-line); }
+.tmpl-folio .fo-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--fo-display); font-weight: 500; font-size: 23px; line-height: 1.22;
+  color: var(--fo-ink); padding: 24px 0; min-height: 44px;
+}
+.tmpl-folio .fo-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--fo-line); color: color-mix(in srgb, var(--fo-accent) 84%, #000); }
+.tmpl-folio .fo-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-folio .fo-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 24px; }
+.tmpl-folio .fo-faq-panel-in { overflow: hidden; }
+.tmpl-folio .fo-faq-panel p { color: var(--fo-muted); font-size: 15.5px; margin: 0; max-width: 66ch; }
+
+/* ── Book: a FULL-BLEED "Subscribe" spread over a dimmed photo ───────────────── */
+.tmpl-folio .fo-book { position: relative; overflow: hidden; padding: 128px 0; background: var(--fo-ink); }
+.tmpl-folio .fo-book-photo { position: absolute; inset: 0; }
+.tmpl-folio .fo-book-photo img { width: 100%; height: 100%; object-fit: cover; }
+.tmpl-folio .fo-book-scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8, 6, 5, 0.74) 0%, rgba(8, 6, 5, 0.82) 100%); }
+.tmpl-folio .fo-book-inner { position: relative; z-index: 2; color: var(--fo-paper); text-shadow: 0 1px 22px rgba(0, 0, 0, 0.34); }
+.tmpl-folio .fo-book-kicker { font-family: var(--fo-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--fo-paper); }
+.tmpl-folio .fo-book-rule { display: block; width: 56px; height: 2px; background: var(--fo-accent); margin: 16px 0 0; }
+.tmpl-folio .fo-book-body { color: color-mix(in srgb, var(--fo-paper) 92%, transparent); font-size: clamp(1.02rem, 1.5vw, 1.2rem); line-height: 1.5; max-width: 52ch; margin: 22px 0 0; }
+.tmpl-folio .fo-book-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+
+/* ── Footer / Contact ───────────────────────────────────────────────────────── */
+.tmpl-folio .fo-footer { position: relative; padding: 84px 0 44px; border-top: 2px solid var(--fo-accent); }
+.tmpl-folio .fo-footer-grid { display: grid; grid-template-columns: 1fr; gap: 44px; }
+.tmpl-folio .fo-contact-info { display: flex; flex-direction: column; gap: 13px; margin-top: 8px; }
+.tmpl-folio .fo-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--fo-ink); text-decoration: none; font-size: 15px; }
+.tmpl-folio .fo-contact-link svg { color: color-mix(in srgb, var(--fo-accent) 84%, #000); flex-shrink: 0; }
+.tmpl-folio .fo-contact-link:hover { color: color-mix(in srgb, var(--fo-accent) 84%, #000); }
+.tmpl-folio .fo-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.tmpl-folio .fo-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 2px; border: 1px solid var(--fo-line); color: var(--fo-ink);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.tmpl-folio .fo-social:hover { color: color-mix(in srgb, var(--fo-accent) 84%, #000); border-color: var(--fo-accent); transform: translateY(-1px); }
+.tmpl-folio .fo-hours { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.tmpl-folio .fo-hours td { padding: 11px 0; font-size: 13px; border-bottom: 1px solid var(--fo-line); color: var(--fo-ink); }
+.tmpl-folio .fo-hours td:last-child { text-align: end; font-family: var(--fo-sans); font-size: 12px; letter-spacing: 0.04em; color: var(--fo-muted); font-variant-numeric: tabular-nums; }
+.tmpl-folio .fo-hours tr.is-closed td { color: var(--fo-muted); }
+.tmpl-folio .fo-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between;
+  margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--fo-line);
+  font-family: var(--fo-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fo-muted);
+}
+.tmpl-folio .fo-footer-mast { font-family: var(--fo-display); font-style: italic; font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--fo-ink); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-folio .fo-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-folio .fo-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-folio .fo-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-folio .fo-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-folio .fo-areas { grid-template-columns: repeat(2, 1fr); column-gap: 56px; }
+  .tmpl-folio .fo-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-folio .fo-about { grid-template-columns: 0.9fr 1.1fr; gap: 64px; }
+  .tmpl-folio .fo-footer-grid { grid-template-columns: 1.5fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-folio .fo-nav-links { display: flex; }
+  .tmpl-folio .fo-menu { display: none; }
+  .tmpl-folio .fo-runhead { display: flex; }
+  .tmpl-folio .fo-gallery { grid-template-columns: repeat(4, 1fr); }
+}
+/* Wide desktop — lean into the width: bigger gutters + generous section rhythm. */
+@media (min-width: 1280px) {
+  .tmpl-folio .fo-wrap { padding: 0 56px; }
+  .tmpl-folio .fo-nav-row { padding: 14px 56px; }
+  .tmpl-folio .fo-nav-mobile { padding-inline: 56px; }
+  .tmpl-folio .fo-hero-inner { padding: 0 56px 72px; }
+  .tmpl-folio .fo-section, .tmpl-folio .fo-gallery-section { padding: 140px 0; }
+  .tmpl-folio .fo-about { grid-template-columns: 0.82fr 1.18fr; gap: 88px; }
+}
+@media (max-width: 520px) {
+  .tmpl-folio .fo-wrap { padding: 0 22px; }
+  .tmpl-folio .fo-nav-row { padding: 12px 22px; }
+  .tmpl-folio .fo-nav-mobile { padding-inline: 22px; }
+  .tmpl-folio .fo-nav-end .fo-btn-sm:not(.fo-btn-primary) { display: none; }
+  .tmpl-folio .fo-hero-inner { padding: 0 22px 44px; }
+  .tmpl-folio .fo-section, .tmpl-folio .fo-gallery-section { padding: 80px 0; }
+  .tmpl-folio .fo-stats { padding: 48px 0; }
+  .tmpl-folio .fo-book { padding: 88px 0; }
+  .tmpl-folio .fo-instructor-photo { width: 104px; height: 104px; }
+  .tmpl-folio .fo-quote-mark { font-size: 68px; }
+  .tmpl-folio .fo-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-folio .fo-btn,
+  .tmpl-folio .fo-btn-sm,
+  .tmpl-folio .fo-social,
+  .tmpl-folio .fo-nav-link,
+  .tmpl-folio .fo-nav-mobile button,
+  .tmpl-folio .fo-nav-mobile-link { min-height: 44px; }
+  .tmpl-folio .fo-social { min-width: 44px; }
+}
+/* Reduced motion: the hero parallax + clip-wipes are already disabled in JS;
+   here we also freeze hover lifts and the FAQ panel transition. */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-folio .fo-btn:hover, .tmpl-folio .fo-social:hover { transform: none; }
+  .tmpl-folio .fo-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the floated drop cap needs flipping (everything else uses logical
+   properties, and CSS grid mirrors column order with `dir`). ────────────────── */
+.tmpl-folio[dir='rtl'] .fo-dropcap::first-letter { float: right; }
+
+/* Instructor reply to a review (GLOBAL — matches aurora.css) */
+.fo-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.fo-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }
