@@ -163,7 +163,15 @@
   position: sticky;
   top: 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--bz-case) 92%, transparent);
+  /* Brushed-metal sheen: a static, low-opacity diagonal hairline weave — never
+     animated/blurred (see the CLAUDE.md scroll-perf rule), so it's compositor-free
+     and costs nothing on scroll. */
+  background-image: repeating-linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--bz-metal) 9%, transparent) 0px,
+    transparent 1.5px 7px
+  );
+  background-color: color-mix(in srgb, var(--bz-case) 92%, transparent);
   backdrop-filter: blur(12px) saturate(1.1);
   -webkit-backdrop-filter: blur(12px) saturate(1.1);
   border-bottom: 1px solid var(--bz-line);
@@ -205,7 +213,26 @@
     inset 0 0 0 1px color-mix(in srgb, var(--bz-metal) 30%, transparent),
     0 1px 0 rgba(0, 0, 0, 0.6);
 }
-.tmpl-bezel .bz-nav-links { display: none; gap: 4px; }
+.tmpl-bezel .bz-nav-links { display: none; align-items: center; gap: 4px; }
+/* Each link is paired with an engraved position index (01, 02…), like the numbered
+   indices printed around an instrument dial. The index is a DOM sibling AFTER the
+   button (never nested inside the editable label) and `order: -1` puts it first
+   visually, so a `:hover`/`.is-active` sibling selector can illuminate it. */
+.tmpl-bezel .bz-nav-item { position: relative; display: inline-flex; align-items: center; }
+.tmpl-bezel .bz-nav-index {
+  order: -1;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--bz-metal);
+  opacity: 0.5;
+  min-width: 16px;
+  text-align: end;
+  padding-inline-end: 2px;
+  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1), opacity 160ms cubic-bezier(0.2, 0, 0.2, 1), text-shadow 160ms ease;
+  pointer-events: none;
+}
 .tmpl-bezel .bz-nav-link {
   position: relative;
   background: none;
@@ -217,14 +244,14 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--bz-metal);
-  padding: 10px 12px;
+  padding: 10px 12px 10px 4px;
   transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1);
 }
 /* Shared hover/active indicator — a milled 2px bar that wipes in from the centre. */
 .tmpl-bezel .bz-nav-link::after {
   content: '';
   position: absolute;
-  inset-inline: 12px;
+  inset-inline: 4px;
   bottom: 4px;
   height: 2px;
   background: var(--bz-signal);
@@ -234,9 +261,16 @@
 }
 .tmpl-bezel .bz-nav-link:hover { color: var(--bz-ink); }
 .tmpl-bezel .bz-nav-link:hover::after { transform: scaleX(1); background: var(--bz-metal); }
-/* Active is signalled by colour AND the 2px signal bar — never colour alone. */
+.tmpl-bezel .bz-nav-link:hover + .bz-nav-index { color: var(--bz-ink); opacity: 0.85; }
+/* Active = ENGRAVED + ILLUMINATED: colour, the filled signal bar, AND the index
+   glows like a lit dial index — never colour alone. */
 .tmpl-bezel .bz-nav-link.is-active { color: var(--bz-signal); font-weight: 600; }
 .tmpl-bezel .bz-nav-link.is-active::after { transform: scaleX(1); background: var(--bz-signal); }
+.tmpl-bezel .bz-nav-link.is-active + .bz-nav-index {
+  color: var(--bz-signal);
+  opacity: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--bz-signal) 70%, transparent);
+}
 .tmpl-bezel .bz-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-bezel .bz-menu {
   display: inline-flex;

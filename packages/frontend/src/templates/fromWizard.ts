@@ -2,6 +2,7 @@ import type { TemplateData, Dir, Locale, Hour, Package, StatItem, Faq, Area, Rev
 import { sampleData } from './sampleData';
 import { EXPERIENCE_LEVELS, type PlanInput, type Transmission, type WizardConfig } from '../lib/wizard';
 import { applyOverrides, type Customization } from './customize/overrides';
+import { pruneForeignLocaleLabels } from './i18nDefaults';
 import { dataDefaults, defaultFaqs, fmt, strings, weekdayName, type TemplateStrings } from './strings';
 
 const WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
@@ -252,7 +253,10 @@ function buildTemplateData(c: CoreInput): TemplateData {
   // plans — that's what made a site show 3 duplicate cards while the wizard had 1
   // plan (a clone in Customize, then the plans were edited down). A same-length
   // override (legit inline text tweaks) is kept; style/theme overrides are always kept.
-  return applyOverrides(base, reconcilePackageOverride(c.customization, base.packages.length));
+  // Heal any stale Customize override that froze a localized default (e.g. an
+  // Arabic "Book now") so the site's chosen language always wins; then drop a
+  // stale packages snapshot; then apply the rest.
+  return applyOverrides(base, pruneForeignLocaleLabels(reconcilePackageOverride(c.customization, base.packages.length), c.locale));
 }
 
 /** Drop a Customize package-content override (`fields['packages']` / `fields['packages.N…']`)

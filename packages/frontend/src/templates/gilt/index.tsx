@@ -51,10 +51,10 @@ function GtRule({ className }: { className?: string }) {
  * A small foil monogram seal — a circular gold disc embossing the business
  * initial, pressed onto the hero and the Book invitation. Decorative (aria-hidden).
  */
-function GtSeal({ data, size = 78 }: { data: TemplateData; size?: number }) {
+function GtSeal({ data, size = 78, className }: { data: TemplateData; size?: number; className?: string }) {
   const initial = (data.business.logoText || data.business.name || 'M').trim().charAt(0).toUpperCase();
   return (
-    <span className="gt-seal" aria-hidden="true" style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}>
+    <span className={cx('gt-seal', className)} aria-hidden="true" style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}>
       <span className="gt-seal-initial">{initial}</span>
     </span>
   );
@@ -93,6 +93,10 @@ function GtNav({ data, active }: { data: TemplateData; active: string }) {
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={30} bg="var(--gt-gold)" fg="var(--gt-charcoal)" radius={6} />
           </span>
           <span className="gt-logo-word gt-foil" data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
+          {/* SIGNATURE — a tiny wax/monogram seal beside the wordmark, echoing the
+              hero + Book seal. Purely decorative (aria-hidden), a sibling of the
+              editable business-name span, never nested inside it. */}
+          <GtSeal data={data} size={20} className="gt-logo-seal" />
         </button>
         <div className="gt-nav-links">
           {links.map(({ id, label }) => (

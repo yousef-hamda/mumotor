@@ -81,22 +81,39 @@ classes never needed renaming.
   (motorsport telemetry, car laps a circuit via CSS motion-path), `press` (letterpress deboss + wax seal), `reel` (35mm
   cinema, scroll-scrubbed filmstrip), `slate` (chalkboard, chalk diagrams draw themselves), `primary` (Bauhaus geometry),
   `gallery` (museum, spotlight-follow), `gilt` (foil-stamped luxury), `sumi` (sumi-e ink wash, brushed enso + hanko seal),
-  `console` (product OS — ⌘K command palette that types itself, live dashboard widgets), `transit` (metro wayfinding — a
-  coloured "licence line" with roundel stops + a service marker that travels it on scroll), `ledger` (fintech statement —
-  count-up figures + self-drawing sparkline) — plus the 2 kept originals `grid-ink` `open-road`. **Deleted:** aurora, prism,
-  frosted, night-shift, full-throttle, prestige, bento, daylight, vantage, and (round 6) **easy-lane, folio, obsidian**
-  (→ replaced by console/transit/ledger); `templates/webgl/` (ShaderBackground) was removed (no template uses WebGL now). All templates are
+  `atelier` (bespoke tailor — ivory paper + thread-red, a measuring-tape rail + a seam that sews itself), `nocturne`
+  (celestial navigation — midnight indigo + gold constellation "stars" that light and connect via a drawn course line +
+  starfield), `deco` (1920s golden-age motoring — champagne ivory + emerald + gold Art-Deco, sunburst fans + a sticky
+  elevator floor-dial that ticks by section) — plus the 2 kept originals `grid-ink` `open-road`. **Deleted:** aurora, prism,
+  frosted, night-shift, full-throttle, prestige, bento, daylight, vantage, easy-lane, folio, obsidian, and (round 7)
+  **console, transit, ledger** (→ replaced by atelier/nocturne/deco); `templates/webgl/` was removed (no template uses WebGL now). All templates are
   **full-width desktop** (1440 wrap + full-bleed nav/bands) and default to the owner's real driving-lesson + instructor
   photos (`/img/default-*.jpg` via `sampleData.IMG`). All driven off the `TEMPLATES` registry — but adding/removing one
   means touching ~10 slug-keyed maps in lockstep (registry, COLOR_SLOTS, templateTheme×5, backend TEMPLATE_THEME,
   i18n×3, TemplateConcept, overrides.test, e2e, prerender); several fall back SILENTLY so grep the slug to verify.
+  (`templates/i18nDefaults.ts` auto-discovers templates via `import.meta.glob` — no per-template entry needed there.)
   **ANIMATION GOTCHAS (bit us repeatedly):** framer `whileInView` intermittently sticks hidden for above-fold elements
   → use the shared `Reveal`/ref-`useInView`; `EnterTilt` pre-settles for a top-of-page hero → wrap hero media in the
   shared **`EnterMount`** (`templates/shared.tsx`, framer mount `initial→animate`; do NOT try to fix EnterTilt globally —
   its scroll math treats a tall 2-col hero as below-fold and it stays hidden); headings must set an explicit
   `color: var(--xx-ink)` or a global `h1` rule wins (dark-on-dark). Every template's nav is a generous (~70px) full-bleed
-  bar with an on-theme signature + a colour+shape active marker (not colour alone). `transit` reserves its left gutter
-  (`.tr-wrap padding-inline` ≥1280) for its fixed line-diagram rail — the service marker travels it via scroll.
+  bar with a STRUCTURALLY distinct on-theme device (glass pill / legend ticks / milled indices / flip-tiles / kinetic
+  ink-bar / pit-wall / letterpress masthead / filmstrip / chalk-ledge / Bauhaus glyphs / wall-labels / wax-seal /
+  brush-stroke / running-index / enamel-badges / stitched-tape / star-chart / Deco-marquee) + a colour+shape active marker.
+  **FRAME-ESCAPE (bit us):** a `position:fixed` signature element escapes the builder/Customize in-page `overflow-y-auto`
+  preview and floats over the app UI. NEVER viewport-`fixed` a visible signature — use `position:sticky` or `position:absolute`
+  inside the relative `.tmpl-*` root + a scroll-written CSS var (per `EnterTilt`'s nearest-scroller detection). Also: a root
+  with `overflow-x:hidden` silently computes `overflow-y:auto` → a scroll container that hijacks `position:sticky` for ALL
+  descendants (breaks sticky navs too) — use `overflow-x:clip` instead.
+- **Template i18n — language must follow the SITE (root cause bug fixed July 18):** the "Arabic button on an English site"
+  was a DATA ARTIFACT, not template code — `commitEditing` (`components/customize/CustomizeMode.tsx`) persisted a text
+  field's current rendered value whenever it was merely FOCUSED, freezing a localized default (e.g. `احجز الآن`) into
+  `customization.fields['labels.bookCta']`, which stuck after a language switch. Fixed: (1) skip no-op commits (compare to
+  the field's original text captured on edit-start); (2) `templates/i18nDefaults.ts` `pruneForeignLocaleLabels(cz, locale)`
+  (called in `fromWizard.buildTemplateData`) drops any `labels.*`/`copy.*` override that is a default in a DIFFERENT locale
+  than the site (keeps genuine custom text + same-language defaults). Every template's visible string MUST be `s.key` /
+  `data.copy?.key ?? s.key` / a `data.*` field (localized by `fromWizard`) — NO raw literals; each `strings.ts` spreads
+  `...T.en`/`...T.he`/`...T.ar` per its own locale; nav/hero CTA = `data.labels?.bookCta ?? s.bookNow`.
   **mumotor accent picker**: its card shows bottom-right colour dots (`MumotorAccentDots` in `TemplateConcept.tsx`) that
   set `customization.theme['--mm-accent']` — recolouring only the one restrained accent (CTA/links/active/popular/orbs).
   Builder `BrowseCard` persists it to config (flows to live preview + publish via `wizardToTemplateData`→`applyOverrides`);

@@ -92,6 +92,12 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
     ({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0,
   );
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
+  // Running-header index: a live "NN / total" page-position counter, Swiss-
+  // magazine style — tracks the section actually in view (all of SECTION_IDS,
+  // not just the clickable nav links), so it reads as a real running index
+  // rather than a duplicate of the numbered links.
+  const allSectionIds: string[] = Object.values(SECTION_IDS);
+  const activeIdx = Math.max(0, allSectionIds.indexOf(activeSection));
   return (
     <nav className="gi-nav" role="navigation" aria-label={s.ariaMainNav}>
       <div className="gi-nav-inner">
@@ -113,6 +119,12 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
               <span className="gi-nav-label">{label}</span>
             </button>
           ))}
+        </div>
+        <div className="gi-nav-index" aria-hidden="true">
+          <span className="gi-nav-index-tick" />
+          <span className="gi-nav-index-n">{String(activeIdx + 1).padStart(2, '0')}</span>
+          <span className="gi-nav-index-sep">/</span>
+          <span className="gi-nav-index-total">{String(allSectionIds.length).padStart(2, '0')}</span>
         </div>
         <div className="gi-nav-end">
           {data.accountUrl && (

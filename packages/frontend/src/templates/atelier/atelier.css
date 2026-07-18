@@ -1,0 +1,484 @@
+/* Atelier — the bespoke tailor's studio. A driving course cut to fit you:
+   measured, fitted, made to order. Warm ivory/ecru paper, charcoal ink, ONE
+   thread-red accent. Fraunces (couture serif — headings, drop caps, prices) +
+   Hanken Grotesk (clean grotesque — body, small-caps tailor labels). All
+   selectors scoped to .tmpl-atelier.
+
+   5 user-recolourable vars (COLOR_SLOTS):
+     --at-paper  warm ivory/ecru — page background
+     --at-ink    charcoal — text
+     --at-accent thread red — the ONE accent (CTAs / links / active / stitch)
+     --at-band   a deeper ecru — alternating section bands
+     --at-tape   brass/kraft — the measuring-tape rail, pins, secondary labels
+   Internal (not recolourable): --at-muted, --at-line.
+
+   CONTRAST (verified, sRGB WCAG relative-luminance formula):
+     ink #241F1B on paper #F6F1E6   ≈ 14.5:1  ✓✓  (also ≈13.2:1 on --at-band)
+     accent #A83F35 on paper       ≈  5.4:1  ✓   (also ≈4.9:1 on --at-band)
+     paper text on accent bg       ≈  5.4:1  ✓   (buttons)
+     tape #7C5C34 on paper         ≈  5.4:1  ✓   (also ≈4.9:1 on --at-band —
+       used for small tick labels + secondary meta, so it was pushed a shade
+       darker than a "true" brass to clear 4.5:1 on both surfaces)
+   No colour pair used for text renders below 4.5:1. */
+
+.tmpl-atelier {
+  /* User-recolourable (COLOR_SLOTS) */
+  --at-paper: #F6F1E6;
+  --at-ink: #241F1B;
+  --at-accent: #A83F35;
+  --at-band: #EFE6D3;
+  --at-tape: #7C5C34;
+  /* Internal — NOT user-recolourable */
+  --at-muted: #6B6156;
+  --at-line: rgba(36, 31, 27, 0.14);
+  --at-progress: 0;
+
+  --at-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --at-sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background-color: var(--at-paper);
+  /* Faint, STATIC woven-paper texture (no animation). */
+  background-image:
+    radial-gradient(rgba(36, 31, 27, 0.02) 0.5px, transparent 0.6px),
+    radial-gradient(rgba(36, 31, 27, 0.014) 0.5px, transparent 0.6px);
+  background-size: 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 2px;
+  color: var(--at-ink);
+  font-family: var(--at-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-atelier *, .tmpl-atelier *::before, .tmpl-atelier *::after { box-sizing: border-box; }
+.tmpl-atelier img { display: block; max-width: 100%; }
+.tmpl-atelier :focus-visible { outline: 2px solid var(--at-accent); outline-offset: 3px; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.tmpl-atelier .at-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-atelier .at-section { position: relative; padding: 116px 0; }
+.tmpl-atelier .at-band { background: var(--at-band); }
+.tmpl-atelier .at-head { margin-bottom: 52px; max-width: 760px; }
+
+/* ── Type ───────────────────────────────────────────────────────────────────── */
+.tmpl-atelier .at-h1 {
+  font-family: var(--at-serif); font-weight: 400; font-style: normal;
+  font-size: clamp(2.9rem, 6.2vw, 4.9rem); line-height: 1.03; letter-spacing: -0.01em;
+  margin: 16px 0 0; max-width: 15ch; color: var(--at-ink);
+}
+.tmpl-atelier .at-h2 {
+  font-family: var(--at-serif); font-weight: 400;
+  font-size: clamp(2.1rem, 4.2vw, 3.1rem); line-height: 1.08; letter-spacing: -0.008em;
+  margin: 14px 0 0; max-width: 20ch; color: var(--at-ink);
+}
+.tmpl-atelier .at-h2-tight { max-width: 15ch; }
+.tmpl-atelier .at-h1, .tmpl-atelier .at-h2 { overflow-wrap: break-word; }
+
+.tmpl-atelier .at-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--at-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--at-accent);
+  margin: 0 0 12px;
+}
+.tmpl-atelier .at-chalk { color: var(--at-accent); flex-shrink: 0; }
+.tmpl-atelier .at-chalk path { stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; fill: none; }
+.tmpl-atelier .at-lead { color: var(--at-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 56ch; margin: 16px 0 0; }
+.tmpl-atelier .at-body { color: var(--at-muted); font-size: 16px; line-height: 1.7; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── Buttons: soft-cut label tags, thread-red primary ──────────────────────── */
+.tmpl-atelier .at-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 3px; cursor: pointer;
+  font-family: var(--at-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.13em; text-transform: uppercase; text-decoration: none;
+  padding: 13px 22px; min-height: 44px; border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.tmpl-atelier .at-btn-sm { padding: 9px 15px; min-height: 36px; font-size: 11px; letter-spacing: 0.11em; }
+.tmpl-atelier .at-btn-block { width: 100%; margin-top: auto; }
+.tmpl-atelier .at-btn-primary {
+  color: var(--at-paper); background: var(--at-accent);
+  border-color: color-mix(in srgb, var(--at-accent) 72%, #000);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--at-paper) 20%, transparent), 0 8px 18px -12px color-mix(in srgb, var(--at-accent) 60%, transparent);
+}
+.tmpl-atelier .at-btn-primary:hover { background: color-mix(in srgb, var(--at-accent) 88%, #000); }
+.tmpl-atelier .at-btn-primary:active { transform: translateY(1px); }
+.tmpl-atelier .at-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-atelier .at-btn-primary:disabled:active { transform: none; }
+.tmpl-atelier .at-btn-ghost {
+  color: var(--at-ink); background: var(--at-paper);
+  border-color: color-mix(in srgb, var(--at-ink) 42%, transparent);
+}
+.tmpl-atelier .at-btn-ghost:hover { border-color: var(--at-ink); background: color-mix(in srgb, var(--at-ink) 5%, var(--at-paper)); }
+.tmpl-atelier .at-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: a stitched fabric tape running the width of the page. A dashed-seam
+   rule top+bottom (drawn as a repeating gradient, so it reads as thread, not a
+   generic dashed border), a spool mark pinned at the logo, active links get a
+   chalk-cross mark ALONGSIDE the colour change (never colour alone). ────────── */
+.tmpl-atelier .at-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--at-paper) 93%, transparent);
+  backdrop-filter: blur(11px); -webkit-backdrop-filter: blur(11px);
+}
+.tmpl-atelier .at-nav-tape {
+  height: 3px; width: 100%;
+  background-image: repeating-linear-gradient(90deg, var(--at-tape) 0 10px, transparent 10px 18px);
+  opacity: 0.85;
+}
+.tmpl-atelier .at-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px; min-height: 70px;
+  border-bottom: 1px solid var(--at-line);
+}
+.tmpl-atelier .at-logo { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--at-ink); }
+.tmpl-atelier .at-logo-mark { position: relative; display: inline-flex; }
+.tmpl-atelier .at-logo-spool {
+  position: absolute; inset-inline-end: -5px; bottom: -5px;
+  color: var(--at-accent); background: var(--at-paper); border-radius: 50%; padding: 1px;
+}
+.tmpl-atelier .at-logo-word { font-family: var(--at-serif); font-size: 22px; font-weight: 500; letter-spacing: 0.01em; color: var(--at-ink); }
+.tmpl-atelier .at-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-atelier .at-nav-link {
+  position: relative; display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--at-sans); font-size: 15px; font-weight: 500;
+  letter-spacing: 0.02em; color: color-mix(in srgb, var(--at-ink) 74%, var(--at-paper));
+  padding: 10px 14px; border-radius: 999px; transition: color 0.18s ease, background 0.18s ease;
+}
+.tmpl-atelier .at-nav-link:hover { color: var(--at-ink); background: color-mix(in srgb, var(--at-tape) 10%, transparent); }
+.tmpl-atelier .at-nav-link.is-active { color: var(--at-accent); font-weight: 700; background: color-mix(in srgb, var(--at-accent) 9%, transparent); }
+.tmpl-atelier .at-nav-mark { width: 11px; height: 11px; }
+.tmpl-atelier .at-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-atelier .at-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--at-ink); }
+.tmpl-atelier .at-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--at-paper); border-bottom: 1px solid var(--at-line); }
+.tmpl-atelier .at-nav-mobile button, .tmpl-atelier .at-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--at-sans); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.04em; color: var(--at-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--at-line);
+}
+
+/* ── The frame: three static grid tracks — rail | content | seam. Base is a
+   single column (no overflow risk at any width); the rail/seam tracks are
+   ADDED only at wide desktop via a media query below. Neither track is
+   position:fixed — they are ordinary in-flow grid items that stretch to the
+   content row's height, so they scroll WITH the page and can never escape the
+   builder's scroll container. Only the small moving marks inside them
+   (the tape dot, the needle, the active-tick highlight) use
+   position:absolute against a position:relative ancestor. ─────────────────── */
+.tmpl-atelier .at-frame { display: grid; grid-template-columns: 1fr; align-items: stretch; }
+.tmpl-atelier .at-rail-col, .tmpl-atelier .at-seam-col { display: none; }
+.tmpl-atelier .at-content { min-width: 0; }
+
+/* ── Measuring-tape rail (SIGNATURE 1) ─────────────────────────────────────── */
+.tmpl-atelier .at-rail-col { position: relative; }
+.tmpl-atelier .at-tape-line {
+  position: absolute; inset-inline-start: 20px; top: 0; bottom: 0; width: 1px;
+  background-image: repeating-linear-gradient(var(--at-tape) 0 1px, transparent 1px 9%);
+  opacity: 0.55;
+}
+.tmpl-atelier .at-tape-tick {
+  position: absolute; inset-inline-start: 8px; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.tmpl-atelier .at-tape-num {
+  font-family: var(--at-sans); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--at-tape); width: 25px; text-align: end; flex-shrink: 0;
+}
+.tmpl-atelier .at-tape-label {
+  display: none; font-family: var(--at-sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--at-muted);
+}
+.tmpl-atelier .at-tape-tick.is-active .at-tape-num { color: var(--at-accent); }
+.tmpl-atelier .at-tape-tick.is-active .at-tape-label { color: var(--at-accent); }
+.tmpl-atelier .at-tape-tick.is-active::before {
+  content: ''; position: absolute; inset-inline-start: -8px; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--at-accent); top: 50%; transform: translateY(-50%);
+}
+.tmpl-atelier .at-tape-dot {
+  position: absolute; inset-inline-start: 20px; top: calc(var(--at-progress, 0) * 100%);
+  width: 9px; height: 9px; margin-inline-start: -4px; margin-top: -4px;
+  border-radius: 50%; background: var(--at-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--at-accent) 20%, transparent);
+  transition: top 60ms linear;
+}
+
+/* ── Stitch seam that sews itself (SIGNATURE 2) ────────────────────────────── */
+.tmpl-atelier .at-seam-col { position: relative; }
+.tmpl-atelier .at-seam-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tmpl-atelier .at-seam-path { stroke-dashoffset: calc(1 - var(--at-progress, 0)); }
+.tmpl-atelier .at-seam-needle {
+  position: absolute; inset-inline-start: 50%; top: calc(var(--at-progress, 0) * 100%);
+  transform: translate(-50%, -60%) rotate(45deg); color: var(--at-accent);
+  transition: top 60ms linear;
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────────── */
+.tmpl-atelier .at-hero { padding-top: clamp(56px, 8vw, 96px); }
+.tmpl-atelier .at-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-atelier .at-motto-row { display: flex; align-items: center; gap: 14px; margin: 24px 0 4px; }
+.tmpl-atelier .at-spool-badge {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 50%; border: 1px solid var(--at-tape); color: var(--at-tape); flex-shrink: 0;
+  background: var(--at-paper);
+}
+.tmpl-atelier .at-motto { font-family: var(--at-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--at-muted); max-width: 22ch; }
+.tmpl-atelier .at-hero-sub { color: var(--at-muted); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 44ch; margin: 20px 0 0; }
+.tmpl-atelier .at-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0 0; }
+
+.tmpl-atelier .at-figure { margin: 0; }
+.tmpl-atelier .at-plate {
+  position: relative; background: var(--at-paper);
+  border: 1px solid color-mix(in srgb, var(--at-tape) 55%, transparent); padding: 10px; border-radius: 3px;
+  box-shadow: 0 20px 36px -24px rgba(36, 31, 27, 0.35);
+}
+.tmpl-atelier .at-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 1px; }
+.tmpl-atelier .at-plate-tilt { transform: rotate(-1deg); }
+.tmpl-atelier .at-caption {
+  font-family: var(--at-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--at-muted); margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--at-line);
+}
+
+/* ── Stats — "measurements" laid over a tape hairline ─────────────────────── */
+.tmpl-atelier .at-stats { position: relative; padding: 56px 0; border-top: 1px solid var(--at-line); border-bottom: 1px solid var(--at-line); background: var(--at-band); }
+.tmpl-atelier .at-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-atelier .at-stat { text-align: start; }
+.tmpl-atelier .at-stat-num {
+  display: block; font-family: var(--at-serif); font-weight: 400;
+  font-size: clamp(2.5rem, 5vw, 3.5rem); line-height: 1; letter-spacing: -0.01em;
+  color: var(--at-ink); padding-bottom: 12px;
+  background-image: repeating-linear-gradient(90deg, var(--at-tape) 0 6px, transparent 6px 11px);
+  background-position: bottom; background-repeat: repeat-x; background-size: 100% 2px;
+}
+.tmpl-atelier .at-stat-label { display: block; margin-top: 12px; font-family: var(--at-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--at-muted); }
+
+/* ── Why (the philosophy) ──────────────────────────────────────────────────── */
+.tmpl-atelier .at-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; }
+.tmpl-atelier .at-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px dashed var(--at-tape); background: var(--at-paper); color: var(--at-accent);
+}
+.tmpl-atelier .at-why-title { font-family: var(--at-serif); font-weight: 500; font-size: 23px; line-height: 1.2; margin: 18px 0 0; color: var(--at-ink); }
+.tmpl-atelier .at-why-body { color: var(--at-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: fabric swatch cards with a pinked (zigzag) edge under the
+   colour strip and a swing-tag on the popular cut ───────────────────────────── */
+.tmpl-atelier .at-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.tmpl-atelier .at-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  border-radius: 6px; background: var(--at-paper);
+  border: 1px solid color-mix(in srgb, var(--at-tape) 45%, transparent);
+  box-shadow: 0 14px 26px -22px rgba(36, 31, 27, 0.4);
+  overflow: hidden;
+}
+.tmpl-atelier .at-pkg.is-popular { border-color: var(--at-accent); box-shadow: 0 16px 30px -20px color-mix(in srgb, var(--at-accent) 45%, transparent); }
+.tmpl-atelier .at-pkg-swatch {
+  height: 54px;
+  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--at-tape) 32%, var(--at-band)) 0 10px, color-mix(in srgb, var(--at-tape) 18%, var(--at-band)) 10px 20px);
+}
+.tmpl-atelier .at-pkg.is-popular .at-pkg-swatch {
+  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--at-accent) 38%, var(--at-band)) 0 10px, color-mix(in srgb, var(--at-accent) 22%, var(--at-band)) 10px 20px);
+}
+.tmpl-atelier .at-pinked { display: block; width: 100%; height: 7px; margin-top: -1px; }
+.tmpl-atelier .at-pkg-body { padding: 22px 26px 28px; display: flex; flex-direction: column; flex: 1; }
+.tmpl-atelier .at-pkg-tag { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.tmpl-atelier .at-swingtag {
+  position: relative; display: inline-block; width: 34px; height: 20px;
+  background: var(--at-accent);
+  clip-path: polygon(22% 0%, 100% 0%, 100% 100%, 22% 100%, 0% 50%);
+}
+.tmpl-atelier .at-swingtag-hole { position: absolute; top: 50%; inset-inline-start: 24%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: var(--at-paper); }
+.tmpl-atelier .at-pkg-badge { font-family: var(--at-sans); font-size: 10px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--at-accent); }
+.tmpl-atelier .at-pkg-name { margin: 0; font-family: var(--at-sans); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--at-muted); }
+.tmpl-atelier .at-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-atelier .at-pkg-amount { font-family: var(--at-serif); font-weight: 400; font-size: 46px; line-height: 1; letter-spacing: -0.01em; color: var(--at-ink); }
+.tmpl-atelier .at-pkg-unit { font-family: var(--at-sans); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--at-muted); }
+.tmpl-atelier .at-pkg-features { list-style: none; margin: 22px 0 26px; padding: 20px 0 0; border-top: 1px dashed var(--at-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-atelier .at-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--at-ink); }
+.tmpl-atelier .at-check { color: var(--at-accent); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About: drop cap opens the first paragraph, threaded like a hem ────────── */
+.tmpl-atelier .at-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-atelier .at-about-img { aspect-ratio: 4 / 5; }
+.tmpl-atelier .at-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--at-line); }
+.tmpl-atelier .at-instructor-photo { width: 132px; height: 132px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--at-tape); }
+.tmpl-atelier .at-instructor-id { min-width: 0; }
+.tmpl-atelier .at-instructor-name { margin: 0; font-family: var(--at-serif); font-weight: 500; font-size: 21px; line-height: 1.2; color: var(--at-ink); }
+.tmpl-atelier .at-instructor-title { margin: 4px 0 0; font-family: var(--at-sans); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--at-muted); }
+.tmpl-atelier .at-dropcap::first-letter {
+  float: left; font-family: var(--at-serif); font-weight: 500; font-style: italic;
+  font-size: 3.3em; line-height: 0.78; margin-inline-end: 0.07em; padding-top: 0.02em;
+  color: var(--at-accent);
+}
+.tmpl-atelier .at-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-atelier .at-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--at-ink); }
+.tmpl-atelier .at-checklist .at-check { margin-top: 3px; }
+.tmpl-atelier .at-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-atelier .at-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  border: 1px dashed var(--at-tape); font-family: var(--at-sans); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--at-ink);
+}
+.tmpl-atelier .at-cred svg { color: var(--at-accent); flex-shrink: 0; }
+
+/* ── Areas: a ruled order-book index with dotted thread leaders ────────────── */
+.tmpl-atelier .at-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--at-line); }
+.tmpl-atelier .at-area { display: flex; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--at-line); }
+.tmpl-atelier .at-area-name { font-family: var(--at-sans); font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--at-ink); flex-shrink: 0; }
+.tmpl-atelier .at-leader { flex: 1; min-width: 16px; margin: 0 10px; border-bottom: 1px dotted var(--at-tape); transform: translateY(-3px); }
+.tmpl-atelier .at-area-note { font-family: var(--at-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em; color: var(--at-muted); flex-shrink: 0; text-align: end; }
+
+/* ── Reviews: pinned fitting-room notes ─────────────────────────────────────── */
+.tmpl-atelier .at-reviews { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-atelier .at-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 5px; background: var(--at-paper);
+  border: 1px solid color-mix(in srgb, var(--at-tape) 40%, transparent); height: 100%; overflow: hidden;
+  box-shadow: 0 12px 24px -22px rgba(36, 31, 27, 0.3);
+}
+.tmpl-atelier .at-review::before {
+  content: ''; position: absolute; top: 10px; inset-inline-end: 18px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--at-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--at-accent) 25%, transparent);
+}
+.tmpl-atelier .at-stars { display: inline-flex; gap: 2px; }
+.tmpl-atelier .at-review-text {
+  font-family: var(--at-serif); font-size: 19px; line-height: 1.5; font-style: italic;
+  color: var(--at-ink); margin: 16px 0 20px; padding-top: 16px; border-top: 1px dashed var(--at-line);
+}
+.tmpl-atelier .at-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--at-line); }
+.tmpl-atelier .at-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--at-tape); }
+.tmpl-atelier .at-review-name { margin: 0; font-family: var(--at-sans); font-weight: 700; font-size: 14px; color: var(--at-ink); }
+.tmpl-atelier .at-review-sub { margin: 2px 0 0; font-family: var(--at-sans); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--at-muted); }
+
+/* ── Gallery: pinned workroom plates ────────────────────────────────────────── */
+.tmpl-atelier .at-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tmpl-atelier .at-gallery-cell { background: var(--at-paper); border: 1px solid color-mix(in srgb, var(--at-tape) 45%, transparent); padding: 6px; border-radius: 3px; box-shadow: 0 12px 22px -20px rgba(36, 31, 27, 0.35); }
+.tmpl-atelier .at-gallery-cell img { width: 100%; height: 220px; object-fit: cover; border-radius: 1px; }
+
+/* ── FAQ: ruled "alterations" rows ──────────────────────────────────────────── */
+.tmpl-atelier .at-faq-wrap { max-width: 780px; }
+.tmpl-atelier .at-faq-list { border-top: 1px solid var(--at-line); }
+.tmpl-atelier .at-faq-item { border-bottom: 1px solid var(--at-line); }
+.tmpl-atelier .at-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--at-serif); font-weight: 500; font-size: 20px; line-height: 1.25;
+  color: var(--at-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-atelier .at-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px dashed var(--at-tape); color: var(--at-accent); }
+.tmpl-atelier .at-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-atelier .at-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-atelier .at-faq-panel-in { overflow: hidden; }
+.tmpl-atelier .at-faq-panel p { color: var(--at-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: the fitting invitation panel ─────────────────────────────────────── */
+.tmpl-atelier .at-book {
+  max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 58px 40px; border-radius: 8px; background: var(--at-paper);
+  border: 1px solid color-mix(in srgb, var(--at-tape) 50%, transparent);
+  box-shadow: 0 20px 40px -28px rgba(36, 31, 27, 0.4);
+}
+.tmpl-atelier .at-book .at-eyebrow { justify-content: center; }
+.tmpl-atelier .at-book .at-h2 { max-width: none; }
+.tmpl-atelier .at-book .at-lead { margin-inline: auto; }
+.tmpl-atelier .at-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
+.tmpl-atelier .at-book-needle { display: inline-flex; margin: 0 auto 18px; color: var(--at-accent); }
+
+/* ── Footer / Contact ─────────────────────────────────────────────────────── */
+.tmpl-atelier .at-footer { position: relative; padding: 80px 0 40px; border-top: 1px solid var(--at-line); }
+.tmpl-atelier .at-footer-tape { position: absolute; top: 0; inset-inline: 0; height: 3px; background-image: repeating-linear-gradient(90deg, var(--at-tape) 0 10px, transparent 10px 18px); opacity: 0.6; }
+.tmpl-atelier .at-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-atelier .at-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-atelier .at-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--at-ink); text-decoration: none; font-size: 15px; }
+.tmpl-atelier .at-contact-link svg { color: var(--at-accent); flex-shrink: 0; }
+.tmpl-atelier .at-contact-link:hover { color: var(--at-accent); }
+.tmpl-atelier .at-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-atelier .at-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 50%; border: 1px dashed var(--at-tape); color: var(--at-ink);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.tmpl-atelier .at-social:hover { color: var(--at-accent); border-color: var(--at-accent); }
+.tmpl-atelier .at-social:active { transform: translateY(1px); }
+.tmpl-atelier .at-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-atelier .at-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--at-line); color: var(--at-ink); }
+.tmpl-atelier .at-hours td:last-child { text-align: end; font-family: var(--at-sans); font-size: 12px; letter-spacing: 0.03em; color: var(--at-muted); font-variant-numeric: tabular-nums; }
+.tmpl-atelier .at-hours tr.is-closed td { color: var(--at-muted); }
+.tmpl-atelier .at-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px dashed var(--at-line);
+  font-family: var(--at-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--at-muted);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-atelier .at-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-atelier .at-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-atelier .at-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-atelier .at-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-atelier .at-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-atelier .at-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-atelier .at-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-atelier .at-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-atelier .at-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-atelier .at-nav-links { display: flex; }
+  .tmpl-atelier .at-menu { display: none; }
+}
+@media (min-width: 1280px) {
+  .tmpl-atelier .at-wrap { max-width: 1600px; padding: 0 56px; }
+}
+/* The signature rail + seam only appear once there's real desktop room either
+   side of the content — base grid stays a single column below this, so there
+   is never an overflow risk at any narrower width (390px included). */
+@media (min-width: 1300px) {
+  .tmpl-atelier .at-frame { grid-template-columns: 34px 1fr 26px; }
+  .tmpl-atelier .at-rail-col, .tmpl-atelier .at-seam-col { display: block; }
+}
+@media (min-width: 1560px) {
+  .tmpl-atelier .at-frame { grid-template-columns: 168px 1fr 34px; }
+  .tmpl-atelier .at-tape-label { display: block; }
+  .tmpl-atelier .at-tape-line, .tmpl-atelier .at-tape-dot { inset-inline-start: 20px; }
+}
+@media (max-width: 520px) {
+  .tmpl-atelier .at-nav-end .at-btn-ghost { display: none; }
+  .tmpl-atelier .at-section { padding: 76px 0; }
+  .tmpl-atelier .at-stats { padding: 48px 0; }
+  .tmpl-atelier .at-book { padding: 40px 22px; }
+  .tmpl-atelier .at-instructor-photo { width: 100px; height: 100px; }
+  .tmpl-atelier .at-plate-tilt { transform: none; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-atelier .at-btn,
+  .tmpl-atelier .at-btn-sm,
+  .tmpl-atelier .at-social,
+  .tmpl-atelier .at-nav-link,
+  .tmpl-atelier .at-nav-mobile button,
+  .tmpl-atelier .at-nav-mobile-link { min-height: 44px; }
+  .tmpl-atelier .at-social { min-width: 44px; }
+}
+/* Reduced motion: the seam renders fully sewn, the tape dot/needle sit at
+   their resting (progress = 1) position with no transition, no scroll
+   listeners run (see useSewProgress in index.tsx). */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-atelier .at-tape-dot, .tmpl-atelier .at-seam-needle { transition: none; }
+  .tmpl-atelier .at-btn:active, .tmpl-atelier .at-social:active { transform: none; }
+  .tmpl-atelier .at-faq-panel { transition: none; }
+}
+
+/* ── RTL: only absolutely-positioned / floated decorations need flipping
+   (everything else uses logical properties). ─────────────────────────────── */
+.tmpl-atelier[dir='rtl'] .at-plate-tilt { transform: rotate(1deg); }
+.tmpl-atelier[dir='rtl'] .at-dropcap::first-letter { float: right; }
+.tmpl-atelier[dir='rtl'] .at-swingtag { clip-path: polygon(0% 0%, 78% 0%, 100% 50%, 78% 100%, 0% 100%); }
+.tmpl-atelier[dir='rtl'] .at-swingtag-hole { inset-inline-start: 76%; }
+.tmpl-atelier[dir='rtl'] .at-seam-needle { transform: translate(50%, -60%) rotate(-45deg); }
+
+/* Instructor reply to a review (GLOBAL — matches the other templates). */
+.at-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.at-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

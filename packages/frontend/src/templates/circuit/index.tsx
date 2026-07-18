@@ -106,33 +106,43 @@ function CircuitTelemetry({ progress, rootRef, s }: { progress: MotionValue<numb
   }, [reduced]);
 
   return (
-    <div className="ci-plane" aria-hidden="true">
-      <div className="ci-tower">
-        <div className="ci-tower-head">
-          <span className="ci-livedot" /> <span>{s.liveLabel}</span>
+    // Outer wrap: position:absolute, inset-block:0 (spans the full height of the
+    // .tmpl-circuit root, which is position:relative) — this keeps the pit-wall
+    // fully CONTAINED inside the template's own box (never escapes into the
+    // builder's app chrome the way `position:fixed` does, since fixed resolves
+    // against the real browser viewport, ignoring any scaled/bounded preview
+    // ancestor). The inner .ci-plane is `position: sticky` so it still tracks the
+    // viewport (like the old fixed panel) for as long as this tall wrap is on
+    // screen — same persistent "broadcast HUD" feel, zero frame-escape.
+    <div className="ci-plane-wrap" aria-hidden="true">
+      <div className="ci-plane">
+        <div className="ci-tower">
+          <div className="ci-tower-head">
+            <span className="ci-livedot" /> <span>{s.liveLabel}</span>
+          </div>
+          <span className="ci-tower-label">{s.lapLabel}</span>
+          <span className="ci-lap" ref={lapRef}>{reduced ? fmtLap(1) : '0:00.000'}</span>
+          <div className="ci-sectors">
+            {[{ r: s1Ref, l: s.sector1, t: '30.142' }, { r: s2Ref, l: s.sector2, t: '31.088' }, { r: s3Ref, l: s.sector3, t: '31.270' }].map((sec, i) => (
+              <div key={i} className={cx('ci-sector', reduced && 'is-clear')} ref={sec.r}>
+                <span className="ci-sector-l">{sec.l}</span>
+                <span className="ci-sector-t">{sec.t}</span>
+                <span className="ci-sector-check"><Check size={11} strokeWidth={3} /></span>
+              </div>
+            ))}
+          </div>
         </div>
-        <span className="ci-tower-label">{s.lapLabel}</span>
-        <span className="ci-lap" ref={lapRef}>{reduced ? fmtLap(1) : '0:00.000'}</span>
-        <div className="ci-sectors">
-          {[{ r: s1Ref, l: s.sector1, t: '30.142' }, { r: s2Ref, l: s.sector2, t: '31.088' }, { r: s3Ref, l: s.sector3, t: '31.270' }].map((sec, i) => (
-            <div key={i} className={cx('ci-sector', reduced && 'is-clear')} ref={sec.r}>
-              <span className="ci-sector-l">{sec.l}</span>
-              <span className="ci-sector-t">{sec.t}</span>
-              <span className="ci-sector-check"><Check size={11} strokeWidth={3} /></span>
-            </div>
-          ))}
+        {/* track + car share one positioned box so the car's Motion Path origin
+            lines up pixel-for-pixel with the drawn SVG (regardless of the tower above). */}
+        <div className="ci-track-wrap">
+          <svg className="ci-track" viewBox="0 0 150 620" aria-hidden="true" focusable="false">
+            <path d={TRACK_D} className="ci-track-ribbon" fill="none" />
+            <path d={TRACK_D} className="ci-track-line" fill="none" />
+            {/* start / finish */}
+            <line x1="75" y1="15" x2="75" y2="33" className="ci-track-sf" />
+          </svg>
+          <div className="ci-car" />
         </div>
-      </div>
-      {/* track + car share one positioned box so the car's Motion Path origin
-          lines up pixel-for-pixel with the drawn SVG (regardless of the tower above). */}
-      <div className="ci-track-wrap">
-        <svg className="ci-track" viewBox="0 0 150 620" aria-hidden="true" focusable="false">
-          <path d={TRACK_D} className="ci-track-ribbon" fill="none" />
-          <path d={TRACK_D} className="ci-track-line" fill="none" />
-          {/* start / finish */}
-          <line x1="75" y1="15" x2="75" y2="33" className="ci-track-sf" />
-        </svg>
-        <div className="ci-car" />
       </div>
     </div>
   );
@@ -163,15 +173,15 @@ function CiNav({ data, active }: { data: TemplateData; active: string }) {
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="ci-nav-links">
-          {links.map(({ id, label }) => (
+          {links.map(({ id, label }, i) => (
             <button
               key={id}
               className={cx('ci-nav-link', active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
-              data-edit={`copy.nav_${id}`}
-              data-edit-type="text"
             >
-              {data.copy?.[`nav_${id}`] ?? label}
+              <span className="ci-nav-link-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span className="ci-nav-link-led" aria-hidden="true" />
+              <span data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</span>
             </button>
           ))}
         </div>

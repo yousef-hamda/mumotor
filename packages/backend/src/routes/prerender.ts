@@ -202,9 +202,9 @@ const TEMPLATES: Array<[string, string, string]> = [
   ['Gallery', 'Museum exhibition', 'The work as a curated exhibition — framed prints with museum wall-labels and a spotlight that follows you down the wall.'],
   ['Gilt', 'Foil-stamped luxury', 'A foil-stamped invitation — deep charcoal and champagne-gold headlines with a sheen that rakes across them as you scroll.'],
   ['Sumi', 'Sumi-e ink wash', 'A sumi-e brush painting — warm washi paper, a hand-brushed enso that draws itself and a vermilion hanko seal that stamps as you scroll.'],
-  ['Console', 'Product OS', 'A developer-grade product console — a ⌘K command palette that types itself, live dashboard widgets and crisp indigo accents on near-black.'],
-  ['Transit', 'Metro wayfinding', 'A transit signage system — a bold coloured line threads the page past roundel stops while a live service marker travels it as you scroll.'],
-  ['Ledger', 'Fintech statement', 'A neobank statement — a crisp figures card with tabular numerals that count up, a sparkline that draws itself and trustworthy emerald accents.'],
+  ['Atelier', 'Bespoke tailor', 'A tailor’s atelier — a course cut to fit you. Warm ivory paper, a thread-red accent, a measuring-tape rail and a seam that sews itself as you scroll.'],
+  ['Nocturne', 'Celestial navigation', 'A night drive charted by the stars — deep midnight indigo, brass constellations that light and connect as you scroll, a drawn course line and a compass.'],
+  ['Deco', 'Golden-age Deco', 'The 1920s golden age of motoring — champagne ivory, emerald and gold Art-Deco geometry, sunburst fans and an elevator floor-dial that ticks as you scroll.'],
   ['Grid & Ink', 'Swiss editorial', 'Strict typographic grid, hairline rules and numbered sections. Confident, magazine-grade, zero clutter.'],
   ['Open Road', 'Retro automotive', 'Warm 70s road-trip energy — sunburst hero, enamel badges, grain and dashed-road dividers.'],
 ];

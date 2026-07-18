@@ -69,17 +69,47 @@
 .tmpl-mumotor .mm-btn-glass-dark { color: #fff; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .tmpl-mumotor .mm-btn-glass-dark:hover { transform: translateY(-1px); background: rgba(255,255,255,0.2); }
 
-/* Nav (glass) — full-bleed bar: bg/blur/border span the viewport, inner row capped. */
-.tmpl-mumotor .mm-nav { position: sticky; top: 0; z-index: 60; background: rgba(255,255,255,0.8); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid color-mix(in srgb, var(--mm-line) 70%, transparent); }
-.tmpl-mumotor .mm-nav-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 24px; }
+/* Nav — a FLOATING GLASS PILL. Full-bleed transparent outer bar; the visible bar
+   itself is a centered rounded-full translucent pill that DETACHES from the top
+   edge once you scroll (padding lifts it away, corners fully round, the glass
+   deepens + a soft shadow appears). Sticky, never `position: fixed`. The
+   transform/shadow/background changes are compositor/paint only — no reflow of
+   surrounding content. */
+.tmpl-mumotor .mm-nav {
+  position: sticky; top: 0; z-index: 60;
+  padding: 0 16px;
+  background: transparent;
+  transition: padding 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tmpl-mumotor .mm-nav.is-scrolled { padding-top: 12px; }
+.tmpl-mumotor .mm-nav-pill {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 15px 10px 15px 24px;
+  background: rgba(255,255,255,0.68);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-top-color: transparent;
+  border-radius: 0 0 22px 22px;
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 1px 2px rgba(29,29,31,0.04);
+  transition: border-radius 0.42s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.42s ease, border-color 0.42s ease;
+}
+.tmpl-mumotor .mm-nav.is-scrolled .mm-nav-pill {
+  border-radius: 999px;
+  border-top-color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.86);
+  box-shadow: 0 20px 45px -18px rgba(29,29,31,0.32), 0 2px 6px rgba(29,29,31,0.06);
+}
 .tmpl-mumotor .mm-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; font-weight: 700; font-size: 17px; letter-spacing: -0.015em; color: var(--mm-ink); }
 .tmpl-mumotor .mm-nav-links { display: none; gap: 2px; }
 .tmpl-mumotor .mm-nav-link { background: none; border: 0; cursor: pointer; font: inherit; font-size: 15px; font-weight: 500; color: var(--mm-muted); padding: 10px 16px; border-radius: 999px; transition: color 0.2s ease, background 0.2s ease; }
 .tmpl-mumotor .mm-nav-link:hover { color: var(--mm-ink); background: color-mix(in srgb, var(--mm-ink) 5%, transparent); }
+/* Active = the signature soft FILLED pill (never colour alone). */
 .tmpl-mumotor .mm-nav-link.is-active { color: var(--mm-accent); background: color-mix(in srgb, var(--mm-accent) 12%, transparent); font-weight: 600; }
 .tmpl-mumotor .mm-nav-end { display: flex; align-items: center; gap: 8px; }
 .tmpl-mumotor .mm-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: none; border: 0; cursor: pointer; color: var(--mm-ink); padding: 6px; }
-.tmpl-mumotor .mm-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 16px 16px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--mm-line); }
+.tmpl-mumotor .mm-nav-mobile { display: flex; flex-direction: column; gap: 2px; margin: 0 16px; padding: 8px 16px 16px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); border-top: 0; border-radius: 0 0 20px 20px; box-shadow: 0 20px 45px -20px rgba(29,29,31,0.3); }
 .tmpl-mumotor .mm-nav-mobile button { background: none; border: 0; text-align: start; cursor: pointer; font: inherit; font-weight: 500; color: var(--mm-ink); padding: 12px 8px; border-radius: 10px; }
 .tmpl-mumotor .mm-nav-mobile button:hover { background: var(--mm-band); }
 
@@ -218,6 +248,7 @@
 @media (prefers-reduced-motion: reduce) {
   .tmpl-mumotor .mm-orb { animation: none !important; }
   .tmpl-mumotor .mm-btn:hover, .tmpl-mumotor .mm-social:hover { transform: none; }
+  .tmpl-mumotor .mm-nav, .tmpl-mumotor .mm-nav-pill { transition: none; }
 }
 
 /* Instructor reply to a review */

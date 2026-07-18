@@ -127,17 +127,18 @@ function PsNav({ data, active }: { data: TemplateData; active: string }) {
           <span className="ps-logo-word" data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="ps-nav-links">
-          {links.map(({ id, label }) => (
-            <button
-              key={id}
-              className={cx('ps-nav-link', active === id && 'is-active')}
-              onClick={() => scrollToSection(id)}
-              data-edit={`copy.nav_${id}`}
-              data-edit-type="text"
-            >
-              {data.copy?.[`nav_${id}`] ?? label}
-            </button>
-          ))}
+          {links.flatMap(({ id, label }, i) => {
+            const link = (
+              <button
+                key={id}
+                className={cx('ps-nav-link', active === id && 'is-active')}
+                onClick={() => scrollToSection(id)}
+              >
+                <span data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</span>
+              </button>
+            );
+            return i === 0 ? [link] : [<Fleuron key={`${id}-sep`} className="ps-nav-sep" />, link];
+          })}
         </div>
         <div className="ps-nav-end">
           {data.accountUrl && (

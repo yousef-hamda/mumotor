@@ -77,6 +77,10 @@ export default function CustomizeMode({
   const [picker, setPicker] = useState<{ path: string; query: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const editingRef = useRef<HTMLElement | null>(null);
+  // The text a field showed when editing began — used to skip a no-op commit so
+  // merely focusing a field never freezes its localized default into an override
+  // (which would then wrongly persist after the site language is switched).
+  const editOrigRef = useRef<string>('');
   const dragSrc = useRef<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ path: string; rect: Rect } | null>(null);
   const savedRef = useRef<string>(JSON.stringify(value ?? {}));
@@ -211,7 +215,11 @@ export default function CustomizeMode({
 
   const commitEditing = useCallback(() => {
     const e = takeEditing();
-    if (e) hist.set(computeCommit(hist.current, e.path, e.text));
+    // Skip a no-op edit: if the text is unchanged from what the field showed when
+    // editing began, don't persist it. This stops a localized default (e.g. an
+    // Arabic "Book now") from being frozen into an override just by clicking the
+    // field — which previously leaked the wrong language after a language switch.
+    if (e && e.text !== editOrigRef.current) hist.set(computeCommit(hist.current, e.path, e.text));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hist, computeCommit]);
 
@@ -246,6 +254,7 @@ export default function CustomizeMode({
     if (type === 'text') {
       el.contentEditable = 'true';
       editingRef.current = el;
+      editOrigRef.current = el.innerText.replace(/\n+$/, '').trim();
       el.focus();
       // On touch, lift the edited text into view so the on-screen keyboard can't cover it.
       if (window.matchMedia?.('(pointer: coarse)').matches) {

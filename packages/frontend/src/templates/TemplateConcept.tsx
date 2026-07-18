@@ -234,54 +234,44 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
           </div>
         </>
       );
-    case 'console':
+    case 'atelier':
       return (
         <>
-          <span className="tc-co-grid" />
-          <svg className="tc-co-spark" viewBox="0 0 100 34" fill="none" aria-hidden="true">
-            <path className="tc-co-p" d="M3 26 L18 20 L33 23 L48 11 L63 15 L78 6 L97 10" stroke={accent} strokeWidth="1.6" strokeLinecap="round" pathLength={1} />
+          <span className="tc-at-tape" style={{ background: c3 }} />
+          <svg className="tc-at-seam" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+            <path className="tc-at-p" d="M91 4 V56" stroke={accent} strokeWidth="1.4" strokeLinecap="round" strokeDasharray="3.4 3.4" pathLength={1} />
           </svg>
-          <div className="tc-card tc-card--console tc-co-card">
-            <span className="tc-co-cmd">
-              <span className="tc-co-key" style={{ borderColor: c3 }}>⌘K</span>
-              <span className="tc-co-caret" style={{ background: accent }} />
-            </span>
-            <span className="tc-l tc-l-title" style={{ background: '#E7EAEE', width: '52%' }} />
-            <span className="tc-l" style={{ background: 'rgba(231,234,238,0.18)', width: '78%' }} />
-            <span className="tc-btn" style={{ background: accent }} />
+          <div className="tc-card tc-card--paperat tc-at-card">
+            <span className="tc-at-swatch" style={{ background: accent }} />
+            <Lines title="#241F1B" line="rgba(36,31,27,0.18)" btn={accent} />
           </div>
         </>
       );
-    case 'transit':
+    case 'nocturne':
       return (
         <>
-          <svg className="tc-tr-track" viewBox="0 0 100 60" fill="none" aria-hidden="true">
-            <path id="tc-tr-path" d="M4 50 H30 L46 32 H70 L96 10" stroke={c1} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="30" cy="50" r="3" fill={meta.bg} stroke={c1} strokeWidth="2" />
-            <circle cx="70" cy="32" r="3" fill={meta.bg} stroke={c1} strokeWidth="2" />
-            <circle className="tc-tr-car" r="3.4" fill={c2}>
-              <animateMotion dur="3.6s" repeatCount="indefinite" path="M4 50 H30 L46 32 H70 L96 10" />
-            </circle>
+          <span className="tc-nc-stars" />
+          <svg className="tc-nc-course" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+            <path className="tc-nc-p" d="M8 48 L30 31 L52 38 L74 15 L94 22" stroke={accent} strokeWidth="1" pathLength={1} />
+            {[[8, 48], [30, 31], [52, 38], [74, 15], [94, 22]].map(([x, y], i) => (
+              <circle key={i} className="tc-nc-star" cx={x} cy={y} r="1.7" fill={accent} style={{ animationDelay: `${i * 0.5}s` }} />
+            ))}
           </svg>
-          <div className="tc-card tc-card--solid tc-tr-card">
-            <span className="tc-tr-roundel" style={{ borderColor: c1 }}><span style={{ background: c1 }} /></span>
-            <span className="tc-l tc-l-title" style={{ background: '#16181D', width: '50%' }} />
-            <span className="tc-l" style={{ background: 'rgba(22,24,29,0.16)', width: '76%' }} />
-            <span className="tc-btn" style={{ background: c1 }} />
+          <div className="tc-card tc-card--nocturne tc-nc-card" style={{ background: c2 }}>
+            <Lines title="#F4F1E8" line="rgba(244,241,232,0.24)" btn={accent} />
           </div>
         </>
       );
-    case 'ledger':
+    case 'deco':
       return (
         <>
-          <svg className="tc-le-spark" viewBox="0 0 100 40" fill="none" aria-hidden="true">
-            <path className="tc-le-p" d="M3 32 L17 27 L31 30 L45 18 L59 22 L73 11 L97 6" stroke={c1} strokeWidth="1.8" strokeLinecap="round" pathLength={1} />
+          <span className="tc-dc-fan" style={{ background: `repeating-conic-gradient(from 200deg at 50% 100%, ${c1} 0deg 3deg, transparent 3deg 9deg)` }} />
+          <svg className="tc-dc-dial" viewBox="0 0 100 40" fill="none" aria-hidden="true">
+            <path d="M14 36 A36 36 0 0 1 86 36" stroke={c1} strokeWidth="1.4" />
+            <line className="tc-dc-hand" x1="50" y1="36" x2="50" y2="8" stroke={c2} strokeWidth="1.6" strokeLinecap="round" />
           </svg>
-          <div className="tc-card tc-card--solid tc-le-card">
-            <span className="tc-le-fig"><span className="tc-le-delta" style={{ color: c1 }}>▲</span></span>
-            <span className="tc-l tc-l-title" style={{ background: '#14140F', width: '46%' }} />
-            <span className="tc-l" style={{ background: 'rgba(20,20,15,0.14)', width: '74%' }} />
-            <span className="tc-btn" style={{ background: c1 }} />
+          <div className="tc-card tc-card--paperdc tc-dc-card">
+            <Lines title="#1C1B17" line="rgba(28,27,23,0.18)" btn={c2} />
           </div>
         </>
       );

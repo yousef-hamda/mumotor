@@ -104,12 +104,16 @@
 .tmpl-primary .pm-btn-onblue-ghost { color: var(--pm-paper); background: transparent; border-color: var(--pm-paper); }
 .tmpl-primary .pm-btn-onblue-ghost:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--pm-paper) 14%, transparent); }
 
-/* ── Nav — full-bleed bar on a thick 2px ink baseline; each link carries a small
-   primary-colour geometric marker that snaps in + rotates on hover / active ──── */
-.tmpl-primary .pm-nav { position: sticky; top: 0; z-index: 60; background: color-mix(in srgb, var(--pm-paper) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 2px solid var(--pm-ink); }
+/* ── Nav — a Bauhaus poster bar on a bold 3px ink baseline. Each link carries a
+   small geometric glyph (square / circle / triangle, cycling) that sits dimmed
+   at rest; active FILLS the glyph with its primary colour AND drops a matching
+   flat colour block behind the whole link — never colour text alone. Glyph +
+   block are generated content (::before / ::after) so Customize's contentEditable
+   on the link text can never disturb them. ─────────────────────────────────── */
+.tmpl-primary .pm-nav { position: sticky; top: 0; z-index: 60; background: color-mix(in srgb, var(--pm-paper) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 3px solid var(--pm-ink); }
 .tmpl-primary .pm-nav-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 18px;
-  max-width: 1440px; margin: 0 auto; padding: 16px 40px;
+  max-width: 1440px; margin: 0 auto; padding: 15px 40px;
 }
 .tmpl-primary .pm-logo {
   display: inline-flex; align-items: center; gap: 12px;
@@ -117,34 +121,38 @@
   font-family: var(--pm-display); font-size: 20px; font-weight: 800;
   letter-spacing: -0.01em; color: var(--pm-ink);
 }
-.tmpl-primary .pm-nav-links { display: none; align-items: center; gap: 4px; }
+.tmpl-primary .pm-nav-links { display: none; align-items: center; gap: 2px; }
 .tmpl-primary .pm-nav-link {
-  position: relative; display: inline-flex; align-items: center; gap: 9px;
+  position: relative; z-index: 0; display: inline-flex; align-items: center; gap: 11px;
   background: none; border: 0; cursor: pointer;
   font-family: var(--pm-display); font-size: 15px; font-weight: 600;
   letter-spacing: 0.01em; color: var(--pm-muted);
-  padding: 9px 14px; transition: color 0.16s ease;
+  padding-block: 10px; padding-inline: 12px 16px; transition: color 0.16s ease;
 }
-/* The geometric marker — hidden (scaled to 0, pre-rotated) until hover / active. */
+/* The geometric glyph — always visible, dimmed at rest; fills solid on hover/active. */
 .tmpl-primary .pm-nav-link::before {
-  content: ''; width: 10px; height: 10px; flex-shrink: 0; background: var(--pm-blue);
-  transform: scale(0) rotate(-90deg); transform-origin: center;
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.16s ease;
+  content: ''; width: 10px; height: 10px; flex-shrink: 0; background: var(--pm-muted); opacity: 0.5;
+  transition: background 0.16s ease, opacity 0.16s ease, transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.tmpl-primary .pm-nav-link:nth-child(3n+1)::before { background: var(--pm-blue); border-radius: 0; }
-.tmpl-primary .pm-nav-link:nth-child(3n+2)::before { background: var(--pm-red); border-radius: 50%; }
-.tmpl-primary .pm-nav-link:nth-child(3n)::before { background: var(--pm-yellow); border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-.tmpl-primary .pm-nav-link:hover::before,
-.tmpl-primary .pm-nav-link.is-active::before { transform: scale(1) rotate(0deg); }
+.tmpl-primary .pm-nav-link-0::before { border-radius: 0; }
+.tmpl-primary .pm-nav-link-1::before { border-radius: 50%; }
+.tmpl-primary .pm-nav-link-2::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.tmpl-primary .pm-nav-link:hover::before { opacity: 0.85; }
+.tmpl-primary .pm-nav-link-0:hover::before, .tmpl-primary .pm-nav-link-0.is-active::before { background: var(--pm-blue); }
+.tmpl-primary .pm-nav-link-1:hover::before, .tmpl-primary .pm-nav-link-1.is-active::before { background: var(--pm-red); }
+.tmpl-primary .pm-nav-link-2:hover::before, .tmpl-primary .pm-nav-link-2.is-active::before { background: var(--pm-yellow); }
+.tmpl-primary .pm-nav-link.is-active::before { opacity: 1; transform: scale(1.3); }
+/* The colour block — a flat panel dropped behind the whole link, active only. */
 .tmpl-primary .pm-nav-link::after {
-  content: ''; position: absolute; left: 14px; right: 14px; bottom: 3px; height: 2px;
-  background: var(--pm-blue); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease;
+  content: ''; position: absolute; inset: 4px 0; z-index: -1;
+  background: transparent; transition: background 0.16s ease;
 }
-.tmpl-primary[dir='rtl'] .pm-nav-link::after { transform-origin: right; }
+.tmpl-primary .pm-nav-link-0.is-active::after { background: color-mix(in srgb, var(--pm-blue) 13%, transparent); }
+.tmpl-primary .pm-nav-link-1.is-active::after { background: color-mix(in srgb, var(--pm-red) 13%, transparent); }
+.tmpl-primary .pm-nav-link-2.is-active::after { background: color-mix(in srgb, var(--pm-yellow) 16%, transparent); }
 .tmpl-primary .pm-nav-link:hover { color: var(--pm-ink); }
-/* Active = blue text + weight + a 2px blue underline + its marker (never colour alone). */
-.tmpl-primary .pm-nav-link.is-active { color: var(--pm-blue); font-weight: 700; }
-.tmpl-primary .pm-nav-link.is-active::after { transform: scaleX(1); }
+/* Active = ink text + weight + the filled glyph + its colour block (never colour alone). */
+.tmpl-primary .pm-nav-link.is-active { color: var(--pm-ink); font-weight: 700; }
 .tmpl-primary .pm-nav-end { display: flex; align-items: center; gap: 12px; }
 .tmpl-primary .pm-menu {
   display: inline-flex; align-items: center; justify-content: center;
@@ -156,11 +164,18 @@
   background: var(--pm-paper); border-bottom: 1px solid var(--pm-line);
 }
 .tmpl-primary .pm-nav-mobile button, .tmpl-primary .pm-nav-mobile-link {
-  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  position: relative; background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
   font-family: var(--pm-display); font-size: 15px; font-weight: 600; color: var(--pm-ink);
-  padding: 13px 4px; min-height: 44px; display: flex; align-items: center;
+  padding-block: 13px; padding-inline: 22px 4px; min-height: 44px; display: flex; align-items: center;
   border-bottom: 1px solid var(--pm-line);
 }
+.tmpl-primary .pm-nav-mobile button::before, .tmpl-primary .pm-nav-mobile-link::before {
+  content: ''; position: absolute; inset-inline-start: 4px; top: 50%; transform: translateY(-50%);
+  width: 9px; height: 9px; opacity: 0.6;
+}
+.tmpl-primary .pm-nav-mobile button:nth-child(3n+1)::before, .tmpl-primary .pm-nav-mobile-link:nth-child(3n+1)::before { background: var(--pm-blue); border-radius: 0; }
+.tmpl-primary .pm-nav-mobile button:nth-child(3n+2)::before, .tmpl-primary .pm-nav-mobile-link:nth-child(3n+2)::before { background: var(--pm-red); border-radius: 50%; }
+.tmpl-primary .pm-nav-mobile button:nth-child(3n)::before, .tmpl-primary .pm-nav-mobile-link:nth-child(3n)::before { background: var(--pm-yellow); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 
 /* ── Hero — asymmetric 2-col + full-bleed assembling composition ────────────── */
 .tmpl-primary .pm-hero { position: relative; overflow: hidden; padding-top: clamp(48px, 7vw, 88px); padding-bottom: clamp(56px, 8vw, 104px); }

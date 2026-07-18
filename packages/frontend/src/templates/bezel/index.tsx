@@ -69,8 +69,14 @@ function BzNav({ data, active }: { data: TemplateData; active: string }) {
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="bz-nav-links">
-          {links.map(({ id, label }) => (
-            <button key={id} className={cx('bz-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)} data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</button>
+          {links.map(({ id, label }, i) => (
+            <span key={id} className="bz-nav-item">
+              <button className={cx('bz-nav-link', active === id && 'is-active')} onClick={() => scrollToSection(id)} data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</button>
+              {/* Engraved position index — decorative, a SIBLING after the editable label (never inside
+                  it, so it can never leak into the contentEditable text); CSS `order` puts it first visually
+                  and a `.bz-nav-link:hover/.is-active + .bz-nav-index` sibling selector illuminates it. */}
+              <span className="bz-nav-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            </span>
           ))}
         </div>
         <div className="bz-nav-end">

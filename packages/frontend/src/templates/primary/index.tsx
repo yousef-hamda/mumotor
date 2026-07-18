@@ -138,10 +138,10 @@ function PmNav({ data, active }: { data: TemplateData; active: string }) {
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="pm-nav-links">
-          {links.map(({ id, label }) => (
+          {links.map(({ id, label }, i) => (
             <button
               key={id}
-              className={cx('pm-nav-link', active === id && 'is-active')}
+              className={cx('pm-nav-link', `pm-nav-link-${i % 3}`, active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
               data-edit={`copy.nav_${id}`}
               data-edit-type="text"

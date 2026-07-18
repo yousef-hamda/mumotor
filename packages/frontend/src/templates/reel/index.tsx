@@ -16,7 +16,7 @@
  * (sprockets & frame lines, secondary). Every tint derives via color-mix, so
  * Customize recolouring never breaks.
  */
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion, useInView, useScroll, useTransform, useMotionValueEvent, type MotionValue } from 'framer-motion';
 import { Plus, Minus, Star, Menu, X, ArrowRight, Check } from 'lucide-react';
 import type { TemplateData } from '../types';
@@ -111,6 +111,27 @@ function RlFilmstrip({ data }: { data: TemplateData }) {
 
 // ── Nav ─────────────────────────────────────────────────────────────────────
 
+/** A live REC dot + a small running timecode (mm:ss, counts up while mounted).
+ *  Purely decorative (aria-hidden) — frozen at 00:00 under reduced motion, and no
+ *  interval is registered in that case. */
+function RlNavRec() {
+  const reduced = usePrefersReducedMotion();
+  const [sec, setSec] = useState(0);
+  useEffect(() => {
+    if (reduced) return;
+    const id = window.setInterval(() => setSec((v) => (v + 1) % 3600), 1000);
+    return () => window.clearInterval(id);
+  }, [reduced]);
+  const mmss = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+  return (
+    <span className="rl-nav-rec" aria-hidden="true">
+      <span className="rl-rec-dot" />
+      <span className="rl-nav-rec-label">REC</span>
+      <span className="rl-nav-rec-tc">{reduced ? '00:00' : mmss}</span>
+    </span>
+  );
+}
+
 const navLinks = (s: RlStrings) => [
   { id: SECTION_IDS.packages, label: s.navPackages },
   { id: SECTION_IDS.about, label: s.navAbout },
@@ -133,21 +154,19 @@ function RlNav({ data, active }: { data: TemplateData; active: string }) {
           </span>
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
-        <div className="rl-nav-links">
+        <div className="rl-nav-links rl-nav-strip">
           {links.map(({ id, label }) => (
             <button
               key={id}
               className={cx('rl-nav-link', active === id && 'is-active')}
               onClick={() => scrollToSection(id)}
-              data-edit={`copy.nav_${id}`}
-              data-edit-type="text"
             >
-              {data.copy?.[`nav_${id}`] ?? label}
+              <span data-edit={`copy.nav_${id}`} data-edit-type="text">{data.copy?.[`nav_${id}`] ?? label}</span>
             </button>
           ))}
         </div>
         <div className="rl-nav-end">
-          <span className="rl-rec" aria-hidden="true"><span className="rl-rec-dot" />REC</span>
+          <RlNavRec />
           {data.accountUrl && (
             <a href={data.accountUrl} className="rl-btn rl-btn-ghost rl-btn-sm">{data.copy?.nav_account ?? s.navAccount}</a>
           )}

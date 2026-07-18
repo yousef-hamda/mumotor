@@ -170,20 +170,30 @@
 .tmpl-sumi .su-btn-ghost { color: var(--su-ink); background: transparent; border-color: color-mix(in srgb, var(--su-ink) 40%, transparent); }
 .tmpl-sumi .su-btn-ghost:hover { transform: translateY(-1px); border-color: var(--su-ink); background: color-mix(in srgb, var(--su-ink) 5%, transparent); }
 
-/* ── Nav: a calm brush header — full-bleed paper, a fine ink hairline, capped
-   inner row. Zen-Kaku links with generous quiet spacing and a small hand-inked
-   VERMILION BRUSH-DOT / seal marker under the active link. ───────────────────── */
+/* ── Nav: a calm brush header — full-bleed paper, the bar sits under a single
+   hand-brushed ink stroke (NavBrushStroke SVG, replacing a plain hairline),
+   capped inner row. Zen-Kaku links with generous quiet spacing and a small
+   hand-inked VERMILION SEAL (a tiny rotated hanko square, not a plain dot)
+   under the active link — echoing the hero/book hanko signature. ───────────── */
 .tmpl-sumi .su-nav {
   position: sticky; top: 0; z-index: 60;
   background: color-mix(in srgb, var(--su-paper) 90%, transparent);
   backdrop-filter: blur(11px); -webkit-backdrop-filter: blur(11px);
-  border-bottom: 1px solid var(--su-line);
-  box-shadow: 0 7px 24px -20px rgba(26, 24, 21, 0.5);
+  box-shadow: 0 10px 22px -20px rgba(26, 24, 21, 0.4);
 }
 .tmpl-sumi .su-nav-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 18px;
   max-width: 1440px; margin-inline: auto; padding: 16px 40px; min-height: 72px;
 }
+/* The brush stroke the whole bar "sits under" — sits astride the bar's bottom
+   edge, full-bleed width, static (no animation cost). */
+.tmpl-sumi .su-nav-brush {
+  position: absolute; inset-inline: 0; bottom: -4px; width: 100%; height: 12px;
+  display: block; overflow: visible; pointer-events: none;
+}
+.tmpl-sumi .su-nav-brush-main { fill: none; stroke: var(--su-ink); stroke-width: 2.4; stroke-linecap: round; opacity: 0.55; }
+.tmpl-sumi .su-nav-brush-tex { fill: none; stroke: var(--su-ink); stroke-width: 1; stroke-linecap: round; opacity: 0.2; }
+.tmpl-sumi[dir='rtl'] .su-nav-brush { transform: scaleX(-1); }
 .tmpl-sumi .su-logo { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--su-ink); }
 .tmpl-sumi .su-logo-word { font-family: var(--su-serif); font-size: 21px; font-weight: 600; letter-spacing: 0.02em; color: var(--su-ink); }
 .tmpl-sumi .su-nav-links { display: none; align-items: center; gap: 6px; }
@@ -193,18 +203,21 @@
   letter-spacing: 0.1em; color: var(--su-muted);
   padding: 11px 16px 15px; transition: color 0.18s ease;
 }
-/* A small vermilion brush-dot (hand-inked seal) blooms under the link. */
+/* A tiny hand-inked hanko (rotated seal square, not a plain dot) stamps under
+   the link — echoes the hero/book hanko seal signature. */
 .tmpl-sumi .su-nav-link::after {
-  content: ''; position: absolute; inset-inline-start: 50%; bottom: 6px;
-  width: 6px; height: 6px; margin-inline-start: -3px; border-radius: 50%;
-  background: var(--su-vermilion); transform: scale(0);
-  transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.25, 1);
+  content: ''; position: absolute; inset-inline-start: 50%; bottom: 7px;
+  width: 8px; height: 8px; margin-inline-start: -4px; border-radius: 2px;
+  background: var(--su-vermilion);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--su-paper) 55%, transparent);
+  transform: scale(0) rotate(-12deg);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.25, 1);
 }
 .tmpl-sumi .su-nav-link:hover { color: var(--su-ink); }
-.tmpl-sumi .su-nav-link:not(.is-active):hover::after { transform: scale(0.5); background: color-mix(in srgb, var(--su-vermilion) 55%, transparent); }
-/* Active = accent text + weight + the vermilion seal-dot (never colour alone). */
+.tmpl-sumi .su-nav-link:not(.is-active):hover::after { transform: scale(0.55) rotate(-6deg); background: color-mix(in srgb, var(--su-vermilion) 55%, transparent); }
+/* Active = accent text + weight + the stamped seal (never colour alone). */
 .tmpl-sumi .su-nav-link.is-active { color: var(--su-verm-text); font-weight: 700; }
-.tmpl-sumi .su-nav-link.is-active::after { transform: scale(1); background: var(--su-vermilion); }
+.tmpl-sumi .su-nav-link.is-active::after { transform: scale(1) rotate(-4deg); background: var(--su-vermilion); }
 .tmpl-sumi .su-nav-end { display: flex; align-items: center; gap: 8px; }
 .tmpl-sumi .su-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--su-ink); }
 .tmpl-sumi .su-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 40px 16px; background: var(--su-paper); border-bottom: 1px solid var(--su-line); }

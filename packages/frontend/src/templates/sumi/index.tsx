@@ -138,6 +138,34 @@ const navLinks = (s: SuStrings) => [
   { id: SECTION_IDS.faq, label: s.navFaq },
 ];
 
+/**
+ * SIGNATURE — a single hand-brushed ink stroke the nav bar "sits under", in place
+ * of a plain hairline. Two overlapping wavy paths (a bolder main pass + a fainter
+ * texture pass) fake the varying pressure of a real brush. Purely decorative
+ * (aria-hidden), a static SVG (no animation cost), non-uniform-scaled to the bar's
+ * full width via preserveAspectRatio="none".
+ */
+function NavBrushStroke() {
+  return (
+    <svg
+      className="su-nav-brush"
+      viewBox="0 0 1200 16"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        className="su-nav-brush-main"
+        d="M0,8 C120,3 180,13 300,7 C420,2 480,12 600,6 C720,2 800,12 900,6 C1020,2 1100,11 1200,6"
+      />
+      <path
+        className="su-nav-brush-tex"
+        d="M0,9.5 C160,5.5 260,12.5 420,8.5 C580,4.5 680,12.5 840,7.5 C980,3.5 1080,10.5 1200,7.5"
+      />
+    </svg>
+  );
+}
+
 function SuNav({ data, active }: { data: TemplateData; active: string }) {
   const s = suStrings(data.locale);
   const [open, setOpen] = useState(false);
@@ -173,6 +201,7 @@ function SuNav({ data, active }: { data: TemplateData; active: string }) {
           <button className="su-menu" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </div>
+      <NavBrushStroke />
       {open && (
         <div className="su-nav-mobile">
           {links.map(({ id, label }) => <button key={id} onClick={() => { scrollToSection(id); setOpen(false); }}>{label}</button>)}

@@ -151,30 +151,63 @@
 .tmpl-gilt .gt-btn-ghost { color: var(--gt-ink); background: transparent; border-color: var(--gt-gold); }
 .tmpl-gilt .gt-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--gt-gold) 12%, transparent); }
 
-/* ── Nav: full-bleed bg, capped inner row, gold hairline ──────────────────────── */
+/* ── Nav: an invitation card bar framed by gold hairlines (top AND bottom), a
+   tiny wax seal beside the wordmark, and a faint foil shimmer sweeping the bar
+   on an ambient loop. Active link = a small pressed gold SEAL-DOT (echoing the
+   monogram seal) beside the label, not just a colour change. The sweep + dot
+   are generated content, so Customize's contentEditable on link text is never
+   disturbed. ─────────────────────────────────────────────────────────────── */
 .tmpl-gilt .gt-nav {
-  position: sticky; top: 0; z-index: 60;
+  position: sticky; top: 0; z-index: 60; overflow: hidden;
   background: color-mix(in srgb, var(--gt-charcoal) 90%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid color-mix(in srgb, var(--gt-gold) 22%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--gt-gold) 40%, transparent);
 }
+/* The faint foil shimmer — an ambient light sweep across the whole bar. */
+.tmpl-gilt .gt-nav::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 42%, color-mix(in srgb, var(--gt-gold) 16%, transparent) 50%, transparent 58%);
+  background-size: 280% 100%; background-repeat: no-repeat;
+  animation: gt-nav-sweep 10s ease-in-out infinite;
+}
+@keyframes gt-nav-sweep {
+  0%   { background-position: 160% 0; }
+  50%  { background-position: -60% 0; }
+  100% { background-position: 160% 0; }
+}
 .tmpl-gilt .gt-nav-inner {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 16px 40px;
 }
 .tmpl-gilt .gt-logo { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--gt-ink); }
 .tmpl-gilt .gt-logo-word { font-family: var(--gt-serif); font-size: 20px; font-weight: 400; letter-spacing: 0.02em; }
+.tmpl-gilt .gt-logo-seal { box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -2px 4px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.25); }
 .tmpl-gilt .gt-nav-links { display: none; align-items: center; gap: 2px; }
 .tmpl-gilt .gt-nav-link {
   position: relative; background: none; border: 0; cursor: pointer;
   font-family: var(--gt-sans); font-size: 11px; font-weight: 500;
   letter-spacing: 0.16em; text-transform: uppercase; color: var(--gt-muted);
-  padding: 10px 13px; transition: color 0.18s ease;
+  padding-block: 10px; padding-inline: 24px 13px;
+  transition: color 0.18s ease;
+}
+/* The seal-dot — a tiny pressed gold disc, hidden (outline only) until hover/active. */
+.tmpl-gilt .gt-nav-link::before {
+  content: ''; position: absolute; inset-inline-start: 11px; top: 50%;
+  width: 7px; height: 7px; border-radius: 50%; background: transparent;
+  border: 1px solid color-mix(in srgb, var(--gt-gold) 45%, transparent);
+  opacity: 0; transform: translateY(-50%) scale(0.4);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 .tmpl-gilt .gt-nav-link:hover { color: var(--gt-ink); }
-/* Active = gold + a 2px gold underline (never colour alone — also weight). */
+.tmpl-gilt .gt-nav-link:hover::before { opacity: 0.65; transform: translateY(-50%) scale(0.8); }
+/* Active = gold + weight + a pressed gold seal-dot (never colour alone). */
 .tmpl-gilt .gt-nav-link.is-active { color: var(--gt-gold); font-weight: 600; }
-.tmpl-gilt .gt-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 13px; bottom: 3px; height: 2px; background: var(--gt-gold); }
+.tmpl-gilt .gt-nav-link.is-active::before {
+  opacity: 1; transform: translateY(-50%) scale(1); border-color: var(--gt-gold);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gt-gold) 60%, #fff), var(--gt-gold) 60%, var(--gt-bronze) 100%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gt-gold) 18%, transparent);
+}
 .tmpl-gilt .gt-nav-end { display: flex; align-items: center; gap: 8px; }
 .tmpl-gilt .gt-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--gt-ink); }
 .tmpl-gilt .gt-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--gt-charcoal); border-bottom: 1px solid var(--gt-line); }
@@ -401,6 +434,8 @@
    static. (Reveals already collapse via the shared Reveal.) */
 @media (prefers-reduced-motion: reduce) {
   .tmpl-gilt .gt-foil { animation: none; background-position: 30% 0; }
+  .tmpl-gilt .gt-nav::before { animation: none; }
+  .tmpl-gilt .gt-nav-link::before { transition: none; }
   .tmpl-gilt .gt-btn:hover, .tmpl-gilt .gt-social:hover { transform: none; }
   .tmpl-gilt .gt-faq-panel { transition: none; }
 }

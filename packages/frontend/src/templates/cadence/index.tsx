@@ -23,7 +23,7 @@
  * (electric ultramarine, used BIG) / --cd-band / --cd-muted — every tint derives
  * with color-mix() so Customize recolouring never breaks.
  */
-import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   motion, useInView, useScroll, useVelocity, useSpring, useMotionValueEvent,
 } from 'framer-motion';
@@ -78,8 +78,29 @@ const navLinks = (s: CdStrings) => [
 function CdNav({ data, active }: { data: TemplateData; active: string }) {
   const s = cdStrings(data.locale);
   const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
   const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
+  // The link currently "lit" — hover takes over from scroll-spy, falls back to it.
+  const current = hovered ?? active;
+  const linkRefs = useRef(new Map<string, HTMLButtonElement>());
+  const [ink, setInk] = useState({ x: 0, w: 0, on: false });
+
+  // Kinetic sliding ink bar: measures the current link's real laid-out box (works
+  // unmodified under RTL — offsetLeft/offsetWidth are already physical values).
+  // Link width never shifts under the hover/active weight morph (see .cd-nav-link
+  // ::before ghost in cadence.css), so this measurement is stable, not a feedback loop.
+  useEffect(() => {
+    const sync = () => {
+      const el = linkRefs.current.get(current);
+      if (el) setInk({ x: el.offsetLeft, w: el.offsetWidth, on: true });
+      else setInk((v) => ({ ...v, on: false }));
+    };
+    sync();
+    window.addEventListener('resize', sync);
+    return () => window.removeEventListener('resize', sync);
+  }, [current, links.length, data.locale]);
+
   return (
     <nav className="cd-nav" aria-label={s.mainNavAria}>
       <div className="cd-nav-inner">
@@ -89,18 +110,29 @@ function CdNav({ data, active }: { data: TemplateData; active: string }) {
           </span>
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
-        <div className="cd-nav-links">
-          {links.map(({ id, label }) => (
-            <button
-              key={id}
-              className={cx('cd-nav-link', active === id && 'is-active')}
-              onClick={() => scrollToSection(id)}
-              data-edit={`copy.nav_${id}`}
-              data-edit-type="text"
-            >
-              {data.copy?.[`nav_${id}`] ?? label}
-            </button>
-          ))}
+        <div className="cd-nav-links" onMouseLeave={() => setHovered(null)}>
+          <span
+            className="cd-nav-ink"
+            aria-hidden="true"
+            style={{ transform: `translateX(${ink.x}px)`, width: `${ink.w}px`, opacity: ink.on ? 1 : 0 }}
+          />
+          {links.map(({ id, label }) => {
+            const text = data.copy?.[`nav_${id}`] ?? label;
+            return (
+              <button
+                key={id}
+                ref={(el) => { if (el) linkRefs.current.set(id, el); else linkRefs.current.delete(id); }}
+                className={cx('cd-nav-link', active === id && 'is-active')}
+                data-label={text}
+                onClick={() => scrollToSection(id)}
+                onMouseEnter={() => setHovered(id)}
+                onFocus={() => setHovered(id)}
+                onBlur={() => setHovered(null)}
+              >
+                <span data-edit={`copy.nav_${id}`} data-edit-type="text">{text}</span>
+              </button>
+            );
+          })}
         </div>
         <div className="cd-nav-end">
           {data.accountUrl && (

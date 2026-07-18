@@ -97,6 +97,9 @@ function GaNav({ data, active }: { data: TemplateData; active: string }) {
             <span className="ga-logo-word" data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
           </button>
           <div className="ga-nav-links">
+            {/* SIGNATURE — a thin brass picture-rail running behind the plates,
+                purely decorative (aria-hidden), outside every editable button. */}
+            <span className="ga-nav-rail" aria-hidden="true" />
             {links.map(({ id, label }) => (
               <button
                 key={id}

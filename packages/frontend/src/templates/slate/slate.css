@@ -178,7 +178,13 @@
 .tmpl-slate .st-btn-ghost { color: var(--st-chalk); background: transparent; border-color: color-mix(in srgb, var(--st-chalk) 42%, transparent); }
 .tmpl-slate .st-btn-ghost:hover { transform: translateY(-2px); border-color: var(--st-chalk); background: color-mix(in srgb, var(--st-chalk) 7%, transparent); }
 
-/* ── Nav: full-bleed board header, capped inner row ─────────────────────────── */
+/* ── Nav: a chalk ledge on a wooden rail ───────────────────────────────────────
+   STRUCTURALLY DISTINCT DEVICE — the whole nav sits on a real wooden chalk-tray
+   (the same rail furniture used under the hero/book), and every link is set in
+   the Caveat chalk script. Active isn't just a colour swap: a hand-drawn coral
+   chalk underline DRAWS itself in left→right via an animated clip-path reveal
+   over the same wavy chalk-mask used by the site's other chalk underlines — so
+   it reads as one continuous stroke being written, not a bar sliding in. */
 .tmpl-slate .st-nav {
   position: sticky; top: 0; z-index: 60;
   background: color-mix(in srgb, var(--st-slate) 90%, transparent);
@@ -187,41 +193,61 @@
 }
 .tmpl-slate .st-nav-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 18px;
-  max-width: 1440px; margin-inline: auto; padding: 16px 40px;
+  max-width: 1440px; margin-inline: auto; padding: 12px 40px 10px;
 }
 .tmpl-slate .st-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--st-chalk); }
 .tmpl-slate .st-logo-word { font-family: var(--st-serif); font-size: 22px; font-weight: 500; letter-spacing: 0.01em; color: var(--st-chalk); text-shadow: var(--st-dust); }
-.tmpl-slate .st-nav-links { display: none; align-items: center; gap: 4px; }
+.tmpl-slate .st-nav-links { display: none; align-items: center; gap: 6px; }
 .tmpl-slate .st-nav-link {
   position: relative; background: none; border: 0; cursor: pointer;
-  font-family: var(--st-sans); font-size: 15px; font-weight: 500;
-  color: var(--st-muted); padding: 11px 14px; transition: color 0.18s ease;
+  font-family: var(--st-script); font-size: 20px; font-weight: 600;
+  color: var(--st-muted); padding: 10px 13px 9px; transition: color 0.18s ease;
 }
-/* A hand-drawn coral-chalk underline that DRAWS (scaleX 0→1) on hover / active. */
+/* The drawn coral-chalk underline: a wavy-mask bar revealed by an animated
+   clip-path (0 → 100%), reading as a stroke being hand-written left→right. */
 .tmpl-slate .st-nav-link::after {
-  content: ''; position: absolute; inset-inline: 10px; bottom: 4px; height: 7px;
+  content: ''; position: absolute; inset-inline: 9px; bottom: 2px; height: 8px;
   background: var(--st-accent); opacity: 0;
-  transform: scaleX(0); transform-origin: left center;
   --st-wave: no-repeat center / 100% 100%
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 6' preserveAspectRatio='none'%3E%3Cpath d='M1 4 C 12 1 24 5 34 3 S 54 2 59 4' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   -webkit-mask: var(--st-wave); mask: var(--st-wave);
-  transition: transform 0.36s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.2s ease;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.5s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.2s ease;
 }
+.tmpl-slate[dir='rtl'] .st-nav-link::after { clip-path: inset(0 0 0 100%); }
 .tmpl-slate .st-nav-link:hover { color: var(--st-chalk); }
-.tmpl-slate .st-nav-link:hover::after { opacity: 0.7; transform: scaleX(1); }
-/* Active = accent + weight + the drawn coral chalk underline (never colour alone). */
-.tmpl-slate .st-nav-link.is-active { color: var(--st-accent); font-weight: 600; }
-.tmpl-slate .st-nav-link.is-active::after { opacity: 0.92; transform: scaleX(1); }
-.tmpl-slate[dir='rtl'] .st-nav-link::after { transform-origin: right center; }
+.tmpl-slate .st-nav-link:hover::after { opacity: 0.6; clip-path: inset(0 12% 0 0); }
+.tmpl-slate[dir='rtl'] .st-nav-link:hover::after { clip-path: inset(0 0 0 12%); }
+/* Active = accent + weight + the fully-drawn coral chalk stroke (never colour alone). */
+.tmpl-slate .st-nav-link.is-active { color: var(--st-accent); font-weight: 700; }
+.tmpl-slate .st-nav-link.is-active::after { opacity: 0.95; clip-path: inset(0 0 0 0); }
 .tmpl-slate .st-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-slate .st-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--st-chalk); }
 .tmpl-slate .st-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 40px 16px; background: var(--st-slate); border-bottom: 1px solid var(--st-line); }
 .tmpl-slate .st-nav-mobile button, .tmpl-slate .st-nav-mobile-link {
   background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
-  font-family: var(--st-sans); font-size: 15px; font-weight: 500; color: var(--st-chalk);
+  font-family: var(--st-script); font-size: 19px; font-weight: 600; color: var(--st-chalk);
   padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
   border-bottom: 1px solid var(--st-line);
 }
+
+/* The wooden chalk-ledge rail — a slim shelf spanning the FULL nav width, with
+   a few chalk pieces resting on it, exactly like the site's other chalk-ledges. */
+.tmpl-slate .st-nav-rail { position: relative; height: 9px; overflow: hidden; }
+.tmpl-slate .st-nav-rail-wood {
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 2px, transparent 2px 26px),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--st-wood) 78%, #fff 22%),
+      var(--st-wood) 45%,
+      color-mix(in srgb, var(--st-wood) 74%, #000 26%));
+  box-shadow: inset 0 1px 0 rgba(255, 235, 205, 0.28), 0 3px 6px -3px rgba(0, 0, 0, 0.5);
+}
+.tmpl-slate .st-nav-rail-chalk { position: absolute; top: 2px; height: 5px; width: 20px; border-radius: 3px; box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.22); }
+.tmpl-slate .st-nav-rail-chalk-a { inset-inline-start: 6%; background: color-mix(in srgb, var(--st-chalk) 90%, #fff); }
+.tmpl-slate .st-nav-rail-chalk-b { inset-inline-start: 13%; background: var(--st-accent); width: 14px; }
+.tmpl-slate .st-nav-rail-chalk-c { inset-inline-end: 8%; background: var(--st-sage); width: 16px; }
 
 /* ── Hero: 2-column (chalk headline | pinned photo + roundabout) ─────────────── */
 .tmpl-slate .st-hero { padding-top: clamp(56px, 7vw, 92px); padding-bottom: 40px; }
@@ -410,7 +436,7 @@
 }
 @media (max-width: 520px) {
   .tmpl-slate .st-wrap { padding: 0 22px; }
-  .tmpl-slate .st-nav-inner { padding: 12px 22px; }
+  .tmpl-slate .st-nav-inner { padding: 12px 22px 10px; }
   .tmpl-slate .st-nav-mobile { padding: 8px 22px 16px; }
   .tmpl-slate .st-nav-end .st-btn-ghost { display: none; }
   .tmpl-slate .st-section { padding: 76px 0; }

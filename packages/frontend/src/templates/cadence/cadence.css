@@ -133,25 +133,46 @@
   font-family: var(--cd-mono); font-size: 15px; font-weight: 600;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--cd-ink);
 }
-.tmpl-cadence .cd-nav-links { display: none; align-items: center; gap: 4px; }
+/* Kinetic variable-weight nav: links are set in the SAME Roboto Flex variable
+   font as the headings, and on hover/active their weight+width axes morph heavy
+   (echoing the scroll-velocity signature) instead of a static uppercase mono
+   label. A single ink bar (.cd-nav-ink, JS-positioned) slides between links
+   rather than each link owning its own underline — one continuous kinetic stroke.
+   NO LAYOUT SHIFT: each link reserves space for its OWN heaviest state via a
+   `content: attr(data-label)` ghost stacked in the same grid cell (invisible,
+   always-heavy) — the visible text can morph weight/width without ever resizing
+   the button, so the sliding ink bar's target metrics never change mid-animation. */
+.tmpl-cadence .cd-nav-links { position: relative; display: none; align-items: center; gap: 2px; }
+.tmpl-cadence .cd-nav-ink {
+  position: absolute; left: 0; bottom: 2px; height: 3px; border-radius: 1px;
+  background: var(--cd-accent);
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), width 0.34s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  pointer-events: none; will-change: transform, width;
+}
 .tmpl-cadence .cd-nav-link {
-  position: relative;
+  position: relative; display: grid; place-items: center;
   background: none; border: 0; cursor: pointer;
-  font-family: var(--cd-mono); font-size: 15px; font-weight: 500;
-  letter-spacing: 0.03em; text-transform: uppercase; color: var(--cd-muted);
+  font-family: var(--cd-sans); letter-spacing: -0.01em;
   padding: 10px 14px;
-  transition: color 0.18s ease, transform 0.18s ease;
+  color: var(--cd-muted);
+  transition: color 0.18s ease;
 }
-.tmpl-cadence .cd-nav-link::after {
-  content: ''; position: absolute; inset-inline: 14px; bottom: 3px; height: 3px;
-  background: var(--cd-accent); transform: scaleX(0); transform-origin: 0 50%;
-  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+.tmpl-cadence .cd-nav-link::before {
+  content: attr(data-label); grid-area: 1 / 1; visibility: hidden;
+  font-size: 15px; font-variation-settings: 'wght' 780, 'wdth' 112;
 }
-/* Confident hover — the type slants like the scroll-velocity signature. */
-.tmpl-cadence .cd-nav-link:hover { color: var(--cd-ink); transform: skewX(-7deg); }
-/* Active = ultramarine ink AND a 3px accent underline (never colour alone). */
+.tmpl-cadence .cd-nav-link > span {
+  grid-area: 1 / 1; font-size: 15px;
+  font-variation-settings: 'wght' 420, 'wdth' 98;
+  transition: font-variation-settings 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tmpl-cadence .cd-nav-link:hover { color: var(--cd-ink); }
+.tmpl-cadence .cd-nav-link:hover > span,
+.tmpl-cadence .cd-nav-link:focus-visible > span { font-variation-settings: 'wght' 780, 'wdth' 112; }
+/* Active = ultramarine ink AND the heaviest weight/width, tracked by the sliding
+   ink bar (never colour alone). */
 .tmpl-cadence .cd-nav-link.is-active { color: var(--cd-accent); }
-.tmpl-cadence .cd-nav-link.is-active::after { transform: scaleX(1); }
+.tmpl-cadence .cd-nav-link.is-active > span { font-variation-settings: 'wght' 780, 'wdth' 112; }
 .tmpl-cadence .cd-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-cadence .cd-menu {
   display: inline-flex; align-items: center; justify-content: center;
@@ -389,18 +410,20 @@
   /* No kinetic skew, no weight/slant morph, no CTA lift, no marquee drift. */
   .tmpl-cadence .cd-h1, .tmpl-cadence .cd-h2 { transform: none; }
   .tmpl-cadence .cd-btn:hover,
-  .tmpl-cadence .cd-nav-link:hover,
   .tmpl-cadence .cd-social:hover { transform: none; }
   .tmpl-cadence .cd-faq-panel { transition: none; }
+  /* Nav: no weight/width morph, no sliding ink bar — states still snap correctly. */
+  .tmpl-cadence .cd-nav-link > span { transition: none; }
+  .tmpl-cadence .cd-nav-ink { transition: none; }
 }
 
 /* ── RTL: flip only the abspos/directional decorations (everything else uses
    logical properties, so it mirrors automatically). The marquee is intentionally
    NOT special-cased — its direction is driven by scroll-velocity sign, which is
-   layout-agnostic. ───────────────────────────────────────────────────────────*/
+   layout-agnostic. The sliding ink bar needs no RTL handling — it's positioned
+   from real measured offsetLeft/offsetWidth, already physical values. ─────────*/
 .tmpl-cadence[dir='rtl'] .cd-h1,
 .tmpl-cadence[dir='rtl'] .cd-h2 { transform-origin: 100% 50%; }
-.tmpl-cadence[dir='rtl'] .cd-nav-link::after { transform-origin: 100% 50%; }
 
 /* Instructor reply to a review (GLOBAL — matches the shared contract). */
 .cd-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }

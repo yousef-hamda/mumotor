@@ -152,6 +152,16 @@ function StNav({ data, active }: { data: TemplateData; active: string }) {
           <button className="st-menu" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </div>
+      {/* SIGNATURE — the chalk-ledge rail: a thin wooden shelf runs the full width
+          under the link row, exactly like the real chalk-ledge used elsewhere on
+          the page. Purely decorative (aria-hidden), never affects the editable
+          nav-link buttons above it. */}
+      <div className="st-nav-rail" aria-hidden="true">
+        <span className="st-nav-rail-wood" />
+        <span className="st-nav-rail-chalk st-nav-rail-chalk-a" />
+        <span className="st-nav-rail-chalk st-nav-rail-chalk-b" />
+        <span className="st-nav-rail-chalk st-nav-rail-chalk-c" />
+      </div>
       {open && (
         <div className="st-nav-mobile">
           {links.map(({ id, label }) => <button key={id} onClick={() => { scrollToSection(id); setOpen(false); }}>{label}</button>)}

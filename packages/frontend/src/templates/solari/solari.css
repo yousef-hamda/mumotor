@@ -192,36 +192,69 @@
   font-family: var(--sl-display); font-size: 19px; font-weight: 600;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--sl-text);
 }
-.tmpl-solari .sl-nav-links { display: none; align-items: center; gap: 4px; }
-/* Each link is a small departure flap-tile that lights up on hover/active. */
+.tmpl-solari .sl-nav-links { display: none; align-items: center; gap: 6px; }
+/* SIGNATURE — each link IS a small split-flap tile that physically flips over on
+   hover/active, echoing the departure-board motif. At rest it already reads as a
+   mechanical cell (seam + brass-lit inset edge); a `::before` flap panel — sized to
+   the button, given depth by the button's own `perspective` — swings down on its
+   top edge (rotateX 90deg → 0) revealing a lit face UNDER the label, exactly like a
+   real Solari board tile settling on a new value. Pure CSS, no extra DOM. */
 .tmpl-solari .sl-nav-link {
   position: relative;
-  background: none; border: 1px solid transparent; cursor: pointer;
+  isolation: isolate; /* contains the ::before's negative z-index so it can sit
+                          BEHIND the button's own text without escaping to the nav's
+                          stacking context (a plain text node can't take z-index). */
+  background: color-mix(in srgb, var(--sl-flap) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sl-brass) 24%, transparent);
+  cursor: pointer;
+  perspective: 220px;
   font-family: var(--sl-mono); font-size: 15px; font-weight: 500;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--sl-muted);
   padding: 9px 13px; border-radius: 3px;
-  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sl-brass) 20%, transparent), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+/* the physical seam splitting the tile's two flap halves — always present, on top */
+.tmpl-solari .sl-nav-link::after {
+  content: ''; position: absolute; inset-inline: 7px; top: 50%; height: 1px;
+  background: var(--sl-board); opacity: 0.65; transform: translateY(-0.5px); pointer-events: none; z-index: 1;
+}
+/* the flap face — hinged at the top edge, rotated away and invisible at rest.
+   Negative z-index so it renders BEHIND the button's real (unwrapped) text node,
+   which can't itself carry a z-index — see `isolation` above. */
+.tmpl-solari .sl-nav-link::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1;
+  border-radius: inherit;
+  background: var(--sl-flap);
+  transform-origin: 50% 0%;
+  transform: rotateX(-100deg);
+  opacity: 0;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sl-brass) 40%, transparent), inset 0 -3px 5px rgba(0, 0, 0, 0.5);
+  transition: transform 0.34s cubic-bezier(0.3, 0.86, 0.36, 1), opacity 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 .tmpl-solari .sl-nav-link:hover {
   color: var(--sl-text);
-  background: color-mix(in srgb, var(--sl-flap) 72%, transparent);
-  border-color: color-mix(in srgb, var(--sl-brass) 42%, transparent);
+  border-color: color-mix(in srgb, var(--sl-brass) 46%, transparent);
 }
-/* Active = a lit amber flap-tile (seam + inset shadow) with an amber underline. */
+.tmpl-solari .sl-nav-link:hover::before,
+.tmpl-solari .sl-nav-link:focus-visible::before {
+  transform: rotateX(0deg);
+  opacity: 1;
+}
+/* Active = the tile has flipped to its LIT amber face — dark ink on amber, never
+   colour alone (the flip/shape itself is the second signal). */
 .tmpl-solari .sl-nav-link.is-active {
-  color: var(--sl-text);
-  background: var(--sl-flap);
-  border-color: color-mix(in srgb, var(--sl-brass) 58%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sl-brass) 34%, transparent), inset 0 -2px 4px rgba(0, 0, 0, 0.42);
+  color: var(--sl-board);
+  font-weight: 600;
+  border-color: color-mix(in srgb, var(--sl-amber) 55%, transparent);
 }
 .tmpl-solari .sl-nav-link.is-active::before {
-  content: ''; position: absolute; inset-inline: 6px; top: 50%; height: 1px;
-  background: var(--sl-board); opacity: 0.5; transform: translateY(-0.5px); pointer-events: none;
+  transform: rotateX(0deg);
+  opacity: 1;
+  background: var(--sl-amber);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.18);
 }
-.tmpl-solari .sl-nav-link.is-active::after {
-  content: ''; position: absolute; inset-inline: 9px; bottom: 4px; height: 2px;
-  background: var(--sl-amber); border-radius: 1px;
-}
+.tmpl-solari .sl-nav-link.is-active::after { background: var(--sl-board); opacity: 0.3; }
 .tmpl-solari .sl-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-solari .sl-menu {
   display: inline-flex; align-items: center; justify-content: center;
@@ -501,6 +534,7 @@
   .tmpl-solari .sl-social:active { transform: none; }
   .tmpl-solari .sl-tile.is-flip .sl-cover { animation: none; }
   .tmpl-solari .sl-faq-panel { transition: none; }
+  .tmpl-solari .sl-nav-link::before { transition: opacity 0.15s ease; }
 }
 
 /* ── RTL: only the absolutely-positioned decoration needs flipping (everything

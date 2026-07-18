@@ -82,7 +82,7 @@ describe('overrides: colour slots + sections', () => {
     const slugs = [
       'mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press',
       'reel', 'slate', 'primary', 'gallery', 'gilt', 'sumi',
-      'console', 'transit', 'ledger',
+      'atelier', 'nocturne', 'deco',
       'grid-ink', 'open-road',
     ];
     for (const slug of slugs) {

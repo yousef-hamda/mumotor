@@ -14,7 +14,7 @@
  */
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion, useInView, useScroll, useTransform, type MotionValue } from 'framer-motion';
-import { Plus, Minus, Star, Menu, X, ArrowRight, Check } from 'lucide-react';
+import { Plus, Minus, Star, Menu, X, ArrowRight, Check, Compass } from 'lucide-react';
 import type { TemplateData } from '../types';
 import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
@@ -129,13 +129,19 @@ function MrNav({ data, active }: { data: TemplateData; active: string }) {
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
     <nav className="mr-nav" aria-label={s.mainNavAria}>
+      {/* Neatline corner brackets — the map-sheet frame quotes itself into the bar. */}
+      <span className="mr-nav-crop" aria-hidden="true" />
       <div className="mr-nav-inner">
-        <button className="mr-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
-          <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
-            <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="var(--mr-ink)" fg="var(--mr-paper)" radius={2} />
-          </span>
-          <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
-        </button>
+        <div className="mr-nav-lead">
+          <button className="mr-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
+            <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
+              <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="var(--mr-ink)" fg="var(--mr-paper)" radius={2} />
+            </span>
+            <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
+          </button>
+          {/* Cartographic coordinate annotation — decorative, echoes the survey-plate margin ticks. */}
+          <span className="mr-nav-coord" aria-hidden="true">31.78°N</span>
+        </div>
         <div className="mr-nav-links">
           <span className="mr-nav-tick" aria-hidden="true" />
           {links.map(({ id, label }) => (
@@ -151,6 +157,8 @@ function MrNav({ data, active }: { data: TemplateData; active: string }) {
           ))}
         </div>
         <div className="mr-nav-end">
+          <span className="mr-nav-coord mr-nav-coord-end" aria-hidden="true">35.21°E</span>
+          <Compass className="mr-nav-compass" size={16} strokeWidth={1.3} aria-hidden="true" />
           {data.accountUrl && (
             <a href={data.accountUrl} className="mr-btn mr-btn-ghost mr-btn-sm">{data.copy?.nav_account ?? s.navAccount}</a>
           )}

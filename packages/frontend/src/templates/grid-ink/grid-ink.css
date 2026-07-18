@@ -303,9 +303,41 @@
 .tmpl-grid-ink .gi-nav-link:hover .gi-nav-num     { opacity: 1; }
 .tmpl-grid-ink .gi-nav-link:hover::after          { transform: scaleX(1); }
 .tmpl-grid-ink .gi-nav-link--active               { color: var(--ink); }
-.tmpl-grid-ink .gi-nav-link--active .gi-nav-num   { opacity: 1; }
+/* Active = a red INDEX MARKER — the index numeral becomes a solid filled red
+   badge (not just brightened opacity like hover), so active reads as a shape
+   change, never colour alone. */
+.tmpl-grid-ink .gi-nav-link--active .gi-nav-num {
+  opacity: 1;
+  color: var(--white);
+  background-color: var(--red);
+  padding: 0.08em 0.36em;
+  border-radius: 1px;
+}
 .tmpl-grid-ink .gi-nav-link--active::after        { transform: scaleX(1); }
 .tmpl-grid-ink .gi-nav-link:focus-visible         { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* Running-header index — a live "NN / total" page-position counter (Swiss
+   magazine running-header device), separated from the link cluster by a
+   hairline. Desktop-only: at narrower widths the nav-end cluster (account +
+   book + hamburger) needs the room. */
+.tmpl-grid-ink .gi-nav-index {
+  display: none;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--grey);
+  padding-inline-start: 1.15rem;
+  border-inline-start: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.tmpl-grid-ink .gi-nav-index-tick { width: 3px; height: 12px; background-color: var(--red); flex-shrink: 0; }
+.tmpl-grid-ink .gi-nav-index-n { color: var(--ink); font-weight: 700; }
+.tmpl-grid-ink .gi-nav-index-sep { opacity: 0.5; }
+@media (min-width: 1101px) {
+  .tmpl-grid-ink .gi-nav-index { display: inline-flex; }
+}
 
 .tmpl-grid-ink .gi-nav-end {
   display: flex;
@@ -1302,4 +1334,11 @@
 }
 @media (max-width: 400px) {
   .tmpl-grid-ink .gi-nav-end .gi-btn-primary { display: none; }
+}
+
+/* Touch: real 44px tap targets on the nav links (desktop links can still be
+   visible on wide touch/hybrid devices ≥1024). */
+@media (pointer: coarse) {
+  .tmpl-grid-ink .gi-nav-link,
+  .tmpl-grid-ink .gi-nav-mobile-link { min-height: 44px; }
 }

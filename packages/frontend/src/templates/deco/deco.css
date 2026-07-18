@@ -1,0 +1,470 @@
+/* Deco — the golden age of the automobile (1920s Art Deco). Motoring as
+   glamour: arrive in style, first-class instruction from the grand era of the
+   open road. Champagne-ivory paper with deep emerald + gold Art-Deco
+   geometry — ornate but tasteful, mostly LIGHT with jewel + gold detailing.
+   All selectors scoped to .tmpl-deco.
+
+   SIGNATURES:
+   1) The FLOOR DIAL — a brass "elevator floor-indicator" gauge, sticky in the
+      corner of the viewport, whose hand sweeps a semicircle bound to a
+      continuous scroll-progress CSS var (--dc-progress, 0→1, written by JS in
+      index.tsx) while a readout names the current "floor" (section). Built
+      from `position: sticky` ONLY (see .dc-dial-anchor) so it can never
+      escape the builder's in-page scroll container.
+   2) SUNBURST FANS that unfold (scale/rotate) behind headings on scroll-in —
+      see .dc-fan / .dc-fan.is-open.
+   Fluted gold hairlines + chevron dividers frame the bands throughout.
+
+   5 user-recolourable vars (COLOR_SLOTS): --dc-ivory / --dc-ink / --dc-gold /
+   --dc-emerald / --dc-band. --dc-muted and --dc-line are internal.
+
+   CONTRAST (verified, sRGB WCAG, relative-luminance formula):
+     ink   #1C1B17 on ivory #F6EEDD  ≈ 14.9:1  ✓✓  (ink on band ≈ 13.5:1 ✓✓)
+     emerald #0F4C36 on ivory        ≈  8.6:1  ✓   (emerald on band ≈ 7.8:1 ✓)
+     ivory on emerald (nav text)     ≈  8.6:1  ✓
+     muted #5B5346 on ivory          ≈  6.6:1  ✓   (muted on band ≈ 6.0:1 ✓)
+     gold  #C6A15B on emerald        ≈  4.1:1  — OK for large/bold text (≥3:1
+       AA-large) and for non-text UI boundaries (needs 3:1); NOT for small body
+       text on emerald.
+   ⚠ gold #C6A15B on ivory/band is only ≈ 2.1:1 — it FAILS even large-text and
+     non-text (3:1) contrast on the light paper, so on ivory/band surfaces gold
+     is used ONLY for purely decorative, aria-hidden ornament (hairlines,
+     chevrons, the sunburst fans, the dial case, roman-numeral plates, card
+     borders) — NEVER for text or any informational icon. Any functional icon
+     (check marks, phone/email glyphs) uses --dc-emerald or --dc-ink instead. */
+
+.tmpl-deco {
+  /* User-recolourable (COLOR_SLOTS) */
+  --dc-ivory: #F6EEDD;   /* champagne ivory — page background */
+  --dc-ink: #1C1B17;     /* deep warm near-black — text */
+  --dc-gold: #C6A15B;    /* gold — ornament & geometry ONLY (see contrast note) */
+  --dc-emerald: #0F4C36; /* deep emerald — the ONE accent (CTA / links / active) */
+  --dc-band: #EFE3C8;    /* deeper champagne — alternating section bands */
+  /* Internal — NOT user-recolourable */
+  --dc-muted: #5B5346;
+  --dc-line: rgba(28, 27, 23, 0.15);
+  --dc-gold-line: rgba(198, 161, 91, 0.55);
+
+  --dc-display: 'Poiret One', Georgia, 'Times New Roman', serif;
+  --dc-sans: 'Jost', system-ui, -apple-system, sans-serif;
+
+  position: relative;
+  background: var(--dc-ivory);
+  color: var(--dc-ink);
+  font-family: var(--dc-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-deco *, .tmpl-deco *::before, .tmpl-deco *::after { box-sizing: border-box; }
+.tmpl-deco img { display: block; max-width: 100%; }
+.tmpl-deco main { position: relative; }
+.tmpl-deco :focus-visible { outline: 2px solid var(--dc-emerald); outline-offset: 3px; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-deco .dc-section { position: relative; padding: 116px 0; }
+.tmpl-deco .dc-band { background: var(--dc-band); }
+.tmpl-deco .dc-head { position: relative; margin-bottom: 52px; max-width: 760px; }
+
+/* ── Type ───────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-h1 {
+  position: relative; font-family: var(--dc-display); font-weight: 400;
+  font-size: clamp(2.8rem, 6vw, 4.7rem); line-height: 1.08; letter-spacing: 0.005em;
+  margin: 18px 0 0; max-width: 15ch; color: var(--dc-ink); overflow-wrap: break-word;
+}
+.tmpl-deco .dc-h2 {
+  position: relative; font-family: var(--dc-display); font-weight: 400;
+  font-size: clamp(2rem, 4vw, 3rem); line-height: 1.12; letter-spacing: 0.005em;
+  margin: 14px 0 0; max-width: 20ch; color: var(--dc-ink); overflow-wrap: break-word;
+}
+.tmpl-deco .dc-h2-tight { max-width: 15ch; }
+.tmpl-deco .dc-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--dc-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.32em; text-transform: uppercase; color: var(--dc-emerald); margin: 0;
+}
+.tmpl-deco .dc-plate {
+  display: block; font-family: var(--dc-sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.3em; text-transform: uppercase; color: var(--dc-gold);
+  margin: 0 0 14px;
+}
+.tmpl-deco .dc-lead { color: var(--dc-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 56ch; margin: 16px 0 0; }
+.tmpl-deco .dc-body { color: var(--dc-muted); font-size: 16px; line-height: 1.7; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── Chevron rule (decorative zigzag divider) ──────────────────────────── */
+.tmpl-deco .dc-chevron-rule {
+  display: block; height: 9px; margin: 8px 0 40px; opacity: 0.65;
+  background-image:
+    repeating-linear-gradient(135deg, var(--dc-gold) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(45deg, var(--dc-gold) 0 2px, transparent 2px 11px);
+}
+.tmpl-deco .dc-chevron-rule.is-center { margin-inline: auto; width: 120px; }
+
+/* ── Sunburst fan (SIGNATURE 2/2) — radiating gold rays behind a heading,
+   unfolds (scale + rotate) into view. Purely decorative, aria-hidden. ──── */
+.tmpl-deco .dc-fan-wrap { position: relative; }
+.tmpl-deco .dc-fan {
+  position: absolute; z-index: 0; pointer-events: none;
+  width: 340px; height: 170px; top: -34px; inset-inline-start: -60px;
+  border-radius: 100% 100% 0 0 / 100% 100% 0 0;
+  background: repeating-conic-gradient(from -90deg at 50% 100%, var(--dc-gold) 0deg 1deg, transparent 1deg 8deg);
+  opacity: 0; transform: scale(0.72) rotate(-16deg); transform-origin: 50% 100%;
+  transition: opacity 640ms cubic-bezier(0.16, 1, 0.3, 1), transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: multiply;
+}
+.tmpl-deco .dc-fan.is-open { opacity: 0.4; transform: scale(1) rotate(0deg); }
+.tmpl-deco[dir='rtl'] .dc-fan { inset-inline-start: auto; }
+.tmpl-deco .dc-fan-wrap > * { position: relative; z-index: 1; }
+
+/* ── Buttons: Deco pill-cornered plaques with a hairline gold keyline ───── */
+.tmpl-deco .dc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 3px; cursor: pointer;
+  font-family: var(--dc-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none;
+  padding: 14px 26px; min-height: 44px; border: 1px solid transparent;
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.tmpl-deco .dc-btn-sm { padding: 9px 16px; min-height: 36px; font-size: 11px; letter-spacing: 0.14em; }
+.tmpl-deco .dc-btn-block { width: 100%; margin-top: auto; }
+.tmpl-deco .dc-btn-primary {
+  color: var(--dc-ivory); background: var(--dc-emerald);
+  border-color: color-mix(in srgb, var(--dc-emerald) 60%, #000);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dc-gold) 55%, transparent), 0 10px 22px -14px rgba(15, 76, 54, 0.55);
+}
+.tmpl-deco .dc-btn-primary:hover { background: color-mix(in srgb, var(--dc-emerald) 88%, #000); transform: translateY(-1px); }
+.tmpl-deco .dc-btn-primary:active { transform: translateY(0); box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.28); }
+.tmpl-deco .dc-btn-primary:disabled { cursor: not-allowed; opacity: 0.55; transform: none; }
+.tmpl-deco .dc-btn-ghost {
+  color: var(--dc-ink); background: transparent; border-color: color-mix(in srgb, var(--dc-ink) 42%, transparent);
+}
+.tmpl-deco .dc-btn-ghost:hover { border-color: var(--dc-emerald); color: var(--dc-emerald); }
+.tmpl-deco .dc-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: the theatre marquee — dark emerald bar, gold fluted hairlines top
+   + bottom, symmetric layout. Active link marked by a gold step ABOVE the
+   label (shape, not colour alone) + a colour shift. ─────────────────────── */
+.tmpl-deco .dc-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--dc-emerald) 96%, transparent);
+  border-top: 3px solid var(--dc-gold); border-bottom: 1px solid var(--dc-gold-line);
+  box-shadow: 0 12px 26px -20px rgba(0, 0, 0, 0.55);
+}
+.tmpl-deco .dc-nav::after {
+  content: ''; display: block; height: 6px;
+  background: repeating-linear-gradient(90deg, var(--dc-gold) 0 2px, transparent 2px 9px);
+  opacity: 0.5;
+}
+.tmpl-deco .dc-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px; min-height: 72px;
+}
+.tmpl-deco .dc-logo { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--dc-ivory); }
+.tmpl-deco .dc-logo-ring {
+  display: inline-grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--dc-gold); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dc-emerald) 92%, transparent);
+}
+.tmpl-deco .dc-logo-word { font-family: var(--dc-display); font-size: 23px; font-weight: 400; letter-spacing: 0.03em; color: var(--dc-ivory); }
+.tmpl-deco .dc-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-deco .dc-nav-link {
+  position: relative; background: none; border: 0; cursor: pointer;
+  font-family: var(--dc-sans); font-size: 13px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--dc-ivory) 78%, transparent);
+  padding: 12px 15px; transition: color 0.18s ease;
+}
+.tmpl-deco .dc-nav-link::before {
+  content: ''; position: absolute; top: 4px; inset-inline: 50%; width: 0; height: 0;
+  border-inline: 5px solid transparent; border-top: 5px solid var(--dc-gold);
+  transform: translateX(-50%) scaleY(0); transform-origin: top; transition: transform 0.22s ease;
+}
+.tmpl-deco[dir='rtl'] .dc-nav-link::before { transform: translateX(50%) scaleY(0); }
+.tmpl-deco .dc-nav-link:hover { color: var(--dc-ivory); }
+.tmpl-deco .dc-nav-link.is-active { color: var(--dc-ivory); font-weight: 700; }
+.tmpl-deco .dc-nav-link.is-active::before { transform: translateX(-50%) scaleY(1); }
+.tmpl-deco[dir='rtl'] .dc-nav-link.is-active::before { transform: translateX(50%) scaleY(1); }
+.tmpl-deco .dc-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-deco .dc-nav-end .dc-btn-ghost { color: var(--dc-ivory); border-color: color-mix(in srgb, var(--dc-ivory) 45%, transparent); }
+.tmpl-deco .dc-nav-end .dc-btn-ghost:hover { border-color: var(--dc-gold); color: var(--dc-gold); }
+.tmpl-deco .dc-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--dc-ivory); }
+.tmpl-deco .dc-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--dc-emerald); border-bottom: 1px solid var(--dc-gold-line); }
+.tmpl-deco .dc-nav-mobile button, .tmpl-deco .dc-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--dc-sans); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--dc-ivory);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--dc-ivory) 14%, transparent);
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-hero { padding-top: clamp(56px, 8vw, 96px); }
+.tmpl-deco .dc-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-deco .dc-hero-motto { display: flex; align-items: center; gap: 14px; margin: 22px 0 4px; }
+.tmpl-deco .dc-hero-motto-text { font-family: var(--dc-sans); font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dc-muted); max-width: 26ch; }
+.tmpl-deco .dc-hero-sub { color: var(--dc-muted); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 46ch; margin: 20px 0 0; }
+.tmpl-deco .dc-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 0; }
+
+/* Fluted frame around a photo — thin vertical gold flutes top+bottom, like a
+   pilaster mounting, evoking a tipped-in plate in a golden-age brochure. */
+.tmpl-deco .dc-figure { margin: 0; }
+.tmpl-deco .dc-plate-frame {
+  position: relative; background: var(--dc-ivory); padding: 12px;
+  border: 1px solid var(--dc-gold); border-radius: 4px;
+  box-shadow: 0 22px 40px -24px rgba(15, 76, 54, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+.tmpl-deco .dc-plate-frame::before,
+.tmpl-deco .dc-plate-frame::after {
+  content: ''; position: absolute; inset-inline: 12px; height: 8px;
+  background: repeating-linear-gradient(90deg, var(--dc-gold) 0 2px, transparent 2px 7px);
+  opacity: 0.6;
+}
+.tmpl-deco .dc-plate-frame::before { top: 3px; }
+.tmpl-deco .dc-plate-frame::after { bottom: 3px; }
+.tmpl-deco .dc-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 2px; }
+.tmpl-deco .dc-caption { font-family: var(--dc-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dc-muted); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--dc-line); }
+
+/* ── The floor dial (SIGNATURE 1/2) ────────────────────────────────────────
+   .dc-dial-anchor is `position: sticky` with zero height, placed as the
+   FIRST child of <main> so its stick-range spans the whole page — it can
+   never escape the site frame (no `position: fixed` anywhere). The visible
+   case is absolutely positioned inside that zero-height anchor. ──────────── */
+.tmpl-deco .dc-dial-anchor {
+  position: sticky; bottom: 0; height: 0; overflow: visible; z-index: 45; pointer-events: none;
+}
+.tmpl-deco .dc-dial {
+  position: absolute; bottom: 22px; inset-inline-end: 22px; pointer-events: auto;
+  width: 156px; padding: 12px 12px 10px; border-radius: 10px 10px 6px 6px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--dc-gold) 22%, var(--dc-ivory)) 0%, var(--dc-ivory) 60%);
+  border: 1px solid var(--dc-gold);
+  box-shadow: 0 16px 34px -18px rgba(15, 76, 54, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.tmpl-deco .dc-dial-face { display: block; width: 100%; height: auto; overflow: visible; }
+.tmpl-deco .dc-dial-arc { fill: none; stroke: var(--dc-gold); stroke-width: 2; opacity: 0.85; }
+.tmpl-deco .dc-dial-tick { stroke: var(--dc-gold); stroke-width: 1.5; opacity: 0.55; }
+.tmpl-deco .dc-dial-tick.is-major { stroke-width: 2.25; opacity: 0.85; }
+.tmpl-deco .dc-dial-hand {
+  stroke: var(--dc-emerald); stroke-width: 3; stroke-linecap: round;
+  transform: rotate(calc(var(--dc-progress, 0.5) * 180deg - 90deg));
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tmpl-deco .dc-dial-pivot { fill: var(--dc-gold); stroke: var(--dc-emerald); stroke-width: 1.5; }
+.tmpl-deco .dc-dial-readout {
+  margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--dc-gold-line);
+  text-align: center;
+}
+.tmpl-deco .dc-dial-floor { display: block; font-family: var(--dc-sans); font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dc-gold); }
+.tmpl-deco .dc-dial-label { display: block; margin-top: 2px; font-family: var(--dc-display); font-size: 16px; color: var(--dc-ink); line-height: 1.15; }
+
+/* ── Stats: fluted-column separated numerals ───────────────────────────── */
+.tmpl-deco .dc-stats { position: relative; padding: 56px 0; border-top: 1px solid var(--dc-gold-line); border-bottom: 1px solid var(--dc-gold-line); background: var(--dc-band); }
+.tmpl-deco .dc-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 0; }
+.tmpl-deco .dc-stat { text-align: center; padding: 0 18px; position: relative; }
+.tmpl-deco .dc-stat + .dc-stat::before {
+  content: ''; position: absolute; inset-inline-start: 0; top: 6px; bottom: 6px; width: 1px;
+  background: repeating-linear-gradient(180deg, var(--dc-gold) 0 3px, transparent 3px 8px); opacity: 0.55;
+}
+.tmpl-deco[dir='rtl'] .dc-stat + .dc-stat::before { inset-inline-start: auto; inset-inline-end: 0; }
+.tmpl-deco .dc-stat-num {
+  display: block; font-family: var(--dc-display); font-weight: 400;
+  font-size: clamp(2.4rem, 4.6vw, 3.3rem); line-height: 1; color: var(--dc-emerald);
+}
+.tmpl-deco .dc-stat-label { display: block; margin-top: 10px; font-family: var(--dc-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dc-muted); }
+
+/* ── Why (the motoring life) ───────────────────────────────────────────── */
+.tmpl-deco .dc-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; }
+.tmpl-deco .dc-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--dc-gold); background: var(--dc-ivory); color: var(--dc-emerald);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dc-band) 60%, transparent);
+}
+.tmpl-deco .dc-why-title { font-family: var(--dc-display); font-weight: 400; font-size: 25px; line-height: 1.2; margin: 18px 0 0; color: var(--dc-ink); }
+.tmpl-deco .dc-why-body { color: var(--dc-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages: stepped Deco plaques (ziggurat top), popular gets a gold rim */
+.tmpl-deco .dc-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.tmpl-deco .dc-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 34px 28px 28px; border-radius: 4px; background: var(--dc-ivory); border: 1px solid var(--dc-gold-line);
+  box-shadow: 0 14px 28px -22px rgba(15, 76, 54, 0.3);
+}
+.tmpl-deco .dc-pkg::before {
+  content: ''; position: absolute; top: -1px; inset-inline-start: 50%; transform: translateX(-50%);
+  width: 46px; height: 10px;
+  background:
+    linear-gradient(var(--dc-gold), var(--dc-gold)) 50% 0 / 26px 5px no-repeat,
+    linear-gradient(var(--dc-gold), var(--dc-gold)) 50% 5px / 40px 5px no-repeat;
+  opacity: 0.8;
+}
+.tmpl-deco .dc-pkg.is-popular { border-color: var(--dc-emerald); box-shadow: inset 0 0 0 1px var(--dc-emerald), 0 18px 32px -20px rgba(15, 76, 54, 0.45); }
+.tmpl-deco .dc-pkg.is-popular::before { background: linear-gradient(var(--dc-emerald), var(--dc-emerald)) 50% 0 / 26px 5px no-repeat, linear-gradient(var(--dc-emerald), var(--dc-emerald)) 50% 5px / 40px 5px no-repeat; }
+.tmpl-deco .dc-pkg-badge { display: inline-block; margin-bottom: 16px; font-family: var(--dc-sans); font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dc-emerald); }
+.tmpl-deco .dc-pkg-name { margin: 0; font-family: var(--dc-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dc-muted); }
+.tmpl-deco .dc-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.tmpl-deco .dc-pkg-amount { font-family: var(--dc-display); font-weight: 400; font-size: 46px; line-height: 1; color: var(--dc-ink); }
+.tmpl-deco .dc-pkg-unit { font-family: var(--dc-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+.tmpl-deco .dc-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px dashed var(--dc-gold-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-deco .dc-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--dc-ink); }
+.tmpl-deco .dc-check { color: var(--dc-emerald); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ──────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-deco .dc-about-img { aspect-ratio: 4 / 5; }
+.tmpl-deco .dc-instructor { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--dc-line); }
+.tmpl-deco .dc-instructor-photo { width: 136px; height: 136px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--dc-gold); }
+.tmpl-deco .dc-instructor-id { min-width: 0; }
+.tmpl-deco .dc-instructor-name { margin: 0; font-family: var(--dc-display); font-weight: 400; font-size: 23px; line-height: 1.2; color: var(--dc-ink); }
+.tmpl-deco .dc-instructor-title { margin: 4px 0 0; font-family: var(--dc-sans); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+.tmpl-deco .dc-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-deco .dc-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--dc-ink); }
+.tmpl-deco .dc-checklist .dc-check { margin-top: 3px; }
+.tmpl-deco .dc-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-deco .dc-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 20px;
+  border: 1px solid var(--dc-gold); font-family: var(--dc-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-ink); background: var(--dc-band);
+}
+.tmpl-deco .dc-cred svg { color: var(--dc-emerald); flex-shrink: 0; }
+
+/* ── Areas: a two-column ruled index with gold dotted leaders ─────────────── */
+.tmpl-deco .dc-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--dc-line); }
+.tmpl-deco .dc-area { display: flex; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--dc-line); }
+.tmpl-deco .dc-area-name { font-family: var(--dc-sans); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dc-ink); flex-shrink: 0; }
+.tmpl-deco .dc-leader { flex: 1; min-width: 16px; margin: 0 10px; border-bottom: 1px dotted var(--dc-gold); transform: translateY(-3px); }
+.tmpl-deco .dc-area-note { font-family: var(--dc-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; color: var(--dc-muted); flex-shrink: 0; text-align: end; }
+
+/* ── Reviews ────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-reviews { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-deco .dc-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 4px; background: var(--dc-ivory);
+  border: 1px solid var(--dc-gold-line); height: 100%; overflow: hidden;
+  box-shadow: 0 12px 24px -22px rgba(15, 76, 54, 0.28);
+}
+.tmpl-deco .dc-quote-mark { position: absolute; top: 4px; inset-inline-end: 18px; font-family: var(--dc-display); font-size: 58px; line-height: 1; color: color-mix(in srgb, var(--dc-gold) 55%, transparent); pointer-events: none; }
+.tmpl-deco .dc-stars { display: inline-flex; gap: 2px; position: relative; }
+.tmpl-deco .dc-review-text {
+  font-family: var(--dc-display); font-size: 19px; line-height: 1.5;
+  color: var(--dc-ink); margin: 16px 0 20px; padding-top: 16px;
+  border-top: 1px dashed var(--dc-gold-line);
+}
+.tmpl-deco .dc-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--dc-line); }
+.tmpl-deco .dc-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--dc-gold); }
+.tmpl-deco .dc-review-name { margin: 0; font-family: var(--dc-sans); font-weight: 700; font-size: 14px; color: var(--dc-ink); }
+.tmpl-deco .dc-review-sub { margin: 2px 0 0; font-family: var(--dc-sans); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+
+/* ── Gallery ────────────────────────────────────────────────────────────── */
+.tmpl-deco .dc-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tmpl-deco .dc-gallery-cell { background: var(--dc-ivory); border: 1px solid var(--dc-gold-line); padding: 6px; border-radius: 3px; box-shadow: 0 12px 22px -20px rgba(15, 76, 54, 0.3); }
+.tmpl-deco .dc-gallery-cell img { width: 100%; height: 220px; object-fit: cover; border-radius: 1px; }
+
+/* ── FAQ: ruled rows ───────────────────────────────────────────────────── */
+.tmpl-deco .dc-faq-wrap { max-width: 780px; }
+.tmpl-deco .dc-faq-list { border-top: 1px solid var(--dc-line); }
+.tmpl-deco .dc-faq-item { border-bottom: 1px solid var(--dc-line); }
+.tmpl-deco .dc-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--dc-display); font-weight: 400; font-size: 21px; line-height: 1.25;
+  color: var(--dc-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-deco .dc-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--dc-gold); color: var(--dc-emerald); }
+.tmpl-deco .dc-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-deco .dc-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-deco .dc-faq-panel-in { overflow: hidden; }
+.tmpl-deco .dc-faq-panel p { color: var(--dc-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book: the formal invitation panel ─────────────────────────────────── */
+.tmpl-deco .dc-book {
+  position: relative; max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 64px 44px; border-radius: 6px; background: var(--dc-ivory); border: 1px solid var(--dc-gold);
+  box-shadow: inset 0 0 0 5px var(--dc-band), inset 0 0 0 6px var(--dc-gold-line), 0 20px 40px -26px rgba(15, 76, 54, 0.4);
+}
+.tmpl-deco .dc-book .dc-plate { text-align: center; }
+.tmpl-deco .dc-book .dc-h2 { max-width: none; }
+.tmpl-deco .dc-book .dc-lead { margin-inline: auto; }
+.tmpl-deco .dc-book-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
+
+/* ── Footer / Contact ──────────────────────────────────────────────────── */
+.tmpl-deco .dc-footer { position: relative; padding: 80px 0 40px; background: var(--dc-emerald); color: var(--dc-ivory); }
+.tmpl-deco .dc-footer::before { content: ''; display: block; height: 4px; background: var(--dc-gold); }
+.tmpl-deco .dc-footer .dc-eyebrow { color: var(--dc-gold); }
+.tmpl-deco .dc-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; padding-top: 40px; }
+.tmpl-deco .dc-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-deco .dc-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--dc-ivory); text-decoration: none; font-size: 15px; }
+.tmpl-deco .dc-contact-link svg { color: var(--dc-gold); flex-shrink: 0; }
+.tmpl-deco .dc-contact-link:hover { color: var(--dc-gold); }
+.tmpl-deco .dc-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-deco .dc-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 50%; border: 1px solid var(--dc-gold-line); color: var(--dc-ivory);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.tmpl-deco .dc-social:hover { color: var(--dc-gold); border-color: var(--dc-gold); }
+.tmpl-deco .dc-social:active { transform: translateY(1px); }
+.tmpl-deco .dc-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-deco .dc-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid color-mix(in srgb, var(--dc-ivory) 16%, transparent); color: var(--dc-ivory); }
+.tmpl-deco .dc-hours td:last-child { text-align: end; font-family: var(--dc-sans); font-size: 12px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--dc-ivory) 70%, transparent); font-variant-numeric: tabular-nums; }
+.tmpl-deco .dc-hours tr.is-closed td { color: color-mix(in srgb, var(--dc-ivory) 55%, transparent); }
+.tmpl-deco .dc-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--dc-ivory) 16%, transparent);
+  font-family: var(--dc-sans); font-size: 10.5px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--dc-ivory) 68%, transparent);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-deco .dc-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-deco .dc-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-deco .dc-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-deco .dc-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-deco .dc-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-deco .dc-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-deco .dc-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-deco .dc-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-deco .dc-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-deco .dc-nav-links { display: flex; }
+  .tmpl-deco .dc-menu { display: none; }
+}
+@media (max-width: 520px) {
+  .tmpl-deco .dc-nav-end .dc-btn-ghost { display: none; }
+  .tmpl-deco .dc-section { padding: 76px 0; }
+  .tmpl-deco .dc-stats { padding: 48px 0; }
+  .tmpl-deco .dc-book { padding: 44px 24px; }
+  .tmpl-deco .dc-instructor-photo { width: 104px; height: 104px; }
+  .tmpl-deco .dc-quote-mark { font-size: 46px; }
+  .tmpl-deco .dc-dial { width: 128px; padding: 10px 10px 8px; }
+  .tmpl-deco .dc-dial-label { font-size: 13px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-deco .dc-btn,
+  .tmpl-deco .dc-btn-sm,
+  .tmpl-deco .dc-social,
+  .tmpl-deco .dc-nav-link,
+  .tmpl-deco .dc-nav-mobile button,
+  .tmpl-deco .dc-nav-mobile-link { min-height: 44px; }
+  .tmpl-deco .dc-social { min-width: 44px; }
+}
+/* Reduced motion: fans stay in their settled/open state, no unfold; the dial
+   hand is parked (its --dc-progress var is set once, statically, by JS) and
+   the CSS transition on the hand is removed so it never animates. */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-deco .dc-fan { transition: none; opacity: 0.4; transform: scale(1) rotate(0deg); }
+  .tmpl-deco .dc-dial-hand { transition: none; }
+  .tmpl-deco .dc-btn:active, .tmpl-deco .dc-social:active, .tmpl-deco .dc-btn-primary:hover { transform: none; }
+  .tmpl-deco .dc-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned decorations need flipping
+   (everything else uses logical properties). ─────────────────────────────── */
+.tmpl-deco[dir='rtl'] .dc-quote-mark { inset-inline-end: auto; inset-inline-start: 18px; }
+
+/* Instructor reply to a review (GLOBAL — matches other templates' pattern) */
+.dc-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.dc-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

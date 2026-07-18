@@ -1,0 +1,486 @@
+/* Nocturne — celestial night-drive navigation. All selectors scoped to
+   .tmpl-nocturne. Deep midnight indigo, warm brass-gold starlight, ivory type.
+   The device is THE COURSE: a thin gold constellation line draws itself down
+   the page as you scroll, threading a waypoint "star" at every section — each
+   one lighting up as it's reached — over a slow, three-depth parallax
+   starfield, with a small meteor streak catching each heading as it comes
+   into view and a compass rose by the logo/hero. ONE accent (--nc-accent,
+   brass gold) → CTAs / links / active states / the course line / lit stars.
+   First 5 vars are user-recolourable (COLOR_SLOTS); the rest are internal.
+
+   SIGNATURE ⚠ CONSTRAINT: nothing below is `position: fixed`. Every
+   decorative layer (.nc-starfield, .nc-course-svg) is `position: absolute`
+   inside the `position: relative` root, so it scrolls as part of the normal
+   page flow and can never escape the builder's in-page preview frame. All of
+   it is driven by a single custom property, --nc-progress (0..1), written
+   once a frame by index.tsx's useCourseProgress hook — the course line's
+   stroke-dashoffset, each waypoint star's lit-opacity and the starfield's
+   parallax offsets are pure CSS calc()/clamp() off that one variable.
+
+   CONTRAST (verified, sRGB WCAG relative-luminance formula):
+     ink     #F4F1E8 on bg    #0A0E1E  ≈ 17.0:1  ✓ (AAA)
+     ink     #F4F1E8 on panel #121A33  ≈ 15.2:1  ✓ (AAA)
+     accent  #C9A227 on bg    #0A0E1E  ≈  7.9:1  ✓ (AAA — safe for small text)
+     accent  #C9A227 on panel #121A33  ≈  7.1:1  ✓ (AAA)
+     bg (as text) on accent (as fill) ≈  7.9:1  ✓ (dark ink on gold buttons)
+     star    #8892B0 on bg    #0A0E1E  ≈  6.2:1  ✓ (secondary text/hairlines)
+     muted   #A9B2CC on bg    #0A0E1E  ≈  9.1:1  ✓ (internal — body copy)
+   All five pairs clear 4.5:1 with room to spare, so gold is used for BOTH
+   large graphic elements (course line, compass needle) AND small text
+   (eyebrows, CTAs) without restriction. */
+
+.tmpl-nocturne {
+  /* User-recolourable (COLOR_SLOTS) */
+  --nc-bg: #0A0E1E;      /* midnight indigo — page background */
+  --nc-ink: #F4F1E8;     /* warm ivory — primary text */
+  --nc-accent: #C9A227;  /* brass/gold starlight — the ONE accent */
+  --nc-panel: #121A33;   /* a deeper navy — cards, bands, the sticky nav */
+  --nc-star: #8892B0;    /* muted slate-blue — hairlines, unlit stars, secondary UI */
+  /* Internal — NOT user-recolourable */
+  --nc-muted: #A9B2CC;   /* body/secondary text — lighter than --nc-star for legibility */
+  --nc-line: rgba(244, 241, 232, 0.12);
+  --nc-progress: 0;      /* written every scroll frame by useCourseProgress (JS) */
+
+  --nc-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --nc-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --nc-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  position: relative;
+  background-color: var(--nc-bg);
+  background-image: radial-gradient(120% 55% at 50% -8%, color-mix(in srgb, var(--nc-panel) 65%, transparent), transparent 72%);
+  color: var(--nc-ink);
+  font-family: var(--nc-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-nocturne *, .tmpl-nocturne *::before, .tmpl-nocturne *::after { box-sizing: border-box; }
+.tmpl-nocturne img { display: block; max-width: 100%; }
+.tmpl-nocturne :focus-visible { outline: 2px solid var(--nc-accent); outline-offset: 3px; }
+
+/* Content sits in its own stacking context, above the decorative planes. */
+.tmpl-nocturne .nc-content { position: relative; z-index: 3; }
+
+/* ── SIGNATURE: the parallax starfield — three depth layers, translate-only
+   (never scale/filter, so nothing re-rasterizes on scroll), absolute (never
+   fixed) so they scroll with the page instead of pinning to the viewport. ── */
+.tmpl-nocturne .nc-starfield { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.tmpl-nocturne .nc-star-layer { position: absolute; inset: -12% -6%; background-repeat: repeat; will-change: transform; }
+.tmpl-nocturne .nc-star-layer-1 {
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(244, 241, 232, 0.9), transparent 60%),
+    radial-gradient(1.3px 1.3px at 62% 42%, rgba(244, 241, 232, 0.75), transparent 60%),
+    radial-gradient(1.5px 1.5px at 34% 74%, rgba(244, 241, 232, 0.85), transparent 60%),
+    radial-gradient(1.2px 1.2px at 84% 86%, rgba(244, 241, 232, 0.7), transparent 60%);
+  background-size: 340px 340px;
+  opacity: 0.85;
+  transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -170px));
+  animation: nc-drift-twinkle 6s ease-in-out infinite;
+}
+.tmpl-nocturne .nc-star-layer-2 {
+  background-image:
+    radial-gradient(1.1px 1.1px at 22% 30%, rgba(168, 176, 204, 0.65), transparent 60%),
+    radial-gradient(1px 1px at 70% 20%, rgba(168, 176, 204, 0.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 48% 68%, rgba(168, 176, 204, 0.6), transparent 60%),
+    radial-gradient(0.9px 0.9px at 90% 55%, rgba(168, 176, 204, 0.5), transparent 60%);
+  background-size: 260px 260px;
+  opacity: 0.65;
+  transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -100px));
+  animation: nc-drift-twinkle 8s ease-in-out infinite 1.2s;
+}
+.tmpl-nocturne .nc-star-layer-3 {
+  background-image:
+    radial-gradient(0.8px 0.8px at 15% 45%, rgba(136, 146, 176, 0.55), transparent 60%),
+    radial-gradient(0.7px 0.7px at 55% 15%, rgba(136, 146, 176, 0.5), transparent 60%),
+    radial-gradient(0.9px 0.9px at 78% 70%, rgba(136, 146, 176, 0.5), transparent 60%),
+    radial-gradient(0.6px 0.6px at 30% 90%, rgba(136, 146, 176, 0.45), transparent 60%);
+  background-size: 460px 460px;
+  opacity: 0.5;
+  transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -40px));
+}
+@keyframes nc-drift-twinkle { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+
+/* ── SIGNATURE: the course — a self-drawing constellation line. Absolute
+   (never fixed), 40px wide, spans the whole document height (top:0;bottom:0
+   inside the relative root resolves against the root's in-flow content
+   height, so no explicit height is needed and nothing pins to the viewport).
+   ── */
+.tmpl-nocturne .nc-course-svg {
+  position: absolute; inset-block: 0; inset-inline-start: 46px; width: 40px;
+  z-index: 1; pointer-events: none; opacity: 0.95; display: none;
+}
+.tmpl-nocturne .nc-course-path {
+  fill: none; stroke: var(--nc-accent); stroke-width: 1.4;
+  stroke-dasharray: 1 1; stroke-dashoffset: calc(1 - var(--nc-progress, 0));
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--nc-accent) 55%, transparent));
+}
+.tmpl-nocturne .nc-star-dim { fill: var(--nc-star); opacity: 0.4; }
+.tmpl-nocturne .nc-star-bright {
+  fill: var(--nc-accent);
+  opacity: clamp(0, calc((var(--nc-progress, 0) - var(--nc-t, 0)) * 999), 1);
+  filter: drop-shadow(0 0 4px var(--nc-accent));
+  transition: opacity 0.4s ease;
+}
+.tmpl-nocturne .nc-field-star { fill: var(--nc-star); opacity: 0.5; animation: nc-twinkle 4.5s ease-in-out infinite; }
+.tmpl-nocturne .nc-field-line { stroke: var(--nc-star); stroke-width: 0.5; opacity: 0.2; }
+@keyframes nc-twinkle { 0%, 100% { opacity: 0.28; } 50% { opacity: 0.75; } }
+
+/* ── SIGNATURE: the meteor — a heading catches a streak of light the first
+   time it scrolls into view, then settles into a soft permanent starlit
+   glow. The heading stays a real editable element; only the wrapper + a
+   pseudo-element animate. ── */
+.tmpl-nocturne .nc-meteor { position: relative; display: block; }
+.tmpl-nocturne .nc-meteor::after {
+  content: ''; position: absolute; top: -8%; inset-inline-end: -4%;
+  width: 42%; height: 2px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--nc-accent) 55%, #fff 85%, transparent);
+  filter: drop-shadow(0 0 4px var(--nc-accent));
+  opacity: 0; transform: translate(120%, -130%) rotate(-40deg) scaleX(0.25);
+}
+.tmpl-nocturne .nc-meteor.is-lit::after { animation: nc-meteor-streak 900ms cubic-bezier(0.22, 0.9, 0.25, 1) both; }
+@keyframes nc-meteor-streak {
+  0% { opacity: 0; transform: translate(120%, -130%) rotate(-40deg) scaleX(0.25); }
+  28% { opacity: 1; }
+  75% { opacity: 0.45; }
+  100% { opacity: 0; transform: translate(-30%, 55%) rotate(-40deg) scaleX(1); }
+}
+.tmpl-nocturne .nc-meteor .nc-h1, .tmpl-nocturne .nc-meteor .nc-h2 { transition: text-shadow 700ms ease; }
+.tmpl-nocturne .nc-meteor.is-lit .nc-h1, .tmpl-nocturne .nc-meteor.is-lit .nc-h2 {
+  text-shadow: 0 0 26px color-mix(in srgb, var(--nc-accent) 38%, transparent), 0 0 2px color-mix(in srgb, var(--nc-accent) 22%, transparent);
+}
+
+/* ── The compass rose — cardinal ticks around a ring, a brass needle that
+   gently settles as though finding true north. ── */
+.tmpl-nocturne .nc-compass { color: var(--nc-star); flex-shrink: 0; }
+.tmpl-nocturne .nc-compass-needle { transform-origin: 20px 20px; animation: nc-needle-settle 7s ease-in-out infinite; }
+@keyframes nc-needle-settle { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.tmpl-nocturne .nc-logo-compass { margin-inline-start: 1px; }
+.tmpl-nocturne .nc-compass-row { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+.tmpl-nocturne .nc-compass-motto { font-family: var(--nc-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--nc-muted); max-width: 24ch; text-transform: uppercase; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-wrap { position: relative; z-index: 2; width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-nocturne .nc-section { position: relative; padding: 116px 0; }
+.tmpl-nocturne .nc-band { background: var(--nc-panel); }
+.tmpl-nocturne .nc-head { margin-bottom: 52px; max-width: 760px; }
+
+/* Margin "star mark" — decorative chart annotation of the section order. */
+.tmpl-nocturne .nc-mark {
+  display: none; position: absolute; top: 28px; inset-inline-start: 40px; z-index: 2;
+  align-items: center; gap: 6px; font-family: var(--nc-mono); font-size: 10.5px;
+  font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--nc-star);
+}
+.tmpl-nocturne .nc-mark-n { color: var(--nc-accent); font-weight: 700; }
+.tmpl-nocturne .nc-mark-sep { opacity: 0.5; }
+
+/* ── Type ───────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-h1 {
+  font-family: var(--nc-serif); font-weight: 600; font-style: normal;
+  font-size: clamp(2.9rem, 6.2vw, 4.9rem); line-height: 1.04; letter-spacing: -0.01em;
+  margin: 16px 0 0; max-width: 15ch; color: var(--nc-ink);
+}
+.tmpl-nocturne .nc-h2 {
+  font-family: var(--nc-serif); font-weight: 600;
+  font-size: clamp(2.1rem, 4.2vw, 3.15rem); line-height: 1.08; letter-spacing: -0.008em;
+  margin: 14px 0 0; max-width: 20ch; color: var(--nc-ink);
+}
+.tmpl-nocturne .nc-h2-tight { max-width: 15ch; }
+.tmpl-nocturne .nc-h1, .tmpl-nocturne .nc-h2 { overflow-wrap: break-word; }
+.tmpl-nocturne .nc-eyebrow {
+  font-family: var(--nc-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--nc-accent); margin: 0 0 12px;
+}
+.tmpl-nocturne .nc-lead { color: var(--nc-muted); font-size: clamp(1rem, 1.5vw, 1.12rem); max-width: 56ch; margin: 16px 0 0; }
+.tmpl-nocturne .nc-body { color: var(--nc-muted); font-size: 16px; line-height: 1.7; margin: 16px 0 0; max-width: 60ch; }
+
+/* ── Buttons: brass pills — dark ink on gold for the primary, ivory outline
+   for the ghost. ── */
+.tmpl-nocturne .nc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; cursor: pointer;
+  font-family: var(--nc-sans); font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+  text-decoration: none; padding: 13px 24px; min-height: 44px; border: 1px solid transparent;
+  transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.tmpl-nocturne .nc-btn-sm { padding: 9px 16px; min-height: 36px; font-size: 12px; }
+.tmpl-nocturne .nc-btn-block { width: 100%; margin-top: auto; }
+.tmpl-nocturne .nc-btn-primary {
+  color: var(--nc-bg); background: var(--nc-accent);
+  box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--nc-accent) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.tmpl-nocturne .nc-btn-primary:hover { background: color-mix(in srgb, var(--nc-accent) 90%, #fff 10%); transform: translateY(-1px); }
+.tmpl-nocturne .nc-btn-primary:active { transform: translateY(0); }
+.tmpl-nocturne .nc-btn-primary:disabled { cursor: not-allowed; opacity: 0.5; }
+.tmpl-nocturne .nc-btn-primary:disabled:hover { transform: none; background: var(--nc-accent); }
+.tmpl-nocturne .nc-btn-ghost {
+  color: var(--nc-ink); background: transparent;
+  border-color: color-mix(in srgb, var(--nc-ink) 30%, transparent);
+}
+.tmpl-nocturne .nc-btn-ghost:hover { border-color: var(--nc-accent); color: var(--nc-accent); }
+.tmpl-nocturne .nc-btn-ghost:active { transform: translateY(1px); }
+
+/* ── Nav: constellation points connected by a faint line; active = a lit
+   star + a thin gold arc (colour AND shape, never colour alone). ─────────── */
+.tmpl-nocturne .nc-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--nc-bg) 84%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--nc-line);
+}
+.tmpl-nocturne .nc-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px; min-height: 70px;
+}
+.tmpl-nocturne .nc-logo { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--nc-ink); }
+.tmpl-nocturne .nc-logo-word { font-family: var(--nc-serif); font-size: 21px; font-weight: 600; letter-spacing: 0.01em; color: var(--nc-ink); }
+.tmpl-nocturne .nc-nav-links { position: relative; display: none; align-items: center; gap: 2px; }
+.tmpl-nocturne .nc-nav-links::before {
+  content: ''; position: absolute; inset-inline: 16px; top: 50%; height: 1px; z-index: -1;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--nc-star) 50%, transparent), transparent);
+}
+.tmpl-nocturne .nc-nav-link {
+  position: relative; display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--nc-sans); font-size: 14px; font-weight: 500;
+  color: color-mix(in srgb, var(--nc-ink) 74%, var(--nc-bg));
+  padding: 11px 14px; transition: color 0.2s ease;
+}
+.tmpl-nocturne .nc-nav-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--nc-star); transition: background 0.2s ease, box-shadow 0.2s ease; }
+.tmpl-nocturne .nc-nav-arc {
+  position: absolute; inset-inline: 14px; bottom: 6px; height: 6px;
+  border-bottom: 2px solid var(--nc-accent); border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  transform: scaleX(0); transform-origin: center; opacity: 0;
+  transition: transform 0.26s cubic-bezier(0.2, 0.85, 0.2, 1), opacity 0.2s ease;
+}
+.tmpl-nocturne .nc-nav-link:hover { color: var(--nc-ink); }
+.tmpl-nocturne .nc-nav-link:hover .nc-nav-dot { box-shadow: 0 0 6px color-mix(in srgb, var(--nc-star) 70%, transparent); }
+.tmpl-nocturne .nc-nav-link.is-active { color: var(--nc-ink); font-weight: 700; }
+.tmpl-nocturne .nc-nav-link.is-active .nc-nav-dot { background: var(--nc-accent); box-shadow: 0 0 8px var(--nc-accent); }
+.tmpl-nocturne .nc-nav-link.is-active .nc-nav-arc { transform: scaleX(1); opacity: 1; }
+.tmpl-nocturne .nc-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-nocturne .nc-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--nc-ink); }
+.tmpl-nocturne .nc-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--nc-bg); border-bottom: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-nav-mobile button, .tmpl-nocturne .nc-nav-mobile-link {
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--nc-sans); font-size: 14px; font-weight: 600; color: var(--nc-ink);
+  padding: 12px 4px; min-height: 44px; display: flex; align-items: center;
+  border-bottom: 1px solid var(--nc-line);
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-hero { padding-top: clamp(56px, 8vw, 96px); }
+.tmpl-nocturne .nc-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-nocturne .nc-hero-sub { color: var(--nc-muted); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 44ch; margin: 20px 0 0; }
+.tmpl-nocturne .nc-hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0 0; }
+.tmpl-nocturne .nc-figure { margin: 0; }
+.tmpl-nocturne .nc-plate { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 34px 64px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px var(--nc-line); }
+.tmpl-nocturne .nc-plate-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; filter: saturate(0.92) brightness(0.94); }
+.tmpl-nocturne .nc-plate-glow {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(120% 65% at 50% 102%, color-mix(in srgb, var(--nc-accent) 26%, transparent), transparent 70%);
+}
+.tmpl-nocturne .nc-caption { font-family: var(--nc-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--nc-muted); margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--nc-line); }
+
+/* ── Stats ──────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-stats { position: relative; padding: 56px 0; border-top: 1px solid var(--nc-line); border-bottom: 1px solid var(--nc-line); background: var(--nc-panel); }
+.tmpl-nocturne .nc-stats-row { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
+.tmpl-nocturne .nc-stat-num {
+  display: block; font-family: var(--nc-serif); font-weight: 600;
+  font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1; color: var(--nc-ink);
+  padding-bottom: 12px; border-bottom: 1px solid var(--nc-accent);
+}
+.tmpl-nocturne .nc-stat-label { display: block; margin-top: 12px; font-family: var(--nc-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--nc-muted); }
+
+/* ── Why ────────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; }
+.tmpl-nocturne .nc-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 12px;
+  border: 1px solid var(--nc-line); background: var(--nc-panel); color: var(--nc-accent);
+}
+.tmpl-nocturne .nc-why-title { font-family: var(--nc-serif); font-weight: 600; font-size: 23px; line-height: 1.2; margin: 18px 0 0; color: var(--nc-ink); }
+.tmpl-nocturne .nc-why-body { color: var(--nc-muted); font-size: 15px; margin: 8px 0 0; max-width: 36ch; }
+
+/* ── Packages ───────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-nocturne .nc-pkg {
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 30px; border-radius: 20px; background: var(--nc-panel); border: 1px solid var(--nc-line);
+  box-shadow: 0 20px 44px -30px rgba(0, 0, 0, 0.6);
+}
+.tmpl-nocturne .nc-pkg.is-popular { border-color: var(--nc-accent); box-shadow: 0 0 0 1px var(--nc-accent), 0 24px 50px -28px color-mix(in srgb, var(--nc-accent) 45%, transparent); }
+.tmpl-nocturne .nc-pkg-badge-row { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; }
+.tmpl-nocturne .nc-pkg-badge { font-family: var(--nc-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--nc-accent); }
+.tmpl-nocturne .nc-pkg-name { margin: 0; font-family: var(--nc-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--nc-muted); }
+.tmpl-nocturne .nc-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-nocturne .nc-pkg-amount { font-family: var(--nc-serif); font-weight: 600; font-size: 46px; line-height: 1; color: var(--nc-ink); }
+.tmpl-nocturne .nc-pkg-unit { font-family: var(--nc-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--nc-muted); }
+.tmpl-nocturne .nc-pkg-features { list-style: none; margin: 22px 0 26px; padding: 22px 0 0; border-top: 1px solid var(--nc-line); display: flex; flex-direction: column; gap: 11px; }
+.tmpl-nocturne .nc-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: var(--nc-ink); }
+.tmpl-nocturne .nc-check { color: var(--nc-accent); flex-shrink: 0; margin-top: 3px; }
+
+/* ── About ──────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-nocturne .nc-about-img { aspect-ratio: 4 / 5; }
+.tmpl-nocturne .nc-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-instructor-photo { width: 128px; height: 128px; border-radius: 16px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-instructor-id { min-width: 0; }
+.tmpl-nocturne .nc-instructor-name { margin: 0; font-family: var(--nc-serif); font-weight: 600; font-size: 22px; line-height: 1.2; color: var(--nc-ink); }
+.tmpl-nocturne .nc-instructor-title { margin: 4px 0 0; font-family: var(--nc-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--nc-muted); }
+.tmpl-nocturne .nc-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.tmpl-nocturne .nc-checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; color: var(--nc-ink); }
+.tmpl-nocturne .nc-star-bullet {
+  color: var(--nc-accent); flex-shrink: 0; line-height: 1; font-size: 13px; margin-top: 3px;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--nc-accent) 55%, transparent);
+}
+.tmpl-nocturne .nc-star-bullet-sm { font-size: 10px; margin-top: 1px; }
+.tmpl-nocturne .nc-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-nocturne .nc-cred {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--nc-line); background: var(--nc-panel);
+  font-family: var(--nc-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--nc-ink);
+}
+
+/* ── Areas ──────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-areas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-area { display: flex; align-items: baseline; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-area-name { font-family: var(--nc-sans); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--nc-ink); flex-shrink: 0; }
+.tmpl-nocturne .nc-leader { flex: 1; min-width: 16px; margin: 0 10px; border-bottom: 1px dotted color-mix(in srgb, var(--nc-star) 60%, transparent); transform: translateY(-3px); }
+.tmpl-nocturne .nc-area-note { font-family: var(--nc-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.04em; color: var(--nc-muted); flex-shrink: 0; text-align: end; }
+
+/* ── Reviews ────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-reviews { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.tmpl-nocturne .nc-review {
+  position: relative; padding: 30px 28px 26px; border-radius: 20px; background: var(--nc-panel);
+  border: 1px solid var(--nc-line); height: 100%; overflow: hidden;
+}
+.tmpl-nocturne .nc-quote-mark { position: absolute; top: 2px; inset-inline-end: 20px; font-family: var(--nc-serif); font-size: 60px; line-height: 1; color: color-mix(in srgb, var(--nc-accent) 30%, transparent); pointer-events: none; }
+.tmpl-nocturne .nc-stars { display: inline-flex; gap: 2px; position: relative; }
+.tmpl-nocturne .nc-review-text {
+  font-family: var(--nc-serif); font-size: 19px; line-height: 1.5; font-style: italic;
+  color: var(--nc-ink); margin: 16px 0 20px; padding-top: 16px; border-top: 1px solid var(--nc-line);
+}
+.tmpl-nocturne .nc-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-review-name { margin: 0; font-family: var(--nc-sans); font-weight: 700; font-size: 14px; color: var(--nc-ink); }
+.tmpl-nocturne .nc-review-sub { margin: 2px 0 0; font-family: var(--nc-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--nc-muted); }
+
+/* ── Gallery ────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tmpl-nocturne .nc-gallery-cell { border-radius: 16px; overflow: hidden; border: 1px solid var(--nc-line); box-shadow: 0 16px 34px -26px rgba(0, 0, 0, 0.6); }
+.tmpl-nocturne .nc-gallery-cell img { width: 100%; height: 220px; object-fit: cover; filter: saturate(0.92) brightness(0.95); }
+
+/* ── FAQ ────────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-faq-wrap { max-width: 780px; }
+.tmpl-nocturne .nc-faq-list { border-top: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-faq-item { border-bottom: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-family: var(--nc-serif); font-weight: 600; font-size: 20px; line-height: 1.25;
+  color: var(--nc-ink); padding: 22px 0; min-height: 44px;
+}
+.tmpl-nocturne .nc-faq-ic { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--nc-line); color: var(--nc-accent); }
+.tmpl-nocturne .nc-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease; }
+.tmpl-nocturne .nc-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 22px; }
+.tmpl-nocturne .nc-faq-panel-in { overflow: hidden; }
+.tmpl-nocturne .nc-faq-panel p { color: var(--nc-muted); font-size: 15.5px; margin: 0; max-width: 62ch; }
+
+/* ── Book ───────────────────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-book {
+  position: relative; max-width: 680px; margin: 0 auto; text-align: center;
+  padding: 60px 40px; border-radius: 26px; background: var(--nc-panel); border: 1px solid var(--nc-line);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.75);
+}
+.tmpl-nocturne .nc-book .nc-compass { margin: 0 auto 18px; display: block; }
+.tmpl-nocturne .nc-book .nc-h2 { max-width: none; }
+.tmpl-nocturne .nc-book .nc-lead { margin-inline: auto; }
+.tmpl-nocturne .nc-book-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
+
+/* ── Footer / Contact ──────────────────────────────────────────────────── */
+.tmpl-nocturne .nc-footer { position: relative; padding: 80px 0 40px; border-top: 1px solid var(--nc-line); }
+.tmpl-nocturne .nc-footer-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.tmpl-nocturne .nc-contact-info { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.tmpl-nocturne .nc-contact-link { display: inline-flex; align-items: center; gap: 10px; color: var(--nc-ink); text-decoration: none; font-size: 15px; }
+.tmpl-nocturne .nc-contact-link svg { color: var(--nc-accent); flex-shrink: 0; }
+.tmpl-nocturne .nc-contact-link:hover { color: var(--nc-accent); }
+.tmpl-nocturne .nc-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tmpl-nocturne .nc-social {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 50%; border: 1px solid var(--nc-line); color: var(--nc-ink);
+  transition: color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.tmpl-nocturne .nc-social:hover { color: var(--nc-accent); border-color: var(--nc-accent); }
+.tmpl-nocturne .nc-social:active { transform: translateY(1px); }
+.tmpl-nocturne .nc-hours { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.tmpl-nocturne .nc-hours td { padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--nc-line); color: var(--nc-ink); }
+.tmpl-nocturne .nc-hours td:last-child { text-align: end; font-family: var(--nc-mono); font-size: 12px; letter-spacing: 0.02em; color: var(--nc-muted); font-variant-numeric: tabular-nums; }
+.tmpl-nocturne .nc-hours tr.is-closed td { color: var(--nc-muted); }
+.tmpl-nocturne .nc-footer-bottom {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between;
+  margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--nc-line);
+  font-family: var(--nc-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--nc-muted);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width: 720px) {
+  .tmpl-nocturne .nc-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-nocturne .nc-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-nocturne .nc-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-nocturne .nc-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-nocturne .nc-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-nocturne .nc-areas { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+  .tmpl-nocturne .nc-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-nocturne .nc-about { grid-template-columns: 0.82fr 1.18fr; }
+  .tmpl-nocturne .nc-footer-grid { grid-template-columns: 1.4fr 1fr; }
+  .tmpl-nocturne .nc-mark { display: flex; }
+  .tmpl-nocturne .nc-course-svg { display: block; }
+}
+@media (min-width: 940px) {
+  .tmpl-nocturne .nc-nav-links { display: flex; }
+  .tmpl-nocturne .nc-menu { display: none; }
+}
+@media (max-width: 520px) {
+  .tmpl-nocturne .nc-nav-end .nc-btn-ghost { display: none; }
+  .tmpl-nocturne .nc-section { padding: 76px 0; }
+  .tmpl-nocturne .nc-stats { padding: 48px 0; }
+  .tmpl-nocturne .nc-book { padding: 42px 24px; }
+  .tmpl-nocturne .nc-instructor-photo { width: 96px; height: 96px; }
+  .tmpl-nocturne .nc-quote-mark { font-size: 46px; }
+  .tmpl-nocturne .nc-compass-row { gap: 10px; }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-nocturne .nc-btn,
+  .tmpl-nocturne .nc-btn-sm,
+  .tmpl-nocturne .nc-social,
+  .tmpl-nocturne .nc-nav-link,
+  .tmpl-nocturne .nc-nav-mobile button,
+  .tmpl-nocturne .nc-nav-mobile-link { min-height: 44px; }
+  .tmpl-nocturne .nc-social { min-width: 44px; }
+}
+/* Reduced motion: the course renders fully drawn, every star lit, no
+   twinkle/parallax/needle drift/meteor streak — useCourseProgress (JS) also
+   pins --nc-progress to 1, these are a belt-and-suspenders first-paint guard. */
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-nocturne .nc-course-path { stroke-dashoffset: 0; }
+  .tmpl-nocturne .nc-star-bright { opacity: 1; }
+  .tmpl-nocturne .nc-field-star { animation: none; opacity: 0.6; }
+  .tmpl-nocturne .nc-star-layer { animation: none; transform: none; }
+  .tmpl-nocturne .nc-compass-needle { animation: none; transform: rotate(0deg); }
+  .tmpl-nocturne .nc-meteor::after { display: none; }
+  .tmpl-nocturne .nc-meteor.is-lit .nc-h1, .tmpl-nocturne .nc-meteor.is-lit .nc-h2 {
+    text-shadow: 0 0 20px color-mix(in srgb, var(--nc-accent) 30%, transparent);
+  }
+  .tmpl-nocturne .nc-btn:active, .tmpl-nocturne .nc-social:active { transform: none; }
+  .tmpl-nocturne .nc-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the absolutely-positioned decorations need flipping
+   (everything else uses logical properties). ────────────────────────────── */
+.tmpl-nocturne[dir='rtl'] .nc-course-svg { transform: scaleX(-1); }
+
+/* Instructor reply to a review (matches the other templates). */
+.tmpl-nocturne .nc-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.tmpl-nocturne .nc-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

@@ -9,7 +9,7 @@
  * customization.theme['--mm-accent']) drives CTAs / links / active nav / popular plan / the soft
  * aurora orbs (via color-mix) — never dominant. Palette vars on `.tmpl-mumotor`.
  */
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Check, Star, Menu, X, ArrowRight, Plus, Minus, ShieldCheck } from 'lucide-react';
 import type { TemplateData } from '../types';
@@ -56,14 +56,40 @@ const navLinks = (s: MmStrings) => [
   { id: SECTION_IDS.faq, label: s.navFaq },
 ];
 
+/** Floating glass-pill nav: a centered translucent rounded-full bar that detaches
+ *  from the top edge once the page scrolls (padding + shadow + full rounding come
+ *  in together), Apple-clean. Pure `sticky` + a scroll-tracked class — never
+ *  `position: fixed`. rAF-throttled + passive so it costs nothing on the scroll path. */
+function useNavScrolled(threshold = 8) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    let ticking = false;
+    const read = () => {
+      setScrolled(window.scrollY > threshold);
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(read);
+      }
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [threshold]);
+  return scrolled;
+}
+
 function MmNav({ data, active }: { data: TemplateData; active: string }) {
   const s = mmStrings(data.locale);
   const [open, setOpen] = useState(false);
+  const scrolled = useNavScrolled();
   const links = navLinks(s).filter(({ id }) => id !== SECTION_IDS.reviews || data.reviews.length > 0);
   const bookLabel = data.labels?.bookCta ?? s.bookNow;
   return (
-    <nav className="mm-nav" aria-label={s.mainNavAria}>
-      <div className="mm-nav-inner">
+    <nav className={cx('mm-nav', scrolled && 'is-scrolled')} aria-label={s.mainNavAria}>
+      <div className="mm-nav-pill">
         <button className="mm-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
           <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="var(--mm-ink)" fg="#fff" radius={9} />

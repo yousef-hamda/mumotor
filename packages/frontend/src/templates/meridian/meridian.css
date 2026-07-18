@@ -157,9 +157,31 @@
   border-bottom: 3px double var(--mr-contour);
 }
 .tmpl-meridian .mr-nav-inner {
+  position: relative;
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
   max-width: 1440px; margin: 0 auto; padding: 16px 40px;
 }
+/* Neatline quoted into the bar: crop-mark brackets at the two top corners. */
+.tmpl-meridian .mr-nav-crop {
+  position: absolute; inset: 7px 14px auto; height: 13px;
+  pointer-events: none; z-index: 61;
+  background:
+    linear-gradient(var(--mr-route), var(--mr-route)) left top / 10px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) left top / 1px 10px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right top / 10px 1px no-repeat,
+    linear-gradient(var(--mr-route), var(--mr-route)) right top / 1px 10px no-repeat;
+  opacity: 0.75;
+}
+.tmpl-meridian .mr-nav-lead { display: flex; align-items: center; gap: 16px; min-width: 0; }
+/* Lat/long coordinate annotation flanking the legend — cartographic, not text UI. */
+.tmpl-meridian .mr-nav-coord {
+  display: none;
+  font-family: var(--mr-mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.08em; color: var(--mr-muted); white-space: nowrap;
+  padding-inline-start: 16px; border-inline-start: 1px solid var(--mr-contour);
+}
+.tmpl-meridian .mr-nav-coord-end { padding-inline-start: 0; padding-inline-end: 16px; border-inline-start: 0; border-inline-end: 1px solid var(--mr-contour); }
+.tmpl-meridian .mr-nav-compass { display: none; color: var(--mr-route); flex-shrink: 0; }
 .tmpl-meridian .mr-logo {
   display: inline-flex; align-items: center; gap: 11px; flex-shrink: 0;
   background: none; border: 0; cursor: pointer; padding: 0;
@@ -398,6 +420,11 @@
 @media (min-width: 1024px) {
   .tmpl-meridian .mr-nav-links { display: flex; }
   .tmpl-meridian .mr-menu { display: none; }
+  .tmpl-meridian .mr-nav-compass { display: inline-flex; }
+}
+/* The coordinate annotations need real breathing room beside 5 links + 2 CTAs. */
+@media (min-width: 1240px) {
+  .tmpl-meridian .mr-nav-coord { display: inline-block; }
 }
 /* The route + margin ticks live in the sheet MARGIN — only show them once the
    viewport is wide enough that the 1080px content column can't reach them. */
