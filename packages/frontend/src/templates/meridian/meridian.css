@@ -24,7 +24,11 @@
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* clip (not hidden): hidden on the x-axis alone forces overflow-y to compute
+     to `auto`, which makes this root a scroll container and BREAKS `position:
+     sticky` for every descendant (mr-route-svg / mr-neatline below). clip keeps
+     the same horizontal-overflow guard without creating a scroll container. */
+  overflow-x: clip;
 }
 .tmpl-meridian *, .tmpl-meridian *::before, .tmpl-meridian *::after { box-sizing: border-box; }
 .tmpl-meridian img { display: block; max-width: 100%; }
@@ -32,12 +36,14 @@
 /* Visible focus — non-negotiable. */
 .tmpl-meridian :focus-visible { outline: 2px solid var(--mr-route); outline-offset: 2px; }
 
-/* ── Plane 1: contour lines (fixed, viewport-sized, translate-only parallax) ──
-   Never blurred and never page-tall: a fixed layer + transform:translate is a cheap
-   compositor op, so scrolling stays at 60fps. */
+/* ── Plane 1: contour lines (absolute, full-page, translate-only parallax) ──
+   A full-page texture that looks the same scrolling or not, so it's `absolute`
+   (painted once, contained by the root — never escapes into the app chrome in
+   the builder's in-page preview the way `fixed` would). Never blurred and the
+   drift keyframe/parallax is translate-only, so it stays a cheap compositor op. */
 .tmpl-meridian .mr-planes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .tmpl-meridian .mr-contours {
-  position: fixed;
+  position: absolute;
   inset: -120px;
   opacity: 0.35;
   will-change: transform;
@@ -47,22 +53,41 @@
     repeating-radial-gradient(circle at 44% 104%, transparent 0 29px, var(--mr-contour) 29px 30px);
 }
 
-/* ── Plane 2: the plotted route (draws itself with scroll) ─────────────────── */
+/* ── Plane 2: the plotted route (draws itself with scroll) ───────────────────
+   Must stay viewport-anchored as you scroll, like the old fixed layer — but a
+   full-page-tall element animating strokeDashoffset would repaint the whole
+   page every frame. So this is `sticky`, capped to one screen (100dvh): it
+   pins to the top of the (window OR builder-preview) scroll container and the
+   scroll-linked repaint area is one screen, not the whole document. The
+   `margin-bottom: -100dvh` cancels its own flow height so it doesn't push
+   the rest of the page down — it and `.mr-neatline` both sit flush at the top
+   of `.tmpl-meridian`, and the sticky range then spans the full page because
+   the root (their containing block) is as tall as the real content below. */
 .tmpl-meridian .mr-route-svg {
-  position: fixed;
-  inset-block: 0;
+  position: sticky;
+  top: 0;
   inset-inline-start: 46px;
   width: 40px;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin-bottom: -100vh;
+  margin-bottom: -100dvh;
   z-index: 2;
   pointer-events: none;
   display: none;
 }
 
-/* ── The neatline: the map-sheet border, over the content, under the nav ───── */
+/* ── The neatline: the map-sheet border, over the content, under the nav ─────
+   Same sticky/100dvh treatment as the route line above, so the frame stays
+   pinned around the viewport instead of escaping the template frame. */
 .tmpl-meridian .mr-neatline {
-  position: fixed;
-  inset: 14px;
+  position: sticky;
+  top: 14px;
+  height: calc(100vh - 28px);
+  height: calc(100dvh - 28px);
+  margin-inline: 14px;
+  margin-bottom: calc(-100vh + 28px);
+  margin-bottom: calc(-100dvh + 28px);
   z-index: 50;
   pointer-events: none;
   border: 1px solid var(--mr-contour);
@@ -433,7 +458,14 @@
   .tmpl-meridian .mr-tick { display: block; }
 }
 @media (max-width: 520px) {
-  .tmpl-meridian .mr-neatline { inset: 8px; }
+  .tmpl-meridian .mr-neatline {
+    top: 8px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    margin-inline: 8px;
+    margin-bottom: calc(-100vh + 16px);
+    margin-bottom: calc(-100dvh + 16px);
+  }
   .tmpl-meridian .mr-nav-end .mr-btn-ghost { display: none; }
   .tmpl-meridian .mr-section { padding: 72px 0; }
   .tmpl-meridian .mr-book { padding: 40px 22px; }

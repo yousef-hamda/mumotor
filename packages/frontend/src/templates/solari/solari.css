@@ -25,7 +25,11 @@
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* clip (not hidden): hidden on the x-axis alone forces overflow-y to compute
+     to `auto`, which makes this root a scroll container and BREAKS `position:
+     sticky` for `.sl-frame` below. clip keeps the same horizontal-overflow
+     guard without creating a scroll container. */
+  overflow-x: clip;
 }
 .tmpl-solari *, .tmpl-solari *::before, .tmpl-solari *::after { box-sizing: border-box; }
 .tmpl-solari img { display: block; max-width: 100%; }
@@ -33,10 +37,21 @@
 /* Visible focus — non-negotiable. */
 .tmpl-solari :focus-visible { outline: 2px solid var(--sl-amber); outline-offset: 2px; }
 
-/* ── The brushed-brass frame + corner rivets (fixed, over content, under nav) ── */
+/* ── The brushed-brass frame + corner rivets (over content, under nav) ────────
+   Must stay anchored around the viewport as you scroll, like the old fixed
+   layer — so it's `sticky`, capped to one screen (100dvh) so the repaint area
+   stays one screen, not the whole page. `margin-bottom: -100dvh` cancels its
+   own flow height so it doesn't push the page content down; the sticky range
+   then spans the full page because the root (its containing block) is as
+   tall as the real content below. */
 .tmpl-solari .sl-frame {
-  position: fixed;
-  inset: 12px;
+  position: sticky;
+  top: 12px;
+  height: calc(100vh - 24px);
+  height: calc(100dvh - 24px);
+  margin-inline: 12px;
+  margin-bottom: calc(-100vh + 24px);
+  margin-bottom: calc(-100dvh + 24px);
   z-index: 40;
   pointer-events: none;
   border: 1px solid color-mix(in srgb, var(--sl-brass) 70%, transparent);
@@ -511,7 +526,14 @@
   .tmpl-solari .sl-menu { display: none; }
 }
 @media (max-width: 520px) {
-  .tmpl-solari .sl-frame { inset: 8px; }
+  .tmpl-solari .sl-frame {
+    top: 8px;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    margin-inline: 8px;
+    margin-bottom: calc(-100vh + 16px);
+    margin-bottom: calc(-100dvh + 16px);
+  }
   .tmpl-solari .sl-nav-end .sl-btn-ghost { display: none; }
   .tmpl-solari .sl-section { padding: 72px 0; }
   .tmpl-solari .sl-book { padding: 40px 22px; }

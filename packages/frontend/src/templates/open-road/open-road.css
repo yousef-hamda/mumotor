@@ -33,11 +33,12 @@
 /* ── 2. FILM GRAIN OVERLAY ─────────────────────────────── */
 .tmpl-open-road::before {
   content: '';
-  /* Fixed + viewport-sized (not absolute over the whole page height): the grain is
-     uniform noise so a fixed layer looks identical, but composites a small viewport
-     layer instead of a full-page-tall one — the difference that smooths scrolling.
+  /* Absolute (contained in the relative root), NOT fixed: a fixed layer resolves
+     against the viewport and escapes the builder's in-page preview frame. The
+     grain is uniform noise and its drift is transform-only (composited), so a
+     full-page absolute layer looks identical and doesn't reintroduce scroll jank.
      Inset outward so the small drift never exposes a bare edge. */
-  position: fixed;
+  position: absolute;
   inset: -8px;
   pointer-events: none;
   z-index: 9998;

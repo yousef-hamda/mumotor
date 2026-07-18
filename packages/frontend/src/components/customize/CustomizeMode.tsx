@@ -74,6 +74,11 @@ export default function CustomizeMode({
   const [hoverEdit, setHoverEdit] = useState<Rect | null>(null);
   const [saving, setSaving] = useState(false);
   const [themePanel, setThemePanel] = useState(false);
+  // Bumped on undo/redo/reset ("jumps") to remount the preview so inline-edited
+  // contentEditable elements re-render with the restored text (React won't refresh
+  // a contentEditable's DOM text on its own). Not bumped during normal typing, so
+  // focus/caret are preserved while editing.
+  const [jumpKey, setJumpKey] = useState(0);
   const [picker, setPicker] = useState<{ path: string; query: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const editingRef = useRef<HTMLElement | null>(null);
@@ -419,10 +424,10 @@ export default function CustomizeMode({
           <span className="ml-1 hidden text-xs text-white/40 md:inline">{t('customize.editHint')}</span>
         </span>
         <div className="flex items-center gap-0.5 sm:gap-1">
-          <TBtn title={hist.undoCount ? t('customize.undoCount', { n: hist.undoCount }) : t('customize.undo')} disabled={!hist.canUndo} onClick={() => { commitEditing(); hist.undo(); }}><Undo2 className="h-4 w-4" /></TBtn>
-          <TBtn title={hist.redoCount ? t('customize.redoCount', { n: hist.redoCount }) : t('customize.redo')} disabled={!hist.canRedo} onClick={() => { commitEditing(); hist.redo(); }}><Redo2 className="h-4 w-4" /></TBtn>
+          <TBtn title={hist.undoCount ? t('customize.undoCount', { n: hist.undoCount }) : t('customize.undo')} disabled={!hist.canUndo} onClick={() => { commitEditing(); hist.undo(); setJumpKey((k) => k + 1); }}><Undo2 className="h-4 w-4" /></TBtn>
+          <TBtn title={hist.redoCount ? t('customize.redoCount', { n: hist.redoCount }) : t('customize.redo')} disabled={!hist.canRedo} onClick={() => { commitEditing(); hist.redo(); setJumpKey((k) => k + 1); }}><Redo2 className="h-4 w-4" /></TBtn>
           <span className="mx-1.5 h-5 w-px bg-white/20" />
-          <TBtn title={t('customize.resetAll')} onClick={() => { commitEditing(); hist.reset(); }} className="hover:text-orange-400"><RotateCcw className="h-4 w-4" /></TBtn>
+          <TBtn title={t('customize.resetAll')} onClick={() => { commitEditing(); hist.reset(); setJumpKey((k) => k + 1); }} className="hover:text-orange-400"><RotateCcw className="h-4 w-4" /></TBtn>
           <span className="mx-1.5 h-5 w-px bg-white/20" />
           <button
             onClick={() => { commitEditing(); setPopover(null); setSel(null); setThemePanel((v) => !v); }}
@@ -448,7 +453,7 @@ export default function CustomizeMode({
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto overflow-x-hidden">
         <div onClickCapture={onCanvasClick} onMouseMove={onCanvasMove} className="cz-canvas">
           <EditingProvider value={true}>
-            <TemplateRender slug={templateSlug} data={data} />
+            <TemplateRender key={jumpKey} slug={templateSlug} data={data} />
           </EditingProvider>
         </div>
       </div>

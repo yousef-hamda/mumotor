@@ -180,18 +180,20 @@ function AtTapeRail({ data, active }: { data: TemplateData; active: string }) {
   const ticks = railTicks(s);
   return (
     <div className="at-rail-col" aria-hidden="true">
-      <div className="at-tape-line" />
-      {ticks.map((t, i) => (
-        <div
-          key={i}
-          className={cx('at-tape-tick', t.id && active === t.id && 'is-active')}
-          style={{ top: `${(i / (ticks.length - 1)) * 100}%` }}
-        >
-          <span className="at-tape-num">{String(i + 1).padStart(2, '0')}</span>
-          <span className="at-tape-label">{t.label}</span>
-        </div>
-      ))}
-      <div className="at-tape-dot" />
+      <div className="at-rail-sticky">
+        <div className="at-tape-line" />
+        {ticks.map((t, i) => (
+          <div
+            key={i}
+            className={cx('at-tape-tick', t.id && active === t.id && 'is-active')}
+            style={{ top: `${(i / (ticks.length - 1)) * 100}%` }}
+          >
+            <span className="at-tape-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="at-tape-label">{t.label}</span>
+          </div>
+        ))}
+        <div className="at-tape-dot" />
+      </div>
     </div>
   );
 }
@@ -201,19 +203,21 @@ function AtTapeRail({ data, active }: { data: TemplateData; active: string }) {
 function AtSeamRail() {
   return (
     <div className="at-seam-col" aria-hidden="true">
-      <svg className="at-seam-svg" viewBox="0 0 20 1000" preserveAspectRatio="none" focusable="false">
-        <path
-          className="at-seam-path"
-          d="M10 0 L10 1000"
-          fill="none"
-          stroke="var(--at-tape)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          pathLength={1}
-          strokeDasharray="1 1"
-        />
-      </svg>
-      <Needle className="at-seam-needle" size={18} />
+      <div className="at-seam-sticky">
+        <svg className="at-seam-svg" viewBox="0 0 20 1000" preserveAspectRatio="none" focusable="false">
+          <path
+            className="at-seam-path"
+            d="M10 0 L10 1000"
+            fill="none"
+            stroke="var(--at-tape)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray="1 1"
+          />
+        </svg>
+        <span className="at-seam-needle-move"><Needle className="at-seam-needle" size={18} /></span>
+      </div>
     </div>
   );
 }

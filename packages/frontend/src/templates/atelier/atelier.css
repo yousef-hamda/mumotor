@@ -49,7 +49,10 @@
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* clip, NOT hidden: `overflow-x: hidden` makes `overflow-y` compute to `auto`,
+     turning the root into a scroll container that breaks the sticky tape/seam
+     rails (they'd scroll away instead of pinning). `clip` avoids that. */
+  overflow-x: clip;
 }
 .tmpl-atelier *, .tmpl-atelier *::before, .tmpl-atelier *::after { box-sizing: border-box; }
 .tmpl-atelier img { display: block; max-width: 100%; }
@@ -172,6 +175,12 @@
 .tmpl-atelier .at-frame { display: grid; grid-template-columns: 1fr; align-items: stretch; }
 .tmpl-atelier .at-rail-col, .tmpl-atelier .at-seam-col { display: none; }
 .tmpl-atelier .at-content { min-width: 0; }
+/* The rail/seam decorations are pinned to the viewport (sticky, NOT fixed → stays
+   inside the builder preview frame) and are only ~1 screen tall, so their moving
+   marks animate a small, GPU-composited layer instead of repainting a full
+   page-height overlay every scroll frame (which caused scroll jank). */
+.tmpl-atelier .at-rail-sticky,
+.tmpl-atelier .at-seam-sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; }
 
 /* ── Measuring-tape rail (SIGNATURE 1) ─────────────────────────────────────── */
 .tmpl-atelier .at-rail-col { position: relative; }
@@ -199,22 +208,24 @@
   border-radius: 50%; background: var(--at-accent); top: 50%; transform: translateY(-50%);
 }
 .tmpl-atelier .at-tape-dot {
-  position: absolute; inset-inline-start: 20px; top: calc(var(--at-progress, 0) * 100%);
-  width: 9px; height: 9px; margin-inline-start: -4px; margin-top: -4px;
+  position: absolute; inset-inline-start: 20px; top: 0;
+  width: 9px; height: 9px; margin-inline-start: -4px;
   border-radius: 50%; background: var(--at-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--at-accent) 20%, transparent);
-  transition: top 60ms linear;
+  transform: translate3d(0, calc(var(--at-progress, 0) * (100dvh - 9px)), 0);
+  will-change: transform; transition: transform 90ms linear;
 }
 
 /* ── Stitch seam that sews itself (SIGNATURE 2) ────────────────────────────── */
 .tmpl-atelier .at-seam-col { position: relative; }
 .tmpl-atelier .at-seam-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tmpl-atelier .at-seam-path { stroke-dashoffset: calc(1 - var(--at-progress, 0)); }
-.tmpl-atelier .at-seam-needle {
-  position: absolute; inset-inline-start: 50%; top: calc(var(--at-progress, 0) * 100%);
-  transform: translate(-50%, -60%) rotate(45deg); color: var(--at-accent);
-  transition: top 60ms linear;
+.tmpl-atelier .at-seam-needle-move {
+  position: absolute; inset-inline-start: 50%; top: 0;
+  transform: translate3d(-50%, calc(var(--at-progress, 0) * (100dvh - 18px)), 0);
+  will-change: transform; transition: transform 90ms linear;
 }
+.tmpl-atelier .at-seam-needle { display: block; transform: translateY(-50%) rotate(45deg); color: var(--at-accent); }
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .tmpl-atelier .at-hero { padding-top: clamp(56px, 8vw, 96px); }
@@ -466,7 +477,7 @@
    their resting (progress = 1) position with no transition, no scroll
    listeners run (see useSewProgress in index.tsx). */
 @media (prefers-reduced-motion: reduce) {
-  .tmpl-atelier .at-tape-dot, .tmpl-atelier .at-seam-needle { transition: none; }
+  .tmpl-atelier .at-tape-dot, .tmpl-atelier .at-seam-needle-move { transition: none; }
   .tmpl-atelier .at-btn:active, .tmpl-atelier .at-social:active { transform: none; }
   .tmpl-atelier .at-faq-panel { transition: none; }
 }
@@ -477,7 +488,7 @@
 .tmpl-atelier[dir='rtl'] .at-dropcap::first-letter { float: right; }
 .tmpl-atelier[dir='rtl'] .at-swingtag { clip-path: polygon(0% 0%, 78% 0%, 100% 50%, 78% 100%, 0% 100%); }
 .tmpl-atelier[dir='rtl'] .at-swingtag-hole { inset-inline-start: 76%; }
-.tmpl-atelier[dir='rtl'] .at-seam-needle { transform: translate(50%, -60%) rotate(-45deg); }
+.tmpl-atelier[dir='rtl'] .at-seam-needle { transform: translateY(-50%) rotate(-45deg); }
 
 /* Instructor reply to a review (GLOBAL — matches the other templates). */
 .at-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }

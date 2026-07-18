@@ -62,9 +62,14 @@
 /* Visible focus — non-negotiable. */
 .tmpl-sumi :focus-visible { outline: 2px solid var(--su-vermilion); outline-offset: 3px; }
 
-/* ── A very subtle paper-wash parallax (fixed layer, translate-only) ──────────── */
+/* ── A very subtle paper-wash parallax (absolute, full-page, translate-only) ──
+   A full-page texture that looks the same scrolling or not, so `absolute`
+   (painted once, contained by the root) rather than `fixed` — which would
+   escape the template frame in the builder's in-page preview. The scroll-
+   linked parallax stays a `transform: translateY(...)` only, which is a
+   cheap compositor op and safe to keep on an absolute layer. */
 .tmpl-sumi .su-paper-wash {
-  position: fixed; inset: -10% -10% -30%; z-index: 0; pointer-events: none;
+  position: absolute; inset: -10% -10% -30%; z-index: 0; pointer-events: none;
   opacity: 0.5; will-change: transform;
   transform: translateY(calc(var(--su-scroll, 0) * -46px));
   background:

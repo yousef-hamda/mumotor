@@ -24,7 +24,10 @@
 /* ── Fixed aurora background (soft blue orbs + faint grid; recolors with accent) ── */
 .tmpl-mumotor .mm-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .tmpl-mumotor .mm-grid { position: absolute; inset: 0; opacity: 0.55; background-image: linear-gradient(var(--mm-line) 1px, transparent 1px), linear-gradient(90deg, var(--mm-line) 1px, transparent 1px); background-size: 46px 46px; -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 60%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 60%); }
-.tmpl-mumotor .mm-orb { position: absolute; border-radius: 50%; filter: blur(72px); will-change: transform; }
+/* The radial gradients already fade to transparent, so a smaller blur keeps the
+   soft aurora look while roughly halving first-scroll rasterization cost (blur
+   cost scales ~radius²) — this removes a one-time scroll hitch. */
+.tmpl-mumotor .mm-orb { position: absolute; border-radius: 50%; filter: blur(40px); will-change: transform; transform: translateZ(0); }
 .tmpl-mumotor .mm-orb-1 { width: 38rem; height: 38rem; top: -10rem; left: -8rem; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 34%, transparent), transparent 70%); animation: mm-drift1 24s ease-in-out infinite; }
 .tmpl-mumotor .mm-orb-2 { width: 32rem; height: 32rem; top: -4rem; right: -7rem; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 22%, transparent), transparent 70%); animation: mm-drift2 28s ease-in-out infinite; }
 .tmpl-mumotor .mm-orb-3 { width: 28rem; height: 28rem; top: 44rem; left: 30%; opacity: 0.6; background: radial-gradient(circle, color-mix(in srgb, var(--mm-accent) 16%, transparent), transparent 70%); animation: mm-drift1 32s ease-in-out infinite; }

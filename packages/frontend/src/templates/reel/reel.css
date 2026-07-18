@@ -44,9 +44,12 @@
 /* Visible focus — non-negotiable. */
 .tmpl-reel :focus-visible { outline: 2px solid var(--rl-accent); outline-offset: 2px; }
 
-/* Static film grain — a tiny SVG-noise tile, fixed, no animation. */
+/* Static film grain — a tiny SVG-noise tile, absolute + full-page, no animation.
+   A full-page texture that looks the same scrolling or not, so `absolute`
+   (painted once, contained by the root) rather than `fixed` — which would
+   escape the template frame in the builder's in-page preview. */
 .tmpl-reel .rl-grain {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.05;
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
