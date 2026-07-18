@@ -34,7 +34,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { stStrings, type StStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './slate.css';
@@ -193,12 +193,12 @@ function StHero({ data }: { data: TemplateData }) {
             <path className="st-stroke st-d4" pathLength={1} d="M100 50 L100 18 M92 26 L100 18 L108 26" />
           </ChalkDraw>
           <span className="st-script st-hero-note" aria-hidden="true">{s.lessonNote}</span>
-          <EnterTilt maxTilt={7} perspective={1400} className="st-photo-tilt">
+          <EnterMount perspective={1400} className="st-photo-tilt">
             <figure className="st-photo">
               <img src={hero.image} alt={s.heroImageAlt} className="st-photo-img" data-edit="hero.image" data-edit-type="image" />
               <figcaption className="st-photo-cap">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
       <ChalkLedge />

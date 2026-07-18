@@ -165,28 +165,42 @@
 .tmpl-press .ps-btn-ghost:hover { border-color: var(--ps-ink); background: color-mix(in srgb, var(--ps-ink) 5%, var(--ps-paper)); }
 .tmpl-press .ps-btn-ghost:active { transform: translateY(1px); }
 
-/* ── Nav: the running header (translucent paper, copper hairline) ─────────────── */
-.tmpl-press .ps-nav { position: sticky; top: 0; z-index: 60; }
-.tmpl-press .ps-nav-inner {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
-  background: color-mix(in srgb, var(--ps-paper) 90%, transparent);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid color-mix(in srgb, var(--ps-copper) 70%, transparent);
+/* ── Nav: the running header — a print-craft signature. Full-bleed paper on the
+   OUTER .ps-nav (a copper hairline rule pressed under the whole bar), the row
+   capped inside. Libre-Franklin small-caps links, debossed, with a bottle-green
+   active underline. Generous, tactile — pressed into the page. ──────────────── */
+.tmpl-press .ps-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--ps-paper) 92%, transparent);
+  backdrop-filter: blur(11px); -webkit-backdrop-filter: blur(11px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ps-copper) 74%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.55), 0 7px 22px -18px rgba(0, 0, 0, 0.42);
 }
-.tmpl-press .ps-logo { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ps-ink); }
-.tmpl-press .ps-logo-word { font-family: var(--ps-serif); font-size: 19px; font-weight: 400; letter-spacing: 0.01em; color: var(--ps-ink); text-shadow: var(--ps-deboss-soft); }
-.tmpl-press .ps-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-press .ps-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 16px 40px; min-height: 72px;
+}
+.tmpl-press .ps-logo { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ps-ink); }
+.tmpl-press .ps-logo-word { font-family: var(--ps-serif); font-size: 22px; font-weight: 400; letter-spacing: 0.015em; color: var(--ps-ink); text-shadow: var(--ps-deboss); }
+.tmpl-press .ps-nav-links { display: none; align-items: center; gap: 4px; }
 .tmpl-press .ps-nav-link {
   position: relative; background: none; border: 0; cursor: pointer;
-  font-family: var(--ps-sans); font-size: 11px; font-weight: 600;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ps-muted);
-  padding: 10px 12px; transition: color 0.18s ease;
+  font-family: var(--ps-sans); font-size: 15px; font-weight: 500;
+  font-variant-caps: small-caps; letter-spacing: 0.16em; text-transform: none;
+  color: color-mix(in srgb, var(--ps-ink) 76%, var(--ps-paper));
+  padding: 11px 15px; text-shadow: var(--ps-deboss-soft); transition: color 0.18s ease;
+}
+/* Underline presses in — copper on hover, bottle-green when active. */
+.tmpl-press .ps-nav-link::after {
+  content: ''; position: absolute; inset-inline: 15px; bottom: 7px; height: 2px;
+  background: var(--ps-accent); transform: scaleX(0); transform-origin: center;
+  transition: transform 0.24s cubic-bezier(0.2, 0.85, 0.2, 1);
 }
 .tmpl-press .ps-nav-link:hover { color: var(--ps-ink); }
-/* Active = accent + a 2px accent underline (never colour alone — also weight). */
+.tmpl-press .ps-nav-link:not(.is-active):hover::after { transform: scaleX(0.42); background: var(--ps-copper); }
+/* Active = accent + weight + a full bottle-green underline (never colour alone). */
 .tmpl-press .ps-nav-link.is-active { color: var(--ps-accent); font-weight: 700; }
-.tmpl-press .ps-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 12px; bottom: 2px; height: 2px; background: var(--ps-accent); }
+.tmpl-press .ps-nav-link.is-active::after { transform: scaleX(1); background: var(--ps-accent); }
 .tmpl-press .ps-nav-end { display: flex; align-items: center; gap: 8px; }
 .tmpl-press .ps-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--ps-ink); }
 .tmpl-press .ps-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--ps-paper); border-bottom: 1px solid var(--ps-line); }

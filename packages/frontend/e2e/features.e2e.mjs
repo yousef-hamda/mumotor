@@ -41,7 +41,7 @@ try {
 
   // ── 2b. Glass + premium templates render (smoke + no horizontal overflow) ──
   section('Glass + premium templates');
-  for (const slug of ['mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press', 'reel', 'slate', 'folio', 'primary', 'gallery', 'gilt', 'sumi', 'obsidian']) {
+  for (const slug of ['mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press', 'reel', 'slate', 'primary', 'gallery', 'gilt', 'sumi', 'console', 'transit', 'ledger']) {
     await page.goto(`${WEB}/templates/${slug}`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector(`.tmpl-${slug}`, { timeout: 8000 });
     ok(`${slug} renders`, (await page.locator(`.tmpl-${slug}`).count()) === 1);

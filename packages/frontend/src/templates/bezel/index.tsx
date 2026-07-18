@@ -24,7 +24,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { usePointerCoarse } from '../../lib/useDevice';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, useMouseTilt, EnterTilt, useIsEditing, reviewReplyLabel,
+  Reveal, useCountUp, useMouseTilt, EnterMount, useIsEditing, reviewReplyLabel,
 } from '../shared';
 import { bzStrings, type BzStrings } from './strings';
 import './bezel.css';
@@ -63,7 +63,7 @@ function BzNav({ data, active }: { data: TemplateData; active: string }) {
     <nav className="bz-nav" aria-label={s.mainNavAria}>
       <div className="bz-nav-inner">
         <button className="bz-logo" onClick={() => scrollToSection(SECTION_IDS.hero)} aria-label={s.goToTopAria}>
-          <span data-edit="business.logoSrc" data-edit-type="image" style={{ display: 'inline-flex' }}>
+          <span className="bz-logo-mark" data-edit="business.logoSrc" data-edit-type="image">
             <BrandMark letter={data.business.logoText} src={data.business.logoSrc} size={28} bg="var(--bz-face)" fg="var(--bz-ink)" radius={8} />
           </span>
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
@@ -112,12 +112,12 @@ function BzHero({ data }: { data: TemplateData }) {
           <button className="bz-btn bz-btn-ghost bz-btn-lg" data-edit="hero.ctaSecondary" data-edit-type="text" onClick={() => scrollToSection(SECTION_IDS.packages)}>{hero.ctaSecondary}</button>
         </Reveal>
       </div>
-      <EnterTilt maxTilt={12} perspective={1200} className="bz-wrap bz-hero-tilt">
+      <EnterMount tilt={12} perspective={1200} className="bz-wrap bz-hero-tilt">
         <div className="bz-panel bz-viewport">
           <img src={hero.image} alt={s.heroImageAlt} className="bz-viewport-img" data-edit="hero.image" data-edit-type="image" />
           <span className="bz-viewport-ring" aria-hidden="true" />
         </div>
-      </EnterTilt>
+      </EnterMount>
     </section>
   );
 }

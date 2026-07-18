@@ -30,7 +30,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { psStrings, type PsStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './press.css';
@@ -180,14 +180,14 @@ function PsHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="ps-hero-media">
-          <EnterTilt maxTilt={8} perspective={1500}>
+          <EnterMount tilt={8} perspective={1500}>
             <figure className="ps-figure">
               <div className="ps-plate ps-plate-tilt">
                 <img src={hero.image} alt={s.heroImageAlt} className="ps-plate-img" data-edit="hero.image" data-edit-type="image" />
               </div>
               <figcaption className="ps-caption">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

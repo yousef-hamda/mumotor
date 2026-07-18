@@ -33,7 +33,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { gtStrings, type GtStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './gilt.css';
@@ -147,14 +147,14 @@ function GtHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="gt-hero-media">
-          <EnterTilt maxTilt={7} perspective={1500}>
+          <EnterMount tilt={7} perspective={1500}>
             <figure className="gt-figure">
               <div className="gt-plate">
                 <img src={hero.image} alt={s.heroImageAlt} className="gt-plate-img" data-edit="hero.image" data-edit-type="image" />
               </div>
               <figcaption className="gt-caption">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

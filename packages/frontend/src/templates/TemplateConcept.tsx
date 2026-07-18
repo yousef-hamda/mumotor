@@ -189,16 +189,6 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
           </div>
         </>
       );
-    case 'folio':
-      return (
-        <>
-          <span className="tc-fo-photo" />
-          <span className="tc-fo-scrim" />
-          <span className="tc-fo-mast" aria-hidden="true">Folio</span>
-          <span className="tc-fo-rule" style={{ background: c1 }} />
-          <span className="tc-fo-kicker" style={{ color: c1 }}>ISSUE 01</span>
-        </>
-      );
     case 'primary':
       return (
         <>
@@ -244,20 +234,55 @@ function render(meta: TemplateMeta, c1: string, c2: string, c3: string, accent: 
           </div>
         </>
       );
-    case 'obsidian':
+    case 'console':
       return (
         <>
-          <div className="tc-grid" />
-          <div className="tc-card tc-card--glass-dark"><Lines title="#D7E3EE" line="rgba(234,238,242,0.22)" btn={meta.accent} /></div>
+          <span className="tc-co-grid" />
+          <svg className="tc-co-spark" viewBox="0 0 100 34" fill="none" aria-hidden="true">
+            <path className="tc-co-p" d="M3 26 L18 20 L33 23 L48 11 L63 15 L78 6 L97 10" stroke={accent} strokeWidth="1.6" strokeLinecap="round" pathLength={1} />
+          </svg>
+          <div className="tc-card tc-card--console tc-co-card">
+            <span className="tc-co-cmd">
+              <span className="tc-co-key" style={{ borderColor: c3 }}>⌘K</span>
+              <span className="tc-co-caret" style={{ background: accent }} />
+            </span>
+            <span className="tc-l tc-l-title" style={{ background: '#E7EAEE', width: '52%' }} />
+            <span className="tc-l" style={{ background: 'rgba(231,234,238,0.18)', width: '78%' }} />
+            <span className="tc-btn" style={{ background: accent }} />
+          </div>
         </>
       );
-    case 'easy-lane':
+    case 'transit':
       return (
         <>
-          <span className="tc-soft-1" style={{ background: c1 }} />
-          <span className="tc-soft-2" style={{ background: c2 }} />
-          <span className="tc-soft-3" style={{ background: c3 }} />
-          <div className="tc-card tc-card--solid" style={{ borderRadius: 22 }}><Lines title={meta.ink} line="rgba(36,59,83,0.16)" btn={meta.accent} /></div>
+          <svg className="tc-tr-track" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+            <path id="tc-tr-path" d="M4 50 H30 L46 32 H70 L96 10" stroke={c1} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="30" cy="50" r="3" fill={meta.bg} stroke={c1} strokeWidth="2" />
+            <circle cx="70" cy="32" r="3" fill={meta.bg} stroke={c1} strokeWidth="2" />
+            <circle className="tc-tr-car" r="3.4" fill={c2}>
+              <animateMotion dur="3.6s" repeatCount="indefinite" path="M4 50 H30 L46 32 H70 L96 10" />
+            </circle>
+          </svg>
+          <div className="tc-card tc-card--solid tc-tr-card">
+            <span className="tc-tr-roundel" style={{ borderColor: c1 }}><span style={{ background: c1 }} /></span>
+            <span className="tc-l tc-l-title" style={{ background: '#16181D', width: '50%' }} />
+            <span className="tc-l" style={{ background: 'rgba(22,24,29,0.16)', width: '76%' }} />
+            <span className="tc-btn" style={{ background: c1 }} />
+          </div>
+        </>
+      );
+    case 'ledger':
+      return (
+        <>
+          <svg className="tc-le-spark" viewBox="0 0 100 40" fill="none" aria-hidden="true">
+            <path className="tc-le-p" d="M3 32 L17 27 L31 30 L45 18 L59 22 L73 11 L97 6" stroke={c1} strokeWidth="1.8" strokeLinecap="round" pathLength={1} />
+          </svg>
+          <div className="tc-card tc-card--solid tc-le-card">
+            <span className="tc-le-fig"><span className="tc-le-delta" style={{ color: c1 }}>▲</span></span>
+            <span className="tc-l tc-l-title" style={{ background: '#14140F', width: '46%' }} />
+            <span className="tc-l" style={{ background: 'rgba(20,20,15,0.14)', width: '74%' }} />
+            <span className="tc-btn" style={{ background: c1 }} />
+          </div>
         </>
       );
     case 'grid-ink':

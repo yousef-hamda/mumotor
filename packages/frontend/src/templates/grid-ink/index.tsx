@@ -18,7 +18,7 @@ import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel,
+  Reveal, useCountUp, usePrefersReducedMotion, useIsEditing, reviewReplyLabel, EnterMount,
 } from '../shared';
 import { fmt } from '../strings';
 import { giStrings, type GiStrings } from './strings';
@@ -102,14 +102,15 @@ function GINav({ data, activeSection }: { data: TemplateData; activeSection: str
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="gi-nav-links" role="list">
-          {navLinks.map(({ id, label }) => (
+          {navLinks.map(({ id, label }, i) => (
             <button
               key={id}
               role="listitem"
               className={`gi-nav-link${activeSection === id ? ' gi-nav-link--active' : ''}`}
               onClick={() => scrollToSection(id)}
             >
-              {label}
+              <span className="gi-nav-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span className="gi-nav-label">{label}</span>
             </button>
           ))}
         </div>
@@ -188,9 +189,9 @@ function GIHero({ data }: { data: TemplateData }) {
             </button>
           </Reveal>
         </div>
-        <div className="gi-hero-img-wrap">
+        <EnterMount className="gi-hero-img-wrap">
           <img src={hero.image} alt={s.heroImageAlt} className="gi-hero-img" data-edit="hero.image" data-edit-type="image" />
-        </div>
+        </EnterMount>
       </div>
     </section>
   );

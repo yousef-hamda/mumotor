@@ -27,7 +27,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { rlStrings, type RlStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './reel.css';
@@ -189,7 +189,7 @@ function RlHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="rl-hero-media">
-          <EnterTilt maxTilt={7} perspective={1500}>
+          <EnterMount tilt={7} perspective={1500}>
             <figure className="rl-figure">
               <div className="rl-frame-lg rl-sprockets">
                 <img src={hero.image} alt={s.heroImageAlt} className="rl-frame-img" data-edit="hero.image" data-edit-type="image" />
@@ -198,7 +198,7 @@ function RlHero({ data }: { data: TemplateData }) {
               </div>
               <figcaption className="rl-caption">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

@@ -26,7 +26,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { pmStrings, type PmStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './primary.css';
@@ -186,7 +186,7 @@ function PmHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="pm-hero-media">
-          <EnterTilt maxTilt={6} perspective={1400}>
+          <EnterMount perspective={1400}>
             <figure className="pm-figure">
               <span className="pm-figure-block" aria-hidden="true" />
               <div className="pm-figure-frame">
@@ -194,7 +194,7 @@ function PmHero({ data }: { data: TemplateData }) {
               </div>
               <figcaption className="pm-caption">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
       <HeroComposition />

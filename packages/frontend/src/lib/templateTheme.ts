@@ -34,15 +34,15 @@ const SHELL_VARS: Record<string, SlotMap> = {
   press: { bg: '--ps-paper', ink: '--ps-ink', accent: '--ps-accent', muted: '--ps-muted' },
   reel: { bg: '--rl-bg', ink: '--rl-ink', accent: '--rl-accent', muted: '--rl-muted' },
   slate: { bg: '--st-slate', ink: '--st-chalk', accent: '--st-accent', muted: '--st-muted' },
-  folio: { bg: '--fo-paper', ink: '--fo-ink', accent: '--fo-accent', muted: '--fo-muted' },
   primary: { bg: '--pm-paper', ink: '--pm-ink', accent: '--pm-blue', muted: '--pm-muted' },
   gallery: { bg: '--ga-wall', ink: '--ga-ink', accent: '--ga-accent', muted: '--ga-muted' },
   gilt: { bg: '--gt-charcoal', ink: '--gt-ink', accent: '--gt-gold', muted: '--gt-muted' },
   sumi: { bg: '--su-paper', ink: '--su-ink', accent: '--su-vermilion', muted: '--su-muted' },
-  obsidian: { bg: '--ob-bg', ink: '--ob-ink', accent: '--ob-accent' },
+  console: { bg: '--co-bg', ink: '--co-ink', accent: '--co-accent', muted: '--co-muted' },
+  transit: { bg: '--tr-bg', ink: '--tr-ink', accent: '--tr-line', muted: '--tr-muted' },
+  ledger: { bg: '--le-bg', ink: '--le-ink', accent: '--le-accent', muted: '--le-muted' },
   'grid-ink': { bg: '--paper', ink: '--ink', accent: '--red', muted: '--grey' },
   'open-road': { bg: '--cream', ink: '--brown', accent: '--orange' },
-  'easy-lane': { bg: '--bg', ink: '--ink', accent: '--blue' },
 };
 
 /** Google Fonts stylesheet per template (verbatim from each template's index.tsx). */
@@ -55,16 +55,16 @@ export const FONT_HREFS: Record<string, string> = {
   press: 'https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Franklin:wght@400;500;600;700&display=swap',
   reel: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Overpass+Mono:wght@400;500;600&display=swap',
   slate: 'https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Caveat:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap',
-  folio: 'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;0,6..96,800;1,6..96,400;1,6..96,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap',
   primary: 'https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap',
   gallery: 'https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap',
   gilt: 'https://fonts.googleapis.com/css2?family=Marcellus&family=Outfit:wght@300;400;500;600;700&display=swap',
   cadence: 'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wdth,wght@8..144,-10..0,75..125,100..1000&family=Red+Hat+Mono:wght@400;500;600&display=swap',
   sumi: 'https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap',
-  obsidian: 'https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap',
+  console: 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap',
+  transit: 'https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap',
+  ledger: 'https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap',
   'grid-ink': 'https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap',
   'open-road': 'https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Merriweather:wght@300;400;700;900&display=swap',
-  'easy-lane': 'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap',
 };
 
 /** Heading typeface stack per template (registry `.font` + a safe fallback). */
@@ -78,15 +78,15 @@ const FONT_DISPLAY: Record<string, string> = {
   press: "'Libre Caslon Display', Georgia, serif",
   reel: "'Bebas Neue', system-ui, sans-serif",
   slate: "'Newsreader', Georgia, serif",
-  folio: "'Bodoni Moda', Georgia, serif",
   primary: "'Jost', system-ui, sans-serif",
   gallery: "'Cormorant', Georgia, serif",
   gilt: "'Marcellus', Georgia, serif",
   sumi: "'Zen Old Mincho', Georgia, serif",
-  obsidian: "'Manrope', system-ui, sans-serif",
+  console: "'Inter Tight', system-ui, sans-serif",
+  transit: "'Overpass', system-ui, sans-serif",
+  ledger: "'Manrope', system-ui, sans-serif",
   'grid-ink': "'Archivo', system-ui, sans-serif",
   'open-road': "'Abril Fatface', Georgia, serif",
-  'easy-lane': "'Fredoka', system-ui, sans-serif",
 };
 
 /** Body typeface stack per template (kept clean + legible for forms). */
@@ -99,12 +99,13 @@ const FONT_BODY: Record<string, string> = {
   press: "'Libre Franklin', system-ui, sans-serif",
   reel: "'DM Sans', system-ui, sans-serif",
   slate: "'Work Sans', system-ui, sans-serif",
-  folio: "'DM Sans', system-ui, sans-serif",
   primary: "'Hanken Grotesk', system-ui, sans-serif",
   gilt: "'Outfit', system-ui, sans-serif",
   sumi: "'Zen Kaku Gothic New', system-ui, sans-serif",
+  console: "'Inter', system-ui, sans-serif",
+  transit: "'Overpass', system-ui, sans-serif",
+  ledger: "'Inter', system-ui, sans-serif",
   'open-road': "'Merriweather', Georgia, serif",
-  'easy-lane': "'Nunito Sans', system-ui, sans-serif",
 };
 const DEFAULT_BODY = "-apple-system, 'Inter', system-ui, sans-serif";
 
@@ -113,7 +114,6 @@ const RADII: Record<string, string> = {
   meridian: '2px',
   cadence: '2px',
   press: '3px',
-  folio: '2px',
   primary: '2px',
   bezel: '10px',
   circuit: '10px',
@@ -123,11 +123,12 @@ const RADII: Record<string, string> = {
   sumi: '4px',
   slate: '6px',
   gilt: '6px',
+  console: '10px',
+  transit: '6px',
+  ledger: '12px',
   'grid-ink': '3px',
   'open-road': '10px',
-  obsidian: '14px',
   mumotor: '18px',
-  'easy-lane': '22px',
 };
 
 /** Relative luminance of a #rrggbb / #rgb colour, or null if unparseable. */

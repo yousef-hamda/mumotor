@@ -215,17 +215,18 @@
   background-color: rgba(250, 250, 247, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+  /* Bold Swiss baseline rule — a confident 2px ink line under the whole bar. */
+  border-bottom: 2px solid var(--ink);
 }
 
 .tmpl-grid-ink .gi-nav-inner {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.75rem;
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--container-px);
-  padding-block: 0.875rem;
+  padding-block: 1.15rem;
 }
 
 .tmpl-grid-ink .gi-logo {
@@ -256,39 +257,55 @@
 .tmpl-grid-ink .gi-nav-links::-webkit-scrollbar { display: none; }
 
 .tmpl-grid-ink .gi-nav-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5em;
   font-family: var(--f-body);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--grey);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.45em 0.8em;
+  padding: 0.5em 0.9em;
   position: relative;
   transition: color 0.18s;
   white-space: nowrap;
 }
 
-/* Animated underline on hover + active */
+/* Editorial index number (01/02/…) preceding each link — red mono, Swiss magazine. */
+.tmpl-grid-ink .gi-nav-num {
+  font-family: var(--f-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--red);
+  opacity: 0.55;
+  transition: opacity 0.18s;
+}
+
+/* Animated red baseline marker on hover + active — 2px, magazine-grade. */
 .tmpl-grid-ink .gi-nav-link::after {
   content: '';
   position: absolute;
-  bottom: -1px;
-  inset-inline: 0.8em;
-  height: 1px;
+  bottom: -2px;
+  inset-inline: 0.9em;
+  height: 2px;
   background-color: var(--red);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.24s ease;
 }
 
-.tmpl-grid-ink .gi-nav-link:hover            { color: var(--ink); }
-.tmpl-grid-ink .gi-nav-link:hover::after     { transform: scaleX(1); }
-.tmpl-grid-ink .gi-nav-link--active          { color: var(--ink); }
-.tmpl-grid-ink .gi-nav-link--active::after   { transform: scaleX(1); }
-.tmpl-grid-ink .gi-nav-link:focus-visible    { outline: 2px solid var(--red); outline-offset: 2px; }
+.tmpl-grid-ink .gi-nav-link:hover                 { color: var(--ink); }
+.tmpl-grid-ink .gi-nav-link:hover .gi-nav-num     { opacity: 1; }
+.tmpl-grid-ink .gi-nav-link:hover::after          { transform: scaleX(1); }
+.tmpl-grid-ink .gi-nav-link--active               { color: var(--ink); }
+.tmpl-grid-ink .gi-nav-link--active .gi-nav-num   { opacity: 1; }
+.tmpl-grid-ink .gi-nav-link--active::after        { transform: scaleX(1); }
+.tmpl-grid-ink .gi-nav-link:focus-visible         { outline: 2px solid var(--red); outline-offset: 2px; }
 
 .tmpl-grid-ink .gi-nav-end {
   display: flex;
@@ -347,11 +364,14 @@
 .tmpl-grid-ink .gi-hero-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: end;
+  gap: 3.5rem;
+  /* Balanced 2-column hero: headline block and photo are vertically centred against
+     each other on one composed line (was align:end + a 4.5rem drop that dropped the
+     photo far below the text). */
+  align-items: center;
 }
 
-.tmpl-grid-ink .gi-hero-copy { padding-bottom: 4.5rem; }
+.tmpl-grid-ink .gi-hero-copy { padding-block: 1rem 0; }
 
 .tmpl-grid-ink .gi-hero-sub {
   font-size: 1rem;
@@ -369,7 +389,6 @@
 }
 
 .tmpl-grid-ink .gi-hero-img-wrap {
-  height: 580px;
   overflow: hidden;
   position: relative;
 }
@@ -388,7 +407,7 @@
 
 .tmpl-grid-ink .gi-hero-img {
   width: 100%;
-  height: 100%;
+  height: clamp(440px, 46vw, 600px);
   object-fit: cover;
   display: block;
 }
@@ -1174,10 +1193,11 @@
   }
 
   .tmpl-grid-ink .gi-hero-img-wrap {
-    height: 320px;
     order: -1;
     margin-inline: calc(-1 * var(--container-px));
   }
+
+  .tmpl-grid-ink .gi-hero-img { height: 340px; }
 
   .tmpl-grid-ink .gi-hero-img-wrap::before { display: none; }
 
@@ -1233,7 +1253,7 @@
   .tmpl-grid-ink .gi-book-step  { border-inline-end: none; border-bottom: 1px solid var(--line); }
   .tmpl-grid-ink .gi-book-step:last-child { border-bottom: none; }
 
-  .tmpl-grid-ink .gi-hero-img-wrap { height: 240px; }
+  .tmpl-grid-ink .gi-hero-img { height: 240px; }
 
   .tmpl-grid-ink .gi-book-success { padding: 2rem 1.5rem; }
 }

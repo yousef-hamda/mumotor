@@ -17,7 +17,7 @@ import { sampleData } from '../sampleData';
 import { BrandMark } from '../BrandMark';
 import { SocialIcon } from '../SocialIcon';
 import { DynamicIcon } from '../DynamicIcon';
-import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt, useIsEditing, reviewReplyLabel } from '../shared';
+import { SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts, useCountUp, EnterTilt, EnterMount, useIsEditing, reviewReplyLabel } from '../shared';
 import { fmt } from '../strings';
 import { mmStrings, type MmStrings } from './strings';
 import { FadeUp, Stagger } from '../../components/motion';
@@ -128,7 +128,7 @@ function MmHero({ data }: { data: TemplateData }) {
           </FadeUp>
         )}
       </div>
-      <EnterTilt maxTilt={18} perspective={1200} className="mm-container mm-hero-tilt">
+      <EnterMount className="mm-container mm-hero-tilt">
         <div className="mm-media">
           <img src={hero.image} alt={s.heroImageAlt} className="mm-media-img" data-edit="hero.image" data-edit-type="image" />
           <div className="mm-media-shade" aria-hidden="true" />
@@ -142,7 +142,7 @@ function MmHero({ data }: { data: TemplateData }) {
             </div>
           )}
         </div>
-      </EnterTilt>
+      </EnterMount>
     </section>
   );
 }

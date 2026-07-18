@@ -33,7 +33,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { slStrings, type SlStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './solari.css';
@@ -198,7 +198,7 @@ function SlHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="sl-hero-media">
-          <EnterTilt maxTilt={8} perspective={1400}>
+          <EnterMount perspective={1400}>
             <figure className="sl-panel">
               <div className="sl-panel-crop">
                 <img src={hero.image} alt={s.heroImageAlt} className="sl-panel-img" data-edit="hero.image" data-edit-type="image" />
@@ -206,7 +206,7 @@ function SlHero({ data }: { data: TemplateData }) {
               </div>
               <figcaption className="sl-panel-cap">{s.boardStatus} · {data.areas.length} {s.destinationsLabel}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
       <div className="sl-wrap"><SlDepartures data={data} /></div>

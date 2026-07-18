@@ -191,13 +191,6 @@ export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
     { key: 'accent', label: 'Coral chalk', cssVar: '--st-accent', default: '#E4897B' },
     { key: 'secondary', label: 'Sage chalk', cssVar: '--st-sage', default: '#A9C0A0' },
   ],
-  folio: [
-    { key: 'bg', label: 'Paper', cssVar: '--fo-paper', default: '#F7F4EF' },
-    { key: 'text', label: 'Ink', cssVar: '--fo-ink', default: '#16130F' },
-    { key: 'accent', label: 'Editorial red', cssVar: '--fo-accent', default: '#E5231B' },
-    { key: 'band', label: 'Section band', cssVar: '--fo-band', default: '#ECE7DF' },
-    { key: 'muted', label: 'Muted text', cssVar: '--fo-muted', default: '#6A6459' },
-  ],
   primary: [
     { key: 'bg', label: 'Paper', cssVar: '--pm-paper', default: '#F0E9DA' },
     { key: 'text', label: 'Ink', cssVar: '--pm-ink', default: '#161514' },
@@ -226,12 +219,26 @@ export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
     { key: 'secondary', label: 'Ink wash', cssVar: '--su-wash', default: '#8A857A' },
     { key: 'band', label: 'Section band', cssVar: '--su-band', default: '#E7E1D3' },
   ],
-  obsidian: [
-    { key: 'bg', label: 'Background', cssVar: '--ob-bg', default: '#0B0D10' },
-    { key: 'text', label: 'Text', cssVar: '--ob-ink', default: '#EAEEF2' },
-    { key: 'accent', label: 'Accent', cssVar: '--ob-accent', default: '#9FB6CC' },
-    { key: 'secondary', label: 'Bright ice', cssVar: '--ob-accent2', default: '#D7E3EE' },
-    { key: 'surface', label: 'Panels', cssVar: '--ob-panel', default: '#14181D' },
+  console: [
+    { key: 'bg', label: 'Background', cssVar: '--co-bg', default: '#0E1013' },
+    { key: 'surface', label: 'Panels', cssVar: '--co-panel', default: '#171A1F' },
+    { key: 'text', label: 'Text', cssVar: '--co-ink', default: '#E7EAEE' },
+    { key: 'accent', label: 'Accent', cssVar: '--co-accent', default: '#5B8CFF' },
+    { key: 'secondary', label: 'Steel', cssVar: '--co-metal', default: '#7A8290' },
+  ],
+  transit: [
+    { key: 'bg', label: 'Background', cssVar: '--tr-bg', default: '#F5F6F8' },
+    { key: 'text', label: 'Ink', cssVar: '--tr-ink', default: '#16181D' },
+    { key: 'accent', label: 'Line', cssVar: '--tr-line', default: '#1F5FE0' },
+    { key: 'secondary', label: 'Second line', cssVar: '--tr-line2', default: '#E11D48' },
+    { key: 'band', label: 'Platform bands', cssVar: '--tr-band', default: '#E9EBEF' },
+  ],
+  ledger: [
+    { key: 'bg', label: 'Background', cssVar: '--le-bg', default: '#F7F7F4' },
+    { key: 'text', label: 'Ink', cssVar: '--le-ink', default: '#14140F' },
+    { key: 'accent', label: 'Emerald', cssVar: '--le-accent', default: '#0E7C66' },
+    { key: 'band', label: 'Statement bands', cssVar: '--le-band', default: '#EAE9E3' },
+    { key: 'muted', label: 'Muted text', cssVar: '--le-muted', default: '#62625A' },
   ],
   'grid-ink': [
     { key: 'bg', label: 'Background', cssVar: '--paper', default: '#FAFAF7' },
@@ -246,13 +253,6 @@ export const COLOR_SLOTS: Record<string, ColorSlot[]> = {
     { key: 'accent', label: 'Accent', cssVar: '--orange', default: '#D2691E' },
     { key: 'secondary', label: 'Secondary', cssVar: '--teal', default: '#2A6F6B' },
     { key: 'highlight', label: 'Highlight', cssVar: '--mustard', default: '#E0A526' },
-  ],
-  'easy-lane': [
-    { key: 'bg', label: 'Background', cssVar: '--bg', default: '#FFFDFA' },
-    { key: 'text', label: 'Text', cssVar: '--ink', default: '#243B53' },
-    { key: 'accent', label: 'Accent', cssVar: '--blue', default: '#3B82F6' },
-    { key: 'secondary', label: 'Secondary', cssVar: '--mint', default: '#34D399' },
-    { key: 'highlight', label: 'Highlight', cssVar: '--peach', default: '#FFB088' },
   ],
 };
 

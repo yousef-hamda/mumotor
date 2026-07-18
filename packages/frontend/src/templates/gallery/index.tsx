@@ -30,7 +30,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { gaStrings, type GaStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './gallery.css';
@@ -146,7 +146,7 @@ function GaHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="ga-hero-media">
-          <EnterTilt maxTilt={6} perspective={1500}>
+          <EnterMount tilt={6} perspective={1500}>
             <figure className="ga-work ga-work-hero">
               <div className="ga-frame">
                 <div className="ga-mat">
@@ -155,7 +155,7 @@ function GaHero({ data }: { data: TemplateData }) {
               </div>
               <GaPlate title={s.heroWorkTitle} medium={s.plateMedium} year={s.onView} s={s} />
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

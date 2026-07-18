@@ -47,15 +47,15 @@ const TEMPLATE_THEME: Record<string, ThemeSpec> = {
   press: { bg: ['--ps-paper', '#F1EBDD'], ink: ['--ps-ink', '#1B1A18'], accent: ['--ps-accent', '#1F4D3D'] },
   reel: { bg: ['--rl-bg', '#0B0B0D'], ink: ['--rl-ink', '#F4F1EA'], accent: ['--rl-accent', '#E5533D'] },
   slate: { bg: ['--st-slate', '#1E2622'], ink: ['--st-chalk', '#EDEAE0'], accent: ['--st-accent', '#E4897B'] },
-  folio: { bg: ['--fo-paper', '#F7F4EF'], ink: ['--fo-ink', '#16130F'], accent: ['--fo-accent', '#E5231B'] },
   primary: { bg: ['--pm-paper', '#F0E9DA'], ink: ['--pm-ink', '#161514'], accent: ['--pm-blue', '#2340D9'] },
   gallery: { bg: ['--ga-wall', '#EEEAE1'], ink: ['--ga-ink', '#1C1A17'], accent: ['--ga-accent', '#B5662E'] },
   gilt: { bg: ['--gt-charcoal', '#17161B'], ink: ['--gt-ink', '#EFE9DD'], accent: ['--gt-gold', '#C7A96B'] },
   sumi: { bg: ['--su-paper', '#F2EEE4'], ink: ['--su-ink', '#1A1815'], accent: ['--su-vermilion', '#C4392E'] },
-  obsidian: { bg: ['--ob-bg', '#0B0D10'], ink: ['--ob-ink', '#EAEEF2'], accent: ['--ob-accent', '#9FB6CC'] },
+  console: { bg: ['--co-bg', '#0E1013'], ink: ['--co-ink', '#E7EAEE'], accent: ['--co-accent', '#5B8CFF'] },
+  transit: { bg: ['--tr-bg', '#F5F6F8'], ink: ['--tr-ink', '#16181D'], accent: ['--tr-line', '#1F5FE0'] },
+  ledger: { bg: ['--le-bg', '#F7F7F4'], ink: ['--le-ink', '#14140F'], accent: ['--le-accent', '#0E7C66'] },
   'grid-ink': { bg: ['--paper', '#FAFAF7'], ink: ['--ink', '#111111'], accent: ['--red', '#E4002B'] },
   'open-road': { bg: ['--cream', '#F4E9D8'], ink: ['--brown', '#3A2A1E'], accent: ['--orange', '#D2691E'] },
-  'easy-lane': { bg: ['--bg', '#FFFDFA'], ink: ['--ink', '#243B53'], accent: ['--blue', '#3B82F6'] },
 };
 const DEFAULT_THEME: ThemeSpec = TEMPLATE_THEME.mumotor;
 

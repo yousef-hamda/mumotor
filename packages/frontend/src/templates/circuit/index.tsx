@@ -31,7 +31,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { ciStrings, type CiStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './circuit.css';
@@ -215,7 +215,7 @@ function CiHero({ data }: { data: TemplateData }) {
           </p>
         </div>
         <div className="ci-hero-media">
-          <EnterTilt maxTilt={8} perspective={1400}>
+          <EnterMount tilt={8} perspective={1400}>
             <figure className="ci-figure">
               <div className="ci-panel ci-hero-frame">
                 <img src={hero.image} alt={s.heroImageAlt} className="ci-hero-img" data-edit="hero.image" data-edit-type="image" />
@@ -223,7 +223,7 @@ function CiHero({ data }: { data: TemplateData }) {
               </div>
               <figcaption className="ci-figcap">{s.heroCaption}</figcaption>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

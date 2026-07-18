@@ -79,18 +79,24 @@ classes never needed renaming.
   accent-picker) · **13 signature designs** — `meridian` (topo survey, self-drawing route line), `bezel` (machined
   instrument, needle-sweep dials), `solari` (split-flap departures), `cadence` (kinetic variable-font type), `circuit`
   (motorsport telemetry, car laps a circuit via CSS motion-path), `press` (letterpress deboss + wax seal), `reel` (35mm
-  cinema, scroll-scrubbed filmstrip), `slate` (chalkboard, chalk diagrams draw themselves), `folio` (glossy magazine,
-  full-bleed cover photography), `primary` (Bauhaus geometry), `gallery` (museum, spotlight-follow), `gilt` (foil-stamped
-  luxury), `sumi` (sumi-e ink wash, brushed enso + hanko seal) — plus the 4 kept originals `obsidian` `grid-ink`
-  `open-road` `easy-lane`. **Deleted:** aurora, prism, frosted, night-shift, full-throttle, prestige, bento, daylight,
-  vantage; `templates/webgl/` (ShaderBackground) was removed with them (no template uses WebGL now). All templates are
+  cinema, scroll-scrubbed filmstrip), `slate` (chalkboard, chalk diagrams draw themselves), `primary` (Bauhaus geometry),
+  `gallery` (museum, spotlight-follow), `gilt` (foil-stamped luxury), `sumi` (sumi-e ink wash, brushed enso + hanko seal),
+  `console` (product OS — ⌘K command palette that types itself, live dashboard widgets), `transit` (metro wayfinding — a
+  coloured "licence line" with roundel stops + a service marker that travels it on scroll), `ledger` (fintech statement —
+  count-up figures + self-drawing sparkline) — plus the 2 kept originals `grid-ink` `open-road`. **Deleted:** aurora, prism,
+  frosted, night-shift, full-throttle, prestige, bento, daylight, vantage, and (round 6) **easy-lane, folio, obsidian**
+  (→ replaced by console/transit/ledger); `templates/webgl/` (ShaderBackground) was removed (no template uses WebGL now). All templates are
   **full-width desktop** (1440 wrap + full-bleed nav/bands) and default to the owner's real driving-lesson + instructor
   photos (`/img/default-*.jpg` via `sampleData.IMG`). All driven off the `TEMPLATES` registry — but adding/removing one
   means touching ~10 slug-keyed maps in lockstep (registry, COLOR_SLOTS, templateTheme×5, backend TEMPLATE_THEME,
   i18n×3, TemplateConcept, overrides.test, e2e, prerender); several fall back SILENTLY so grep the slug to verify.
   **ANIMATION GOTCHAS (bit us repeatedly):** framer `whileInView` intermittently sticks hidden for above-fold elements
-  → use the shared `Reveal`/ref-`useInView`; `EnterTilt` pre-settles for a top-of-page hero → use a mount `initial→animate`
-  for hero entrances; headings must set an explicit `color: var(--xx-ink)` or a global `h1` rule wins (dark-on-dark).
+  → use the shared `Reveal`/ref-`useInView`; `EnterTilt` pre-settles for a top-of-page hero → wrap hero media in the
+  shared **`EnterMount`** (`templates/shared.tsx`, framer mount `initial→animate`; do NOT try to fix EnterTilt globally —
+  its scroll math treats a tall 2-col hero as below-fold and it stays hidden); headings must set an explicit
+  `color: var(--xx-ink)` or a global `h1` rule wins (dark-on-dark). Every template's nav is a generous (~70px) full-bleed
+  bar with an on-theme signature + a colour+shape active marker (not colour alone). `transit` reserves its left gutter
+  (`.tr-wrap padding-inline` ≥1280) for its fixed line-diagram rail — the service marker travels it via scroll.
   **mumotor accent picker**: its card shows bottom-right colour dots (`MumotorAccentDots` in `TemplateConcept.tsx`) that
   set `customization.theme['--mm-accent']` — recolouring only the one restrained accent (CTA/links/active/popular/orbs).
   Builder `BrowseCard` persists it to config (flows to live preview + publish via `wizardToTemplateData`→`applyOverrides`);

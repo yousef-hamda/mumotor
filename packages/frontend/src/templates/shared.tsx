@@ -339,4 +339,42 @@ export function EnterTilt({
   );
 }
 
+/**
+ * A one-shot entrance that plays ON MOUNT (page load) — a rise + fade + subtle tilt.
+ * Unlike `EnterTilt` (a scroll-scrub that pre-settles / stays hidden for a top-of-page
+ * hero until you scroll past it), framer's `initial`→`animate` fires immediately on
+ * mount, so a hero photo actually animates in as the page appears. Reduced-motion → static.
+ * Use this for HERO media; keep `EnterTilt` for mid-page plates.
+ */
+export function EnterMount({
+  children,
+  className,
+  delay = 0.12,
+  y = 30,
+  tilt = 12,
+  perspective = 1400,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  y?: number;
+  tilt?: number;
+  perspective?: number;
+}) {
+  const reduced = usePrefersReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  return (
+    <div className={className} style={{ perspective }}>
+      <motion.div
+        initial={{ opacity: 0, y, rotateX: tilt, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+        transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1], delay }}
+        style={{ transformStyle: 'preserve-3d', willChange: 'transform, opacity', transformOrigin: '50% 100%' }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
 export { usePrefersReducedMotion };

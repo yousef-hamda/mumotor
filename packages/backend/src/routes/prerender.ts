@@ -198,15 +198,15 @@ const TEMPLATES: Array<[string, string, string]> = [
   ['Press', 'Letterpress print', 'A fine letterpress prospectus — type debossed into cotton paper, copper fleurons and a wax seal that stamps as you scroll.'],
   ['Reel', '35mm cinema', 'A film print — letterboxed hero, a sprocket-holed filmstrip that scrubs frame-by-frame as you scroll and an academy-leader countdown.'],
   ['Slate', 'Chalkboard classroom', 'A schoolroom blackboard — hand-drawn chalk road diagrams that draw themselves and eraser-wipe transitions.'],
-  ['Folio', 'Glossy magazine', 'A fashion-magazine feature — full-bleed cover photography, a dramatic Bodoni masthead, pull-quotes and folios.'],
   ['Primary', 'Bauhaus geometry', 'A Bauhaus poster — flat circles, triangles and bars in primary colours that assemble as you scroll.'],
   ['Gallery', 'Museum exhibition', 'The work as a curated exhibition — framed prints with museum wall-labels and a spotlight that follows you down the wall.'],
   ['Gilt', 'Foil-stamped luxury', 'A foil-stamped invitation — deep charcoal and champagne-gold headlines with a sheen that rakes across them as you scroll.'],
   ['Sumi', 'Sumi-e ink wash', 'A sumi-e brush painting — warm washi paper, a hand-brushed enso that draws itself and a vermilion hanko seal that stamps as you scroll.'],
-  ['Obsidian', 'Smoked dark glass', 'Luxury after-dark — smoked glass panels, a receding 3D grid horizon and slow cinematic reveals in cool ice-steel.'],
+  ['Console', 'Product OS', 'A developer-grade product console — a ⌘K command palette that types itself, live dashboard widgets and crisp indigo accents on near-black.'],
+  ['Transit', 'Metro wayfinding', 'A transit signage system — a bold coloured line threads the page past roundel stops while a live service marker travels it as you scroll.'],
+  ['Ledger', 'Fintech statement', 'A neobank statement — a crisp figures card with tabular numerals that count up, a sparkline that draws itself and trustworthy emerald accents.'],
   ['Grid & Ink', 'Swiss editorial', 'Strict typographic grid, hairline rules and numbered sections. Confident, magazine-grade, zero clutter.'],
   ['Open Road', 'Retro automotive', 'Warm 70s road-trip energy — sunburst hero, enamel badges, grain and dashed-road dividers.'],
-  ['Easy Lane', 'Soft & friendly', 'Reassuring and rounded — pastel blobs, springy motion and a "your journey" progress feel.'],
 ];
 
 function templatesHtml(): string {

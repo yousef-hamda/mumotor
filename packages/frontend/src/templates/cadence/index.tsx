@@ -36,7 +36,7 @@ import { DynamicIcon } from '../DynamicIcon';
 import { cdStrings, type CdStrings } from './strings';
 import {
   SECTION_IDS, scrollToSection, useScrollSpy, useTemplateFonts,
-  Reveal, EnterTilt, useCountUp, useIsEditing, reviewReplyLabel,
+  Reveal, EnterMount, useCountUp, useIsEditing, reviewReplyLabel,
   usePrefersReducedMotion,
 } from '../shared';
 import './cadence.css';
@@ -138,13 +138,13 @@ function CdHero({ data }: { data: TemplateData }) {
           </Reveal>
         </div>
         <div className="cd-hero-media">
-          <EnterTilt maxTilt={6} perspective={1400}>
+          <EnterMount perspective={1400}>
             <figure className="cd-figure">
               <div className="cd-frame">
                 <img src={hero.image} alt={s.heroImageAlt} className="cd-frame-img" data-edit="hero.image" data-edit-type="image" />
               </div>
             </figure>
-          </EnterTilt>
+          </EnterMount>
         </div>
       </div>
     </section>

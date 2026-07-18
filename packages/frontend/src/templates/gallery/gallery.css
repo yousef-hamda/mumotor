@@ -119,30 +119,41 @@
 .tmpl-gallery .ga-btn-ghost { color: var(--ga-ink); background: var(--ga-wall); border-color: color-mix(in srgb, var(--ga-ink) 55%, transparent); }
 .tmpl-gallery .ga-btn-ghost:hover { transform: translateY(-1px); border-color: var(--ga-ink); background: color-mix(in srgb, var(--ga-ink) 5%, var(--ga-wall)); }
 
-/* ── Nav: sticky, full-bleed translucent wall, ochre hairline ─────────────────── */
+/* ── Nav: gallery signage — sticky, full-bleed translucent wall, a warm hairline,
+   a Cormorant wordmark + Inter small-caps museum-label links with an ochre active
+   underline. Taller and airy, refined label spacing. ─────────────────────────── */
 .tmpl-gallery .ga-nav { position: sticky; top: 0; z-index: 60; }
 .tmpl-gallery .ga-nav-bar {
-  background: color-mix(in srgb, var(--ga-wall) 90%, transparent);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid color-mix(in srgb, var(--ga-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--ga-wall) 88%, transparent);
+  backdrop-filter: blur(11px); -webkit-backdrop-filter: blur(11px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ga-accent) 40%, var(--ga-line));
+  box-shadow: 0 7px 24px -20px rgba(28, 26, 23, 0.5);
 }
 .tmpl-gallery .ga-nav-inner {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  max-width: 1440px; margin: 0 auto; padding: 15px 40px;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 18px 40px; min-height: 74px;
 }
-.tmpl-gallery .ga-logo { display: inline-flex; align-items: center; gap: 11px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ga-ink); }
-.tmpl-gallery .ga-logo-word { font-family: var(--ga-serif); font-size: 22px; font-weight: 600; letter-spacing: 0.005em; color: var(--ga-ink); }
-.tmpl-gallery .ga-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-gallery .ga-logo { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; cursor: pointer; padding: 0; color: var(--ga-ink); }
+.tmpl-gallery .ga-logo-word { font-family: var(--ga-serif); font-size: 25px; font-weight: 600; letter-spacing: 0.006em; color: var(--ga-ink); }
+.tmpl-gallery .ga-nav-links { display: none; align-items: center; gap: 4px; }
 .tmpl-gallery .ga-nav-link {
   position: relative; background: none; border: 0; cursor: pointer;
-  font-family: var(--ga-sans); font-size: 11px; font-weight: 600;
-  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ga-muted);
-  padding: 10px 13px; transition: color 0.18s ease;
+  font-family: var(--ga-sans); font-size: 15px; font-weight: 500;
+  font-variant-caps: small-caps; letter-spacing: 0.18em; text-transform: none;
+  color: color-mix(in srgb, var(--ga-ink) 66%, var(--ga-wall));
+  padding: 12px 15px; transition: color 0.18s ease;
+}
+/* Ochre underline draws in on hover (half) and fills when active. */
+.tmpl-gallery .ga-nav-link::after {
+  content: ''; position: absolute; inset-inline: 15px; bottom: 8px; height: 2px;
+  background: var(--ga-accent); transform: scaleX(0); transform-origin: center;
+  transition: transform 0.24s cubic-bezier(0.2, 0.85, 0.2, 1);
 }
 .tmpl-gallery .ga-nav-link:hover { color: var(--ga-ink); }
-/* Active = accent text + weight + a 2px accent underline (never colour alone). */
+.tmpl-gallery .ga-nav-link:not(.is-active):hover::after { transform: scaleX(0.5); background: color-mix(in srgb, var(--ga-accent) 62%, transparent); }
+/* Active = accent text + weight + a full ochre underline (never colour alone). */
 .tmpl-gallery .ga-nav-link.is-active { color: var(--ga-accent-ink); font-weight: 700; }
-.tmpl-gallery .ga-nav-link.is-active::after { content: ''; position: absolute; inset-inline: 13px; bottom: 2px; height: 2px; background: var(--ga-accent); }
+.tmpl-gallery .ga-nav-link.is-active::after { transform: scaleX(1); background: var(--ga-accent); }
 .tmpl-gallery .ga-nav-end { display: flex; align-items: center; gap: 8px; }
 .tmpl-gallery .ga-menu { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 6px; background: none; border: 0; cursor: pointer; color: var(--ga-ink); }
 .tmpl-gallery .ga-nav-mobile { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px 16px; background: var(--ga-wall); border-bottom: 1px solid var(--ga-line); }

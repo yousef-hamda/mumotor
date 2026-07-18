@@ -149,39 +149,61 @@
 .tmpl-meridian .mr-btn-ghost { color: var(--mr-ink); background: transparent; border-color: var(--mr-ink); }
 .tmpl-meridian .mr-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--mr-ink) 6%, transparent); }
 
-/* ── Nav: the legend bar ──────────────────────────────────────────────────── */
-.tmpl-meridian .mr-nav { position: sticky; top: 0; z-index: 60; }
+/* ── Nav: the legend bar — full-bleed (bg/blur/rule span the viewport, row capped) ─ */
+.tmpl-meridian .mr-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--mr-paper) 90%, transparent);
+  backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+  border-bottom: 3px double var(--mr-contour);
+}
 .tmpl-meridian .mr-nav-inner {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
-  background: color-mix(in srgb, var(--mr-paper) 88%, transparent);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--mr-line);
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  max-width: 1440px; margin: 0 auto; padding: 16px 40px;
 }
 .tmpl-meridian .mr-logo {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; gap: 11px; flex-shrink: 0;
   background: none; border: 0; cursor: pointer; padding: 0;
-  font-family: var(--mr-mono); font-size: 13px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-ink);
+  font-family: var(--mr-mono); font-size: 14px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--mr-ink);
 }
-.tmpl-meridian .mr-nav-links { display: none; align-items: center; gap: 4px; }
+/* Links group centres in the bar; scrolls internally (hidden scrollbar) if a very
+   long business name squeezes it, so the Book/account end never gets pushed off. */
+.tmpl-meridian .mr-nav-links {
+  display: none; align-items: center; gap: 2px;
+  flex: 1; min-width: 0; justify-content: center;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tmpl-meridian .mr-nav-links::-webkit-scrollbar { display: none; }
+/* Coordinate-style tick: a survey crosshair + hairline divider, leading the legend. */
+.tmpl-meridian .mr-nav-tick {
+  position: relative; width: 13px; height: 13px; flex-shrink: 0;
+  margin-inline-end: 12px; padding-inline-end: 14px;
+  border-inline-end: 1px solid var(--mr-contour);
+}
+.tmpl-meridian .mr-nav-tick::before,
+.tmpl-meridian .mr-nav-tick::after { content: ''; position: absolute; background: var(--mr-route); }
+.tmpl-meridian .mr-nav-tick::before { top: 6px; inset-inline-start: 0; width: 13px; height: 1px; }
+.tmpl-meridian .mr-nav-tick::after  { inset-inline-start: 6px; top: 0; width: 1px; height: 13px; }
 .tmpl-meridian .mr-nav-link {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: none; border: 0; cursor: pointer;
-  font-family: var(--mr-mono); font-size: 11px; font-weight: 500;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted);
-  padding: 8px 12px; border-radius: 2px;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 0; cursor: pointer; white-space: nowrap;
+  font-family: var(--mr-mono); font-size: 15px; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--mr-muted);
+  padding: 9px 12px; border-radius: 2px;
   transition: color 0.18s ease;
 }
+/* The legend key square — a hollow ring that FILLS with survey magenta on hover/active. */
 .tmpl-meridian .mr-nav-link::before {
-  content: ''; width: 6px; height: 6px; flex-shrink: 0;
-  background: transparent; transition: background 0.18s ease;
+  content: ''; width: 8px; height: 8px; flex-shrink: 0;
+  background: transparent; box-shadow: inset 0 0 0 1px var(--mr-contour);
+  transition: background 0.18s ease, box-shadow 0.18s ease;
 }
 .tmpl-meridian .mr-nav-link:hover { color: var(--mr-ink); }
-/* Active = a filled legend key AND the ink colour + weight (never colour alone). */
-.tmpl-meridian .mr-nav-link.is-active { color: var(--mr-ink); font-weight: 600; }
-.tmpl-meridian .mr-nav-link.is-active::before { background: var(--mr-route); }
-.tmpl-meridian .mr-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-meridian .mr-nav-link:hover::before { background: color-mix(in srgb, var(--mr-route) 45%, transparent); box-shadow: inset 0 0 0 1px var(--mr-route); }
+/* Active = a FILLED key + ink colour + weight + an engraved underline (never colour alone). */
+.tmpl-meridian .mr-nav-link.is-active { color: var(--mr-ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--mr-route); }
+.tmpl-meridian .mr-nav-link.is-active::before { background: var(--mr-route); box-shadow: inset 0 0 0 1px var(--mr-route); }
+.tmpl-meridian .mr-nav-end { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .tmpl-meridian .mr-menu {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 44px; min-height: 44px; padding: 6px;
@@ -373,7 +395,7 @@
   .tmpl-meridian .mr-about { grid-template-columns: 0.85fr 1.15fr; }
   .tmpl-meridian .mr-footer-grid { grid-template-columns: 1.4fr 1fr; }
 }
-@media (min-width: 940px) {
+@media (min-width: 1024px) {
   .tmpl-meridian .mr-nav-links { display: flex; }
   .tmpl-meridian .mr-menu { display: none; }
 }

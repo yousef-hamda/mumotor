@@ -1,0 +1,479 @@
+/* Transit — a metro wayfinding system. All selectors scoped to .tmpl-transit.
+   Clean signage off-white, a strong grid, ONE bold coloured LINE (--tr-line, the
+   route colour = the ONE accent), TfL-style roundel nodes, Highway-Gothic signage
+   type (Overpass). NOT glassy, NOT gradient. Every tint derives with color-mix()
+   from the vars, so Customize recolouring holds. The first 5 vars are user-
+   recolourable (COLOR_SLOTS); --tr-muted and --tr-hair are internal.
+
+   CONTRAST (verified, sRGB WCAG):
+     ink   #16181D on bg #F5F6F8   ≈ 15.9:1  ✓  (also strong on --tr-band)
+     muted #5B616B on bg           ≈  5.8:1  ✓  (secondary text)
+     line  #1F5FE0 on bg           ≈  5.1:1  ✓  (links / active)
+     white #FFFFFF on line #1F5FE0 ≈  5.5:1  ✓  (primary buttons)
+   ⚠ line2 #E11D48 (red) on bg is ≈ 4.3:1 — it FAILS small-text contrast, so it is
+     used ONLY for graphic/large accents (the second route strip, decorative nodes),
+     NEVER for body or secondary text. */
+
+.tmpl-transit {
+  /* User-recolourable (COLOR_SLOTS) */
+  --tr-bg: #F5F6F8;      /* clean signage off-white — page bg */
+  --tr-ink: #16181D;     /* near-black signage ink — text */
+  --tr-line: #1F5FE0;    /* the primary LINE colour — the ONE accent */
+  --tr-line2: #E11D48;   /* a second line colour — graphic accents only */
+  --tr-band: #E9EBEF;    /* platform band — alternating sections */
+  /* Internal — NOT user-recolourable */
+  --tr-muted: #5B616B;   /* secondary text — ≥4.5:1 on bg AND band */
+  --tr-hair: rgba(22, 24, 29, 0.16);
+
+  --tr-font: 'Overpass', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  position: relative;
+  background: var(--tr-bg);
+  color: var(--tr-ink);
+  font-family: var(--tr-font);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.tmpl-transit *, .tmpl-transit *::before, .tmpl-transit *::after { box-sizing: border-box; }
+.tmpl-transit img { display: block; max-width: 100%; }
+
+/* Visible focus — non-negotiable. */
+.tmpl-transit :focus-visible { outline: 2px solid var(--tr-line); outline-offset: 2px; }
+
+/* ── SIGNATURE: the fixed line diagram (behind content, gated to wide viewports).
+   position:fixed + pointer-events:none ⇒ it never adds page width and never
+   catches clicks. Shown only ≥1280px, where it reads in the start gutter. ────── */
+.tmpl-transit .tr-line-plane {
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-start: 24px;
+  transform: translateY(-50%);
+  width: 190px;
+  z-index: 1;
+  pointer-events: none;
+  display: none;
+}
+.tmpl-transit[dir='rtl'] .tr-line-plane { transform: translateY(-50%) scaleX(-1); }
+.tmpl-transit .tr-line-tag {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.tmpl-transit[dir='rtl'] .tr-line-tag { direction: rtl; transform: scaleX(-1); }
+.tmpl-transit .tr-line-badge {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--tr-line); color: #fff;
+  font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.tmpl-transit .tr-line-name {
+  font-weight: 700; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tr-ink);
+}
+.tmpl-transit .tr-line-wrap { position: relative; width: 170px; height: 640px; }
+.tmpl-transit .tr-line-svg { display: block; width: 170px; height: 640px; overflow: visible; }
+.tmpl-transit .tr-line-stroke {
+  stroke: var(--tr-line); stroke-width: 8; stroke-linejoin: round; stroke-linecap: round;
+  opacity: 0.9;
+}
+/* Roundel stop nodes — empty ring until the service arrives, then filled. */
+.tmpl-transit .tr-node-ring { fill: var(--tr-bg); stroke: var(--tr-line); stroke-width: 3; }
+.tmpl-transit .tr-node-core { fill: transparent; transition: fill 0.3s ease; }
+.tmpl-transit .tr-node.is-arrived .tr-node-core { fill: var(--tr-line); }
+.tmpl-transit .tr-node-label {
+  font-family: var(--tr-font); font-weight: 700; font-size: 11px;
+  letter-spacing: 0.04em; fill: var(--tr-muted);
+  transition: fill 0.3s ease;
+}
+.tmpl-transit[dir='rtl'] .tr-node-label { transform: scaleX(-1); transform-box: fill-box; transform-origin: center; }
+.tmpl-transit .tr-node.is-arrived .tr-node-label { fill: var(--tr-ink); }
+/* The travelling service — a "you are here" roundel riding the line via Motion
+   Path. It reads the inherited --tr-prog (written from scroll). offset-distance +
+   transform only ⇒ buttery smooth. ⚠️ path() MUST match LINE_D in index.tsx. */
+.tmpl-transit .tr-service {
+  position: absolute; top: 0; left: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: #fff; border: 4px solid var(--tr-line);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tr-line) 26%, transparent);
+  offset-path: path('M 30 24 L 30 150 L 64 184 L 64 300 L 30 334 L 30 470 L 64 504 L 64 616');
+  offset-distance: var(--tr-prog, 0%);
+  will-change: offset-distance;
+}
+
+/* ── Content plane ────────────────────────────────────────────────────────────*/
+.tmpl-transit .tr-content { position: relative; z-index: 3; }
+.tmpl-transit .tr-wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.tmpl-transit .tr-section { position: relative; padding: 104px 0; }
+
+/* ── Type ─────────────────────────────────────────────────────────────────────*/
+.tmpl-transit .tr-h1 {
+  font-weight: 800; font-size: clamp(2.7rem, 6vw, 4.7rem); line-height: 1.02;
+  letter-spacing: -0.02em; margin: 18px 0 0; max-width: 15ch; color: var(--tr-ink);
+}
+.tmpl-transit .tr-h2 {
+  font-weight: 800; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.06;
+  letter-spacing: -0.015em; margin: 0; max-width: 20ch; color: var(--tr-ink);
+}
+.tmpl-transit .tr-h2-tight { max-width: 15ch; }
+/* Long HE/AR words never overflow the big clamp() headings. */
+.tmpl-transit .tr-h1, .tmpl-transit .tr-h2 { overflow-wrap: break-word; }
+
+.tmpl-transit .tr-eyebrow {
+  display: inline-flex; align-items: center;
+  font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--tr-line); margin: 0 0 16px;
+}
+/* Eyebrow with a leading signage strip (a short line accent). */
+.tmpl-transit .tr-eyebrow-strip::before {
+  content: ''; width: 26px; height: 4px; border-radius: 2px; background: var(--tr-line);
+  margin-inline-end: 12px; flex-shrink: 0;
+}
+.tmpl-transit .tr-lead { color: var(--tr-muted); font-size: clamp(1rem, 1.5vw, 1.14rem); max-width: 56ch; margin: 18px 0 0; }
+.tmpl-transit .tr-body { color: var(--tr-muted); font-size: 16px; margin: 16px 0 0; max-width: 58ch; }
+
+/* ── Buttons: bold signage. Pills; ticket variant gets a stub perforation. ─────*/
+.tmpl-transit .tr-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; cursor: pointer;
+  font-family: var(--tr-font); font-size: 15px; font-weight: 700;
+  letter-spacing: 0.01em; text-decoration: none;
+  padding: 13px 24px; min-height: 46px;
+  border: 2px solid transparent;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-transit .tr-btn-sm { padding: 9px 18px; min-height: 40px; font-size: 14px; }
+.tmpl-transit .tr-btn-block { width: 100%; margin-top: auto; }
+.tmpl-transit .tr-btn-primary { color: #fff; background: var(--tr-line); border-color: var(--tr-line); }
+.tmpl-transit .tr-btn-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--tr-line) 88%, #000); border-color: color-mix(in srgb, var(--tr-line) 88%, #000); }
+.tmpl-transit .tr-btn-primary:disabled { cursor: not-allowed; opacity: 0.55; }
+.tmpl-transit .tr-btn-primary:disabled:hover { transform: none; }
+.tmpl-transit .tr-btn-ghost { color: var(--tr-ink); background: transparent; border-color: var(--tr-ink); }
+.tmpl-transit .tr-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--tr-ink) 6%, transparent); }
+/* On the solid line-coloured Book panel. */
+.tmpl-transit .tr-btn-onsolid { color: var(--tr-ink); background: #fff; border-color: #fff; }
+.tmpl-transit .tr-btn-onsolid:hover { transform: translateY(-1px); background: color-mix(in srgb, #fff 90%, var(--tr-ink)); }
+.tmpl-transit .tr-btn-onsolid:disabled { cursor: not-allowed; opacity: 0.7; }
+.tmpl-transit .tr-btn-onsolid:disabled:hover { transform: none; }
+.tmpl-transit .tr-btn-onsolid-ghost { color: #fff; background: transparent; border-color: color-mix(in srgb, #fff 70%, transparent); }
+.tmpl-transit .tr-btn-onsolid-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, #fff 14%, transparent); border-color: #fff; }
+/* Ticket stub perforation — a dotted rule near the leading edge. */
+.tmpl-transit .tr-ticket { position: relative; padding-inline-start: 30px; }
+.tmpl-transit .tr-ticket::before {
+  content: ''; position: absolute; inset-block: 8px; inset-inline-start: 14px;
+  border-inline-start: 2px dotted color-mix(in srgb, currentColor 55%, transparent);
+}
+
+/* ── Nav: the transit service bar ─────────────────────────────────────────────*/
+.tmpl-transit .tr-nav { position: sticky; top: 0; z-index: 60; background: color-mix(in srgb, var(--tr-bg) 90%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.tmpl-transit .tr-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1440px; margin: 0 auto; padding: 14px 40px; min-height: 68px;
+}
+.tmpl-transit .tr-nav-line { display: block; height: 4px; width: 100%; background: var(--tr-line); }
+.tmpl-transit .tr-logo {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+}
+/* Roundel lockup — a mark on a short transit "bar" that pokes out either side. */
+.tmpl-transit .tr-roundel { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 30px; }
+.tmpl-transit .tr-roundel-bar { position: absolute; inset-inline: 0; height: 6px; border-radius: 3px; background: var(--tr-line); }
+.tmpl-transit .tr-roundel-mark { position: relative; z-index: 1; display: inline-flex; border: 3px solid var(--tr-bg); border-radius: 50%; }
+.tmpl-transit .tr-logo-word {
+  font-weight: 800; font-size: 16px; letter-spacing: 0.02em; color: var(--tr-ink);
+}
+.tmpl-transit .tr-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-transit .tr-nav-link {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--tr-font); font-size: 15px; font-weight: 600;
+  color: var(--tr-muted); padding: 10px 14px; border-radius: 6px;
+  transition: color 0.18s ease;
+}
+.tmpl-transit .tr-nav-node {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid color-mix(in srgb, var(--tr-muted) 60%, transparent); background: transparent;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+/* The short "line" that draws under a link on hover/active. */
+.tmpl-transit .tr-nav-link::after {
+  content: ''; position: absolute; inset-inline: 14px; bottom: 4px; height: 3px; border-radius: 2px;
+  background: var(--tr-line); transform: scaleX(0); transform-origin: inline-start;
+  transition: transform 0.2s ease;
+}
+.tmpl-transit .tr-nav-link:hover { color: var(--tr-ink); }
+.tmpl-transit .tr-nav-link:hover .tr-nav-node { border-color: var(--tr-line); background: var(--tr-line); }
+.tmpl-transit .tr-nav-link:hover::after { transform: scaleX(0.5); }
+/* Active = node fills AND ink colour + the line draws (never colour alone). */
+.tmpl-transit .tr-nav-link.is-active { color: var(--tr-ink); font-weight: 700; }
+.tmpl-transit .tr-nav-link.is-active .tr-nav-node { border-color: var(--tr-line); background: var(--tr-line); }
+.tmpl-transit .tr-nav-link.is-active::after { transform: scaleX(1); }
+.tmpl-transit .tr-nav-end { display: flex; align-items: center; gap: 10px; }
+.tmpl-transit .tr-menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; min-height: 44px; padding: 6px;
+  background: none; border: 0; cursor: pointer; color: var(--tr-ink);
+}
+.tmpl-transit .tr-nav-mobile {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 24px 18px;
+  background: var(--tr-bg); border-bottom: 1px solid var(--tr-hair);
+}
+.tmpl-transit .tr-nav-mobile button, .tmpl-transit .tr-nav-mobile-link {
+  display: flex; align-items: center; gap: 12px;
+  background: none; border: 0; text-align: start; cursor: pointer; text-decoration: none;
+  font-family: var(--tr-font); font-size: 16px; font-weight: 600; color: var(--tr-ink);
+  padding: 14px 4px; min-height: 44px; border-bottom: 1px solid var(--tr-hair);
+}
+.tmpl-transit .tr-nav-mobile .tr-nav-node { border-color: var(--tr-line); background: var(--tr-line); }
+
+/* ── Hero: signage headline | station poster ──────────────────────────────────*/
+.tmpl-transit .tr-hero { padding-top: clamp(56px, 8vw, 92px); }
+.tmpl-transit .tr-hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+.tmpl-transit .tr-hero-sub { color: var(--tr-muted); font-size: clamp(1.05rem, 1.7vw, 1.22rem); max-width: 46ch; margin: 22px 0 0; }
+/* Route chip — a mini line diagram: You are here ●———● Full licence. */
+.tmpl-transit .tr-route-chip {
+  display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 26px 0 0; padding: 10px 16px; border-radius: 999px;
+  background: var(--tr-band); border: 1px solid var(--tr-hair);
+}
+.tmpl-transit .tr-route-end { font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tr-ink); }
+.tmpl-transit .tr-route-end-to { color: var(--tr-line); }
+.tmpl-transit .tr-route-track { position: relative; width: 54px; height: 4px; border-radius: 2px; background: var(--tr-line); }
+.tmpl-transit .tr-route-dot { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%; background: var(--tr-bg); border: 3px solid var(--tr-line); transform: translateY(-50%); }
+.tmpl-transit .tr-route-dot-a { inset-inline-start: -3px; }
+.tmpl-transit .tr-route-dot-b { inset-inline-end: -3px; background: var(--tr-line); }
+.tmpl-transit .tr-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 0; }
+.tmpl-transit .tr-figure { margin: 0; }
+/* Station poster — a clean framed plate. */
+.tmpl-transit .tr-poster {
+  position: relative; border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--tr-hair); background: #fff;
+  box-shadow: 0 24px 60px -32px color-mix(in srgb, var(--tr-ink) 40%, transparent);
+}
+.tmpl-transit .tr-poster-img { width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; }
+.tmpl-transit .tr-poster-tag {
+  position: absolute; inset-block-start: 14px; inset-inline-start: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 999px; background: color-mix(in srgb, var(--tr-ink) 82%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  color: #fff; font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.tmpl-transit .tr-poster-node { width: 9px; height: 9px; border-radius: 50%; background: var(--tr-line); box-shadow: 0 0 0 2px #fff; }
+.tmpl-transit .tr-caption {
+  font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tr-muted);
+  text-align: start; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--tr-hair);
+}
+
+/* ── Stats: roundel readouts over a top rule ──────────────────────────────────*/
+.tmpl-transit .tr-stats { padding: 56px 0; background: var(--tr-band); }
+.tmpl-transit .tr-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px 24px; }
+.tmpl-transit .tr-stat { position: relative; padding-top: 20px; border-top: 3px solid var(--tr-line); }
+.tmpl-transit .tr-stat::before {
+  content: ''; position: absolute; inset-block-start: -8px; inset-inline-start: 0;
+  width: 13px; height: 13px; border-radius: 50%; background: var(--tr-bg); border: 3px solid var(--tr-line);
+}
+.tmpl-transit .tr-stat-num {
+  display: block; font-weight: 800; font-size: clamp(2.6rem, 5vw, 3.6rem); line-height: 1;
+  letter-spacing: -0.02em; color: var(--tr-ink); font-variant-numeric: tabular-nums;
+}
+.tmpl-transit .tr-stat-label {
+  display: block; margin-top: 10px; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--tr-muted);
+}
+
+/* ── Why: on this service ─────────────────────────────────────────────────────*/
+.tmpl-transit .tr-why-grid { display: grid; grid-template-columns: 1fr; gap: 40px 32px; margin-top: 52px; }
+.tmpl-transit .tr-why-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border-radius: 14px;
+  background: color-mix(in srgb, var(--tr-line) 12%, transparent); color: var(--tr-line);
+}
+.tmpl-transit .tr-why-title { font-weight: 800; font-size: 21px; line-height: 1.2; margin: 20px 0 0; color: var(--tr-ink); letter-spacing: -0.01em; }
+.tmpl-transit .tr-why-body { color: var(--tr-muted); font-size: 15.5px; margin: 8px 0 0; max-width: 38ch; }
+
+/* ── Packages: fare / ticket cards ────────────────────────────────────────────*/
+.tmpl-transit .tr-pkg-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 52px; }
+.tmpl-transit .tr-pkg {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 32px; border-radius: 16px;
+  border: 1px solid var(--tr-hair); background: var(--tr-bg);
+}
+.tmpl-transit .tr-pkg.is-popular { border: 2px solid var(--tr-line); box-shadow: 0 20px 50px -30px color-mix(in srgb, var(--tr-line) 60%, transparent); }
+.tmpl-transit .tr-pkg-badge {
+  align-self: flex-start; margin-bottom: 16px; padding: 5px 12px; border-radius: 999px;
+  font-weight: 800; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #fff; background: var(--tr-line);
+}
+.tmpl-transit .tr-pkg-name { margin: 0; font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tr-muted); }
+.tmpl-transit .tr-pkg-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.tmpl-transit .tr-pkg-amount { font-weight: 800; font-size: 50px; line-height: 1; letter-spacing: -0.03em; color: var(--tr-ink); font-variant-numeric: tabular-nums; }
+.tmpl-transit .tr-pkg-unit { font-weight: 600; font-size: 13px; color: var(--tr-muted); }
+.tmpl-transit .tr-pkg-rule { display: block; height: 0; border-top: 2px dashed var(--tr-hair); margin: 24px 0 0; }
+.tmpl-transit .tr-pkg-features { list-style: none; margin: 20px 0 26px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.tmpl-transit .tr-pkg-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--tr-ink); }
+.tmpl-transit .tr-check { color: var(--tr-line); flex-shrink: 0; margin-top: 2px; }
+
+/* ── About ────────────────────────────────────────────────────────────────────*/
+.tmpl-transit .tr-about { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+.tmpl-transit .tr-about-img { aspect-ratio: 4 / 5; }
+.tmpl-transit .tr-instructor { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--tr-hair); }
+.tmpl-transit .tr-instructor-photo { width: 132px; height: 132px; border-radius: 16px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--tr-hair); }
+.tmpl-transit .tr-instructor-id { min-width: 0; }
+.tmpl-transit .tr-instructor-name { margin: 0; font-weight: 800; font-size: 20px; line-height: 1.2; color: var(--tr-ink); }
+.tmpl-transit .tr-instructor-title { margin: 4px 0 0; font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tr-muted); }
+.tmpl-transit .tr-checklist { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 14px; }
+.tmpl-transit .tr-checklist li { display: flex; align-items: center; gap: 12px; font-size: 15.5px; color: var(--tr-ink); }
+.tmpl-transit .tr-check-node { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: color-mix(in srgb, var(--tr-line) 14%, transparent); color: var(--tr-line); flex-shrink: 0; }
+.tmpl-transit .tr-creds { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; }
+.tmpl-transit .tr-cred {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: 999px; border: 1px solid var(--tr-hair); background: var(--tr-band);
+  font-weight: 600; font-size: 12px; color: var(--tr-ink);
+}
+.tmpl-transit .tr-cred svg { color: var(--tr-line); flex-shrink: 0; }
+
+/* ── Areas: stops served ──────────────────────────────────────────────────────*/
+.tmpl-transit .tr-areas { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: 1fr; }
+.tmpl-transit .tr-area {
+  display: flex; align-items: center; gap: 14px; padding: 16px 0;
+  border-bottom: 1px solid var(--tr-hair);
+  font-weight: 700; font-size: 16px; color: var(--tr-ink);
+}
+.tmpl-transit .tr-area-node { width: 13px; height: 13px; border-radius: 50%; background: var(--tr-bg); border: 3px solid var(--tr-line); flex-shrink: 0; }
+.tmpl-transit .tr-area-note { margin-inline-start: auto; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--tr-muted); text-align: end; }
+
+/* ── Reviews: passenger cards ─────────────────────────────────────────────────*/
+.tmpl-transit .tr-reviews { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 52px; }
+.tmpl-transit .tr-review { padding: 30px; border-radius: 16px; border: 1px solid var(--tr-hair); background: var(--tr-bg); height: 100%; }
+.tmpl-transit .tr-stars { display: inline-flex; gap: 2px; }
+.tmpl-transit .tr-review-text { font-size: 16.5px; line-height: 1.6; color: var(--tr-ink); margin: 14px 0 20px; }
+.tmpl-transit .tr-review-meta { display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--tr-hair); }
+.tmpl-transit .tr-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.tmpl-transit .tr-review-name { margin: 0; font-weight: 800; font-size: 15px; color: var(--tr-ink); }
+.tmpl-transit .tr-review-sub { margin: 2px 0 0; font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tr-muted); }
+
+/* ── Gallery ──────────────────────────────────────────────────────────────────*/
+.tmpl-transit .tr-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 52px; }
+.tmpl-transit .tr-gallery-cell { border-radius: 14px; overflow: hidden; border: 1px solid var(--tr-hair); background: var(--tr-band); }
+.tmpl-transit .tr-gallery-cell img { width: 100%; height: 230px; object-fit: cover; }
+
+/* ── FAQ: passenger information rows ───────────────────────────────────────────*/
+.tmpl-transit .tr-faq-wrap { max-width: 820px; }
+.tmpl-transit .tr-faq-list { margin-top: 44px; border-top: 2px solid var(--tr-hair); }
+.tmpl-transit .tr-faq-item { border-bottom: 1px solid var(--tr-hair); }
+.tmpl-transit .tr-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  background: none; border: 0; cursor: pointer; text-align: start;
+  font-weight: 700; font-size: 19px; line-height: 1.3; color: var(--tr-ink);
+  padding: 24px 0; min-height: 44px;
+}
+.tmpl-transit .tr-faq-ic {
+  flex-shrink: 0; display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: color-mix(in srgb, var(--tr-line) 12%, transparent); color: var(--tr-line);
+}
+.tmpl-transit .tr-faq-panel { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s ease, opacity 0.3s ease, padding 0.3s ease; }
+.tmpl-transit .tr-faq-panel.is-open { grid-template-rows: 1fr; opacity: 1; padding-bottom: 24px; }
+.tmpl-transit .tr-faq-panel-in { overflow: hidden; }
+.tmpl-transit .tr-faq-panel p { color: var(--tr-muted); font-size: 16px; margin: 0; max-width: 64ch; }
+
+/* ── Book: the destination panel (full-bleed, line-coloured) ───────────────────*/
+.tmpl-transit .tr-book-section { position: relative; padding: 0; }
+.tmpl-transit .tr-book {
+  position: relative; overflow: hidden;
+  margin: 0 auto; text-align: center;
+  padding: 88px 32px; background: var(--tr-line); color: #fff;
+}
+.tmpl-transit .tr-book-node { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, #fff 22%, transparent); margin-bottom: 22px; }
+.tmpl-transit .tr-book-node span { width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+.tmpl-transit .tr-book-h { color: #fff; max-width: none; margin-inline: auto; }
+.tmpl-transit .tr-book-body { color: color-mix(in srgb, #fff 88%, var(--tr-line)); font-size: clamp(1rem, 1.5vw, 1.14rem); max-width: 52ch; margin: 16px auto 0; }
+.tmpl-transit .tr-book-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 32px; }
+
+/* ── Footer / Contact: the service board ──────────────────────────────────────*/
+.tmpl-transit .tr-footer { position: relative; padding: 76px 0 44px; background: var(--tr-ink); color: #fff; }
+.tmpl-transit .tr-footer-line { position: absolute; inset-block-start: 0; inset-inline: 0; height: 4px; background: var(--tr-line); }
+.tmpl-transit .tr-footer .tr-eyebrow { color: color-mix(in srgb, var(--tr-line) 70%, #fff); }
+.tmpl-transit .tr-footer-grid { display: grid; grid-template-columns: 1fr; gap: 44px; }
+.tmpl-transit .tr-contact-info { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+.tmpl-transit .tr-contact-link { display: inline-flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; font-size: 16px; font-weight: 600; }
+.tmpl-transit .tr-contact-link svg { color: color-mix(in srgb, var(--tr-line) 60%, #fff); flex-shrink: 0; }
+.tmpl-transit .tr-contact-link:hover { color: color-mix(in srgb, var(--tr-line) 60%, #fff); }
+.tmpl-transit .tr-socials { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.tmpl-transit .tr-social {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, #fff 26%, transparent); color: #fff;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.tmpl-transit .tr-social:hover { transform: translateY(-1px); background: var(--tr-line); border-color: var(--tr-line); }
+.tmpl-transit .tr-hours { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.tmpl-transit .tr-hours td { padding: 12px 0; font-size: 14px; border-bottom: 1px solid color-mix(in srgb, #fff 16%, transparent); color: #fff; }
+.tmpl-transit .tr-hours td:last-child { text-align: end; font-weight: 600; color: color-mix(in srgb, #fff 78%, var(--tr-ink)); font-variant-numeric: tabular-nums; }
+.tmpl-transit .tr-hours tr.is-closed td { color: color-mix(in srgb, #fff 60%, var(--tr-ink)); }
+.tmpl-transit .tr-footer-bottom {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between;
+  margin-top: 48px; padding-top: 22px; border-top: 1px solid color-mix(in srgb, #fff 16%, transparent);
+  font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: color-mix(in srgb, #fff 70%, var(--tr-ink));
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────*/
+@media (min-width: 720px) {
+  .tmpl-transit .tr-stats-row { grid-template-columns: repeat(4, 1fr); }
+  .tmpl-transit .tr-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-transit .tr-pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-transit .tr-reviews { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-transit .tr-gallery { grid-template-columns: repeat(3, 1fr); }
+  .tmpl-transit .tr-areas { grid-template-columns: repeat(2, 1fr); column-gap: 44px; }
+  .tmpl-transit .tr-hero-grid { grid-template-columns: 1.05fr 0.95fr; }
+  .tmpl-transit .tr-about { grid-template-columns: 0.85fr 1.15fr; }
+  .tmpl-transit .tr-footer-grid { grid-template-columns: 1.4fr 1fr; }
+}
+@media (min-width: 940px) {
+  .tmpl-transit .tr-nav-links { display: flex; }
+  .tmpl-transit .tr-menu { display: none; }
+}
+/* Wider content column on large desktops (still centred, no page overflow). */
+@media (min-width: 1280px) {
+  /* Reserve the left gutter for the fixed line diagram (rail occupies the
+     viewport's inset-inline-start:24px + 190px ≈ 214px), so no section content
+     ever overlaps the rail. The nav sits above the rail, so it keeps 56px. */
+  .tmpl-transit .tr-wrap { max-width: 1640px; padding-block: 0; padding-inline: 248px 56px; }
+  .tmpl-transit .tr-nav-inner { max-width: 1560px; padding: 16px 56px; }
+}
+/* The line diagram lives in the start gutter — only shown once the viewport is
+   wide enough that it reads beside the content column. Behind content (z-index 1). */
+@media (min-width: 1280px) {
+  .tmpl-transit .tr-line-plane { display: block; }
+}
+@media (max-width: 520px) {
+  .tmpl-transit .tr-nav-end .tr-btn-ghost { display: none; }
+  .tmpl-transit .tr-section { padding: 68px 0; }
+  .tmpl-transit .tr-book { padding: 60px 22px; }
+  .tmpl-transit .tr-pkg { padding: 26px; }
+  .tmpl-transit .tr-instructor-photo { width: 104px; height: 104px; }
+  .tmpl-transit .tr-h1 { font-size: clamp(2.2rem, 10vw, 2.9rem); }
+}
+/* Touch: real 44px tap targets + no iOS focus-zoom on small type. */
+@media (pointer: coarse) {
+  .tmpl-transit .tr-btn,
+  .tmpl-transit .tr-btn-sm,
+  .tmpl-transit .tr-social,
+  .tmpl-transit .tr-nav-link,
+  .tmpl-transit .tr-nav-mobile button,
+  .tmpl-transit .tr-nav-mobile-link { min-height: 44px; }
+  .tmpl-transit .tr-social { min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tmpl-transit .tr-btn:hover,
+  .tmpl-transit .tr-social:hover { transform: none; }
+  .tmpl-transit .tr-node-core,
+  .tmpl-transit .tr-node-label,
+  .tmpl-transit .tr-nav-link::after,
+  .tmpl-transit .tr-nav-node,
+  .tmpl-transit .tr-faq-panel { transition: none; }
+}
+
+/* ── RTL: only the fixed line-diagram decoration needs mirroring (everything else
+   uses logical properties). Handled inline with the plane above. ─────────────── */
+
+/* Instructor reply to a review (GLOBAL — matches meridian/press). */
+.tr-review-reply { margin-top: 10px; padding-inline-start: 12px; border-inline-start: 2px solid currentColor; opacity: 0.72; font-size: 0.92em; line-height: 1.55; }
+.tr-review-reply-label { font-weight: 600; opacity: 0.9; margin-inline-end: 4px; }

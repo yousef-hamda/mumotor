@@ -137,6 +137,7 @@ function MrNav({ data, active }: { data: TemplateData; active: string }) {
           <span data-edit="business.name" data-edit-type="text">{data.business.logoText}</span>
         </button>
         <div className="mr-nav-links">
+          <span className="mr-nav-tick" aria-hidden="true" />
           {links.map(({ id, label }) => (
             <button
               key={id}

@@ -12,7 +12,6 @@
   display: flex; flex-direction: column; justify-content: center; gap: 9px;
 }
 .tc-card--glass-light { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 26px -14px rgba(0,0,0,0.3); }
-.tc-card--glass-dark  { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .tc-card--solid       { background: #fff; border: 1px solid rgba(11,18,32,0.08); box-shadow: 0 12px 26px -14px rgba(0,0,0,0.22); }
 .tc-l { height: 7px; border-radius: 4px; }
 .tc-l-title { height: 11px; }
@@ -29,11 +28,6 @@
 .tc-card--washi { background: color-mix(in srgb, #F2EEE4 92%, #fff); border: 1px solid rgba(26,24,21,0.14); border-radius: 4px; }
 .tc-su-card { left: 8%; width: 50%; gap: 8px; }
 
-/* obsidian — receding perspective grid */
-.tc-grid { position: absolute; inset: 0; perspective: 200px; overflow: hidden; }
-.tc-grid::before { content: ''; position: absolute; left: -50%; right: -50%; bottom: -10%; height: 130%; transform: rotateX(62deg); transform-origin: bottom; background-image: linear-gradient(rgba(159,182,204,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(159,182,204,0.35) 1px, transparent 1px); background-size: 26px 26px; animation: tc-grid-move 6s linear infinite; }
-@keyframes tc-grid-move { from { background-position: 0 0; } to { background-position: 0 26px; } }
-
 @keyframes tc-spin { to { transform: rotate(360deg); } }
 
 /* mumotor — app-faithful: soft accent aurora orbs + faint grid + white mini-hero + monogram */
@@ -49,14 +43,34 @@
 .tc-dot { position: absolute; width: 16%; height: 0; padding-bottom: 16%; border-radius: 50%; left: 22%; top: 30%; animation: tc-pulse 4s ease-in-out infinite; }
 @keyframes tc-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.8; } }
 
+/* console — product OS: dot-grid, command palette + widget spark */
+.tc-co-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(231,234,238,0.10) 0.8px, transparent 0.8px); background-size: 12px 12px; }
+.tc-co-spark { position: absolute; right: 9%; top: 14%; width: 40%; height: 24%; opacity: 0.9; }
+.tc-co-p { stroke-dasharray: 1 1; animation: tc-co-draw 4.5s ease-in-out infinite alternate; }
+@keyframes tc-co-draw { 0%,16% { stroke-dashoffset: 1; } 64%,100% { stroke-dashoffset: 0; } }
+.tc-card--console { background: #171A1F; border: 1px solid rgba(231,234,238,0.12); box-shadow: 0 14px 30px -16px rgba(0,0,0,0.6); }
+.tc-co-card { gap: 7px; }
+.tc-co-cmd { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.tc-co-key { font: 600 8px/1 ui-monospace, monospace; color: #9AA1AC; border: 1px solid rgba(231,234,238,0.24); border-radius: 4px; padding: 2px 4px; }
+.tc-co-caret { width: 2px; height: 12px; border-radius: 1px; animation: tc-co-blink 1.1s steps(1) infinite; }
+@keyframes tc-co-blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+
+/* transit — metro line, roundel stops + a service car travelling it */
+.tc-tr-track { position: absolute; inset: 0; }
+.tc-card--solid.tc-tr-card, .tc-card--solid.tc-le-card { left: 9%; width: 54%; }
+.tc-tr-roundel { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid; margin-bottom: 2px; }
+.tc-tr-roundel > span { display: block; width: 100%; height: 2.5px; }
+
+/* ledger — fintech statement: sparkline draws itself + delta glyph */
+.tc-le-spark { position: absolute; right: 8%; top: 16%; width: 42%; height: 30%; }
+.tc-le-p { stroke-dasharray: 1 1; animation: tc-le-draw 4.5s ease-in-out infinite alternate; }
+@keyframes tc-le-draw { 0%,16% { stroke-dashoffset: 1; } 64%,100% { stroke-dashoffset: 0; } }
+.tc-le-fig { display: flex; align-items: center; margin-bottom: 2px; }
+.tc-le-delta { font-size: 9px; line-height: 1; }
+
 /* open-road — sunburst + dashed road */
 .tc-sun { position: absolute; left: 50%; top: 36%; width: 120%; height: 120%; transform: translate(-50%,-50%); background: repeating-conic-gradient(from 0deg, var(--tc-accent) 0deg 8deg, transparent 8deg 16deg); opacity: 0.5; animation: tc-spin 40s linear infinite; }
 .tc-road { position: absolute; left: 0; right: 0; bottom: 18%; height: 6px; background: repeating-linear-gradient(90deg, var(--tc-ink, #3A2A1E) 0 14px, transparent 14px 26px); opacity: 0.7; }
-
-/* easy-lane — soft pastel blobs (visible) */
-.tc-soft-1 { width: 62%; height: 74%; left: -6%; top: -10%; filter: blur(22px); opacity: 0.7; border-radius: 50%; position: absolute; animation: tc-drift 10s ease-in-out infinite; }
-.tc-soft-2 { width: 58%; height: 70%; right: -8%; top: 4%; filter: blur(22px); opacity: 0.65; border-radius: 50%; position: absolute; animation: tc-drift 12s ease-in-out infinite reverse; }
-.tc-soft-3 { width: 54%; height: 66%; left: 22%; bottom: -22%; filter: blur(22px); opacity: 0.6; border-radius: 50%; position: absolute; animation: tc-drift 14s ease-in-out infinite; }
 
 /* mumotor accent colour dots (bottom-right of the card) */
 .tc-dots { position: absolute; right: 10px; bottom: 10px; z-index: 6; display: flex; gap: 6px; padding: 6px 8px; border-radius: 999px; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(29,29,31,0.08); box-shadow: 0 6px 18px -8px rgba(0,0,0,0.3); }
@@ -203,13 +217,6 @@
 .tc-st-draw { position: absolute; right: 2%; top: 6%; width: 46%; height: 88%; }
 .tc-st-p { stroke-dasharray: 1 1; animation: tc-st-draw 4s ease-in-out infinite alternate; }
 @keyframes tc-st-draw { 0%, 20% { stroke-dashoffset: 1; } 70%, 100% { stroke-dashoffset: 0; } }
-
-/* ── folio — glossy magazine: full-bleed photo tint + a Bodoni masthead ── */
-.tc-fo-photo { position: absolute; inset: 0; background: linear-gradient(120deg, #4a4038, #2b2622); }
-.tc-fo-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.5)); }
-.tc-fo-mast { position: absolute; inset-inline-start: 8%; top: 28%; font-family: Georgia, 'Times New Roman', serif; font-weight: 600; font-size: 58px; letter-spacing: -0.02em; color: #F7F4EF; }
-.tc-fo-kicker { position: absolute; inset-inline-start: 8%; top: 20%; font-family: system-ui, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.18em; }
-.tc-fo-rule { position: absolute; inset-inline-start: 8%; top: 26%; width: 60px; height: 2px; }
 
 /* ── primary — Bauhaus: flat primary shapes ── */
 .tc-card--paperpm { background: #F0E9DA; border: 1px solid rgba(22,21,20,0.14); border-radius: 0; }

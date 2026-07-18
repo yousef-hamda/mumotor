@@ -81,8 +81,9 @@ describe('overrides: colour slots + sections', () => {
   it('exposes colour slots for every template', () => {
     const slugs = [
       'mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press',
-      'reel', 'slate', 'folio', 'primary', 'gallery', 'gilt', 'sumi', 'obsidian',
-      'grid-ink', 'open-road', 'easy-lane',
+      'reel', 'slate', 'primary', 'gallery', 'gilt', 'sumi',
+      'console', 'transit', 'ledger',
+      'grid-ink', 'open-road',
     ];
     for (const slug of slugs) {
       const slots = colorSlotsFor(slug);

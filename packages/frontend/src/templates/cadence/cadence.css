@@ -115,40 +115,44 @@
 .tmpl-cadence .cd-btn-ghost { color: var(--cd-ink); background: transparent; border-color: var(--cd-ink); }
 .tmpl-cadence .cd-btn-ghost:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--cd-ink) 6%, transparent); }
 
-/* ── Nav ────────────────────────────────────────────────────────────────────── */
-.tmpl-cadence .cd-nav { position: sticky; top: 0; z-index: 60; }
+/* ── Nav — full-bleed, bold editorial: big mono links, a 2px ink baseline, an
+   ultramarine underline that scales in from the start + a kinetic skew on hover ─ */
+.tmpl-cadence .cd-nav {
+  position: sticky; top: 0; z-index: 60;
+  background: color-mix(in srgb, var(--cd-paper) 90%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--cd-ink);
+}
 .tmpl-cadence .cd-nav-inner {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  max-width: 1440px; margin: 0 auto; padding: 14px 40px;
-  background: color-mix(in srgb, var(--cd-paper) 88%, transparent);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--cd-line);
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1440px; margin: 0 auto; padding: 16px 40px;
 }
 .tmpl-cadence .cd-logo {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; gap: 11px;
   background: none; border: 0; cursor: pointer; padding: 0;
-  font-family: var(--cd-mono); font-size: 13px; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase; color: var(--cd-ink);
+  font-family: var(--cd-mono); font-size: 15px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--cd-ink);
 }
-.tmpl-cadence .cd-nav-links { display: none; align-items: center; gap: 2px; }
+.tmpl-cadence .cd-nav-links { display: none; align-items: center; gap: 4px; }
 .tmpl-cadence .cd-nav-link {
   position: relative;
   background: none; border: 0; cursor: pointer;
-  font-family: var(--cd-mono); font-size: 11px; font-weight: 500;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--cd-muted);
-  padding: 8px 12px;
-  transition: color 0.18s ease;
+  font-family: var(--cd-mono); font-size: 15px; font-weight: 500;
+  letter-spacing: 0.03em; text-transform: uppercase; color: var(--cd-muted);
+  padding: 10px 14px;
+  transition: color 0.18s ease, transform 0.18s ease;
 }
 .tmpl-cadence .cd-nav-link::after {
-  content: ''; position: absolute; inset-inline: 12px; bottom: 2px; height: 2px;
+  content: ''; position: absolute; inset-inline: 14px; bottom: 3px; height: 3px;
   background: var(--cd-accent); transform: scaleX(0); transform-origin: 0 50%;
-  transition: transform 0.18s ease;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.tmpl-cadence .cd-nav-link:hover { color: var(--cd-ink); }
-/* Active = ultramarine ink AND a 2px accent underline (never colour alone). */
+/* Confident hover — the type slants like the scroll-velocity signature. */
+.tmpl-cadence .cd-nav-link:hover { color: var(--cd-ink); transform: skewX(-7deg); }
+/* Active = ultramarine ink AND a 3px accent underline (never colour alone). */
 .tmpl-cadence .cd-nav-link.is-active { color: var(--cd-accent); }
 .tmpl-cadence .cd-nav-link.is-active::after { transform: scaleX(1); }
-.tmpl-cadence .cd-nav-end { display: flex; align-items: center; gap: 8px; }
+.tmpl-cadence .cd-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-cadence .cd-menu {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 44px; min-height: 44px; padding: 6px;
@@ -385,6 +389,7 @@
   /* No kinetic skew, no weight/slant morph, no CTA lift, no marquee drift. */
   .tmpl-cadence .cd-h1, .tmpl-cadence .cd-h2 { transform: none; }
   .tmpl-cadence .cd-btn:hover,
+  .tmpl-cadence .cd-nav-link:hover,
   .tmpl-cadence .cd-social:hover { transform: none; }
   .tmpl-cadence .cd-faq-panel { transition: none; }
 }

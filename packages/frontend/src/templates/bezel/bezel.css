@@ -154,58 +154,90 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
-/* ── Nav ───────────────────────────────────────────────────────────────────── */
+/* ── Nav — a milled instrument strip ──────────────────────────────────────────
+   Full-bleed machined bar: the background + edges span the viewport, the row is
+   capped to the content column. Knurled hairline along the bottom, a bezel ring
+   seating the logo mark, uppercase Martian-Mono links with a 2px signal-red
+   active underline. Generous machined spacing. */
 .tmpl-bezel .bz-nav {
   position: sticky;
   top: 0;
   z-index: 60;
   background: color-mix(in srgb, var(--bz-case) 92%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
   border-bottom: 1px solid var(--bz-line);
+  /* the machined top light-catch + a cast drop = the bar reads as milled metal */
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bz-metal) 22%, transparent), 0 1px 0 rgba(0, 0, 0, 0.5);
 }
 .tmpl-bezel .bz-nav-inner {
   max-width: 1240px;
+  min-height: 70px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 24px;
+  gap: 20px;
+  padding: 13px 24px;
 }
-.tmpl-bezel .bz-nav-knurl { position: absolute; inset-inline: 0; bottom: 0; }
+.tmpl-bezel .bz-nav-knurl { position: absolute; inset-inline: 0; bottom: 0; opacity: 0.6; }
 .tmpl-bezel .bz-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: none;
   border: 0;
   cursor: pointer;
   font-family: 'Familjen Grotesk', system-ui, sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: -0.02em;
   color: var(--bz-ink);
 }
-.tmpl-bezel .bz-nav-links { display: none; gap: 2px; }
+/* Bezel ring — the logo mark seated in a knurled anodized ring. */
+.tmpl-bezel .bz-logo-mark {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--bz-face);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--bz-metal) 45%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--bz-metal) 30%, transparent),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+.tmpl-bezel .bz-nav-links { display: none; gap: 4px; }
 .tmpl-bezel .bz-nav-link {
+  position: relative;
   background: none;
   border: 0;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   font-family: 'Martian Mono', ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--bz-metal);
-  padding: 8px 12px 6px;
-  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0, 0.2, 1);
+  padding: 10px 12px;
+  transition: color 160ms cubic-bezier(0.2, 0, 0.2, 1);
 }
-.tmpl-bezel .bz-nav-link:hover      { color: var(--bz-ink); }
-/* Active is signalled by colour AND a 2px bar — never colour alone. */
-.tmpl-bezel .bz-nav-link.is-active  { color: var(--bz-signal); border-bottom-color: var(--bz-signal); }
-.tmpl-bezel .bz-nav-end { display: flex; align-items: center; gap: 8px; }
+/* Shared hover/active indicator — a milled 2px bar that wipes in from the centre. */
+.tmpl-bezel .bz-nav-link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 4px;
+  height: 2px;
+  background: var(--bz-signal);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tmpl-bezel .bz-nav-link:hover { color: var(--bz-ink); }
+.tmpl-bezel .bz-nav-link:hover::after { transform: scaleX(1); background: var(--bz-metal); }
+/* Active is signalled by colour AND the 2px signal bar — never colour alone. */
+.tmpl-bezel .bz-nav-link.is-active { color: var(--bz-signal); font-weight: 600; }
+.tmpl-bezel .bz-nav-link.is-active::after { transform: scaleX(1); background: var(--bz-signal); }
+.tmpl-bezel .bz-nav-end { display: flex; align-items: center; gap: 10px; }
 .tmpl-bezel .bz-menu {
   display: inline-flex;
   align-items: center;
