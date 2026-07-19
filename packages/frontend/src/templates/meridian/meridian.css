@@ -45,7 +45,10 @@
 .tmpl-meridian .mr-contours {
   position: absolute;
   inset: -120px;
-  opacity: 0.35;
+  /* Subtle survey backdrop. It became a full-page layer (was viewport-fixed) when
+     frame-escape was fixed, so 0.35 read as a busy mesh over the hero text — dial it
+     down so it stays a texture behind the content, not competing with it. */
+  opacity: 0.2;
   will-change: transform;
   background-image:
     repeating-radial-gradient(circle at 20% 14%, transparent 0 21px, var(--mr-contour) 21px 22px),

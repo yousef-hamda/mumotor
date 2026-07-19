@@ -470,10 +470,12 @@
   .tmpl-circuit .ci-nav-live { display: inline-flex; }
   .tmpl-circuit .ci-menu { display: none; }
 }
-/* The pit-wall lives in the sheet MARGIN — only show it once the viewport is wide
-   enough that the 1080px content column mostly clears it. */
+/* The pit-wall lives in the sheet MARGIN — show it once wide enough AND reserve the
+   gutter so the content column (hero photo, bands) never runs UNDER the telemetry /
+   race-line. Without this the 1440px wrap collided with the 170px pit-wall. */
 @media (min-width: 1180px) {
   .tmpl-circuit .ci-plane-wrap { display: block; }
+  .tmpl-circuit .ci-wrap { padding-inline-end: 216px; }
 }
 @media (max-width: 520px) {
   .tmpl-circuit .ci-nav-end .ci-btn-ghost { display: none; }
