@@ -40,7 +40,7 @@ for(const [slug,nm] of [['mumotor','t_mumotor'],['bezel','t_bezel'],['solari','t
   await S(p,nm+'_hero'); }
 // switcher coords from gallery preview
 const cand=await p.locator('button,a').evaluateAll(els=>els.map(e=>({t:(e.innerText||e.getAttribute('aria-label')||'').trim().slice(0,14),r:e.getBoundingClientRect()})).filter(o=>o.r.top>760&&o.r.width>0).map(o=>({t:o.t,x:Math.round(o.r.left+o.r.width/2),y:Math.round(o.r.top+o.r.height/2)})));
-coords._switcher=cand; coords.use_this=await ctr(p.locator('button,a').filter({hasText:/Use this|استخدم|בחר/}).first());
+coords._switcher=cand; coords.use_this=await ctr(p.locator('button,a').filter({hasText:/Use this|استخدم|بحر|בחر|השתמש/}).first());
 console.log('switcher', JSON.stringify(cand));
 
 // customize
@@ -60,7 +60,7 @@ console.log('customize done', JSON.stringify(coords.cz_headline), JSON.stringify
 
 // publishing + code
 await p.goto(`${WEB}/dashboard/publishing`,{waitUntil:'networkidle'}); await p.waitForTimeout(900);
-coords.pub_visit=await ctr(p.locator('a,button').filter({hasText:/Visit|زيارة|צפה/}).first()); await S(p,'dash_publishing');
+coords.pub_visit=await ctr(p.locator('a,button').filter({hasText:/Visit|زيارة|צפه|ביקור(?!ות)/}).first()); await S(p,'dash_publishing');
 await p.goto(`${WEB}/dashboard/driving-school`,{waitUntil:'networkidle'}); await p.waitForTimeout(900);
 coords.copy_code=await ctr(p.locator('button').filter({hasText:/Copy|نسخ|העתק/}).first());
 const CODE=await p.evaluate(()=>{const m=document.body.innerText.match(/\b[A-Z0-9]{6}\b/);return m?m[0]:'130FF6';});
@@ -85,12 +85,12 @@ await ph.locator('input').nth(2).fill('+972 50 123 4567');
 await ph.locator('input').nth(3).fill(CODE);
 await S(ph,'ph_enroll_filled');
 await ph.locator('button').filter({hasText:/Enroll|سجّل|تسجيل|הרשמ/}).first().click(); await ph.waitForTimeout(1800);
-coords.ph_book=await ctr(ph.locator('a,button').filter({hasText:/Book a lesson|احجز|קבע/}).first()); await S(ph,'ph_enrolled');
-await ph.locator('a,button').filter({hasText:/Book a lesson|احجز|קבע/}).first().click().catch(()=>{}); await ph.waitForTimeout(1600);
+coords.ph_book=await ctr(ph.locator('a,button').filter({hasText:/Book a lesson|احجز|قبل|קבע|הזמנ/}).first()); await S(ph,'ph_enrolled');
+await ph.locator('a,button').filter({hasText:/Book a lesson|احجز|قبل|קבע|הזמנ/}).first().click().catch(()=>{}); await ph.waitForTimeout(1600);
 coords.ph_slot=await ctr(ph.locator('button').filter({hasText:/:/}).first()); await S(ph,'ph_book');
 await ph.locator('button').filter({hasText:/:/}).first().click().catch(()=>{}); await ph.waitForTimeout(700);
-coords.ph_confirm=await ctr(ph.locator('button').filter({hasText:/Book|Confirm|احجز|تأكيد|קבע|אשר/}).last()); await S(ph,'ph_book_slot');
-await ph.locator('button').filter({hasText:/Book|Confirm|احجز|تأكيد|קבע|אשר/}).last().click().catch(()=>{}); await ph.waitForTimeout(1800); await S(ph,'ph_booked');
+coords.ph_confirm=await ctr(ph.locator('button').filter({hasText:/Book|Confirm|احجز|تأكيد|قبل|קבע|אשר|הזמנ|אישור/}).last()); await S(ph,'ph_book_slot');
+await ph.locator('button').filter({hasText:/Book|Confirm|احجز|تأكيد|قبل|קבע|אשר|הזמנ|אישור/}).last().click().catch(()=>{}); await ph.waitForTimeout(1800); await S(ph,'ph_booked');
 await pc.close(); await b.close();
 fs.writeFileSync(CF,JSON.stringify(coords,null,2));
 console.log('DONE',LANG,'coords keys',Object.keys(coords).length);
