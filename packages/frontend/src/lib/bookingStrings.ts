@@ -117,6 +117,16 @@ export interface BookStrings {
   statUpcoming: string;
   statTotal: string;
   laterLessons: string;
+  upcomingTitle: string;
+  progressTitle: string;
+  readinessTitle: string;
+  hoursDriven: string;
+  lessonsCompleted: string;
+  lessonsBooked: string;
+  historyTitle: string;
+  historyEmpty: string;
+  lessonCompleted: string;
+  lessonCancelled: string;
   eachLessonMin: string; // {duration}
   chatHeading: string;
   chatHelper: string;
@@ -240,6 +250,16 @@ const en: BookStrings = {
   statUpcoming: 'Upcoming',
   statTotal: 'Total lessons',
   laterLessons: 'Later lessons',
+  upcomingTitle: 'Upcoming lessons',
+  progressTitle: 'Your progress',
+  readinessTitle: 'Readiness',
+  hoursDriven: 'Hours driven',
+  lessonsCompleted: 'Lessons done',
+  lessonsBooked: 'Booked',
+  historyTitle: 'Lesson history',
+  historyEmpty: 'Your completed lessons will appear here.',
+  lessonCompleted: 'Completed',
+  lessonCancelled: 'Cancelled',
   eachLessonMin: 'Each lesson is {duration} min.',
   chatHeading: 'Chat with your instructor',
   chatHelper: 'Ask a question, reschedule, or say hello. Replies appear here.',
@@ -361,6 +381,16 @@ const he: BookStrings = {
   statUpcoming: 'קרובים',
   statTotal: 'סה״כ שיעורים',
   laterLessons: 'שיעורים נוספים',
+  upcomingTitle: 'שיעורים קרובים',
+  progressTitle: 'ההתקדמות שלך',
+  readinessTitle: 'מוכנות',
+  hoursDriven: 'שעות נהיגה',
+  lessonsCompleted: 'שיעורים שהושלמו',
+  lessonsBooked: 'הוזמנו',
+  historyTitle: 'היסטוריית שיעורים',
+  historyEmpty: 'השיעורים שהשלמת יופיעו כאן.',
+  lessonCompleted: 'הושלם',
+  lessonCancelled: 'בוטל',
   eachLessonMin: 'כל שיעור אורך {duration} דקות.',
   chatHeading: 'צ׳אט עם המורה שלך',
   chatHelper: 'שאלו שאלה, תאמו מחדש או פשוט תגידו שלום. התשובות יופיעו כאן.',
@@ -482,6 +512,16 @@ const ar: BookStrings = {
   statUpcoming: 'قادمة',
   statTotal: 'إجمالي الدروس',
   laterLessons: 'دروس لاحقة',
+  upcomingTitle: 'الدروس القادمة',
+  progressTitle: 'تقدّمك',
+  readinessTitle: 'الجاهزية',
+  hoursDriven: 'ساعات القيادة',
+  lessonsCompleted: 'دروس مكتملة',
+  lessonsBooked: 'محجوزة',
+  historyTitle: 'سجلّ الدروس',
+  historyEmpty: 'ستظهر دروسك المكتملة هنا.',
+  lessonCompleted: 'مكتمل',
+  lessonCancelled: 'ملغى',
   eachLessonMin: 'مدة كل درس {duration} دقيقة.',
   chatHeading: 'المحادثة مع مدرّبك',
   chatHelper: 'اطرح سؤالاً، أعد الجدولة، أو ألقِ التحية. تظهر الردود هنا.',

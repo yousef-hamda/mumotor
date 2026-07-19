@@ -124,6 +124,13 @@ export interface StudentLesson {
   duration: number;
   cancellable: boolean;
 }
+export interface StudentHistoryLesson {
+  id: string;
+  date: string;
+  time: string;
+  duration: number;
+  status: 'COMPLETED' | 'CANCELLED';
+}
 
 export const studentPortalApi = {
   login: (websiteId: string, data: { email: string }) =>
@@ -138,6 +145,10 @@ export const studentPortalApi = {
       .then((r) => r.data.student),
   lessons: (websiteId: string) =>
     studentApi.get<{ lessons: StudentLesson[] }>(`/driving-school/${websiteId}/student/lessons`).then((r) => r.data.lessons),
+  history: (websiteId: string) =>
+    studentApi
+      .get<{ history: StudentHistoryLesson[]; hoursDriven: number }>(`/driving-school/${websiteId}/student/history`)
+      .then((r) => r.data),
   cancelLesson: (websiteId: string, bookingId: string) =>
     studentApi
       .post<{ cancelled: boolean }>(`/driving-school/${websiteId}/student/lessons/${bookingId}/cancel`)

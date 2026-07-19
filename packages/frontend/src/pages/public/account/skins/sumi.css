@@ -1,0 +1,146 @@
+/* sumi account skin — a sumi-e ink-wash dashboard. Uses the template's own
+   --su-* vars + Zen Old Mincho / Zen Kaku fonts (inherited via .tmpl-sumi).
+   Scoped to .asu-. Signature: a self-drawing enso readiness ring + a vermilion
+   hanko seal. Thin ink hairlines, generous quiet space. Colours ONLY var(--su-*)
+   / color-mix. */
+.account-root.account-sumi {
+  background: var(--su-paper);
+  color: var(--su-ink);
+  font-family: var(--su-sans);
+}
+.asu { min-height: 100%; }
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.asu-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 16px clamp(18px, 4vw, 44px);
+  border-bottom: 1px solid var(--su-line);
+  background: color-mix(in srgb, var(--su-paper) 90%, transparent);
+}
+.asu-brand { display: inline-flex; align-items: center; gap: 13px; text-decoration: none; color: var(--su-ink); min-width: 0; }
+.asu-logo { height: 32px; }
+.asu-school { font-family: var(--su-serif); font-weight: 600; font-size: 1.3rem; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asu-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.asu-welcome { font-family: var(--su-sans); font-size: 0.82rem; color: var(--su-muted); }
+.asu-welcome b { color: var(--su-ink); font-weight: 700; }
+
+/* ── The hanko seal (reused: header mark, readiness stamp) ───────────────────── */
+.asu-hanko {
+  display: inline-grid; place-items: center; flex-shrink: 0; border-radius: 6px;
+  font-family: var(--su-serif); font-weight: 700; color: var(--su-paper);
+  background: var(--su-vermilion);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--su-paper) 34%, transparent);
+  position: relative;
+}
+.asu-hanko::after { content: ''; position: absolute; inset: 5px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--su-paper) 40%, transparent); pointer-events: none; }
+.asu-hanko-face { position: relative; z-index: 1; line-height: 1; }
+.asu-hanko-sm { width: 38px; height: 38px; font-size: 1.1rem; }
+.asu-hanko-seal { width: 44px; height: 44px; font-size: 1.25rem; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.asu-wrap { width: 100%; max-width: 1060px; margin-inline: auto; padding: clamp(24px, 4vw, 40px) clamp(18px, 4vw, 44px) 14px; display: flex; flex-direction: column; gap: 22px; }
+.asu-h2 { font-family: var(--su-serif); font-weight: 600; font-size: 1.35rem; line-height: 1.24; margin: 0 0 16px; display: flex; align-items: center; gap: 10px; color: var(--su-ink); }
+.asu-muted { color: var(--su-muted); font-size: 0.94rem; }
+.asu-empty { padding: 6px 0; }
+
+.asu-panel {
+  position: relative; min-width: 0;
+  background: color-mix(in srgb, var(--su-band) 45%, var(--su-paper));
+  border: 1px solid var(--su-line); border-radius: 6px;
+  padding: clamp(18px, 3vw, 26px);
+}
+
+/* ── NEXT LESSON ────────────────────────────────────────────────────────────── */
+.asu-next {
+  background: var(--su-band); border: 1px solid var(--su-line);
+  border-radius: 6px; padding: clamp(22px, 4vw, 34px);
+  box-shadow: 0 20px 40px -30px rgba(26, 24, 21, 0.5);
+}
+.asu-next-body { display: flex; align-items: center; justify-content: space-between; gap: clamp(18px, 4vw, 34px); flex-wrap: wrap; }
+.asu-next-main { min-width: 0; }
+.asu-next-date { font-family: var(--su-serif); font-weight: 600; font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.14; color: var(--su-ink); }
+.asu-next-time { font-family: var(--su-sans); font-weight: 700; font-size: 1.05rem; color: var(--su-verm-text); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.asu-next-note { color: var(--su-muted); margin-top: 6px; font-size: 0.86rem; }
+.asu-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ── READINESS — self-drawing enso (SIGNATURE) ──────────────────────────────── */
+.asu-progress {
+  display: flex; align-items: center; gap: clamp(22px, 5vw, 44px); flex-wrap: wrap;
+  background: color-mix(in srgb, var(--su-band) 45%, var(--su-paper));
+  border: 1px solid var(--su-line); border-radius: 6px; padding: clamp(22px, 4vw, 32px);
+}
+.asu-enso-wrap { position: relative; width: 150px; height: 150px; flex-shrink: 0; }
+.asu-enso { display: block; overflow: visible; }
+.asu-enso-track { fill: none; stroke: color-mix(in srgb, var(--su-ink) 12%, transparent); stroke-width: 7; }
+.asu-enso-arc {
+  fill: none; stroke: var(--su-vermilion); stroke-width: 8; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.62, 0, 0.2, 1);
+}
+.asu-enso-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.asu-enso-num { font-family: var(--su-serif); font-weight: 600; font-size: 2.4rem; line-height: 1; color: var(--su-ink); font-variant-numeric: tabular-nums; }
+.asu-enso-lbl { margin-top: 5px; font-family: var(--su-sans); font-size: 0.6rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--su-muted); max-width: 12ch; }
+
+.asu-readiness-copy { flex: 1; min-width: 220px; }
+.asu-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 14px; }
+.asu-fact { display: flex; align-items: center; gap: 12px; }
+.asu-fact-body { display: flex; flex-direction: column; min-width: 0; }
+.asu-fact-body b { font-family: var(--su-serif); font-weight: 600; font-size: 1.5rem; line-height: 1; color: var(--su-ink); font-variant-numeric: tabular-nums; }
+.asu-fact-body span { margin-top: 4px; font-family: var(--su-sans); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--su-muted); }
+
+/* ── Grid ───────────────────────────────────────────────────────────────────── */
+.asu-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+@media (min-width: 820px) { .asu-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── Ink-hairline rows ──────────────────────────────────────────────────────── */
+.asu-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--su-line); }
+.asu-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--su-line); }
+.asu-row:last-child { border-bottom: none; }
+.asu-row-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--su-vermilion); flex-shrink: 0; }
+.asu-row-date { font-size: 0.94rem; font-weight: 500; color: var(--su-ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asu-row-time { margin-inline-start: auto; font-family: var(--su-sans); font-size: 0.86rem; font-weight: 700; color: var(--su-verm-text); flex-shrink: 0; font-variant-numeric: tabular-nums; direction: ltr; }
+.asu-row-status { margin-inline-start: auto; font-family: var(--su-sans); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+.asu-row-status.is-done { color: var(--su-verm-text); }
+.asu-row-status.is-off { color: var(--su-muted); }
+.asu-row.is-cancelled .asu-row-dot { background: color-mix(in srgb, var(--su-ink) 20%, transparent); }
+.asu-row.is-cancelled .asu-row-date { color: var(--su-muted); text-decoration: line-through; }
+
+/* ── Badge ──────────────────────────────────────────────────────────────────── */
+.asu-badge { font-family: var(--su-sans); font-size: 0.66rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--su-vermilion); color: var(--su-paper); display: inline-grid; place-items: center; font-weight: 700; }
+
+/* ── Chat ───────────────────────────────────────────────────────────────────── */
+.asu-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.asu-bubble { max-width: 82%; padding: 9px 13px; border-radius: 6px; font-size: 0.92rem; line-height: 1.5; display: flex; flex-direction: column; gap: 3px; }
+.asu-bubble-me { align-self: flex-end; background: var(--su-vermilion); color: var(--su-paper); }
+.asu-bubble-them { align-self: flex-start; background: var(--su-paper); color: var(--su-ink); border: 1px solid var(--su-line); }
+.asu-bubble-time { font-family: var(--su-sans); font-size: 0.62rem; opacity: 0.72; align-self: flex-end; direction: ltr; }
+.asu-bubble-them .asu-bubble-time { align-self: flex-start; }
+.asu-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.asu-send { flex: none; width: 46px; padding: 0; }
+
+/* ── Profile ────────────────────────────────────────────────────────────────── */
+.asu-profile { display: flex; flex-direction: column; gap: 13px; }
+.asu-field { display: flex; flex-direction: column; gap: 5px; }
+.asu-field-lbl { font-family: var(--su-sans); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--su-muted); }
+.asu-field-hint { font-size: 0.76rem; color: var(--su-muted); }
+.asu-input {
+  width: 100%; padding: 11px 13px; border-radius: 4px; font: inherit;
+  border: 1px solid var(--su-line); background: var(--su-paper); color: var(--su-ink);
+}
+.asu-input:disabled { opacity: 0.6; }
+.asu-input:focus-visible { outline: 2px solid var(--su-vermilion); outline-offset: 1px; }
+.asu-save { margin-top: 4px; }
+
+/* ── RTL: mirror the book arrow ─────────────────────────────────────────────── */
+[dir='rtl'] .asu .book-arrow { transform: scaleX(-1); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .asu-welcome { display: none; }
+  .asu-facts { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .asu-enso-arc { transition: none; }
+}

@@ -1,0 +1,91 @@
+/* solari account skin — split-flap departures board. Uses the template's own
+   --sl-* vars + fonts (inherited via the .tmpl-solari root). Scoped to .asl. */
+.account-root.account-solari {
+  background: var(--sl-board);
+  color: var(--sl-text);
+  font-family: var(--sl-body, 'Barlow', system-ui, sans-serif);
+}
+.asl { position: relative; display: flex; flex-direction: column; min-height: 100%; }
+.asl-frame { position: fixed; inset: 10px; border: 2px solid color-mix(in srgb, var(--sl-brass) 60%, transparent); border-radius: 6px; pointer-events: none; z-index: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sl-brass) 22%, transparent); }
+.asl > * { position: relative; z-index: 1; }
+
+.asl-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px clamp(18px, 4vw, 44px); border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); }
+.asl-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--sl-text); min-width: 0; }
+.asl-logo { height: 30px; }
+.asl-mark { width: 32px; height: 32px; border-radius: 4px; display: grid; place-items: center; background: var(--sl-amber); color: var(--sl-board); font-family: var(--sl-display, 'Oswald'); font-weight: 700; }
+.asl-school { font-family: var(--sl-display, 'Oswald'); text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asl-head-end { display: inline-flex; align-items: center; gap: 14px; }
+.asl-passenger { font-family: var(--sl-mono, 'DM Mono'); font-size: 0.82rem; color: var(--sl-muted); }
+.asl-passenger b { color: var(--sl-text); }
+
+.asl-wrap { width: 100%; max-width: 1060px; margin-inline: auto; padding: clamp(20px, 4vw, 34px) clamp(18px, 4vw, 44px) 8px; display: flex; flex-direction: column; gap: 18px; }
+
+/* NEXT DEPARTURE */
+.asl-next { border: 1px solid color-mix(in srgb, var(--sl-brass) 50%, transparent); border-radius: 5px; background: var(--sl-flap); overflow: hidden; }
+.asl-next-head { display: flex; align-items: center; gap: 9px; padding: 11px 18px; background: color-mix(in srgb, var(--sl-amber) 14%, var(--sl-flap)); font-family: var(--sl-mono, 'DM Mono'); text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.78rem; color: var(--sl-amber); border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 40%, transparent); }
+.asl-livedot { width: 8px; height: 8px; border-radius: 50%; background: var(--sl-amber); box-shadow: 0 0 8px var(--sl-amber); }
+.asl-next-body { display: flex; align-items: center; gap: clamp(16px, 4vw, 34px); padding: clamp(18px, 4vw, 30px); flex-wrap: wrap; }
+.asl-next-time { font-family: var(--sl-display, 'Oswald'); font-size: clamp(3rem, 9vw, 4.6rem); font-weight: 700; line-height: 0.9; color: var(--sl-amber); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; direction: ltr; }
+.asl-next-meta { flex: 1; min-width: 180px; }
+.asl-next-date { font-family: var(--sl-display, 'Oswald'); text-transform: uppercase; letter-spacing: 0.04em; font-size: 1.3rem; font-weight: 600; }
+.asl-next-sub { color: var(--sl-text); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.asl-next-note { color: var(--sl-muted); margin-top: 6px; font-size: 0.86rem; }
+.asl-depart { align-self: center; }
+.asl-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: clamp(18px, 4vw, 28px); flex-wrap: wrap; color: var(--sl-muted); }
+
+/* Readiness */
+.asl-progress { border: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); border-radius: 5px; background: var(--sl-flap); padding: clamp(16px, 3vw, 24px); }
+.asl-progress-head { margin-bottom: 14px; }
+.asl-tiles { display: flex; gap: 12px; flex-wrap: wrap; }
+.asl-tile { flex: 1; min-width: 92px; border: 1px solid color-mix(in srgb, var(--sl-brass) 40%, transparent); border-radius: 4px; background: color-mix(in srgb, #000 26%, var(--sl-flap)); padding: 14px; text-align: center; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.4), inset 0 1px 0 color-mix(in srgb, var(--sl-brass) 30%, transparent); }
+.asl-tile-num { display: block; font-family: var(--sl-display, 'Oswald'); font-size: 2.3rem; font-weight: 700; line-height: 1; color: var(--sl-amber); font-variant-numeric: tabular-nums; direction: ltr; }
+.asl-tile-lbl { display: block; margin-top: 6px; font-family: var(--sl-mono, 'DM Mono'); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sl-muted); }
+.asl-bar { margin-top: 16px; height: 10px; border-radius: 999px; background: color-mix(in srgb, #000 30%, var(--sl-flap)); overflow: hidden; border: 1px solid color-mix(in srgb, var(--sl-brass) 30%, transparent); }
+.asl-bar-fill { display: block; block-size: 100%; background: var(--sl-amber); box-shadow: 0 0 10px color-mix(in srgb, var(--sl-amber) 60%, transparent); transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
+
+.asl-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 820px) { .asl-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Boards */
+.asl-board { border: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); border-radius: 5px; background: var(--sl-flap); overflow: hidden; min-width: 0; }
+.asl-board-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; background: color-mix(in srgb, #000 22%, var(--sl-flap)); font-family: var(--sl-mono, 'DM Mono'); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.74rem; color: var(--sl-amber); border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 40%, transparent); }
+.asl-col-status { color: var(--sl-muted); }
+.asl-rows { list-style: none; margin: 0; padding: 0; }
+.asl-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 22%, transparent); }
+.asl-row:last-child { border-bottom: none; }
+.asl-row-time { font-family: var(--sl-display, 'Oswald'); font-size: 1.15rem; font-weight: 600; color: var(--sl-amber); font-variant-numeric: tabular-nums; direction: ltr; letter-spacing: 0.02em; }
+.asl-row-dest { font-family: var(--sl-body, 'Barlow'); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asl-row-status { font-family: var(--sl-mono, 'DM Mono'); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+.asl-row-status.is-on { color: var(--sl-amber); background: color-mix(in srgb, var(--sl-amber) 15%, transparent); }
+.asl-row-status.is-arr { color: var(--sl-text); background: color-mix(in srgb, var(--sl-text) 12%, transparent); }
+.asl-row-status.is-off { color: var(--sl-muted); background: color-mix(in srgb, var(--sl-muted) 15%, transparent); text-decoration: line-through; }
+.asl-empty { padding: 18px 16px; color: var(--sl-muted); font-size: 0.9rem; }
+
+/* Panels (chat + profile) */
+.asl-panel { min-width: 0; }
+.asl-h2 { font-family: var(--sl-display, 'Oswald'); text-transform: uppercase; letter-spacing: 0.05em; font-size: 1.05rem; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; color: var(--sl-amber); }
+.account-solari .sl-panel { background: var(--sl-flap); border: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); border-radius: 5px; padding: clamp(16px, 3vw, 22px); color: var(--sl-text); }
+.asl-badge { font-family: var(--sl-mono, 'DM Mono'); font-size: 0.68rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 3px; background: var(--sl-amber); color: var(--sl-board); display: inline-grid; place-items: center; font-weight: 700; }
+
+.asl-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.asl-bubble { max-width: 82%; padding: 9px 13px; border-radius: 4px; font-size: 0.92rem; line-height: 1.4; display: flex; flex-direction: column; gap: 3px; }
+.asl-bubble-me { align-self: flex-end; background: var(--sl-amber); color: var(--sl-board); }
+.asl-bubble-them { align-self: flex-start; background: color-mix(in srgb, #000 26%, var(--sl-flap)); color: var(--sl-text); border: 1px solid color-mix(in srgb, var(--sl-brass) 30%, transparent); }
+.asl-bubble-time { font-family: var(--sl-mono, 'DM Mono'); font-size: 0.62rem; opacity: 0.7; align-self: flex-end; direction: ltr; }
+.asl-bubble-them .asl-bubble-time { align-self: flex-start; }
+.asl-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.asl-send { flex: none; width: 46px; padding: 0; display: grid; place-items: center; }
+
+.asl-profile { display: flex; flex-direction: column; gap: 13px; }
+.asl-field { display: flex; flex-direction: column; gap: 5px; }
+.asl-field-lbl { font-family: var(--sl-mono, 'DM Mono'); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sl-muted); }
+.asl-field-hint { font-size: 0.76rem; color: var(--sl-muted); }
+.asl-input { width: 100%; padding: 11px 13px; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--sl-brass) 40%, transparent); background: color-mix(in srgb, #000 22%, var(--sl-flap)); color: var(--sl-text); font: inherit; }
+.asl-input:disabled { opacity: 0.6; }
+.asl-input:focus-visible { outline: 2px solid var(--sl-amber); outline-offset: 1px; }
+.asl-save { margin-top: 4px; }
+
+@media (max-width: 560px) {
+  .asl-frame { inset: 5px; }
+  .asl-next-time { font-size: clamp(2.6rem, 15vw, 3.4rem); }
+}

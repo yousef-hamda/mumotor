@@ -184,7 +184,18 @@ template design** — they are NOT the old app "sand" look.
 - **Themed shell**: `components/public/TemplatedShell.tsx` + `lib/templateTheme.ts` `resolveBookTheme(slug, theme)` map
   any template's palette (`COLOR_SLOTS` + `registry` fallbacks) into normalized `--book-*` tokens (bg/ink/accent/surface/
   line/muted/radius/font) + loads the template font + light/dark + RTL. Styles in `components/public/book-shell.css`
-  (`.book-*`). Used by `Enroll.tsx`, `BookLesson.tsx`, `StudentAccount.tsx`, `LeaveReview.tsx`.
+  (`.book-*`). Used by `Enroll.tsx`, `BookLesson.tsx`, `LeaveReview.tsx` **and the student LOGIN screen** (still needed —
+  don't retire). The logged-in **account dashboard is now bespoke per template** (see next bullet).
+- **BESPOKE per-template student dashboards (July 19)**: the logged-in student personal space (`/p/:slug/account`) is no
+  longer the flattened `book-shell` — **each of the 18 templates has its own on-theme dashboard** (circuit telemetry cockpit,
+  solari split-flap departures board, atelier tailor's measuring-tape, sumi enso ring, reel filmstrip, deco floor-dial, …).
+  Architecture in `pages/public/account/`: shared template-agnostic `useStudentAccount` hook (same query keys + new history
+  query → `AccountData`/`AccountActions`), `AccountFrame` (wraps in `.tmpl-<slug>` + `customization.theme` inline + fonts +
+  PWA identity), headless `ChatThread`/`ProfileForm` primitives, `registry.ts` lazy `ACCOUNT_SKINS` (fallback `_default`).
+  Each `skins/<slug>.tsx`+`.css` imports its template CSS, colours ONLY via `var(--<slug>…)`/`color-mix` (recolour-safe),
+  reuses `.xx-btn/.xx-panel`. Features: next lesson + Book, progress/readiness (**HONEST facts only** — completed + hoursDriven
+  + done-vs-booked ring, NO invented "remaining"), history/timeline, chat + profile. Backend: additive `GET /student/history`.
+  Full detail in the `bespoke-student-dashboards` memory.
 - **Booking is TOMORROW-ONLY** (`BookLesson.tsx`): no multi-day grid — books `upcomingDates(2)[1]`, gated by the teacher's
   daily booking window; "No classes tomorrow" when closed. Slots render **start–end** ("08:00 – 09:00", `slotRange()`) with
   a header "Each lesson is N min · arrive 5 minutes early". Done screen: Book-another + Back-to-home + My account. The

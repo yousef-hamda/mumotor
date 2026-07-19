@@ -1,0 +1,160 @@
+/* press account skin — a letterpress-printed prospectus. Uses the template's own
+   --ps-* vars + Libre Caslon Display / Libre Franklin fonts (inherited via
+   .tmpl-press). Scoped to .aps-. Signature: a printed readiness gauge, a copper
+   wax seal, debossed plates + copper rules. Copper is used ONLY for ornaments /
+   rules / the seal (fails small-text contrast) — never for text. Colours ONLY
+   var(--ps-*) / color-mix. */
+.account-root.account-press {
+  background: var(--ps-paper);
+  color: var(--ps-ink);
+  font-family: var(--ps-sans);
+}
+.aps { min-height: 100%; }
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.aps-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 16px clamp(18px, 4vw, 44px);
+  background: color-mix(in srgb, var(--ps-paper) 92%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--ps-copper) 55%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ps-copper) 74%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5);
+}
+.aps-brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ps-ink); min-width: 0; }
+.aps-logo { height: 32px; }
+.aps-school { font-family: var(--ps-serif); font-weight: 400; font-size: 1.35rem; letter-spacing: 0.01em; text-shadow: var(--ps-deboss); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aps-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.aps-welcome { font-family: var(--ps-sans); font-size: 0.82rem; color: var(--ps-muted); }
+.aps-welcome b { color: var(--ps-ink); font-weight: 700; }
+
+/* ── The copper wax seal (self-contained, always visible) ───────────────────── */
+.aps-seal {
+  display: inline-grid; place-items: center; flex-shrink: 0; border-radius: 50%; position: relative;
+  font-family: var(--ps-serif); font-weight: 700;
+  color: color-mix(in srgb, var(--ps-copper) 34%, #241505);
+  background: radial-gradient(circle at 38% 30%,
+    color-mix(in srgb, var(--ps-copper) 76%, #fff 24%),
+    color-mix(in srgb, var(--ps-copper) 96%, #000 4%) 52%,
+    color-mix(in srgb, var(--ps-copper) 60%, #000 40%) 100%);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.35), inset 0 -4px 8px rgba(0, 0, 0, 0.4), 0 2px 5px rgba(0, 0, 0, 0.22);
+}
+.aps-seal::after { content: ''; position: absolute; inset: 8%; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--ps-copper) 45%, #000 30%); opacity: 0.5; pointer-events: none; }
+.aps-seal-initial { position: relative; z-index: 1; line-height: 1; text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.22); }
+.aps-seal-sm { width: 38px; height: 38px; font-size: 1.05rem; }
+.aps-seal-lg { width: 68px; height: 68px; font-size: 1.9rem; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.aps-wrap { width: 100%; max-width: 1060px; margin-inline: auto; padding: clamp(22px, 4vw, 38px) clamp(18px, 4vw, 44px) 14px; display: flex; flex-direction: column; gap: 20px; }
+.aps-h2 { font-family: var(--ps-serif); font-weight: 400; font-size: 1.4rem; line-height: 1.2; margin: 0 0 16px; display: flex; align-items: center; gap: 10px; color: var(--ps-ink); text-shadow: var(--ps-deboss); }
+.aps-muted { color: var(--ps-muted); font-size: 0.94rem; }
+.aps-empty { padding: 6px 0; }
+.aps-folio { display: block; font-family: var(--ps-sans); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ps-copper); margin-bottom: 14px; text-shadow: var(--ps-deboss-soft); }
+
+/* Debossed prospectus plate. */
+.aps-panel {
+  position: relative; min-width: 0;
+  background: var(--ps-paper); border: 1px solid var(--ps-copper); border-radius: 3px;
+  padding: clamp(18px, 3vw, 26px);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5), inset 0 0 0 1px color-mix(in srgb, var(--ps-ink) 6%, transparent), 0 12px 24px -20px rgba(0, 0, 0, 0.35);
+}
+
+/* ── NEXT LESSON ────────────────────────────────────────────────────────────── */
+.aps-next {
+  background: var(--ps-band); border: 1px solid var(--ps-copper); border-radius: 3px;
+  padding: clamp(22px, 4vw, 34px);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.aps-next-body { display: flex; align-items: center; justify-content: space-between; gap: clamp(18px, 4vw, 34px); flex-wrap: wrap; }
+.aps-next-main { min-width: 0; }
+.aps-next-date { font-family: var(--ps-serif); font-weight: 400; font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.06; color: var(--ps-ink); text-shadow: var(--ps-deboss); }
+.aps-next-time { font-family: var(--ps-sans); font-weight: 700; font-size: 1.05rem; color: var(--ps-accent); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.aps-next-note { color: var(--ps-muted); margin-top: 6px; font-size: 0.86rem; }
+.aps-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ── READINESS — printed gauge (SIGNATURE) ──────────────────────────────────── */
+.aps-progress { display: flex; align-items: center; gap: clamp(20px, 4vw, 34px); flex-wrap: wrap; }
+.aps-progress-seal { flex-shrink: 0; }
+.aps-progress-body { flex: 1; min-width: 220px; }
+.aps-gauge {
+  position: relative; height: 26px; border-radius: 2px; overflow: hidden;
+  background: color-mix(in srgb, var(--ps-ink) 8%, var(--ps-paper));
+  border: 1px solid var(--ps-copper);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.22), inset 0 -1px 0 rgba(255, 252, 245, 0.4);
+}
+.aps-gauge-fill {
+  position: absolute; inset-block: 0; inset-inline-start: 0; display: block;
+  background: var(--ps-accent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ps-paper) 22%, transparent);
+  transition: inline-size 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.aps-gauge-ticks {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), color-mix(in srgb, var(--ps-copper) 60%, transparent) calc(10% - 1px) 10%);
+}
+.aps-gauge-pct {
+  position: absolute; inset-block: 0; inset-inline-end: 10px; display: flex; align-items: center;
+  font-family: var(--ps-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--ps-ink); font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(255, 252, 245, 0.6);
+}
+.aps-figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--ps-copper); }
+.aps-figure { text-align: start; min-width: 0; }
+.aps-figure-num { display: block; font-family: var(--ps-serif); font-weight: 400; font-size: clamp(1.9rem, 4vw, 2.5rem); line-height: 1; color: var(--ps-ink); text-shadow: var(--ps-deboss); font-variant-numeric: tabular-nums; }
+.aps-figure-lbl { display: block; margin-top: 8px; font-family: var(--ps-sans); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-muted); }
+
+/* ── Grid ───────────────────────────────────────────────────────────────────── */
+.aps-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 820px) { .aps-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── Prospectus index rows ──────────────────────────────────────────────────── */
+.aps-index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ps-line); }
+.aps-index-row { display: flex; align-items: baseline; gap: 4px; padding: 13px 0; border-bottom: 1px solid var(--ps-line); }
+.aps-index-row:last-child { border-bottom: none; }
+.aps-index-date { font-family: var(--ps-sans); font-size: 0.9rem; font-weight: 600; color: var(--ps-ink); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.aps-leader { flex: 1; min-width: 14px; align-self: center; border-bottom: 1px dotted var(--ps-copper); transform: translateY(-2px); }
+.aps-index-time { font-family: var(--ps-sans); font-size: 0.86rem; font-weight: 700; color: var(--ps-accent); flex-shrink: 0; font-variant-numeric: tabular-nums; direction: ltr; }
+.aps-index-row.is-cancelled .aps-index-date { color: var(--ps-muted); text-decoration: line-through; }
+.aps-stamp { font-family: var(--ps-sans); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 9px; border-radius: 2px; flex-shrink: 0; white-space: nowrap; }
+.aps-stamp.is-done { color: var(--ps-paper); background: var(--ps-accent); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28); }
+.aps-stamp.is-off { color: var(--ps-muted); border: 1px solid var(--ps-line); }
+
+/* ── Badge ──────────────────────────────────────────────────────────────────── */
+.aps-badge { font-family: var(--ps-sans); font-size: 0.66rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 2px; background: var(--ps-accent); color: var(--ps-paper); display: inline-grid; place-items: center; font-weight: 700; }
+
+/* ── Chat ───────────────────────────────────────────────────────────────────── */
+.aps-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.aps-bubble { max-width: 82%; padding: 9px 13px; border-radius: 3px; font-size: 0.92rem; line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
+.aps-bubble-me { align-self: flex-end; background: var(--ps-accent); color: var(--ps-paper); }
+.aps-bubble-them { align-self: flex-start; background: var(--ps-band); color: var(--ps-ink); border: 1px solid var(--ps-line); box-shadow: inset 0 1px 0 rgba(255, 252, 245, 0.4); }
+.aps-bubble-time { font-family: var(--ps-sans); font-size: 0.62rem; opacity: 0.72; align-self: flex-end; direction: ltr; }
+.aps-bubble-them .aps-bubble-time { align-self: flex-start; }
+.aps-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.aps-send { flex: none; width: 46px; padding: 0; }
+
+/* ── Profile ────────────────────────────────────────────────────────────────── */
+.aps-profile { display: flex; flex-direction: column; gap: 13px; }
+.aps-field { display: flex; flex-direction: column; gap: 5px; }
+.aps-field-lbl { font-family: var(--ps-sans); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ps-muted); }
+.aps-field-hint { font-size: 0.76rem; color: var(--ps-muted); }
+.aps-input {
+  width: 100%; padding: 11px 13px; border-radius: 2px; font: inherit;
+  border: 1px solid var(--ps-copper); background: var(--ps-paper); color: var(--ps-ink);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.aps-input:disabled { opacity: 0.6; }
+.aps-input:focus-visible { outline: 2px solid var(--ps-accent); outline-offset: 1px; }
+.aps-save { margin-top: 4px; }
+
+/* ── RTL: mirror the book arrow ─────────────────────────────────────────────── */
+[dir='rtl'] .aps .book-arrow { transform: scaleX(-1); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .aps-welcome { display: none; }
+  .aps-figures { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .aps-gauge-fill { transition: none; }
+}

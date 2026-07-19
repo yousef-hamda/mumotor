@@ -1,0 +1,108 @@
+/* deco account skin — the golden age of the automobile. Uses the template's own
+   --dc-* vars + fonts (inherited via the .tmpl-deco root). Scoped to .adc.
+   GOLD IS ORNAMENT ONLY (fails text contrast on ivory) — text = ink/emerald. */
+.account-root.account-deco {
+  background: var(--dc-ivory);
+  color: var(--dc-ink);
+  font-family: var(--dc-sans);
+}
+.adc { position: relative; display: flex; flex-direction: column; min-height: 100%; }
+
+/* Header — emerald band */
+.adc-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px clamp(18px, 4vw, 44px); background: var(--dc-emerald); }
+.adc-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--dc-ivory); min-width: 0; }
+.adc-logo { height: 30px; }
+.adc-mark { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--dc-ivory); color: var(--dc-emerald); font-family: var(--dc-display); font-size: 1.2rem; border: 1px solid var(--dc-gold); }
+.adc-school { font-family: var(--dc-display); font-size: 1.55rem; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--dc-ivory); }
+.adc-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.adc-hi { font-size: 0.82rem; letter-spacing: 0.06em; color: color-mix(in srgb, var(--dc-ivory) 78%, transparent); }
+.adc-hi b { color: var(--dc-ivory); }
+.adc-ghost { color: var(--dc-ivory); border-color: color-mix(in srgb, var(--dc-ivory) 45%, transparent); }
+.adc-ghost:hover { border-color: var(--dc-gold); color: var(--dc-gold); }
+/* Gold chevron rule under the header */
+.adc-chevron { display: block; height: 9px; opacity: 0.7; background-image: repeating-linear-gradient(135deg, var(--dc-gold) 0 2px, transparent 2px 11px), repeating-linear-gradient(45deg, var(--dc-gold) 0 2px, transparent 2px 11px); }
+
+.adc-wrap { width: 100%; max-width: 1060px; margin-inline: auto; padding: clamp(24px, 4vw, 38px) clamp(18px, 4vw, 44px) 8px; display: flex; flex-direction: column; gap: 22px; }
+
+/* Plates — ivory cards with a gold hairline keyline */
+.adc-plate { position: relative; min-width: 0; background: var(--dc-ivory); border: 1px solid var(--dc-gold-line); border-radius: 3px; padding: clamp(20px, 3vw, 28px); box-shadow: 0 1px 0 rgba(28,27,23,0.04); }
+.adc-plate::before { content: ''; position: absolute; inset: 5px; border: 1px solid color-mix(in srgb, var(--dc-gold) 34%, transparent); border-radius: 2px; pointer-events: none; }
+.adc-plate > * { position: relative; z-index: 1; }
+.adc-h2 { font-family: var(--dc-display); font-size: 1.55rem; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; color: var(--dc-ink); }
+.adc-empty { color: var(--dc-muted); }
+
+/* Next lesson + sunburst fan */
+.adc-next { overflow: hidden; }
+.adc-fan { position: absolute; z-index: 0; width: 320px; height: 160px; top: -30px; inset-inline-start: -50px; border-radius: 100% 100% 0 0 / 100% 100% 0 0; background: repeating-conic-gradient(from -90deg at 50% 100%, var(--dc-gold) 0deg 1deg, transparent 1deg 8deg); opacity: 0; transform: scale(0.72) rotate(-16deg); transform-origin: 50% 100%; mix-blend-mode: multiply; animation: adc-fan-open 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; pointer-events: none; }
+@keyframes adc-fan-open { to { opacity: 0.34; transform: scale(1) rotate(0deg); } }
+.account-deco[dir='rtl'] .adc-fan { inset-inline-start: auto; inset-inline-end: -50px; }
+.adc-next-inner { position: relative; z-index: 1; }
+.adc-next-body, .adc-next-empty { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; flex-wrap: wrap; margin-top: 6px; }
+.adc-next-empty { align-items: center; color: var(--dc-muted); }
+.adc-next-date { font-family: var(--dc-display); font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; margin: 0; color: var(--dc-ink); overflow-wrap: break-word; }
+.adc-next-time { margin: 10px 0 0; font-size: 1.05rem; color: var(--dc-emerald); font-weight: 600; font-variant-numeric: tabular-nums; }
+.adc-next-note { margin: 6px 0 0; color: var(--dc-muted); font-size: 0.9rem; }
+.adc-book { flex: none; }
+
+/* Readiness — floor-dial */
+.adc-progress-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; margin-top: 6px; }
+@media (min-width: 560px) { .adc-progress-grid { grid-template-columns: auto 1fr; } }
+.adc-dial { position: relative; width: min(240px, 100%); margin-inline: auto; }
+.adc-dial-face { display: block; width: 100%; height: auto; overflow: visible; }
+.adc-dial-arc { fill: none; stroke: var(--dc-gold); stroke-width: 2; opacity: 0.85; }
+.adc-dial-tick { stroke: var(--dc-gold); stroke-width: 1.5; opacity: 0.5; }
+.adc-dial-tick.is-major { stroke-width: 2.25; opacity: 0.85; }
+.adc-dial-hand { stroke: var(--dc-emerald); stroke-width: 3; stroke-linecap: round; transform-origin: 100px 100px; transition: transform 0.9s cubic-bezier(0.22,1,0.36,1); }
+.adc-dial-pivot { fill: var(--dc-gold); stroke: var(--dc-emerald); stroke-width: 1.5; }
+.adc-dial-readout { position: absolute; inset-inline: 0; bottom: 2px; text-align: center; font-family: var(--dc-display); font-size: 1.8rem; color: var(--dc-emerald); font-variant-numeric: tabular-nums; direction: ltr; }
+.adc-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.adc-stats li { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--dc-line); }
+.adc-stats li:last-child { border-bottom: none; }
+.adc-stats b { font-family: var(--dc-display); font-size: 1.9rem; line-height: 1; color: var(--dc-ink); font-variant-numeric: tabular-nums; direction: ltr; min-width: 2ch; }
+.adc-stats span { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+
+/* Rows */
+.adc-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+@media (min-width: 820px) { .adc-grid { grid-template-columns: 1fr 1fr; } }
+.adc-rows { list-style: none; margin: 0; padding: 0; }
+.adc-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--dc-line); }
+.adc-row:last-child { border-bottom: none; }
+.adc-diamond { width: 9px; height: 9px; background: var(--dc-emerald); transform: rotate(45deg); }
+.adc-diamond.is-cancelled { background: var(--dc-muted); }
+.adc-row-date { font-family: var(--dc-display); font-size: 1.15rem; color: var(--dc-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adc-row-time { font-size: 0.92rem; color: var(--dc-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adc-row-status { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-emerald); white-space: nowrap; }
+.adc-row.is-cancelled .adc-row-date { color: var(--dc-muted); text-decoration: line-through; }
+.adc-row.is-cancelled .adc-row-status { color: var(--dc-muted); }
+
+/* Chat */
+.adc-badge { font-size: 0.68rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--dc-emerald); color: var(--dc-ivory); display: inline-grid; place-items: center; font-weight: 700; }
+.adc-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.adc-bubble { max-width: 82%; padding: 9px 13px; border-radius: 4px; font-size: 0.94rem; line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
+.adc-bubble-me { align-self: flex-end; background: var(--dc-emerald); color: var(--dc-ivory); }
+.adc-bubble-them { align-self: flex-start; background: var(--dc-band); color: var(--dc-ink); border: 1px solid var(--dc-gold-line); }
+.adc-bubble-time { font-size: 0.6rem; opacity: 0.7; align-self: flex-end; direction: ltr; }
+.adc-bubble-them .adc-bubble-time { align-self: flex-start; }
+.adc-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.adc-send { flex: none; width: 48px; padding: 0; display: grid; place-items: center; }
+
+/* Profile */
+.adc-profile { display: flex; flex-direction: column; gap: 13px; }
+.adc-field { display: flex; flex-direction: column; gap: 5px; }
+.adc-field-lbl { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+.adc-field-hint { font-size: 0.78rem; color: var(--dc-muted); }
+.adc-input { width: 100%; padding: 11px 13px; border-radius: 3px; border: 1px solid var(--dc-gold-line); background: color-mix(in srgb, var(--dc-band) 60%, var(--dc-ivory)); color: var(--dc-ink); font: inherit; }
+.adc-input:disabled { opacity: 0.6; }
+.adc-input:focus-visible { outline: 2px solid var(--dc-emerald); outline-offset: 2px; }
+.adc-save { margin-top: 4px; }
+
+.account-deco[dir='rtl'] .book-arrow { transform: scaleX(-1); }
+
+@media (max-width: 560px) {
+  .adc-row { grid-template-columns: auto 1fr; }
+  .adc-row-time, .adc-row-status { grid-column: 2; text-align: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adc-fan { animation: none; opacity: 0.34; transform: scale(1); }
+  .adc-dial-hand { transition: none; }
+}

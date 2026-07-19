@@ -1,0 +1,137 @@
+/* meridian account skin — a topographic survey sheet. Uses the template's own
+   --mr-* vars + Instrument Serif / IBM Plex Mono fonts (inherited via
+   .tmpl-meridian). Scoped to .amr-. Signature: a self-drawing elevation route
+   over a contour field + cartographic atlas rows + crop-marked plates. Colours
+   ONLY var(--mr-*) / color-mix. */
+.account-root.account-meridian {
+  background: var(--mr-paper);
+  color: var(--mr-ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+.amr { min-height: 100%; }
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.amr-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 16px clamp(18px, 4vw, 44px);
+  background: color-mix(in srgb, var(--mr-paper) 90%, transparent);
+  border-bottom: 3px double var(--mr-contour);
+}
+.amr-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--mr-ink); min-width: 0; }
+.amr-logo { height: 30px; }
+.amr-mark {
+  width: 34px; height: 34px; border-radius: 2px; display: grid; place-items: center; flex-shrink: 0;
+  border: 1px solid var(--mr-route); color: var(--mr-route);
+  font-family: var(--mr-mono); font-weight: 600; font-size: 1rem;
+}
+.amr-school { font-family: var(--mr-mono); font-weight: 600; font-size: 0.95rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amr-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.amr-welcome { font-family: var(--mr-mono); font-size: 0.76rem; color: var(--mr-muted); }
+.amr-welcome b { color: var(--mr-ink); font-weight: 600; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.amr-wrap { width: 100%; max-width: 1060px; margin-inline: auto; padding: clamp(22px, 4vw, 38px) clamp(18px, 4vw, 44px) 14px; display: flex; flex-direction: column; gap: 20px; }
+.amr-h2 { font-family: var(--mr-serif); font-weight: 400; font-size: 1.5rem; line-height: 1.15; margin: 0 0 16px; display: flex; align-items: center; gap: 10px; color: var(--mr-ink); }
+.amr-muted { color: var(--mr-muted); font-size: 0.94rem; }
+.amr-empty { padding: 6px 0; }
+
+/* Hairline map plate. */
+.amr-panel {
+  position: relative; min-width: 0;
+  background: var(--mr-paper); border: 1px solid var(--mr-contour); border-radius: 2px;
+  padding: clamp(18px, 3vw, 26px);
+}
+
+/* ── NEXT LESSON ────────────────────────────────────────────────────────────── */
+.amr-next {
+  background: var(--mr-paper); border: 1px solid var(--mr-contour); border-radius: 2px;
+  padding: clamp(22px, 4vw, 34px);
+  box-shadow: inset 0 0 0 4px var(--mr-paper), inset 0 0 0 5px var(--mr-line);
+}
+.amr-next-body { display: flex; align-items: center; justify-content: space-between; gap: clamp(18px, 4vw, 34px); flex-wrap: wrap; }
+.amr-next-main { min-width: 0; }
+.amr-next-date { font-family: var(--mr-serif); font-weight: 400; font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.04; color: var(--mr-ink); }
+.amr-next-time { font-family: var(--mr-mono); font-weight: 500; font-size: 1rem; color: var(--mr-route); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.amr-next-note { color: var(--mr-muted); margin-top: 6px; font-size: 0.86rem; }
+.amr-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+/* ── READINESS — elevation route (SIGNATURE) ────────────────────────────────── */
+.amr-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.amr-legend { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mr-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-muted); font-variant-numeric: tabular-nums; }
+.amr-route {
+  display: block; width: 100%; height: 108px;
+  background-image:
+    repeating-radial-gradient(circle at 18% 20%, transparent 0 15px, color-mix(in srgb, var(--mr-contour) 40%, transparent) 15px 16px),
+    repeating-radial-gradient(circle at 84% 76%, transparent 0 19px, color-mix(in srgb, var(--mr-contour) 40%, transparent) 19px 20px);
+  border: 1px solid var(--mr-line); border-radius: 2px;
+}
+.amr-route-base { stroke: var(--mr-contour); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.amr-route-track { fill: none; stroke: color-mix(in srgb, var(--mr-ink) 24%, transparent); stroke-width: 1.5; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+.amr-route-line {
+  fill: none; stroke: var(--mr-route); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.62, 0, 0.2, 1);
+}
+.amr-plots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 16px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--mr-line); }
+.amr-plot { text-align: start; min-width: 0; }
+.amr-plot-num { display: block; font-family: var(--mr-serif); font-weight: 400; font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1; color: var(--mr-ink); font-variant-numeric: tabular-nums; }
+.amr-plot-lbl { display: block; margin-top: 8px; font-family: var(--mr-mono); font-size: 0.6rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted); }
+@media (min-width: 560px) { .amr-plots { grid-template-columns: repeat(4, 1fr); } }
+
+/* ── Grid ───────────────────────────────────────────────────────────────────── */
+.amr-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 820px) { .amr-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── Atlas rows ─────────────────────────────────────────────────────────────── */
+.amr-rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--mr-line); }
+.amr-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--mr-line); }
+.amr-row:last-child { border-bottom: none; }
+.amr-row-idx { font-family: var(--mr-mono); font-size: 0.72rem; font-weight: 500; color: var(--mr-muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.amr-row-key { width: 7px; height: 7px; flex-shrink: 0; background: var(--mr-route); }
+.amr-row-key.is-off { background: color-mix(in srgb, var(--mr-ink) 24%, transparent); }
+.amr-row-date { font-size: 0.9rem; font-weight: 500; color: var(--mr-ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.amr-row-time { margin-inline-start: auto; font-family: var(--mr-mono); font-size: 0.82rem; font-weight: 500; color: var(--mr-route); flex-shrink: 0; font-variant-numeric: tabular-nums; direction: ltr; }
+.amr-row-status { margin-inline-start: auto; font-family: var(--mr-mono); font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+.amr-row-status.is-done { color: var(--mr-route); }
+.amr-row-status.is-off { color: var(--mr-muted); }
+.amr-row.is-cancelled .amr-row-date { color: var(--mr-muted); text-decoration: line-through; }
+
+/* ── Badge ──────────────────────────────────────────────────────────────────── */
+.amr-badge { font-family: var(--mr-mono); font-size: 0.66rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 2px; background: var(--mr-route); color: var(--mr-paper); display: inline-grid; place-items: center; font-weight: 600; }
+
+/* ── Chat ───────────────────────────────────────────────────────────────────── */
+.amr-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.amr-bubble { max-width: 82%; padding: 9px 13px; border-radius: 2px; font-size: 0.92rem; line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
+.amr-bubble-me { align-self: flex-end; background: var(--mr-route); color: var(--mr-paper); }
+.amr-bubble-them { align-self: flex-start; background: color-mix(in srgb, var(--mr-contour) 22%, var(--mr-paper)); color: var(--mr-ink); border: 1px solid var(--mr-line); }
+.amr-bubble-time { font-family: var(--mr-mono); font-size: 0.62rem; opacity: 0.72; align-self: flex-end; direction: ltr; }
+.amr-bubble-them .amr-bubble-time { align-self: flex-start; }
+.amr-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.amr-send { flex: none; width: 46px; padding: 0; }
+
+/* ── Profile ────────────────────────────────────────────────────────────────── */
+.amr-profile { display: flex; flex-direction: column; gap: 13px; }
+.amr-field { display: flex; flex-direction: column; gap: 5px; }
+.amr-field-lbl { font-family: var(--mr-mono); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted); }
+.amr-field-hint { font-size: 0.76rem; color: var(--mr-muted); }
+.amr-input {
+  width: 100%; padding: 11px 13px; border-radius: 2px; font: inherit;
+  border: 1px solid var(--mr-contour); background: var(--mr-paper); color: var(--mr-ink);
+}
+.amr-input:disabled { opacity: 0.6; }
+.amr-input:focus-visible { outline: 2px solid var(--mr-route); outline-offset: 1px; }
+.amr-save { margin-top: 4px; }
+
+/* ── RTL: mirror the book arrow ─────────────────────────────────────────────── */
+[dir='rtl'] .amr .book-arrow { transform: scaleX(-1); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .amr-welcome { display: none; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .amr-route-line { transition: none; }
+}

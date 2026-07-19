@@ -1305,6 +1305,41 @@ router.get(
   })
 );
 
+// GET /driving-school/:websiteId/student/history — past lessons (session auth):
+// COMPLETED (a past CONFIRMED booking) + CANCELLED, most recent first. Also returns
+// hoursDriven, derived ONLY from real completed-lesson durations (no fabricated data).
+router.get(
+  '/:websiteId/student/history',
+  requireStudent,
+  rateLimit({ keyPrefix: 'student-history', windowSeconds: 60, max: 30 }),
+  asyncHandler(async (req, res) => {
+    const enrollment = await loadStudentEnrollment(req);
+    const bookings = await prisma.booking.findMany({
+      where: {
+        websiteId: req.params.websiteId,
+        customerEmail: enrollment.studentEmail,
+        bookingDate: { lt: appTodayUtcMidnight(env.APP_TIMEZONE) },
+        status: { in: ['CONFIRMED', 'CANCELLED'] },
+      },
+      orderBy: [{ bookingDate: 'desc' }, { bookingTime: 'desc' }],
+      select: { id: true, bookingDate: true, bookingTime: true, duration: true, status: true },
+    });
+    const minutesDriven = bookings
+      .filter((b) => b.status === 'CONFIRMED')
+      .reduce((sum, b) => sum + b.duration, 0);
+    res.json({
+      history: bookings.map((b) => ({
+        id: b.id,
+        date: b.bookingDate.toISOString().slice(0, 10),
+        time: b.bookingTime,
+        duration: b.duration,
+        status: b.status === 'CONFIRMED' ? 'COMPLETED' : 'CANCELLED',
+      })),
+      hoursDriven: Math.round((minutesDriven / 60) * 10) / 10,
+    });
+  })
+);
+
 // POST /driving-school/:websiteId/student/lessons/:bookingId/cancel (session auth).
 // Policy: students CANNOT cancel — only the teacher can. The route stays mounted
 // (so the client gets a clean, localized 403 rather than a 404) but always refuses.

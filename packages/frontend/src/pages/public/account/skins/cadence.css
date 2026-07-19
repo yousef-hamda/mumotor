@@ -1,0 +1,89 @@
+/* cadence account skin — kinetic editorial type. Uses the template's --cd-* vars
+   + Roboto Flex (variable) / Red Hat Mono. Scoped to .acd. Type is the design. */
+.account-root.account-cadence {
+  background: var(--cd-paper);
+  color: var(--cd-ink);
+  font-family: var(--cd-sans, system-ui, sans-serif);
+}
+.acd { display: flex; flex-direction: column; min-height: 100%; }
+
+/* Header */
+.acd-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px clamp(18px, 4vw, 44px); border-bottom: 2px solid var(--cd-ink); }
+.acd-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--cd-ink); min-width: 0; }
+.acd-logo { height: 30px; width: auto; }
+.acd-mark { width: 34px; height: 34px; border-radius: 2px; display: grid; place-items: center; background: var(--cd-accent); color: var(--cd-onaccent); font-family: var(--cd-sans); font-variation-settings: 'wght' 900, 'wdth' 120; font-size: 1.1rem; }
+.acd-school { font-family: var(--cd-sans); font-variation-settings: 'wght' 800, 'wdth' 110; font-size: 1.15rem; letter-spacing: -0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acd-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.acd-who { font-family: var(--cd-mono); font-size: 0.78rem; color: var(--cd-muted); }
+.acd-who b { color: var(--cd-ink); font-weight: 600; }
+
+.acd-wrap { width: 100%; max-width: 1080px; margin-inline: auto; padding: clamp(22px, 4vw, 40px) clamp(18px, 4vw, 44px) 12px; display: flex; flex-direction: column; gap: 24px; }
+
+.acd-eyebrow { font-family: var(--cd-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cd-accent); margin: 0 0 8px; }
+
+/* NEXT LESSON — kinetic hero */
+.acd-next { border-block: 2px solid var(--cd-ink); padding: clamp(20px, 4vw, 34px) 0; }
+.acd-next-date { font-family: var(--cd-sans); font-variation-settings: 'opsz' 60, 'wght' 800, 'wdth' 112; font-size: clamp(2.4rem, 8vw, 5.5rem); line-height: 0.9; letter-spacing: -0.04em; margin: 8px 0 0; color: var(--cd-ink); overflow-wrap: break-word; word-break: break-word; }
+.acd-next-time { font-family: var(--cd-mono); font-size: 1rem; margin: 16px 0 0; color: var(--cd-ink); font-variant-numeric: tabular-nums; }
+.acd-next-note { color: var(--cd-muted); margin: 6px 0 0; font-size: 0.9rem; }
+.acd-book { margin-top: 22px; }
+
+/* READINESS — giant kinetic numerals + ruled progress */
+.acd-progress { border-bottom: 2px solid var(--cd-ink); padding-bottom: 24px; }
+.acd-nums { display: flex; align-items: flex-end; gap: clamp(14px, 4vw, 40px); flex-wrap: wrap; margin-top: 8px; }
+.acd-num { display: flex; flex-direction: column; gap: 4px; }
+.acd-num-val { font-family: var(--cd-sans); font-variation-settings: 'opsz' 60, 'wght' 900, 'wdth' 125; font-size: clamp(3rem, 11vw, 6rem); line-height: 0.82; letter-spacing: -0.05em; color: var(--cd-ink); font-variant-numeric: tabular-nums; direction: ltr; }
+.acd-num-lbl { font-family: var(--cd-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cd-muted); }
+.acd-num-div { align-self: stretch; width: 1px; background: var(--cd-line); }
+.acd-rule { margin-top: 22px; display: flex; align-items: center; gap: 16px; }
+.acd-rule-track { flex: 1; height: 6px; background: var(--cd-band); overflow: hidden; border-radius: 2px; }
+.acd-rule-fill { display: block; block-size: 100%; background: var(--cd-accent); transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
+.acd-rule-pct { font-family: var(--cd-sans); font-variation-settings: 'wght' 800, 'wdth' 110; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1; color: var(--cd-accent); font-variant-numeric: tabular-nums; direction: ltr; letter-spacing: -0.03em; }
+.acd-rule-pct-sign { font-size: 0.55em; }
+
+.acd-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+@media (min-width: 820px) { .acd-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Panels */
+.acd-panel { min-width: 0; }
+.acd-h2 { font-family: var(--cd-sans); font-variation-settings: 'wght' 800, 'wdth' 108; font-size: 1.4rem; letter-spacing: -0.03em; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; color: var(--cd-ink); }
+.acd-h2-n { font-family: var(--cd-mono); font-size: 0.72rem; font-weight: 600; color: var(--cd-accent); letter-spacing: 0.06em; }
+.acd-muted { color: var(--cd-muted); font-size: 0.92rem; }
+.acd-badge { font-family: var(--cd-mono); font-size: 0.68rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 2px; background: var(--cd-accent); color: var(--cd-onaccent); display: inline-grid; place-items: center; font-weight: 600; }
+
+/* Rows */
+.acd-rows { list-style: none; margin: 0; padding: 0; }
+.acd-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 0; border-bottom: 1px solid var(--cd-line); }
+.acd-row:last-child { border-bottom: none; }
+.acd-row-date { font-family: var(--cd-sans); font-variation-settings: 'wght' 650, 'wdth' 105; }
+.acd-row-time { font-family: var(--cd-mono); font-size: 0.85rem; color: var(--cd-muted); font-variant-numeric: tabular-nums; }
+.acd-row.is-cancelled .acd-row-date { text-decoration: line-through; color: var(--cd-muted); }
+.acd-tag { font-family: var(--cd-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; white-space: nowrap; }
+.acd-tag.is-done { color: var(--cd-onaccent); background: var(--cd-accent); }
+.acd-tag.is-off { color: var(--cd-muted); border: 1px solid var(--cd-line); }
+
+/* Chat */
+.acd-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.acd-bubble { max-width: 82%; padding: 9px 13px; border-radius: 2px; font-size: 0.92rem; line-height: 1.4; display: flex; flex-direction: column; gap: 3px; }
+.acd-bubble-me { align-self: flex-end; background: var(--cd-accent); color: var(--cd-onaccent); }
+.acd-bubble-them { align-self: flex-start; background: var(--cd-band); color: var(--cd-ink); }
+.acd-bubble-time { font-family: var(--cd-mono); font-size: 0.62rem; opacity: 0.7; align-self: flex-end; direction: ltr; }
+.acd-bubble-them .acd-bubble-time { align-self: flex-start; }
+.acd-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.acd-send { flex: none; width: 46px; padding: 0; }
+
+/* Profile */
+.acd-profile { display: flex; flex-direction: column; gap: 14px; }
+.acd-field { display: flex; flex-direction: column; gap: 5px; }
+.acd-field-lbl { font-family: var(--cd-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cd-muted); }
+.acd-field-hint { font-size: 0.76rem; color: var(--cd-muted); }
+.acd-input { width: 100%; padding: 11px 13px; border-radius: 2px; border: 1px solid var(--cd-line); background: var(--cd-paper); color: var(--cd-ink); font: inherit; }
+.acd-input:disabled { opacity: 0.6; }
+.acd-input:focus-visible { outline: 2px solid var(--cd-accent); outline-offset: 1px; }
+.acd-save { margin-top: 4px; }
+
+[dir='rtl'] .acd .book-arrow { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .acd-rule-fill { transition: none; }
+}

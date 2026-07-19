@@ -1,0 +1,100 @@
+/* primary account skin — Bauhaus poster. Uses the template's --pm-* vars +
+   Jost display. Scoped to .apm. Hard edges, flat colour fields, one blue accent. */
+.account-root.account-primary {
+  background: var(--pm-paper);
+  color: var(--pm-ink);
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+}
+.apm { display: flex; flex-direction: column; min-height: 100%; }
+
+/* Header — poster bar on a bold 3px ink baseline */
+.apm-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 15px clamp(18px, 4vw, 44px); border-bottom: 3px solid var(--pm-ink); background: color-mix(in srgb, var(--pm-paper) 92%, transparent); }
+.apm-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--pm-ink); min-width: 0; }
+.apm-logo { height: 32px; width: auto; }
+.apm-mark { width: 34px; height: 34px; display: grid; place-items: center; color: var(--pm-paper); font-family: var(--pm-display); font-weight: 800; font-size: 1.1rem; }
+.apm-school { font-family: var(--pm-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apm-head-end { display: inline-flex; align-items: center; gap: 16px; }
+.apm-who { display: inline-flex; flex-direction: column; line-height: 1.15; text-align: end; }
+.apm-who-lbl { font-family: var(--pm-display); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pm-muted); }
+.apm-who b { font-weight: 700; font-size: 0.95rem; }
+
+.apm-wrap { width: 100%; max-width: 1080px; margin-inline: auto; padding: clamp(20px, 4vw, 36px) clamp(18px, 4vw, 44px) 12px; display: flex; flex-direction: column; gap: 20px; }
+
+.apm-eyebrow { font-family: var(--pm-display); font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--pm-blue); margin: 0 0 12px; }
+.apm-eyebrow-on { color: color-mix(in srgb, var(--pm-paper) 84%, transparent); }
+
+/* NEXT LESSON — full colour poster block */
+.apm-next { position: relative; overflow: hidden; border: 3px solid var(--pm-ink); color: var(--pm-paper); }
+.apm-next:not(.pm-fill-blue) { color: var(--pm-ink); background: var(--pm-paper); }
+.apm-next-inner { position: relative; z-index: 1; padding: clamp(22px, 4vw, 40px); max-width: 40ch; }
+.apm-next-date { font-family: var(--pm-display); font-weight: 800; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 0.98; letter-spacing: -0.02em; margin: 0; color: inherit; }
+.apm-next-time { font-weight: 600; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+.apm-next-note { margin: 8px 0 0; font-size: 0.9rem; color: color-mix(in srgb, var(--pm-paper) 74%, transparent); }
+.apm-next:not(.pm-fill-blue) .apm-next-note { color: var(--pm-muted); }
+.apm-book { margin-top: 22px; }
+.apm-next-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.apm-next-empty-txt { font-size: 1.15rem; font-family: var(--pm-display); font-weight: 700; margin: 0; }
+.apm-next-deco { position: absolute; inset-block: 0; inset-inline-end: clamp(-30px, -3vw, -10px); display: flex; align-items: center; gap: 18px; opacity: 0.9; pointer-events: none; z-index: 0; }
+.apm-deco-sq { width: 96px; height: 96px; }
+.apm-deco-ci { width: 120px; height: 120px; border-radius: 50%; }
+@media (max-width: 640px) { .apm-next-deco { display: none; } }
+
+/* Panels — hard 3px ink border, no radius, no shadow */
+.apm-panel { border: 3px solid var(--pm-ink); background: var(--pm-paper); padding: clamp(18px, 3vw, 26px); min-width: 0; }
+.apm-h2 { font-family: var(--pm-display); font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em; margin: 0 0 16px; display: flex; align-items: center; gap: 10px; color: var(--pm-ink); }
+.apm-muted { color: var(--pm-muted); font-size: 0.92rem; }
+.apm-badge { font-family: var(--pm-display); font-weight: 700; font-size: 0.7rem; min-width: 22px; height: 22px; padding: 0 6px; background: var(--pm-red); color: var(--pm-paper); display: inline-grid; place-items: center; }
+
+/* Readiness */
+.apm-progress { display: flex; flex-direction: column; }
+.apm-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+.apm-stat { flex: 1; min-width: 100px; border: 2px solid var(--pm-ink); padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.apm-stat-shape { width: 26px; height: 26px; flex-shrink: 0; }
+.apm-stat-ci { border-radius: 50%; }
+.apm-stat-tr { background: transparent !important; width: 0; height: 0; border-inline-start: 15px solid transparent; border-inline-end: 15px solid transparent; border-bottom: 26px solid var(--pm-yellow); }
+.apm-stat-num { font-family: var(--pm-display); font-weight: 800; font-size: 2.1rem; line-height: 1; color: var(--pm-ink); font-variant-numeric: tabular-nums; direction: ltr; }
+.apm-stat-lbl { font-family: var(--pm-display); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-muted); }
+.apm-bars { margin-top: 18px; display: flex; align-items: center; gap: 12px; }
+.apm-bar-track { flex: 1; height: 18px; border: 2px solid var(--pm-ink); background: var(--pm-paper); overflow: hidden; }
+.apm-bar-fill { display: block; block-size: 100%; transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
+.apm-bar-pct { font-family: var(--pm-display); font-weight: 800; font-size: 1.1rem; color: var(--pm-ink); font-variant-numeric: tabular-nums; direction: ltr; min-width: 3ch; text-align: end; }
+
+.apm-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 820px) { .apm-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Rows */
+.apm-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.apm-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 0; border-bottom: 1px solid var(--pm-line); }
+.apm-row:last-child { border-bottom: none; }
+.apm-row-date { font-family: var(--pm-display); font-weight: 700; }
+.apm-row-time { color: var(--pm-muted); font-variant-numeric: tabular-nums; }
+.apm-row.is-cancelled .apm-row-date { text-decoration: line-through; color: var(--pm-muted); }
+.apm-tag { font-family: var(--pm-display); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; white-space: nowrap; }
+.apm-tag.is-done { color: var(--pm-paper); background: var(--pm-ink); }
+.apm-tag.is-off { color: var(--pm-muted); border: 1px solid var(--pm-line); }
+
+/* Chat */
+.apm-chat { display: flex; flex-direction: column; gap: 9px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.apm-bubble { max-width: 82%; padding: 9px 13px; font-size: 0.92rem; line-height: 1.4; display: flex; flex-direction: column; gap: 3px; border: 2px solid var(--pm-ink); }
+.apm-bubble-me { align-self: flex-end; background: var(--pm-blue); color: var(--pm-paper); border-color: var(--pm-blue); }
+.apm-bubble-them { align-self: flex-start; background: var(--pm-paper); color: var(--pm-ink); }
+.apm-bubble-time { font-size: 0.62rem; opacity: 0.7; align-self: flex-end; direction: ltr; }
+.apm-bubble-them .apm-bubble-time { align-self: flex-start; }
+.apm-chat-form { display: flex; gap: 8px; margin-top: 12px; }
+.apm-send { flex: none; width: 46px; padding: 0; }
+
+/* Profile */
+.apm-profile { display: flex; flex-direction: column; gap: 14px; }
+.apm-field { display: flex; flex-direction: column; gap: 5px; }
+.apm-field-lbl { font-family: var(--pm-display); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-muted); }
+.apm-field-hint { font-size: 0.76rem; color: var(--pm-muted); }
+.apm-input { width: 100%; padding: 11px 13px; border: 2px solid var(--pm-ink); background: var(--pm-paper); color: var(--pm-ink); font: inherit; border-radius: 0; }
+.apm-input:disabled { opacity: 0.55; }
+.apm-input:focus-visible { outline: 2px solid var(--pm-blue); outline-offset: 2px; }
+.apm-save { margin-top: 4px; }
+
+[dir='rtl'] .apm .book-arrow { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .apm-bar-fill { transition: none; }
+}
