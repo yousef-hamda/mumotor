@@ -25,7 +25,7 @@
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-primary *, .tmpl-primary *::before, .tmpl-primary *::after { box-sizing: border-box; }
 .tmpl-primary img { display: block; max-width: 100%; }

@@ -27,7 +27,7 @@
   min-height: 100vh;
   /* Clip any horizontal overflow (e.g. the animated grain overlay) so the page
      scrollbars don't flicker on/off near the footer. Matches the other 11 templates. */
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ── 2. FILM GRAIN OVERLAY ─────────────────────────────── */
@@ -44,17 +44,10 @@
   z-index: 9998;
   opacity: 0.038;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: or-grain 0.38s steps(1) infinite;
-}
-/* Fixed-pixel jitter (was percentage-based, which overshot the viewport and toggled
-   the scrollbars ~2.6×/s). Small px shifts keep the grain lively without layout shift. */
-@keyframes or-grain {
-  0%   { transform: translate(0, 0); }
-  20%  { transform: translate(-3px, -1px); }
-  40%  { transform: translate(1px, -3px); }
-  60%  { transform: translate(-1px, 3px); }
-  80%  { transform: translate(3px, 0); }
-  100% { transform: translate(0, 1px); }
+  /* STATIC grain. It used to jitter (animation: or-grain) but this layer spans the
+     whole document height, so re-rasterising its noise texture ~2.6×/s caused the
+     reported scroll lag. A static film grain looks the same and the compositor just
+     translates it with the page — no re-raster, no jank. */
 }
 @media (prefers-reduced-motion: reduce) {
   .tmpl-open-road::before { animation: none; }

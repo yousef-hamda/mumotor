@@ -158,6 +158,17 @@ classes never needed renaming.
 - **Builder Design step (July 5)**: the 12-card horizontal concept-selector strip was **removed**; `DesignPreviewStep`
   (`BuilderWizard.tsx`) now shows just the live preview + a **"Choose another template"** button (→ browse/Templates gallery).
   Switch designs from the gallery, not an inline strip.
+- **Builder Design step is ONE screen (July 19)**: the whole app is viewport-locked on the design step (`isDesign` →
+  shell `h-[100dvh] overflow-hidden`, preview box `flex-1 min-h-0` not a fixed `vh`) so the frame + the 3 action buttons
+  are always visible without page scrolling — the TEMPLATE scrolls inside its frame, the page never does. Other steps keep
+  `min-h-screen`. Details + the rest of the July-19 batch (wizard language reset, foreign-locale healing, scroll-lag, reel
+  photos, `overflow-x:clip`) in the `builder-and-template-fixes-jul19` memory.
+- **Site language ALWAYS follows the app language (July 19)**: the wizard `locale` mirrors `i18n.language` (the in-wizard
+  site-language `<select>` calls `i18n.changeLanguage`; `localeTouched` is deprecated). "Auto-fill sample" sets a
+  `sampleApplied` marker (cleared on any content edit); changing the language calls `clearSampleData` when sample data is
+  showing — so a language switch wipes the stale sample and the teacher re-presses Auto-fill for the new language. Stale
+  wrong-language OVERRIDES (Arabic stat labels on an English site, etc.) are healed by `pruneForeignLocaleLabels`, now
+  broadened to drop foreign-locale ARRAY overrides (`stats`/`areas`/`faqs`/`packages`), and also run inside CustomizeMode.
 - **Customize editor fixes (July 5)** (`components/customize/CustomizeMode.tsx`): (a) per-item hover controls (⠿/＋/🗑) now
   sit **above** the item (below only when near the top), so they never cover short pills/chips; (b) FAQ answers **force-open
   in editing mode** via a new `EditingProvider`/`useIsEditing` context (`templates/shared.tsx`) each template's FAQ reads —

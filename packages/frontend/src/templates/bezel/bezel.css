@@ -39,7 +39,7 @@
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-bezel *, .tmpl-bezel *::before, .tmpl-bezel *::after { box-sizing: border-box; }
 .tmpl-bezel img { display: block; max-width: 100%; }

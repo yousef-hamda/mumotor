@@ -54,11 +54,26 @@ function isForeignLocaleDefault(value: unknown, locale: Locale): boolean {
   return LOCALES.some((l) => l !== locale && DEFAULTS_BY_LOCALE[l].has(v));
 }
 
+/** True when a value (recursing into arrays/objects) contains any string that is a
+ *  wrong-language default — used to spot a frozen list override (stats/areas/faqs/
+ *  packages) captured in a language the site no longer uses. */
+function containsForeignLocaleDefault(value: unknown, locale: Locale): boolean {
+  if (isForeignLocaleDefault(value, locale)) return true;
+  if (Array.isArray(value)) return value.some((x) => containsForeignLocaleDefault(x, locale));
+  if (value && typeof value === 'object') return Object.values(value).some((x) => containsForeignLocaleDefault(x, locale));
+  return false;
+}
+
 /**
- * Drop `labels.*` / `copy.*` overrides that are a default from a different
- * language than the site — so a switched language always wins for buttons, nav
- * links and headings. Genuine custom text and same-language defaults are kept.
- * No-op (returns the same object) when nothing needs healing.
+ * Drop Customize overrides that carry a default string from a DIFFERENT language
+ * than the site — so a switched language always wins. Two shapes are healed:
+ *  - `labels.*` / `copy.*` string overrides (buttons, nav links, headings), and
+ *  - whole array overrides (`stats`, `areas`, `faqs`, `packages`, …) where any
+ *    item's text is a wrong-language default — these fall back to the freshly
+ *    generated, correctly-localized list. This fixes e.g. Arabic stat labels
+ *    ("سنوات الخبرة") left on a site later switched to English.
+ * Genuine custom text and same-language defaults are always kept (a custom string
+ * matches no locale's default set, so it is never flagged). No-op when clean.
  */
 export function pruneForeignLocaleLabels(cz: Customization | undefined | null, locale: Locale): Customization | undefined | null {
   if (!cz || !cz.fields) return cz;
@@ -66,6 +81,7 @@ export function pruneForeignLocaleLabels(cz: Customization | undefined | null, l
   const fields: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(cz.fields)) {
     if ((k.startsWith('labels.') || k.startsWith('copy.')) && isForeignLocaleDefault(v, locale)) { changed = true; continue; }
+    if (Array.isArray(v) && containsForeignLocaleDefault(v, locale)) { changed = true; continue; }
     fields[k] = v;
   }
   return changed ? { ...cz, fields } : cz;

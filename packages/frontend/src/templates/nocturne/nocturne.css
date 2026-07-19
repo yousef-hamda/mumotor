@@ -53,7 +53,7 @@
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-nocturne *, .tmpl-nocturne *::before, .tmpl-nocturne *::after { box-sizing: border-box; }
 .tmpl-nocturne img { display: block; max-width: 100%; }
@@ -76,7 +76,6 @@
   background-size: 340px 340px;
   opacity: 0.85;
   transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -170px));
-  animation: nc-drift-twinkle 6s ease-in-out infinite;
 }
 .tmpl-nocturne .nc-star-layer-2 {
   background-image:
@@ -87,7 +86,6 @@
   background-size: 260px 260px;
   opacity: 0.65;
   transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -100px));
-  animation: nc-drift-twinkle 8s ease-in-out infinite 1.2s;
 }
 .tmpl-nocturne .nc-star-layer-3 {
   background-image:
@@ -99,7 +97,6 @@
   opacity: 0.5;
   transform: translateY(calc((var(--nc-progress, 0) - 0.5) * -40px));
 }
-@keyframes nc-drift-twinkle { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
 
 /* ── SIGNATURE: the course — a self-drawing constellation line. Absolute
    (never fixed), 40px wide, spans the whole document height (top:0;bottom:0

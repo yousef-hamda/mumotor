@@ -48,7 +48,7 @@
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-slate *, .tmpl-slate *::before, .tmpl-slate *::after { box-sizing: border-box; }
 .tmpl-slate img { display: block; max-width: 100%; }

@@ -89,10 +89,15 @@ function RlFilmstrip({ data }: { data: TemplateData }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] as any });
   const x = useTransform(scrollYProgress, [0, 1], ['0%', '-25%']);
-  const frames = [data.hero.image, ...data.gallery].filter(Boolean);
+  // Every DISTINCT photo the site has (hero + gallery + about + instructor), deduped —
+  // so the filmstrip shows variety instead of the same driver photo four times when
+  // there's no gallery.
+  const frames = [...new Set([data.hero.image, ...data.gallery, data.about?.image, data.instructor?.photo].filter(Boolean) as string[])];
   if (frames.length === 0) return null;
-  // Duplicate so the track is far wider than the viewport → no blank edges as it travels.
-  const strip = [...frames, ...frames, ...frames, ...frames];
+  // Fill the travelling track by CYCLING the distinct frames (never the same one
+  // twice in a row), rather than tiling one image over and over.
+  const target = Math.max(8, frames.length * 2);
+  const strip = Array.from({ length: target }, (_, i) => frames[i % frames.length]);
   return (
     <div className="rl-strip rl-band" ref={ref} aria-hidden="true">
       <RlStripCounter progress={scrollYProgress} reduced={reduced} s={s} />

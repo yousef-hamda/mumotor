@@ -54,7 +54,7 @@
   font-size: 16px;
   line-height: 1.68;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-sumi *, .tmpl-sumi *::before, .tmpl-sumi *::after { box-sizing: border-box; }
 .tmpl-sumi img { display: block; max-width: 100%; }
@@ -128,10 +128,14 @@
   border-radius: 48% 52% 55% 45% / 52% 44% 56% 48%;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--su-ink) 12%, transparent), transparent 72%);
   filter: blur(6px);
-  opacity: 0; transform: scale(0.85);
-  transition: opacity 1s ease, transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Fade in with OPACITY ONLY. It used to also animate transform: scale(0.85→1),
+     but scaling a blur() layer re-rasterises it every frame — and this bloom renders
+     ~8× (once per section), so scrolling through them all stacked up into jank.
+     Opacity is compositor-cheap and the blurred ink still reads as "diffusing in". */
+  opacity: 0;
+  transition: opacity 1s ease;
 }
-.tmpl-sumi .su-bloom.is-bloomed { opacity: 0.9; transform: scale(1); }
+.tmpl-sumi .su-bloom.is-bloomed { opacity: 0.9; }
 .tmpl-sumi .su-bloom-start { inset-inline-start: -50px; }
 
 /* ── The hanko seal (vermilion stamp of the initial; STAMPS on scroll-in) ─────── */

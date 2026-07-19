@@ -55,7 +55,7 @@
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .tmpl-deco *, .tmpl-deco *::before, .tmpl-deco *::after { box-sizing: border-box; }
 .tmpl-deco img { display: block; max-width: 100%; }

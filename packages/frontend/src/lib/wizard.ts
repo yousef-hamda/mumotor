@@ -110,11 +110,16 @@ export interface WizardConfig {
   gallery: string[];
 
   // ── Design ─────────────────────────────────────────────────────────────
+  /** The site language — ALWAYS mirrors the app UI language (changing either
+   *  switches both). */
   locale: 'HE' | 'AR' | 'EN';
-  /** True once the teacher deliberately picked the site language in the wizard.
-   *  While false/absent, the site language follows the app UI language (so a
-   *  fresh/untouched draft never gets stuck on a stale language). */
+  /** @deprecated no longer used — the site language always follows the app language. */
   localeTouched?: boolean;
+  /** True while the config currently holds "Auto-fill sample" data (as opposed to
+   *  the teacher's own typing). Set by `sampleWizardConfig`, cleared the moment the
+   *  teacher edits any content field — so a language switch can safely wipe stale
+   *  sample text without ever destroying real user input. */
+  sampleApplied?: boolean;
   templateChoice?: string;
   /** Customize-mode overrides (colours, text, photos). */
   customization?: Customization;
@@ -241,6 +246,42 @@ export function sampleWizardConfig(prev: WizardConfig): WizardConfig {
     bookingWindowEnd: '17:00',
     reportTime: '18:00',
     socialLinks: { Instagram: 'https://instagram.com/northgate.driving', Facebook: 'https://facebook.com/northgate.driving' },
+    sampleApplied: true,
+  };
+}
+
+/** Wipe every field "Auto-fill sample" populates, back to the blank defaults —
+ *  used when the language changes while sample data is showing, so the teacher
+ *  starts clean and can re-press Auto-fill to get the NEW language's sample. Keeps
+ *  everything else (templateChoice, customization, logo/photos, locale). */
+export function clearSampleData(c: WizardConfig): WizardConfig {
+  const d = defaultWizardConfig;
+  return {
+    ...c,
+    businessName: d.businessName,
+    businessDescription: d.businessDescription,
+    tagline: d.tagline,
+    phone: d.phone,
+    email: d.email,
+    address: d.address,
+    city: d.city,
+    workingDays: [...d.workingDays],
+    shiftStart: d.shiftStart,
+    shiftEnd: d.shiftEnd,
+    breakTimes: [...d.breakTimes],
+    restEnabled: d.restEnabled,
+    restMinutes: d.restMinutes,
+    classDuration: d.classDuration,
+    pricePerClass: d.pricePerClass,
+    transmission: d.transmission,
+    plans: [defaultPlan(d.pricePerClass, d.transmission)],
+    teacherName: d.teacherName,
+    experienceLevel: d.experienceLevel,
+    bookingWindowStart: d.bookingWindowStart,
+    bookingWindowEnd: d.bookingWindowEnd,
+    reportTime: d.reportTime,
+    socialLinks: {},
+    sampleApplied: false,
   };
 }
 

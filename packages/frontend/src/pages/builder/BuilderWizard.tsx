@@ -21,6 +21,7 @@ import {
   WEEKDAYS,
   buildBusinessHours,
   clearWizard,
+  clearSampleData,
   defaultWizardConfig,
   hourOf,
   loadWizard,
@@ -114,17 +115,20 @@ export default function BuilderWizard() {
     }
   }, [config, t]);
 
-  // Until the teacher deliberately picks a site language, keep it in sync with the
-  // app UI language — so switching the app language updates the site-language
-  // default AND the "Auto-fill sample" language. Also self-heals a stale draft
-  // saved in an earlier language (no `localeTouched` ⇒ follows the current UI).
+  // The SITE language always mirrors the app UI language. When the app language
+  // changes, switch the site language too — and if the config is currently showing
+  // "Auto-fill sample" data, wipe it (the teacher re-presses Auto-fill to get the
+  // NEW language's sample). Real typed content (sampleApplied === false) is kept.
   useEffect(() => {
-    if (config.localeTouched) return;
     const lang = (i18n.language || '').toLowerCase();
     const loc: WizardConfig['locale'] = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
-    setConfig((c) => (c.localeTouched || c.locale === loc ? c : { ...c, locale: loc }));
+    setConfig((c) => {
+      if (c.locale === loc) return c;
+      const base = c.sampleApplied ? clearSampleData(c) : c;
+      return { ...base, locale: loc };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i18n.language, config.localeTouched]);
+  }, [i18n.language]);
 
   // ── Server-side draft (logged-in users only) ───────────────────────────────
   // localStorage remains the primary store; the server copy survives browser
@@ -164,7 +168,11 @@ export default function BuilderWizard() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, user?.id, restorePrompt]);
-  const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => setConfig((c) => ({ ...c, [k]: v }));
+  // Editing any real content field means the config is no longer "sample" data,
+  // so a later language switch must NOT wipe it. Non-content keys don't flip it.
+  const NON_CONTENT_KEYS = new Set<keyof WizardConfig>(['locale', 'localeTouched', 'sampleApplied', 'templateChoice', 'customization']);
+  const set = <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) =>
+    setConfig((c) => ({ ...c, [k]: v, ...(NON_CONTENT_KEYS.has(k) ? {} : { sampleApplied: false }) }));
 
   // Each wizard step is the same route with different content, so ScrollToTop
   // (which fires on route change) can't see it — reset to the top on step change
@@ -180,6 +188,11 @@ export default function BuilderWizard() {
   const current = Math.max(0, MAIN.indexOf((step === 'account' ? 'design' : step) as Step));
   const showStepper = step !== 'welcome' && step !== 'done' && step !== 'customize';
   const wide = step === 'design' || step === 'browse';
+  // The Design step is a single, non-scrolling screen: the whole app is locked to the
+  // viewport and the live preview fills the leftover space (the TEMPLATE scrolls inside
+  // its frame, the page itself never does) — so the frame + action buttons are always
+  // fully visible without page scrolling.
+  const isDesign = step === 'design';
 
   // Customize is a full-screen mode of its own.
   if (step === 'customize') {
@@ -203,7 +216,7 @@ export default function BuilderWizard() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-sand-50">
+    <div className={cn('flex flex-col bg-sand-50', isDesign ? 'h-[100dvh] overflow-hidden' : 'min-h-screen')}>
       <header className="glass sticky top-0 z-30 border-b border-white/50">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <Link to="/" aria-label={t('builder.mumotorHome')}><Logo size="sm" /></Link>
@@ -224,7 +237,7 @@ export default function BuilderWizard() {
         )}
       </header>
 
-      <main className={cn('mx-auto flex w-full flex-1 flex-col py-10', wide ? 'max-w-[1320px] px-4' : 'max-w-3xl px-5')}>
+      <main className={cn('mx-auto flex w-full flex-1 flex-col', wide ? 'max-w-[1320px] px-4' : 'max-w-3xl px-5', isDesign ? 'min-h-0 py-4' : 'py-10')}>
         {restorePrompt && (
           <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-sand-200 bg-white px-4 py-3 text-sm text-sand-700 shadow-sm">
             <span>{t('builder.restoreTitle')}</span>
@@ -550,7 +563,7 @@ function Welcome({ onStart }: { onStart: () => void }) {
 // ── Step 2: Business Info (Part 1) ───────────────────────────────────────────
 
 function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardConfig; set: <K extends keyof WizardConfig>(k: K, v: WizardConfig[K]) => void; onAuto: () => void; onBack: () => void; onNext: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <FadeUp className="mx-auto w-full max-w-2xl">
       <BackLink onClick={onBack} />
@@ -585,7 +598,10 @@ function BusinessStep({ config, set, onAuto, onBack, onNext }: { config: WizardC
             <Field label={t('builder.business.city')}><Input value={config.city} onChange={(e) => set('city', e.target.value)} placeholder={t('builder.business.cityPlaceholder')} /></Field>
           </div>
           <Field label={t('builder.business.siteLanguage')}>
-            <Select value={config.locale} onChange={(e) => { set('locale', e.target.value as WizardConfig['locale']); set('localeTouched', true); }}>
+            {/* The site language always mirrors the app language, so picking one here
+                switches the whole app language too; the sync effect then updates the
+                locale + wipes any stale Auto-fill sample. */}
+            <Select value={config.locale} onChange={(e) => { void i18n.changeLanguage((e.target.value as WizardConfig['locale']).toLowerCase()); }}>
               <option value="EN">English</option>
               <option value="HE">עברית (Hebrew)</option>
               <option value="AR">العربية (Arabic)</option>
@@ -862,8 +878,8 @@ function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing 
   const data = useMemo(() => wizardToTemplateData(config), [config]);
   const selected = config.templateChoice || TEMPLATES[0].slug;
   return (
-    <FadeUp className="w-full">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+    <FadeUp className="flex min-h-0 w-full flex-1 flex-col">
+      <div className="mb-3 flex shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-sand-500 transition-colors hover:text-sand-800">
           <ArrowLeft className="h-4 w-4" /> {t('builder.design.chooseAnother')}
         </button>
@@ -873,17 +889,18 @@ function DesignPreviewStep({ config, onBack, onCustomize, onPublish, publishing 
         </div>
       </div>
 
-      {/* Edge-to-edge on phones so full-bleed template sections aren't clipped by the card's side padding. */}
-      <div className="-mx-4 overflow-hidden border-y border-sand-200 bg-white shadow-card sm:mx-0 sm:rounded-xl sm:border-x">
-        <div className="flex items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
+      {/* Edge-to-edge on phones so full-bleed template sections aren't clipped by the card's side padding.
+          Fills the leftover viewport height; the TEMPLATE scrolls inside — the page never does. */}
+      <div className="-mx-4 flex min-h-0 flex-1 flex-col overflow-hidden border-y border-sand-200 bg-white shadow-card sm:mx-0 sm:rounded-xl sm:border-x">
+        <div className="flex shrink-0 items-center gap-1.5 border-b border-sand-200 bg-sand-50 px-4 py-2.5">
           <span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" /><span className="h-3 w-3 rounded-full bg-sand-300" />
           <span className="ms-3 truncate rounded-md bg-white px-3 py-0.5 text-xs text-sand-500 ring-1 ring-sand-200">{data.business.name} · {t('builder.design.livePreview')}</span>
         </div>
-        <div className="relative h-[72vh] overflow-y-auto overflow-x-hidden sm:h-[78vh]">
+        <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <TemplateRender slug={selected} data={data} />
         </div>
       </div>
-      <p className="mt-3 text-center text-xs text-sand-500"><Trans i18nKey="builder.design.caption" components={{ b: <strong /> }} /></p>
+      <p className="mt-2 shrink-0 text-center text-xs text-sand-500"><Trans i18nKey="builder.design.caption" components={{ b: <strong /> }} /></p>
     </FadeUp>
   );
 }

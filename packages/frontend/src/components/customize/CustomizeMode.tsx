@@ -12,6 +12,7 @@ import {
   type EditType,
 } from '../../templates/customize/overrides';
 import { DynamicIcon, ICON_LIBRARY } from '../../templates/DynamicIcon';
+import { pruneForeignLocaleLabels } from '../../templates/i18nDefaults';
 import { EditingProvider } from '../../templates/shared';
 import { mediaApi } from '../../lib/api';
 import { useHistory } from './useHistory';
@@ -63,7 +64,9 @@ export default function CustomizeMode({
 }) {
   const { t } = useTranslation();
   const hist = useHistory(value ?? {});
-  const data = useMemo(() => applyOverrides(baseData, hist.current), [baseData, hist.current]);
+  // Heal any wrong-language default overrides (e.g. Arabic stat labels left on a site
+  // switched to English) before rendering, so Customize shows the site's language too.
+  const data = useMemo(() => applyOverrides(baseData, pruneForeignLocaleLabels(hist.current, baseData.locale)), [baseData, hist.current]);
   const [sel, setSel] = useState<Selection | null>(null);
   const [popover, setPopover] = useState<PopoverState | null>(null);
   const [hover, setHover] = useState<{ path: string; rect: Rect } | null>(null);
