@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,'Inter','Segoe UI','Noto Sans Hebrew','Noto Sans Arabic',sans-serif;background:#eef1f6;padding:44px;color:#1D1D1F}
+.card{max-width:660px;margin:0 auto;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 30px 80px -24px rgba(20,30,60,.22)}
+.hd{background:linear-gradient(135deg,#0071E3,#0047AB);color:#fff;padding:30px 34px 26px}
+.brow{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.wm{font-weight:800;font-size:20px;letter-spacing:-.01em}
+.pill{background:rgba(255,255,255,.22);padding:7px 14px;border-radius:999px;font-weight:600;font-size:14px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.sub{opacity:.85;font-size:16px;margin-top:5px}
+.body{padding:14px 22px 26px}
+.row{display:flex;align-items:center;gap:16px;padding:16px 14px}
+.row+.row{border-top:1px solid #f0f1f4}
+.av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0}
+.tm{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;color:#0071E3;min-width:120px;direction:ltr}
+.who{flex:1}.name{font-weight:700;font-size:17px}
+.tel{color:#0071E3;font-weight:600;font-size:14px;text-decoration:none;margin-top:2px;display:inline-block;direction:ltr}
+.chk{display:flex;align-items:center;gap:6px;color:#16a34a;font-weight:700;font-size:14px}
+.ft{padding:20px;border-top:1px solid #f0f1f4;color:#98a1ad;font-size:13px;text-align:center}
+</style></head><body>
+<div class="card" id="card">
+ <div class="hd">
+  <div class="brow"><span class="wm">Mumotor</span><span class="pill" id="pill"></span></div>
+  <h1 id="title"></h1>
+  <div class="sub" id="sub"></div>
+ </div>
+ <div class="body">
+  <div class="row"><span class="av" style="background:#0071E3" id="a0"></span><span class="tm">08:00 – 09:00</span><div class="who"><div class="name" id="n0"></div><a class="tel">+972 50 123 4567</a></div><span class="chk" id="c0"></span></div>
+  <div class="row"><span class="av" style="background:#16a34a" id="a1"></span><span class="tm">10:00 – 11:00</span><div class="who"><div class="name" id="n1"></div><a class="tel">+972 52 447 1180</a></div><span class="chk" id="c1"></span></div>
+  <div class="row"><span class="av" style="background:#B5662E" id="a2"></span><span class="tm">14:00 – 15:00</span><div class="who"><div class="name" id="n2"></div><a class="tel">+972 54 902 3355</a></div><span class="chk" id="c2"></span></div>
+ </div>
+ <div class="ft" id="ft"></div>
+</div>
+<script>
+const D={
+en:{dir:'ltr',pill:'3 lessons today',title:"Today's schedule",sub:'Sunday, July 19 · David’s Driving School',conf:'✓ Confirmed',ft:'Sent by Mumotor · Everything, faster and easier',names:['Maya Levi','Omar Haddad','Noa Barak'],init:['ML','OH','NB']},
+ar:{dir:'rtl',pill:'3 دروس اليوم',title:'جدول اليوم',sub:'الأحد، 19 يوليو · مدرسة الطريق للقيادة',conf:'✓ مؤكد',ft:'أُرسل بواسطة Mumotor · كل شيء أسرع وأسهل',names:['مايا خليل','عمر حداد','نور عيسى'],init:['م','ع','ن']},
+he:{dir:'rtl',pill:'3 שיעורים היום',title:'לוח הזמנים של היום',sub:'יום ראשון, 19 ביולי · בית הספר לנהיגה של אלי',conf:'✓ מאושר',ft:'נשלח על ידי Mumotor · הכול מהר יותר וקל יותר',names:['מאיה לוי','עומר כהן','נועה ברק'],init:['מ','ע','נ']}};
+const L=new URLSearchParams(location.search).get('lang')||'en';const d=D[L]||D.en;
+document.getElementById('card').dir=d.dir;
+document.getElementById('pill').textContent=d.pill;
+document.getElementById('title').textContent=d.title;
+document.getElementById('sub').textContent=d.sub;
+document.getElementById('ft').textContent=d.ft;
+for(let i=0;i<3;i++){document.getElementById('n'+i).textContent=d.names[i];document.getElementById('a'+i).textContent=d.init[i];document.getElementById('c'+i).textContent=d.conf;}
+</script></body></html>

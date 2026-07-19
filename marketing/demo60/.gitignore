@@ -1,0 +1,9 @@
+# Heavy build artifacts — regenerate via capture_lang.mjs + render_lang.mjs
+shots/
+shots_*/
+frames_*/
+audio/
+*.mp4
+*.png
+*.log
+node_modules/

@@ -6,9 +6,19 @@ import { TEMPLATES, getTemplate, getTemplateIndex } from '../../templates/regist
 import { TemplateRender } from '../../templates/TemplateRender';
 import { applyOverrides } from '../../templates/customize/overrides';
 import { sampleData } from '../../templates/sampleData';
+import { defaultWizardConfig, sampleWizardConfig } from '../../lib/wizard';
+import { wizardToTemplateData } from '../../templates/fromWizard';
+
+/** Sample template data localized to the app language, so the gallery preview
+ *  reads fully in HE/AR/EN (RTL included) — not always English. */
+function localizedSample(lang: string) {
+  const locale = lang === 'he' ? 'HE' : lang === 'ar' ? 'AR' : 'EN';
+  if (locale === 'EN') return null;
+  return wizardToTemplateData(sampleWizardConfig({ ...defaultWizardConfig, locale }));
+}
 
 export default function TemplatePreview() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -49,14 +59,18 @@ export default function TemplatePreview() {
   }
 
   const Component = meta.Component;
-  // For the mumotor template, an `?accent` query recolours the live preview's main colour.
-  const themedData = accent ? applyOverrides(sampleData, { theme: { '--mm-accent': accent } }) : null;
+  // Preview in the app language (HE/AR render RTL + translated); English keeps the
+  // template's own default sampleData. For the mumotor template, an `?accent` query
+  // recolours the live preview's main colour.
+  const localized = localizedSample(i18n.language);
+  const base = localized ?? sampleData;
+  const previewData = accent ? applyOverrides(base, { theme: { '--mm-accent': accent } }) : (localized ? base : null);
 
   return (
     <div className="relative min-h-dvh bg-white">
       {/* The live, scrollable, interactive template */}
       <Suspense fallback={<PreviewLoader />}>
-        {themedData ? <TemplateRender slug={meta.slug} data={themedData} /> : <Component />}
+        {previewData ? <TemplateRender slug={meta.slug} data={previewData} /> : <Component />}
       </Suspense>
 
       {/* Floating chrome — switch between templates / use this one */}

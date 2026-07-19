@@ -1,0 +1,278 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000}
+#stage{position:relative;width:1920px;height:1080px;font-family:-apple-system,'Inter','Segoe UI','Noto Sans Hebrew','Noto Sans Arabic',system-ui,sans-serif;overflow:hidden}
+#bg{position:absolute;inset:0;background:radial-gradient(125% 125% at 50% 25%,#eef2fb 0%,#e6ecf5 55%,#dbe2ee 100%)}
+.laptop{position:absolute;left:320px;top:118px;width:1280px;opacity:0;transform-origin:50% 50%;z-index:20}
+.win{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 55px 120px -35px rgba(24,26,54,.5),0 12px 36px -12px rgba(0,0,0,.22)}
+.bar{height:46px;background:#f1f2f5;display:flex;align-items:center;padding:0 16px;gap:9px;border-bottom:1px solid #e6e7ec;direction:ltr}
+.dot{width:13px;height:13px;border-radius:50%}
+.addr{margin:0 auto;background:#fff;border:1px solid #e2e3e9;border-radius:9px;padding:7px 22px;font-size:14px;font-weight:600;color:#8b8f98;min-width:360px;text-align:center}
+.lscreen{width:1280px;height:800px;overflow:hidden;position:relative;background:#fff}
+#limg{position:absolute;top:0;left:0;width:1280px;display:block}
+.phone{position:absolute;left:745px;top:148px;width:429px;padding:16px;background:#0c0c10;border-radius:56px;opacity:0;box-shadow:0 60px 120px -34px rgba(0,0,0,.6);transform-origin:50% 50%;z-index:30}
+.notch{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:150px;height:30px;background:#0c0c10;border-radius:18px;z-index:5}
+.pscreen{width:397px;height:860px;overflow:hidden;border-radius:42px;position:relative;background:#fff}
+#pimg{position:absolute;top:0;left:0;width:397px;display:block}
+#cursor{position:absolute;left:960px;top:540px;width:38px;height:38px;z-index:60;opacity:0;transform-origin:7px 5px;filter:drop-shadow(0 4px 7px rgba(0,0,0,.4))}
+#ripple{position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(0,113,227,.5);z-index:55;opacity:0;transform:translate(-50%,-50%) scale(0)}
+#tap{position:absolute;width:78px;height:78px;border-radius:50%;border:4px solid rgba(0,113,227,.85);z-index:55;opacity:0;transform:translate(-50%,-50%) scale(0)}
+#subs{position:absolute;left:50%;top:0;transform:translateX(-50%);width:1560px;text-align:center;z-index:70;opacity:0}
+#subtxt{display:inline-block;font-weight:800;font-size:50px;letter-spacing:-.015em;color:#12131a;line-height:1.12}
+#scrim{position:absolute;left:0;right:0;bottom:0;height:210px;background:linear-gradient(to top,rgba(224,231,242,.96),rgba(224,231,242,0));z-index:66;pointer-events:none;opacity:0}
+#logo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;opacity:0;z-index:40}
+#logoWord{width:520px;opacity:0}
+#tagword{opacity:0;font-weight:600;font-size:34px;color:#5b6472;letter-spacing:.005em}
+#hook{position:absolute;inset:0;z-index:45;opacity:0}
+.bub{position:absolute;left:50%;top:50%;padding:15px 22px;border-radius:22px;font-weight:700;font-size:23px;color:#fff;box-shadow:0 14px 34px -10px rgba(0,0,0,.42);opacity:0;white-space:nowrap}
+.toast{position:absolute;z-index:58;padding:17px 34px;border-radius:999px;font-weight:800;font-size:32px;background:#111;color:#fff;box-shadow:0 22px 55px -14px rgba(0,0,0,.5);opacity:0;left:50%;top:50%;transform:translate(-50%,-50%) scale(.8)}
+.toast.green{background:#16a34a}.toast.blue{background:#0071E3}
+.pbanner{position:absolute;left:960px;top:214px;transform:translateX(-50%);width:400px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-radius:22px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 26px 60px -18px rgba(0,0,0,.4);opacity:0;z-index:40}
+.pbanner img{width:48px;height:48px;border-radius:12px;flex:none}
+.pbanner .nt{font-weight:800;font-size:21px;color:#111;line-height:1.15}
+.pbanner .ns{font-size:16px;color:#666;margin-top:2px}
+#msg{position:absolute;left:960px;top:470px;transform:translateX(-50%);width:392px;z-index:40;opacity:0}
+#msg .mb{background:#e9f0ff;border-radius:22px 22px 22px 6px;padding:18px 20px;font-size:19px;color:#123;line-height:1.4;box-shadow:0 16px 40px -14px rgba(0,0,0,.28)}
+#msg .code{display:inline-block;margin-top:10px;font-weight:800;letter-spacing:.14em;font-size:22px;background:#0071E3;color:#fff;padding:8px 16px;border-radius:10px;direction:ltr}
+#msg .sent{text-align:right;font-size:14px;color:#0071E3;font-weight:600;margin-top:8px}
+.step5{position:absolute;left:960px;top:150px;transform:translateX(-50%);z-index:41;opacity:0;font-weight:800;font-size:34px;color:#0071E3;background:rgba(255,255,255,.9);padding:10px 26px;border-radius:999px;box-shadow:0 18px 44px -16px rgba(0,113,227,.4)}
+.hand{position:absolute;z-index:42;font-weight:800;font-size:26px;color:#0071E3;opacity:0;background:rgba(255,255,255,.92);padding:8px 20px;border-radius:999px;box-shadow:0 14px 40px -14px rgba(0,0,0,.2)}
+body.rtl #subtxt,body.rtl #tagword,body.rtl .step5,body.rtl .hand,body.rtl #msg,body.rtl .pbanner{direction:rtl}
+body.rtl .pbanner{text-align:right}
+body.rtl #msg .mb{border-radius:22px 22px 6px 22px}
+body.rtl #msg .sent{text-align:left}
+</style></head>
+<body><div id="stage">
+  <div id="bg"></div>
+  <div class="laptop"><div class="win">
+    <div class="bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="addr">mumotor.com</span></div>
+    <div class="lscreen"><img id="limg"></div>
+  </div></div>
+  <div class="phone"><div class="notch"></div><div class="pscreen"><img id="pimg"></div></div>
+  <div id="hook"></div>
+  <div id="logo"><img id="logoWord"><div id="tagword"></div></div>
+  <div class="pbanner" id="notif"><img id="ic1"><div><div class="nt" id="notif_t"></div><div class="ns" id="notif_s"></div></div></div>
+  <div class="pbanner" id="confirm"><img id="ic2"><div><div class="nt" id="confirm_t"></div><div class="ns" id="confirm_s"></div></div></div>
+  <div class="pbanner" id="remind"><img id="ic3"><div><div class="nt" id="remind_t"></div><div class="ns" id="remind_s"></div></div></div>
+  <div id="msg"><div class="mb"><span id="msg_t"></span><br><span style="color:#0071E3;font-weight:700;font-size:15px;direction:ltr;display:inline-block">mumotor.com/p/davids-driving/enroll</span><br><span class="code">130FF6</span><div class="sent" id="msg_sent"></div></div></div>
+  <div class="step5" id="step5"></div>
+  <div class="hand" id="handL"></div>
+  <div class="hand" id="handR"></div>
+  <img id="cursor" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' viewBox='0 0 24 24'><path d='M4 2 L4 20 L9 15 L12.5 22 L15 21 L11.5 14 L18 14 Z' fill='white' stroke='%23111' stroke-width='1.3' stroke-linejoin='round'/></svg>">
+  <div id="ripple"></div><div id="tap"></div>
+  <div id="scrim"></div>
+  <div id="subs"><span id="subtxt"></span></div>
+  <div id="toast" class="toast"></div>
+</div>
+<script src="./gsap.min.js"></script>
+<script>
+const STR={
+en:{hb:['📞 Missed call','💬 "You free Tue?"','📞 3 missed','💬 "Reschedule?"','📞 Unknown','💬 "What time?"','📞 Dad','💬 "Confirm pls"'],
+ hook1:'Still booking lessons by hand?',hook2:'Endless calls &amp; texts 😮‍💨',meet:'Meet Mumotor.',
+ details:'Add your details — one field at a time.',pick:'Pick from 18+ ready designs.',makeyours:'…and make it yours.',
+ changetext:'Change any text…',swapphoto:'…or swap any photo.',save:'Then Save.',publish:'Hit publish —',under5:'live in under 5 minutes.',
+ complete:'A complete, bookable website.',sharecode:'Share a one-time code with your students.',studentbooks:'Your student opens it, signs in, and books.',
+ pinged:'You get pinged — they get a confirmation.',reminder:'Plus a reminder, 2 hours before.',report:'Every evening — a tidy report to your inbox.',
+ allmore:'All this and more, with Mumotor.',price:'First month free, then ₪199/mo.',tag:'Everything, faster and easier.',
+ t_selected:'✓ Design selected',t_saved:'Saved ✓',t_live:"You're live 🎉",t_booked:'Booked ✅',step5:'⚡ In under 5 minutes',handL:'👩‍🏫 The teacher',handR:'🧑 The student',
+ msg:'Hey! Join my driving school 👇',sent:'Sent ✓',n_join:'🎉 A new student just joined!',n_now:'Mumotor · now',n_confirm:'✉️ Lesson confirmed — see you soon!',n_remind:'⏰ Your lesson starts in 2 hours',n_reminder:'Mumotor · reminder'},
+ar:{hb:['📞 مكالمة فايتة','💬 "فاضي الثلاثاء؟"','📞 3 مكالمات','💬 "نأجّل؟"','📞 رقم غريب','💬 "أي ساعة؟"','📞 بابا','💬 "أكّد لو سمحت"'],
+ hook1:'لسا بتحجز دروسك بالإيد؟',hook2:'مكالمات ورسائل ما بتخلص 😮‍💨',meet:'تعرّف على Mumotor.',
+ details:'دخّل معلوماتك — حقل واحد كل مرة.',pick:'اختر من أكثر من 18 تصميم جاهز.',makeyours:'…وخلّيه على ذوقك.',
+ changetext:'غيّر أي نص…',swapphoto:'…أو بدّل أي صورة.',save:'وبعدها احفظ.',publish:'اضغط نشر —',under5:'وموقعك جاهز بأقل من 5 دقائق.',
+ complete:'موقع كامل وجاهز للحجز.',sharecode:'شارك كود لمرة واحدة مع طلابك.',studentbooks:'طالبك يفتح الرابط، يسجّل دخول، ويحجز.',
+ pinged:'بيوصلك إشعار — وبيوصله تأكيد.',reminder:'وكمان تذكير قبل الدرس بساعتين.',report:'كل مساء — تقرير مرتّب يوصل إيميلك.',
+ allmore:'كل هذا وأكثر مع Mumotor.',price:'الشهر الأول مجاناً، وبعدها ₪199 بالشهر.',tag:'كل شيء أسرع وأسهل.',
+ t_selected:'✓ تم اختيار التصميم',t_saved:'تم الحفظ ✓',t_live:'موقعك مباشر 🎉',t_booked:'تم الحجز ✅',step5:'⚡ بأقل من 5 دقائق',handL:'👩‍🏫 المعلّم',handR:'🧑 الطالب',
+ msg:'تعال سجّل بمدرسة القيادة تبعي 👇',sent:'تم الإرسال ✓',n_join:'🎉 طالب جديد انضم إليك!',n_now:'Mumotor · الآن',n_confirm:'✉️ تم تأكيد الدرس — نشوفك قريب!',n_remind:'⏰ درسك يبدأ بعد ساعتين',n_reminder:'Mumotor · تذكير'},
+he:{hb:['📞 שיחה שלא נענתה','💬 "פנוי שלישי?"','📞 3 שיחות','💬 "נדחה?"','📞 לא מזוהה','💬 "באיזו שעה?"','📞 אבא','💬 "תאשר בבקשה"'],
+ hook1:'עדיין קובע שיעורים ידנית?',hook2:'אינסוף שיחות והודעות 😮‍💨',meet:'הכירו את Mumotor.',
+ details:'מלא את הפרטים — שדה אחד בכל פעם.',pick:'בחר מתוך 18+ עיצובים מוכנים.',makeyours:'…ותעשה אותו שלך.',
+ changetext:'שנה כל טקסט…',swapphoto:'…או החלף כל תמונה.',save:'ואז שמור.',publish:'לחץ פרסום —',under5:'והאתר עולה תוך פחות מ-5 דקות.',
+ complete:'אתר שלם עם הזמנת שיעורים.',sharecode:'שתף קוד חד-פעמי עם התלמידים שלך.',studentbooks:'התלמיד נכנס, מתחבר וקובע שיעור.',
+ pinged:'אתה מקבל התראה — והוא מקבל אישור.',reminder:'ועוד תזכורת, שעתיים לפני.',report:'כל ערב — דוח מסודר למייל שלך.',
+ allmore:'כל זה ועוד, עם Mumotor.',price:'חודש ראשון חינם, אחר כך ₪199 לחודש.',tag:'הכול מהר יותר וקל יותר.',
+ t_selected:'✓ העיצוב נבחר',t_saved:'נשמר ✓',t_live:'האתר עלה 🎉',t_booked:'נקבע ✅',step5:'⚡ תוך פחות מ-5 דקות',handL:'👩‍🏫 המורה',handR:'🧑 התלמיד',
+ msg:'בוא תירשם לבית הספר לנהיגה שלי 👇',sent:'נשלח ✓',n_join:'🎉 תלמיד חדש נרשם!',n_now:'Mumotor · עכשיו',n_confirm:'✉️ השיעור אושר — נתראה בקרוב!',n_remind:'⏰ השיעור שלך מתחיל בעוד שעתיים',n_reminder:'Mumotor · תזכורת'}};
+
+const LANG=(new URLSearchParams(location.search).get('lang')||'en');
+const T=STR[LANG]||STR.en;
+const RTL=LANG!=='en'; if(RTL) document.body.classList.add('rtl');
+const SH='./shots'+(LANG==='en'?'':'_'+LANG)+'/';
+const S=s=>SH+s;
+
+window.ready=false;
+window.__dur=68.5;
+let tl=gsap.timeline({paused:true,defaults:{ease:'power2.inOut'}});
+window.seek=t=>{ tl.time(Math.min(t,window.__dur)); };
+
+(async()=>{
+  const C=window.__COORDS||await fetch('./coords'+(LANG==='en'?'':'_'+LANG)+'.json').then(r=>r.json());
+  // resolve switcher "next" arrow = icon (empty label) closest to Use-this
+  if(!C.next){ const icons=(C._switcher||[]).filter(o=>!o.t&&o.y>760); const u=C.use_this||{x:781};
+    C.next = icons.reduce((b,o)=>(!b||Math.abs(o.x-u.x)<Math.abs(b.x-u.x))?o:b,null) || {x:781,y:855}; }
+  if(!C.use_this) C.use_this={x:868,y:855};
+  // Fill ANY coord the capture missed (locale locator misses) with an RTL-mirrored
+  // known-good default, so a null coord can never throw mid-build and freeze the film.
+  const ENC={wizard_name:{x:720,y:399},wizard_desc:{x:720,y:540},wizard_tag:{x:720,y:686},use_this:{x:868,y:855},cz_headline:{x:377,y:648},cz_hero_img:{x:1081,y:660},pub_visit:{x:1030,y:235},copy_code:{x:562,y:474},ph_enroll:{x:195,y:628},ph_book:{x:195,y:347},ph_slot:{x:119,y:310},ph_confirm:{x:195,y:509}};
+  for(const k in ENC){ if(!C[k]||C[k].x==null){ const e=ENC[k],W=k.startsWith('ph_')?390:1440; C[k]=RTL?{x:W-e.x,y:e.y}:{...e}; } }
+  // resolve toolbar Colours + Save from labels
+  const tb=C._toolbar||[]; const find=re=>tb.find(o=>re.test(o.t||''));
+  if(!C.cz_colours) C.cz_colours=find(/Colour|Color|الألوان|צבע/)||{x:1184,y:28};
+  if(!C.cz_save) C.cz_save=find(/Save|Saved|حفظ|שמור|נשמר/)||(tb[1]||{x:1300,y:28});
+
+  // set localized text nodes
+  document.getElementById('tagword').textContent=T.tag;
+  document.getElementById('step5').textContent=T.step5;
+  document.getElementById('handL').textContent=T.handL;
+  document.getElementById('handR').textContent=T.handR;
+  document.getElementById('msg_t').innerHTML=T.msg;
+  document.getElementById('msg_sent').textContent=T.sent;
+  document.getElementById('notif_t').textContent=T.n_join; document.getElementById('notif_s').textContent=T.n_now;
+  document.getElementById('confirm_t').textContent=T.n_confirm; document.getElementById('confirm_s').textContent=T.n_now;
+  document.getElementById('remind_t').textContent=T.n_remind; document.getElementById('remind_s').textContent=T.n_reminder;
+  document.getElementById('logoWord').src=S('logo_word.png');
+  ['ic1','ic2','ic3'].forEach(id=>document.getElementById(id).src=S('app_icon.png'));
+  document.getElementById('limg').src=S('wz_0.png');
+  document.getElementById('pimg').src=S('ph_enroll.png');
+
+  const L='.laptop',P='.phone';
+  const LX=x=>320+x*(1280/1440), LY=y=>164+y*(800/900);
+  const PX=x=>761+x*(397/390), PY=y=>164+y*(860/844);
+  function sub(t,html,out,top){ const by=top?42:990; tl.set('#subtxt',{innerHTML:html},t); tl.set('#scrim',{opacity:top?0:1},t); tl.fromTo('#subs',{y:by+28,opacity:0},{y:by,opacity:1,duration:.34,ease:'back.out(1.4)'},t); if(out!=null){ tl.to('#subs',{opacity:0,y:by-16,duration:.28},out); tl.to('#scrim',{opacity:0,duration:.28},out);} }
+  function lset(t,src,y){ tl.set('#limg',{attr:{src:S(src)},y:y||0,opacity:1,filter:'none'},t); }
+  function lswap(t,src){ tl.to('#limg',{opacity:0,scale:1.03,duration:.17},t); tl.set('#limg',{attr:{src:S(src)},y:0,filter:'none'},t+.17); tl.fromTo('#limg',{scale:.99},{opacity:1,scale:1,duration:.22},t+.17); }
+  function pset(t,src){ tl.set('#pimg',{attr:{src:S(src)},y:0,opacity:1},t); }
+  function pswap(t,src){ tl.to('#pimg',{opacity:0,duration:.12},t); tl.set('#pimg',{attr:{src:S(src)},y:0},t+.12); tl.to('#pimg',{opacity:1,duration:.15},t+.12); }
+  function cur(t,x,y,d){ tl.set('#cursor',{opacity:1},t<0?0:t); tl.to('#cursor',{left:x,top:y,duration:d||.55,ease:'power3.inOut'},t); }
+  function click(t,x,y){ tl.set('#ripple',{left:x,top:y,scale:0,opacity:.55},t); tl.to('#ripple',{scale:2.6,opacity:0,duration:.5,ease:'power2.out'},t); tl.to('#cursor',{scale:.8,duration:.08},t); tl.to('#cursor',{scale:1,duration:.16,ease:'back.out(2)'},t+.08); }
+  function tap(t,x,y){ tl.set('#tap',{left:x,top:y,scale:.2,opacity:.95},t); tl.to('#tap',{scale:1.5,opacity:0,duration:.45,ease:'power2.out'},t); }
+  function zoom(t,sc,ox,oy,d){ tl.to(L,{scale:sc,transformOrigin:ox+'% '+oy+'%',duration:d||.6},t); }
+  function showL(t){ tl.fromTo(L,{opacity:0,scale:.97,y:14},{opacity:1,scale:1,y:0,duration:.5},t); }
+  function hideL(t){ tl.to(L,{opacity:0,scale:.95,duration:.4},t); tl.set('#cursor',{opacity:0},t+.3); }
+  function showP(t){ tl.set('#cursor',{opacity:0},t); tl.fromTo(P,{opacity:0,scale:.5,y:180},{opacity:1,scale:1,y:0,duration:.72,ease:'back.out(1.35)'},t); }
+  function hideP(t){ tl.to(P,{opacity:0,scale:.6,y:120,duration:.45},t); }
+  function toast(t,txt,cls){ tl.set('#toast',{attr:{class:'toast '+(cls||'')},innerHTML:txt},t); tl.fromTo('#toast',{opacity:0,scale:.8,yPercent:-50,xPercent:-50},{opacity:1,scale:1,duration:.34,ease:'back.out(2)'},t); tl.to('#toast',{opacity:0,scale:.92,duration:.3},t+1.1); }
+  function banner(id,t,out){ tl.fromTo(id,{opacity:0,y:-46},{opacity:1,y:0,duration:.46,ease:'back.out(1.5)'},t); tl.to(id,{y:-6,duration:.28,yoyo:true,repeat:1},t+.5); tl.to(id,{opacity:0,y:-34,duration:.34},out); }
+  function liveSec(t,src,dur){ tl.to('#limg',{opacity:0,duration:.14},t); tl.set('#limg',{attr:{src:S(src)},y:26,opacity:1,filter:'none'},t+.14); tl.fromTo('#limg',{opacity:0},{opacity:1,duration:.2},t+.14); tl.to('#limg',{y:-26,duration:dur,ease:'none'},t+.14); }
+
+  /* S1 HOOK */
+  tl.set('#hook',{opacity:1},0);
+  const cols=['#0071E3','#34c759','#ff9500','#ff2d55','#5e5ce6','#111'];
+  for(let i=0;i<8;i++){const a=(i/8)*6.28,r=240+((i%3)*66);const x=960+Math.cos(a)*r,y=470+Math.sin(a)*r*.6;const el=document.createElement('div');el.className='bub';el.style.background=cols[i%6];el.textContent=T.hb[i];document.getElementById('hook').appendChild(el);
+    tl.set(el,{left:x,top:y,xPercent:-50,yPercent:-50},0);tl.fromTo(el,{scale:0,opacity:0},{scale:1,opacity:1,duration:.28,ease:'back.out(1.7)'},.12+i*.15);
+    tl.to(el,{x:'+='+(Math.cos(a)*7),y:'+='+(Math.sin(a)*7),duration:.4,yoyo:true,repeat:2},1.4+i*.03);tl.to(el,{left:960,top:470,scale:0,opacity:0,duration:.45,ease:'power2.in'},2.55+i*.02);}
+  sub(.35,T.hook1,1.7);sub(1.8,T.hook2,3.15);
+  tl.to('#hook',{opacity:0,duration:.3},3.15);
+
+  /* S2 LOGO */
+  tl.set('#logo',{opacity:1},3.3);
+  tl.fromTo('#logoWord',{scale:.7,opacity:0,y:10},{scale:1,opacity:1,y:0,duration:.6,ease:'back.out(1.6)'},3.4);
+  sub(3.9,T.meet,5.3);tl.to('#logo',{opacity:0,scale:1.06,duration:.4},5.2);
+
+  /* S3 WIZARD */
+  lset(5.6,'wz_0.png'); showL(5.6);
+  sub(5.9,T.details,12.6);
+  cur(6.1,LX(C.wizard_name.x),LY(C.wizard_name.y),.7); click(6.9,LX(C.wizard_name.x),LY(C.wizard_name.y)); lswap(7.4,'wz_1.png');
+  cur(8.4,LX(C.wizard_desc.x),LY(C.wizard_desc.y),.6); click(9.2,LX(C.wizard_desc.x),LY(C.wizard_desc.y)); lswap(9.7,'wz_2.png');
+  cur(10.7,LX(C.wizard_tag.x),LY(C.wizard_tag.y),.6); click(11.5,LX(C.wizard_tag.x),LY(C.wizard_tag.y)); lswap(12.0,'wz_3.png');
+
+  /* S4 TEMPLATES flip */
+  lswap(13.0,'t_mumotor_hero.png');
+  sub(13.3,T.pick,20.4);
+  const flips=['t_bezel_hero.png','t_solari_hero.png','t_reel_hero.png','t_gilt_hero.png','t_openroad_hero.png','t_gallery_hero.png'];
+  let ft=13.6; cur(13.5,LX(C.next.x),LY(C.next.y),.5);
+  flips.forEach((f,i)=>{ click(ft,LX(C.next.x),LY(C.next.y)); lswap(ft+.15,f); ft+=1.05; });
+
+  /* S5 CHOOSE */
+  sub(20.8,T.makeyours,24.0);
+  cur(21.0,LX(C.use_this.x),LY(C.use_this.y),.5); click(21.8,LX(C.use_this.x),LY(C.use_this.y));
+  toast(22.0,T.t_selected,'blue');
+
+  /* S6 CUSTOMIZE */
+  lswap(24.2,'cz_orig.png');
+  sub(24.5,T.changetext,27.6);
+  cur(24.9,LX(C.cz_headline.x),LY(C.cz_headline.y),.6); click(25.7,LX(C.cz_headline.x),LY(C.cz_headline.y));
+  zoom(25.8,1.12,25,60,.5); lswap(26.4,'cz_text_editing.png'); lswap(27.0,'cz_text_new.png');
+  zoom(27.7,1,50,50,.5);
+  sub(27.8,T.swapphoto,30.9);
+  cur(28.1,LX(C.cz_hero_img.x),LY(C.cz_hero_img.y),.6); click(28.9,LX(C.cz_hero_img.x),LY(C.cz_hero_img.y));
+  zoom(29.0,1.1,80,55,.5); lswap(29.5,'cz_img_picker.png'); lswap(30.2,'cz_img_new.png'); zoom(30.9,1,50,50,.5);
+  sub(31.0,T.save,33.2);
+  cur(31.4,LX(C.cz_save.x),LY(C.cz_save.y),.6); click(32.2,LX(C.cz_save.x),LY(C.cz_save.y)); toast(32.4,T.t_saved,'green');
+
+  /* S7 PUBLISH + live scroll */
+  lswap(33.4,'dash_publishing.png');
+  sub(33.7,T.publish,35.3);
+  zoom(33.9,1.14,52,32,.6); toast(34.7,T.t_live,'blue'); zoom(35.4,1,50,50,.5);
+  tl.fromTo('#step5',{opacity:0,scale:.8,y:10},{opacity:1,scale:1,y:0,duration:.4,ease:'back.out(1.7)'},35.6); tl.to('#step5',{opacity:0,duration:.35},37.0);
+  sub(35.5,T.under5,37.4);
+  cur(36.0,LX(C.pub_visit.x),LY(C.pub_visit.y),.6); click(36.9,LX(C.pub_visit.x),LY(C.pub_visit.y));
+  lset(37.3,'sec_0.png',26); tl.fromTo('#limg',{opacity:0,scale:1.04},{opacity:1,scale:1,duration:.35},37.3); tl.to('#limg',{y:-26,duration:.9,ease:'none'},37.5);
+  sub(37.6,T.complete,41.8);
+  liveSec(38.2,'sec_3.png',.9); liveSec(39.0,'sec_4.png',.9); liveSec(39.8,'sec_6.png',.9); liveSec(40.6,'sec_8.png',.95);
+
+  /* S8 SHARE CODE */
+  lswap(42.0,'dash_code.png'); tl.set('#limg',{filter:'none'},42.0);
+  tl.set('#handL',{left:'420px',top:'120px'},42.0); tl.fromTo('#handL',{opacity:0},{opacity:1,duration:.3},42.1); tl.to('#handL',{opacity:0,duration:.3},43.4);
+  sub(42.3,T.sharecode,46.1);
+  zoom(42.5,1.18,38,50,.6); cur(42.6,LX(C.copy_code.x),LY(C.copy_code.y),.6); click(43.5,LX(C.copy_code.x),LY(C.copy_code.y)); zoom(43.9,1,50,50,.5);
+  hideL(44.3); showP(44.6); pset(44.6,'ph_enroll.png');
+  tl.fromTo('#msg',{opacity:0,y:26},{opacity:1,y:0,duration:.5,ease:'back.out(1.4)'},45.1); tl.to('#msg',{opacity:0,duration:.3},46.2);
+
+  /* S9 STUDENT BOOKS */
+  tl.set('#handR',{left:'1360px',top:'120px'},46.3); tl.fromTo('#handR',{opacity:0},{opacity:1,duration:.3},46.4); tl.to('#handR',{opacity:0,duration:.3},47.8);
+  pset(46.3,'ph_enroll.png');
+  sub(46.6,T.studentbooks,54.1,true);
+  tap(47.2,PX(200),PY(300)); pswap(47.5,'ph_enroll_filled.png');
+  tap(48.4,PX(C.ph_enroll.x),PY(C.ph_enroll.y)); pswap(48.7,'ph_enrolled.png');
+  tap(49.6,PX(C.ph_book.x),PY(C.ph_book.y)); pswap(49.9,'ph_book.png');
+  tap(50.8,PX(C.ph_slot.x),PY(C.ph_slot.y)); pswap(51.1,'ph_book_slot.png');
+  tap(52.0,PX(C.ph_confirm.x),PY(C.ph_confirm.y)); pswap(52.3,'ph_booked.png');
+  toast(52.5,T.t_booked,'green');
+
+  /* S10 NOTIF + CONFIRM */
+  sub(54.4,T.pinged,57.5,true);
+  banner('#notif',54.5,55.8); banner('#confirm',55.9,57.3);
+
+  /* S11 REMINDER */
+  sub(57.7,T.reminder,59.5,true);
+  banner('#remind',57.8,59.2);
+
+  /* S12 REPORT */
+  hideP(59.6);
+  lset(59.9,'daily_report.png'); tl.fromTo(L,{opacity:0,scale:.97},{opacity:1,scale:1,duration:.5},59.9);
+  sub(60.2,T.report,64.0);
+  tl.fromTo('#limg',{y:30,scale:1.03},{y:0,scale:1,duration:.9},60.0); zoom(61.0,1.06,50,42,1.4); zoom(63.0,1,50,50,.6);
+
+  /* S13 OUTRO */
+  hideL(64.2); tl.set('#cursor',{opacity:0},64.2);
+  tl.set('#logo',{opacity:1},64.4);
+  tl.fromTo('#logoWord',{scale:.75,opacity:0},{scale:1,opacity:1,duration:.5,ease:'back.out(1.6)'},64.5);
+  tl.fromTo('#tagword',{opacity:0,y:10},{opacity:1,y:0,duration:.5},65.0);
+  sub(65.1,T.allmore,66.5);
+  sub(66.6,T.price,68.5);
+  tl.set('#subtxt',{fontSize:'42px'},66.6);
+
+  // PRIME the timeline: render fully forward then back so GSAP registers every
+  // attr keyframe (an UN-primed timeline leaves later `attr:{src}` sets unapplied
+  // on seek → the laptop image sticks on the last-loaded shot). Must happen
+  // regardless of preload success.
+  tl.progress(1, true); tl.progress(0, true); tl.pause(0);
+  // Preload + decode every shot the film swaps in, BOUNDED so it can never hang
+  // (a hung preload used to stop `window.ready` ever firing).
+  const SHOTS=['wz_0.png','wz_1.png','wz_2.png','wz_3.png',
+   't_mumotor_hero.png','t_bezel_hero.png','t_solari_hero.png','t_reel_hero.png','t_gilt_hero.png','t_openroad_hero.png','t_gallery_hero.png',
+   'cz_orig.png','cz_text_editing.png','cz_text_new.png','cz_img_picker.png','cz_img_new.png',
+   'dash_publishing.png','dash_code.png','sec_0.png','sec_3.png','sec_4.png','sec_6.png','sec_8.png',
+   'ph_enroll.png','ph_enroll_filled.png','ph_enrolled.png','ph_book.png','ph_book_slot.png','ph_booked.png',
+   'daily_report.png','logo_word.png','app_icon.png'];
+  window.__preload=[];
+  await Promise.all(SHOTS.map(s=>Promise.race([
+    new Promise(res=>{const im=new Image();im.onload=()=>im.decode().then(res).catch(res);im.onerror=res;im.src=S(s);window.__preload.push(im);}),
+    new Promise(res=>setTimeout(res,4000))
+  ])));
+  tl.time(0);
+  window.ready=true;
+})();
+</script></body></html>
