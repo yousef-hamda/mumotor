@@ -15,7 +15,7 @@ export function CinematicHero() {
   const [videoOpen, setVideoOpen] = useState(false);
   // The demo video follows the site language: en / he / ar.
   const lang = i18n.language === 'he' ? 'he' : i18n.language === 'ar' ? 'ar' : 'en';
-  const V = 8; // cache-bust version
+  const V = 9; // cache-bust version
 
   return (
     <section className="relative overflow-hidden">
