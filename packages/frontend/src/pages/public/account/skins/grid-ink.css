@@ -37,18 +37,11 @@
 
 /* READINESS */
 .agi-progress { padding: clamp(28px, 5vw, 44px) 0; border-bottom: 1px solid var(--line); }
-.agi-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--line); }
-@media (min-width: 720px) { .agi-stats { grid-template-columns: repeat(4, 1fr); } }
+.agi-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; border-top: 1px solid var(--line); }
 .agi-stat { padding: 18px 16px 18px 0; border-bottom: 1px solid var(--line); position: relative; }
 .agi-stat-n { font-family: var(--f-mono); font-size: 0.65rem; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; }
 .agi-stat-num { display: block; font-family: var(--f-head); font-weight: 800; font-size: 2.6rem; line-height: 1; margin-top: 8px; color: var(--ink); font-variant-numeric: tabular-nums; direction: ltr; }
 .agi-stat-lbl { display: block; margin-top: 6px; font-family: var(--f-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey); }
-.agi-meter { margin-top: 26px; }
-.agi-meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.agi-meter-lbl { font-family: var(--f-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey); }
-.agi-meter-pct { font-family: var(--f-head); font-weight: 800; font-size: 1.4rem; color: var(--red); font-variant-numeric: tabular-nums; direction: ltr; }
-.agi-meter-track { height: 8px; background: var(--white); border: 1px solid var(--ink); overflow: hidden; }
-.agi-meter-fill { display: block; block-size: 100%; background: var(--red); transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
 
 .agi-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
 @media (min-width: 820px) { .agi-grid { grid-template-columns: 1fr 1fr; column-gap: 40px; } }
@@ -90,7 +83,3 @@
 .agi-save { margin-top: 4px; justify-content: center; }
 
 [dir='rtl'] .agi .book-arrow { transform: scaleX(-1); }
-
-@media (prefers-reduced-motion: reduce) {
-  .agi-meter-fill { transition: none; }
-}

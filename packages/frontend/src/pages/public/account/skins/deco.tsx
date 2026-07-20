@@ -11,7 +11,6 @@ import './deco.css';
 export default function DecoAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(100, Math.round(readiness.pct * 100)));
 
   return (
     <div className="adc">
@@ -51,30 +50,13 @@ export default function DecoAccount({ data, actions, ui }: AccountSkinProps) {
           </div>
         </section>
 
-        {/* Readiness — brass floor-dial gauge */}
+        {/* Readiness — engraved figures */}
         <section className="adc-plate adc-progress">
           <p className="dc-eyebrow">{t('readinessTitle')}</p>
-          <div className="adc-progress-grid">
-            <div className="adc-dial">
-              <svg className="adc-dial-face" viewBox="0 0 200 118" aria-hidden="true">
-                <path className="adc-dial-arc" d="M18 100 A82 82 0 0 1 182 100" />
-                {Array.from({ length: 11 }).map((_, i) => {
-                  const a = (-90 + i * 18) * (Math.PI / 180);
-                  const x1 = 100 + Math.sin(a) * 82, y1 = 100 - Math.cos(a) * 82;
-                  const x2 = 100 + Math.sin(a) * (i % 5 === 0 ? 68 : 74), y2 = 100 - Math.cos(a) * (i % 5 === 0 ? 68 : 74);
-                  return <line key={i} className={`adc-dial-tick ${i % 5 === 0 ? 'is-major' : ''}`} x1={x1} y1={y1} x2={x2} y2={y2} />;
-                })}
-                <line className="adc-dial-hand" x1="100" y1="100" x2="100" y2="32" transform={`rotate(${-90 + pct * 1.8} 100 100)`} />
-                <circle className="adc-dial-pivot" cx="100" cy="100" r="7" />
-              </svg>
-              <span className="adc-dial-readout">{pct}%</span>
-            </div>
-            <ul className="adc-stats">
-              <li><b>{readiness.completed}</b><span>{t('lessonsCompleted')}</span></li>
-              <li><b>{readiness.hoursDriven}</b><span>{t('hoursDriven')}</span></li>
-              <li><b>{readiness.upcoming}</b><span>{t('statUpcoming')}</span></li>
-            </ul>
-          </div>
+          <ul className="adc-stats">
+            <li><b>{readiness.completed}</b><span>{t('lessonsCompleted')}</span></li>
+            <li><b>{readiness.upcoming}</b><span>{t('statUpcoming')}</span></li>
+          </ul>
         </section>
 
         <div className="adc-grid">

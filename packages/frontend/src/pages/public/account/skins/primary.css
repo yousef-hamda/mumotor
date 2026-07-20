@@ -51,13 +51,8 @@
 .apm-stat { flex: 1; min-width: 100px; border: 2px solid var(--pm-ink); padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .apm-stat-shape { width: 26px; height: 26px; flex-shrink: 0; }
 .apm-stat-ci { border-radius: 50%; }
-.apm-stat-tr { background: transparent !important; width: 0; height: 0; border-inline-start: 15px solid transparent; border-inline-end: 15px solid transparent; border-bottom: 26px solid var(--pm-yellow); }
 .apm-stat-num { font-family: var(--pm-display); font-weight: 800; font-size: 2.1rem; line-height: 1; color: var(--pm-ink); font-variant-numeric: tabular-nums; direction: ltr; }
 .apm-stat-lbl { font-family: var(--pm-display); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-muted); }
-.apm-bars { margin-top: 18px; display: flex; align-items: center; gap: 12px; }
-.apm-bar-track { flex: 1; height: 18px; border: 2px solid var(--pm-ink); background: var(--pm-paper); overflow: hidden; }
-.apm-bar-fill { display: block; block-size: 100%; transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
-.apm-bar-pct { font-family: var(--pm-display); font-weight: 800; font-size: 1.1rem; color: var(--pm-ink); font-variant-numeric: tabular-nums; direction: ltr; min-width: 3ch; text-align: end; }
 
 .apm-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media (min-width: 820px) { .apm-grid { grid-template-columns: 1fr 1fr; } }
@@ -94,7 +89,3 @@
 .apm-save { margin-top: 4px; }
 
 [dir='rtl'] .apm .book-arrow { transform: scaleX(-1); }
-
-@media (prefers-reduced-motion: reduce) {
-  .apm-bar-fill { transition: none; }
-}

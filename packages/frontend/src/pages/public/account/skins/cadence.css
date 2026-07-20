@@ -35,11 +35,6 @@
 .acd-num-val { font-family: var(--cd-sans); font-variation-settings: 'opsz' 60, 'wght' 900, 'wdth' 125; font-size: clamp(3rem, 11vw, 6rem); line-height: 0.82; letter-spacing: -0.05em; color: var(--cd-ink); font-variant-numeric: tabular-nums; direction: ltr; }
 .acd-num-lbl { font-family: var(--cd-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cd-muted); }
 .acd-num-div { align-self: stretch; width: 1px; background: var(--cd-line); }
-.acd-rule { margin-top: 22px; display: flex; align-items: center; gap: 16px; }
-.acd-rule-track { flex: 1; height: 6px; background: var(--cd-band); overflow: hidden; border-radius: 2px; }
-.acd-rule-fill { display: block; block-size: 100%; background: var(--cd-accent); transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
-.acd-rule-pct { font-family: var(--cd-sans); font-variation-settings: 'wght' 800, 'wdth' 110; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1; color: var(--cd-accent); font-variant-numeric: tabular-nums; direction: ltr; letter-spacing: -0.03em; }
-.acd-rule-pct-sign { font-size: 0.55em; }
 
 .acd-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
 @media (min-width: 820px) { .acd-grid { grid-template-columns: 1fr 1fr; } }
@@ -83,7 +78,3 @@
 .acd-save { margin-top: 4px; }
 
 [dir='rtl'] .acd .book-arrow { transform: scaleX(-1); }
-
-@media (prefers-reduced-motion: reduce) {
-  .acd-rule-fill { transition: none; }
-}

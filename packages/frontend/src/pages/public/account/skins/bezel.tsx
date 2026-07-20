@@ -11,10 +11,6 @@ import './bezel.css';
 export default function BezelAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const pctInt = Math.round(pct * 100);
-  // Sweep the needle across a 300° arc (−150° … +150°) — a bottom gap like a real gauge.
-  const needleDeg = -150 + pct * 300;
 
   return (
     <div className="abz">
@@ -66,44 +62,19 @@ export default function BezelAccount({ data, actions, ui }: AccountSkinProps) {
           )}
         </section>
 
-        {/* READINESS — the gauge cluster */}
+        {/* READINESS — milled readouts */}
         <section className="bz-panel abz-cluster">
           <span className="bz-eyebrow abz-cluster-eyebrow">{t('readinessTitle')}</span>
-          <div className="abz-cluster-body">
-            <div className="abz-gauge">
-              <div className="abz-dial">
-                <span className="abz-dial-face" aria-hidden="true">
-                  {Array.from({ length: 11 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`abz-tick ${i % 5 === 0 ? 'is-major' : ''}`}
-                      style={{ transform: `rotate(${-150 + i * 30}deg)` }}
-                    />
-                  ))}
-                  <span className="abz-needle" style={{ transform: `rotate(${needleDeg}deg)` }} />
-                  <span className="abz-hub" />
-                </span>
-                <div className="abz-dial-read">
-                  <span className="abz-dial-pct">{pctInt}%</span>
-                  <span className="abz-dial-lbl">{t('readinessTitle')}</span>
-                </div>
-              </div>
-            </div>
-            <ul className="abz-readouts">
-              <li className="abz-readout">
-                <span className="abz-readout-num">{readiness.completed}</span>
-                <span className="abz-readout-lbl">{t('lessonsCompleted')}</span>
-              </li>
-              <li className="abz-readout">
-                <span className="abz-readout-num">{readiness.hoursDriven}</span>
-                <span className="abz-readout-lbl">{t('hoursDriven')}</span>
-              </li>
-              <li className="abz-readout">
-                <span className="abz-readout-num">{readiness.upcoming}</span>
-                <span className="abz-readout-lbl">{t('statUpcoming')}</span>
-              </li>
-            </ul>
-          </div>
+          <ul className="abz-readouts">
+            <li className="abz-readout">
+              <span className="abz-readout-num">{readiness.completed}</span>
+              <span className="abz-readout-lbl">{t('lessonsCompleted')}</span>
+            </li>
+            <li className="abz-readout">
+              <span className="abz-readout-num">{readiness.upcoming}</span>
+              <span className="abz-readout-lbl">{t('statUpcoming')}</span>
+            </li>
+          </ul>
         </section>
 
         <div className="abz-grid">

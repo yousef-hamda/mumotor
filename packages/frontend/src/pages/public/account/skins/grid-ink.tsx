@@ -5,12 +5,11 @@ import '../../../../templates/grid-ink/grid-ink.css';
 import './grid-ink.css';
 
 /** grid-ink — Swiss / International editorial. Strict numbered grid, hairline
- *  rules, one red accent. The signature readiness device is a precise labelled
- *  Swiss bar with a numeric index (01 / 02 / 03). */
+ *  rules, one red accent. The readiness section reports two indexed figures —
+ *  lessons completed and lessons upcoming — as labelled Swiss stat cells. */
 export default function GridInkAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(Math.max(0, Math.min(1, readiness.pct)) * 100);
 
   return (
     <div className="agi">
@@ -47,23 +46,12 @@ export default function GridInkAccount({ data, actions, ui }: AccountSkinProps) 
           </Link>
         </section>
 
-        {/* READINESS — Swiss labelled bar + numeric index */}
+        {/* READINESS — indexed Swiss stat cells */}
         <section className="agi-progress">
           <p className="agi-label"><span className="agi-n">01</span>{t('readinessTitle')}</p>
           <div className="agi-stats">
             <IndexStat n="a" value={readiness.completed} label={t('lessonsCompleted')} />
-            <IndexStat n="b" value={readiness.hoursDriven} label={t('hoursDriven')} />
-            <IndexStat n="c" value={readiness.upcoming} label={t('statUpcoming')} />
-            <IndexStat n="d" value={readiness.total} label={t('statTotal')} />
-          </div>
-          <div className="agi-meter" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t('readinessTitle')}>
-            <div className="agi-meter-head">
-              <span className="agi-meter-lbl">{t('lessonsCompleted')}</span>
-              <span className="agi-meter-pct">{pct}%</span>
-            </div>
-            <div className="agi-meter-track">
-              <span className="agi-meter-fill" style={{ inlineSize: `${pct}%` }} />
-            </div>
+            <IndexStat n="b" value={readiness.upcoming} label={t('statUpcoming')} />
           </div>
         </section>
 

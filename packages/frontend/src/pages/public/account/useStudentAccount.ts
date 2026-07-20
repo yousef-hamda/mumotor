@@ -100,7 +100,6 @@ export function useStudentAccount(args: {
   const stats = me.data.stats ?? { upcoming: upcoming.length, completed: 0, total: upcoming.length };
   const lastSeen = Number((() => { try { return localStorage.getItem(seenKey(websiteId)); } catch { return 0; } })() ?? 0);
   const unread = (messages.data ?? []).filter((m) => m.sender === 'TEACHER' && new Date(m.createdAt).getTime() > lastSeen).length;
-  const denom = stats.completed + stats.upcoming;
 
   const data: AccountData = {
     student: { id: me.data.id, name: me.data.name, email: me.data.email, phone: me.data.phone },
@@ -109,8 +108,6 @@ export function useStudentAccount(args: {
       completed: stats.completed,
       upcoming: stats.upcoming,
       total: stats.total,
-      hoursDriven: history.data?.hoursDriven ?? 0,
-      pct: denom > 0 ? stats.completed / denom : 0,
     },
     next: upcoming[0] ?? null,
     upcoming,

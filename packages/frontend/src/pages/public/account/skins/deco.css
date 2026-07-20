@@ -44,22 +44,11 @@
 .adc-next-note { margin: 6px 0 0; color: var(--dc-muted); font-size: 0.9rem; }
 .adc-book { flex: none; }
 
-/* Readiness — floor-dial */
-.adc-progress-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; margin-top: 6px; }
-@media (min-width: 560px) { .adc-progress-grid { grid-template-columns: auto 1fr; } }
-.adc-dial { position: relative; width: min(240px, 100%); margin-inline: auto; }
-.adc-dial-face { display: block; width: 100%; height: auto; overflow: visible; }
-.adc-dial-arc { fill: none; stroke: var(--dc-gold); stroke-width: 2; opacity: 0.85; }
-.adc-dial-tick { stroke: var(--dc-gold); stroke-width: 1.5; opacity: 0.5; }
-.adc-dial-tick.is-major { stroke-width: 2.25; opacity: 0.85; }
-.adc-dial-hand { stroke: var(--dc-emerald); stroke-width: 3; stroke-linecap: round; transform-origin: 100px 100px; transition: transform 0.9s cubic-bezier(0.22,1,0.36,1); }
-.adc-dial-pivot { fill: var(--dc-gold); stroke: var(--dc-emerald); stroke-width: 1.5; }
-.adc-dial-readout { display: block; margin-top: 6px; text-align: center; font-family: var(--dc-display); font-size: 1.8rem; color: var(--dc-emerald); font-variant-numeric: tabular-nums; direction: ltr; }
-.adc-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.adc-stats li { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--dc-line); }
-.adc-stats li:last-child { border-bottom: none; }
-.adc-stats b { font-family: var(--dc-display); font-size: 1.9rem; line-height: 1; color: var(--dc-ink); font-variant-numeric: tabular-nums; direction: ltr; min-width: 2ch; }
-.adc-stats span { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
+/* Readiness — engraved figures */
+.adc-stats { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.adc-stats li { display: flex; flex-direction: column; gap: 6px; padding: 18px clamp(14px, 3vw, 20px); border: 1px solid var(--dc-gold-line); border-radius: 2px; }
+.adc-stats b { font-family: var(--dc-display); font-size: clamp(2.4rem, 6vw, 3.2rem); line-height: 1; color: var(--dc-ink); font-variant-numeric: tabular-nums; direction: ltr; }
+.adc-stats span { font-size: 0.76rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-muted); }
 
 /* Rows */
 .adc-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
@@ -104,5 +93,4 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .adc-fan { animation: none; opacity: 0.34; transform: scale(1); }
-  .adc-dial-hand { transition: none; }
 }

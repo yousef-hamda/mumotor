@@ -1,20 +1,17 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
 import '../../../../templates/meridian/meridian.css';
 import './meridian.css';
 
-/** meridian — a topographic survey-sheet dashboard. The readiness panel plots an
- *  ELEVATION ROUTE that draws itself to the completed percentage across a
- *  contour field; lessons are cartographic atlas-plate rows annotated in mono
- *  coordinates with a legend key. Survey paper, engraved ink, one magenta route.
- *  Scoped to .amr- and the template's --mr-* vars. */
+/** meridian — a topographic survey-sheet dashboard. The readiness panel logs two
+ *  cartographic readings — lessons completed and lessons upcoming — as surveyed
+ *  plots; lessons are cartographic atlas-plate rows annotated in mono coordinates
+ *  with a legend key. Survey paper, engraved ink, one magenta route. Scoped to
+ *  .amr- and the template's --mr-* vars. */
 export default function MeridianAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const drawn = useDrawn();
 
   return (
     <div className="amr">
@@ -58,18 +55,14 @@ export default function MeridianAccount({ data, actions, ui }: AccountSkinProps)
           )}
         </section>
 
-        {/* READINESS — the plotted elevation route (signature) */}
+        {/* READINESS — surveyed plots */}
         <section className="amr-panel amr-progress mr-crop">
           <div className="amr-progress-head">
             <p className="mr-eyebrow">{t('readinessTitle')}</p>
-            <span className="amr-legend"><span className="mr-key" aria-hidden="true" />{Math.round(pct * 100)}% · {t('lessonsCompleted')}</span>
           </div>
-          <RouteProfile pct={pct} drawn={drawn} />
           <div className="amr-plots">
             <Plot value={readiness.completed} label={t('lessonsCompleted')} />
-            <Plot value={readiness.hoursDriven} label={t('hoursDriven')} />
             <Plot value={readiness.upcoming} label={t('statUpcoming')} />
-            <Plot value={readiness.total} label={t('statTotal')} />
           </div>
         </section>
 
@@ -161,27 +154,4 @@ function Plot({ value, label }: { value: number; label: string }) {
       <span className="amr-plot-lbl">{label}</span>
     </div>
   );
-}
-
-/** An elevation profile over a contour field; the magenta route draws itself to
- *  `pct` (0..1). pathLength="1" normalizes the dash maths. */
-function RouteProfile({ pct, drawn }: { pct: number; drawn: boolean }) {
-  const d = 'M4 74 L40 56 L76 62 L112 36 L150 48 L188 26 L226 40 L264 20 L296 32';
-  const offset = drawn ? 1 - pct : 1;
-  return (
-    <svg className="amr-route" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
-      <line className="amr-route-base" x1="4" y1="82" x2="296" y2="82" />
-      <path className="amr-route-track" d={d} pathLength={1} />
-      <path className="amr-route-line" d={d} pathLength={1} style={{ strokeDashoffset: offset }} />
-    </svg>
-  );
-}
-
-function useDrawn(): boolean {
-  const [drawn, setDrawn] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return drawn;
 }

@@ -10,7 +10,6 @@ import './cadence.css';
 export default function CadenceAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(Math.max(0, Math.min(1, readiness.pct)) * 100);
 
   return (
     <div className="acd">
@@ -56,15 +55,7 @@ export default function CadenceAccount({ data, actions, ui }: AccountSkinProps) 
           <div className="acd-nums">
             <KineticStat value={readiness.completed} label={t('lessonsCompleted')} />
             <span className="acd-num-div" aria-hidden="true" />
-            <KineticStat value={readiness.hoursDriven} label={t('hoursDriven')} />
-            <span className="acd-num-div" aria-hidden="true" />
             <KineticStat value={readiness.upcoming} label={t('statUpcoming')} />
-          </div>
-          <div className="acd-rule" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t('readinessTitle')}>
-            <div className="acd-rule-track">
-              <span className="acd-rule-fill" style={{ inlineSize: `${pct}%` }} />
-            </div>
-            <span className="acd-rule-pct">{pct}<span className="acd-rule-pct-sign">%</span></span>
           </div>
         </section>
 

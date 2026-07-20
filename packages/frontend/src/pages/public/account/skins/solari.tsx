@@ -10,7 +10,6 @@ import './solari.css';
 export default function SolariAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(readiness.pct * 100);
 
   return (
     <div className="asl">
@@ -53,11 +52,7 @@ export default function SolariAccount({ data, actions, ui }: AccountSkinProps) {
           <div className="asl-progress-head"><span className="sl-eyebrow">{t('readinessTitle')}</span></div>
           <div className="asl-tiles">
             <FlapStat value={readiness.completed} label={t('lessonsCompleted')} />
-            <FlapStat value={readiness.hoursDriven} label={t('hoursDriven')} />
             <FlapStat value={readiness.upcoming} label={t('statUpcoming')} />
-          </div>
-          <div className="asl-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <span className="asl-bar-fill" style={{ inlineSize: `${pct}%` }} />
           </div>
         </section>
 

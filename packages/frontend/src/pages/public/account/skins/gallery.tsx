@@ -11,7 +11,6 @@ import './gallery.css';
 export default function GalleryAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(100, Math.round(readiness.pct * 100)));
 
   return (
     <div className="aga">
@@ -56,13 +55,8 @@ export default function GalleryAccount({ data, actions, ui }: AccountSkinProps) 
           <span className="aga-eyebrow">{t('readinessTitle')}</span>
           <div className="aga-stats">
             <GaStat value={readiness.completed} label={t('lessonsCompleted')} />
-            <GaStat value={readiness.hoursDriven} label={t('hoursDriven')} />
             <GaStat value={readiness.upcoming} label={t('statUpcoming')} />
           </div>
-          <div className="aga-rule" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <span className="aga-rule-fill" style={{ inlineSize: `${pct}%` }} />
-          </div>
-          <span className="aga-rule-cap">{pct}%</span>
         </section>
 
         <div className="aga-grid">

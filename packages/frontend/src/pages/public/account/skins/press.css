@@ -75,29 +75,7 @@
 .aps-progress { display: flex; align-items: center; gap: clamp(20px, 4vw, 34px); flex-wrap: wrap; }
 .aps-progress-seal { flex-shrink: 0; }
 .aps-progress-body { flex: 1; min-width: 220px; }
-.aps-gauge {
-  position: relative; height: 26px; border-radius: 2px; overflow: hidden;
-  background: color-mix(in srgb, var(--ps-ink) 8%, var(--ps-paper));
-  border: 1px solid var(--ps-copper);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.22), inset 0 -1px 0 rgba(255, 252, 245, 0.4);
-}
-.aps-gauge-fill {
-  position: absolute; inset-block: 0; inset-inline-start: 0; display: block;
-  background: var(--ps-accent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ps-paper) 22%, transparent);
-  transition: inline-size 1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.aps-gauge-ticks {
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), color-mix(in srgb, var(--ps-copper) 60%, transparent) calc(10% - 1px) 10%);
-}
-.aps-gauge-pct {
-  position: absolute; inset-block: 0; inset-inline-end: 10px; display: flex; align-items: center;
-  font-family: var(--ps-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
-  color: var(--ps-ink); font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 0 rgba(255, 252, 245, 0.6);
-}
-.aps-figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--ps-copper); }
+.aps-figures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 6px; padding-top: 18px; border-top: 1px solid var(--ps-copper); }
 .aps-figure { text-align: start; min-width: 0; }
 .aps-figure-num { display: block; font-family: var(--ps-serif); font-weight: 400; font-size: clamp(1.9rem, 4vw, 2.5rem); line-height: 1; color: var(--ps-ink); text-shadow: var(--ps-deboss); font-variant-numeric: tabular-nums; }
 .aps-figure-lbl { display: block; margin-top: 8px; font-family: var(--ps-sans); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ps-muted); }
@@ -151,10 +129,5 @@
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .aps-welcome { display: none; }
-  .aps-figures { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-}
-
-/* ── Reduced motion ─────────────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .aps-gauge-fill { transition: none; }
+  .aps-figures { gap: 12px; }
 }

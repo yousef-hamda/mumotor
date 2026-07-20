@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
@@ -13,8 +12,6 @@ import './press.css';
 export default function PressAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(100, Math.round(readiness.pct * 100)));
-  const drawn = useDrawn();
   const initial = (student.name || 'S').charAt(0).toUpperCase();
 
   return (
@@ -66,21 +63,8 @@ export default function PressAccount({ data, actions, ui }: AccountSkinProps) {
           </div>
           <div className="aps-progress-body">
             <span className="aps-folio">{t('readinessTitle')}</span>
-            <div
-              className="aps-gauge"
-              role="progressbar"
-              aria-valuenow={pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={t('readinessTitle')}
-            >
-              <span className="aps-gauge-fill" style={{ inlineSize: drawn ? `${pct}%` : '0%' }} />
-              <span className="aps-gauge-ticks" aria-hidden="true" />
-              <span className="aps-gauge-pct">{pct}%</span>
-            </div>
             <div className="aps-figures">
               <Figure value={readiness.completed} label={t('lessonsCompleted')} />
-              <Figure value={readiness.hoursDriven} label={t('hoursDriven')} />
               <Figure value={readiness.upcoming} label={t('statUpcoming')} />
             </div>
           </div>
@@ -174,11 +158,3 @@ function Figure({ value, label }: { value: number; label: string }) {
   );
 }
 
-function useDrawn(): boolean {
-  const [drawn, setDrawn] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return drawn;
-}

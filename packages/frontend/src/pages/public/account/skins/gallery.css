@@ -49,9 +49,6 @@
 .aga-stat { flex: 1; min-width: 96px; }
 .aga-stat-num { display: block; font-family: var(--ga-serif); font-weight: 500; font-size: 2.8rem; line-height: 1; color: var(--ga-accent); font-variant-numeric: tabular-nums; direction: ltr; }
 .aga-stat-lbl { display: block; margin-top: 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ga-muted); }
-.aga-rule { position: relative; margin-top: 20px; height: 2px; background: var(--ga-line); }
-.aga-rule-fill { position: absolute; inset-block: 0; inset-inline-start: 0; display: block; height: 2px; background: var(--ga-accent); transition: inline-size 0.9s cubic-bezier(0.22,1,0.36,1); }
-.aga-rule-cap { display: block; margin-top: 8px; font-family: var(--ga-serif); font-size: 1.05rem; color: var(--ga-accent-ink); font-variant-numeric: tabular-nums; direction: ltr; }
 
 /* Wall-label rows */
 .aga-grid { display: grid; grid-template-columns: 1fr; gap: 26px; }
@@ -90,7 +87,4 @@
 @media (max-width: 560px) {
   .aga-stats { gap: 16px; }
   .aga-stat-num { font-size: 2.3rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .aga-rule-fill { transition: none; }
 }

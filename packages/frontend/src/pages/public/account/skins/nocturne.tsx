@@ -5,29 +5,12 @@ import '../../../../templates/nocturne/nocturne.css';
 import './nocturne.css';
 
 /** nocturne — celestial night-drive navigation. The dashboard charts the student's
- *  course: readiness is a constellation whose completed lessons light as connected
- *  gold stars over a pct arc; the next lesson is the next waypoint; upcoming and
- *  history are the plotted course log. Midnight indigo, brass-gold starlight. */
-const STARS: [number, number][] = [
-  [22, 120],
-  [64, 72],
-  [112, 102],
-  [156, 44],
-  [204, 86],
-  [250, 40],
-  [290, 96],
-];
-const ARC_R = 46;
-const ARC_C = 2 * Math.PI * ARC_R;
-
+ *  course: readiness is a pair of starlit figures; the next lesson is the next
+ *  waypoint; upcoming and history are the plotted course log. Midnight indigo,
+ *  brass-gold starlight. */
 export default function NocturneAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const pctInt = Math.round(pct * 100);
-  const lit = Math.max(0, Math.min(STARS.length, readiness.completed));
-  const dimLine = STARS.map(([x, y]) => `${x},${y}`).join(' ');
-  const litLine = STARS.slice(0, Math.max(1, lit)).map(([x, y]) => `${x},${y}`).join(' ');
   const initial = (data.schoolName || 'M').charAt(0).toUpperCase();
 
   return (
@@ -80,60 +63,19 @@ export default function NocturneAccount({ data, actions, ui }: AccountSkinProps)
           )}
         </section>
 
-        {/* READINESS — constellation + arc */}
+        {/* READINESS — starlit figures */}
         <section className="anc-readiness">
           <span className="nc-eyebrow anc-readiness-eyebrow">{t('readinessTitle')}</span>
-          <div className="anc-readiness-body">
-            <div className="anc-arc">
-              <svg viewBox="0 0 110 110" className="anc-arc-svg" aria-hidden="true">
-                <circle cx="55" cy="55" r={ARC_R} className="anc-arc-bg" />
-                <circle
-                  cx="55"
-                  cy="55"
-                  r={ARC_R}
-                  className="anc-arc-fg"
-                  strokeDasharray={ARC_C}
-                  strokeDashoffset={ARC_C * (1 - pct)}
-                  transform="rotate(-90 55 55)"
-                />
-              </svg>
-              <div className="anc-arc-read">
-                <span className="anc-arc-pct">{pctInt}%</span>
-                <span className="anc-arc-lbl">{t('lessonsCompleted')}</span>
-              </div>
-            </div>
-
-            <div className="anc-const-col">
-              <svg viewBox="0 0 312 160" className="anc-const" role="img" aria-label={t('readinessTitle')}>
-                <polyline className="anc-const-dim" points={dimLine} />
-                {lit >= 1 && <polyline className="anc-const-lit" points={litLine} />}
-                {STARS.map(([x, y], i) => (
-                  <g key={i}>
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={i < lit ? 4 : 2.5}
-                      className={i < lit ? 'anc-star-on' : 'anc-star-off'}
-                    />
-                  </g>
-                ))}
-              </svg>
-              <ul className="anc-figures">
-                <li className="anc-figure">
-                  <span className="anc-figure-num">{readiness.completed}</span>
-                  <span className="anc-figure-lbl">{t('lessonsCompleted')}</span>
-                </li>
-                <li className="anc-figure">
-                  <span className="anc-figure-num">{readiness.hoursDriven}</span>
-                  <span className="anc-figure-lbl">{t('hoursDriven')}</span>
-                </li>
-                <li className="anc-figure">
-                  <span className="anc-figure-num">{readiness.upcoming}</span>
-                  <span className="anc-figure-lbl">{t('statUpcoming')}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <ul className="anc-figures">
+            <li className="anc-figure">
+              <span className="anc-figure-num">{readiness.completed}</span>
+              <span className="anc-figure-lbl">{t('lessonsCompleted')}</span>
+            </li>
+            <li className="anc-figure">
+              <span className="anc-figure-num">{readiness.upcoming}</span>
+              <span className="anc-figure-lbl">{t('statUpcoming')}</span>
+            </li>
+          </ul>
         </section>
 
         <div className="anc-grid">

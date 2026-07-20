@@ -11,8 +11,6 @@ import './gilt.css';
 export default function GiltAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const pctInt = Math.round(pct * 100);
   const initial = (data.schoolName || 'M').charAt(0).toUpperCase();
 
   return (
@@ -67,29 +65,16 @@ export default function GiltAccount({ data, actions, ui }: AccountSkinProps) {
           )}
         </section>
 
-        {/* READINESS — foil progress */}
+        {/* READINESS — foil figures */}
         <section className="agt-readiness">
           <div className="agt-readiness-head">
             <span className="gt-eyebrow agt-readiness-eyebrow">{t('readinessTitle')}</span>
-            <span className="agt-readiness-pct gt-foil">{pctInt}%</span>
-          </div>
-          <div
-            className="agt-bar"
-            role="progressbar"
-            aria-valuenow={pctInt}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            <span className="agt-bar-fill" style={{ inlineSize: `${pctInt}%` }} />
+            <span className="gt-rule agt-readiness-rule" aria-hidden="true" />
           </div>
           <ul className="agt-figures">
             <li className="agt-figure">
               <span className="agt-figure-num gt-foil">{readiness.completed}</span>
               <span className="agt-figure-lbl">{t('lessonsCompleted')}</span>
-            </li>
-            <li className="agt-figure">
-              <span className="agt-figure-num gt-foil">{readiness.hoursDriven}</span>
-              <span className="agt-figure-lbl">{t('hoursDriven')}</span>
             </li>
             <li className="agt-figure">
               <span className="agt-figure-num gt-foil">{readiness.upcoming}</span>

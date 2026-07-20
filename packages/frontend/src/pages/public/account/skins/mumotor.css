@@ -43,17 +43,10 @@
 .amm-next-empty { font-size: 1.2rem; margin: 6px 0 0; color: var(--mm-muted); }
 .amm-book { margin-top: 20px; }
 
-/* READINESS — clean ring */
-.amm-progress { display: flex; align-items: center; gap: clamp(18px, 5vw, 44px); flex-wrap: wrap; border-radius: 24px; border: 1px solid var(--mm-line); background: var(--mm-bg); padding: clamp(18px, 4vw, 28px); }
-.amm-ring-wrap { position: relative; width: 132px; height: 132px; flex: none; }
-.amm-ring { width: 132px; height: 132px; }
-.amm-ring-bg { fill: none; stroke: var(--mm-band); stroke-width: 9; }
-.amm-ring-fg { fill: none; stroke: var(--mm-accent); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
-.amm-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.amm-ring-num { font-weight: 700; font-size: 2.1rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.amm-ring-lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mm-muted); margin-top: 3px; text-align: center; }
-.amm-facts { list-style: none; margin: 0; padding: 0; display: flex; gap: clamp(16px, 4vw, 34px); flex-wrap: wrap; }
-.amm-facts li { display: flex; flex-direction: column; gap: 2px; }
+/* READINESS — honest facts only */
+.amm-progress { display: flex; flex-direction: column; gap: 16px; border-radius: 24px; border: 1px solid var(--mm-line); background: var(--mm-bg); padding: clamp(18px, 4vw, 28px); }
+.amm-facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(16px, 4vw, 34px); }
+.amm-facts li { display: flex; flex-direction: column; gap: 4px; }
 .amm-facts svg { color: var(--mm-accent); }
 .amm-facts b { font-weight: 700; font-size: 1.7rem; font-variant-numeric: tabular-nums; }
 .amm-facts span { font-size: 0.76rem; color: var(--mm-muted); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -109,5 +102,4 @@
 
 @media (prefers-reduced-motion: reduce) {
   .amm-orb { animation: none; }
-  .amm-ring-fg { transition: none; }
 }

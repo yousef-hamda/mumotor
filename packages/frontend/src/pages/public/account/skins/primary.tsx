@@ -6,11 +6,11 @@ import './primary.css';
 
 /** primary — a Bauhaus / De Stijl poster dashboard. Hard-edged colour fields,
  *  the ONE blue accent for actions, red + yellow as geometric fills. The
- *  signature readiness device is a stack of primary-colour geometric bars. */
+ *  readiness section reports two figures — lessons completed and lessons
+ *  upcoming — as geometric primary-colour stat cells. */
 export default function PrimaryAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(Math.max(0, Math.min(1, readiness.pct)) * 100);
 
   return (
     <div className="apm">
@@ -56,19 +56,12 @@ export default function PrimaryAccount({ data, actions, ui }: AccountSkinProps) 
           </div>
         </section>
 
-        {/* READINESS — geometric stat cells + stacked primary-colour bars */}
+        {/* READINESS — geometric primary-colour stat cells */}
         <section className="apm-panel apm-progress">
           <p className="pm-eyebrow apm-eyebrow">{t('readinessTitle')}</p>
           <div className="apm-stats">
             <StatCell shape="sq" fill="pm-fill-blue" value={readiness.completed} label={t('lessonsCompleted')} />
-            <StatCell shape="ci" fill="pm-fill-red" value={readiness.hoursDriven} label={t('hoursDriven')} />
-            <StatCell shape="tr" fill="pm-fill-yellow" value={readiness.upcoming} label={t('statUpcoming')} />
-          </div>
-          <div className="apm-bars" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t('readinessTitle')}>
-            <div className="apm-bar-track">
-              <span className="apm-bar-fill pm-fill-blue" style={{ inlineSize: `${pct}%` }} />
-            </div>
-            <span className="apm-bar-pct">{pct}%</span>
+            <StatCell shape="ci" fill="pm-fill-red" value={readiness.upcoming} label={t('statUpcoming')} />
           </div>
         </section>
 
@@ -136,7 +129,7 @@ export default function PrimaryAccount({ data, actions, ui }: AccountSkinProps) 
   );
 }
 
-function StatCell({ shape, fill, value, label }: { shape: 'sq' | 'ci' | 'tr'; fill: string; value: number; label: string }) {
+function StatCell({ shape, fill, value, label }: { shape: 'sq' | 'ci'; fill: string; value: number; label: string }) {
   return (
     <div className="apm-stat">
       <span className={`apm-stat-shape apm-stat-${shape} ${fill}`} aria-hidden="true" />

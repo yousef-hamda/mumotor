@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarClock, Clock, Gauge, LogOut, Send, Timer } from 'lucide-react';
+import { ArrowRight, CalendarClock, CheckCircle2, Clock, LogOut, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
 import '../../../../templates/mumotor/mumotor.css';
 import './mumotor.css';
@@ -50,19 +50,12 @@ export default function MumotorAccount({ data, actions, ui }: AccountSkinProps) 
           </Link>
         </section>
 
-        {/* READINESS — clean SVG progress ring */}
+        {/* READINESS — honest facts only */}
         <section className="amm-progress">
-          <div className="amm-ring-wrap">
-            <ProgressRing pct={readiness.pct} />
-            <div className="amm-ring-center">
-              <span className="amm-ring-num">{readiness.completed}</span>
-              <span className="amm-ring-lbl">{t('lessonsCompleted')}</span>
-            </div>
-          </div>
+          <p className="mm-eyebrow amm-eyebrow">{t('readinessTitle')}</p>
           <ul className="amm-facts">
-            <li><Gauge size={16} /><b>{readiness.hoursDriven}</b><span>{t('hoursDriven')}</span></li>
+            <li><CheckCircle2 size={16} /><b>{readiness.completed}</b><span>{t('lessonsCompleted')}</span></li>
             <li><CalendarClock size={16} /><b>{readiness.upcoming}</b><span>{t('statUpcoming')}</span></li>
-            <li><Timer size={16} /><b>{readiness.total}</b><span>{t('statTotal')}</span></li>
           </ul>
         </section>
 
@@ -126,17 +119,5 @@ export default function MumotorAccount({ data, actions, ui }: AccountSkinProps) 
         </div>
       </div>
     </div>
-  );
-}
-
-function ProgressRing({ pct }: { pct: number }) {
-  const r = 46;
-  const c = 2 * Math.PI * r;
-  const off = c * (1 - Math.max(0, Math.min(1, pct)));
-  return (
-    <svg className="amm-ring" viewBox="0 0 110 110" aria-hidden="true">
-      <circle cx="55" cy="55" r={r} className="amm-ring-bg" />
-      <circle cx="55" cy="55" r={r} className="amm-ring-fg" strokeDasharray={c} strokeDashoffset={off} transform="rotate(-90 55 55)" />
-    </svg>
   );
 }

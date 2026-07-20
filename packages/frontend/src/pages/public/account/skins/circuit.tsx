@@ -8,14 +8,9 @@ import './circuit.css';
  *  graphic: the next lesson is the "next stint", readiness is a telemetry stack
  *  (lap counter + green sector strip + a lap-progress line), upcoming/history are
  *  timing sheets. Carbon dark, racing red accent, one live timing-green. */
-const SEGMENTS = 14;
-
 export default function CircuitAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const pctInt = Math.round(pct * 100);
-  const lit = Math.round(pct * SEGMENTS);
 
   return (
     <div className="aci">
@@ -74,38 +69,16 @@ export default function CircuitAccount({ data, actions, ui }: AccountSkinProps) 
         <section className="ci-panel aci-tele">
           <div className="aci-tele-head">
             <span className="ci-eyebrow">{t('readinessTitle')}</span>
-            <span className="aci-tele-pct">{pctInt}%</span>
           </div>
           <div className="aci-tele-grid">
             <div className="aci-lap">
               <span className="aci-lap-num">{readiness.completed}</span>
               <span className="aci-lap-label">{t('lessonsCompleted')}</span>
             </div>
-            <ul className="aci-readouts">
-              <li className="aci-readout">
-                <span className="aci-readout-num">{readiness.hoursDriven}</span>
-                <span className="aci-readout-lbl">{t('hoursDriven')}</span>
-              </li>
-              <li className="aci-readout">
-                <span className="aci-readout-num">{readiness.upcoming}</span>
-                <span className="aci-readout-lbl">{t('statUpcoming')}</span>
-              </li>
-              <li className="aci-readout">
-                <span className="aci-readout-num">{readiness.total}</span>
-                <span className="aci-readout-lbl">{t('statTotal')}</span>
-              </li>
-            </ul>
-          </div>
-          <div
-            className="aci-strip"
-            role="progressbar"
-            aria-valuenow={pctInt}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            {Array.from({ length: SEGMENTS }).map((_, i) => (
-              <span key={i} className={`aci-seg ${i < lit ? 'is-lit' : ''}`} />
-            ))}
+            <div className="aci-lap">
+              <span className="aci-lap-num">{readiness.upcoming}</span>
+              <span className="aci-lap-label">{t('statUpcoming')}</span>
+            </div>
           </div>
         </section>
 

@@ -66,8 +66,7 @@
 .aci-tele { padding: clamp(16px, 3vw, 24px); }
 .aci-tele-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .aci-tele-head .ci-eyebrow { margin: 0; }
-.aci-tele-pct { font-family: var(--ci-display); font-weight: 700; font-size: 1.5rem; color: var(--ci-green); direction: ltr; }
-.aci-tele-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+.aci-tele-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
 .aci-lap {
   display: flex; flex-direction: column; justify-content: center; gap: 4px;
   padding: 18px; border-radius: 6px;
@@ -76,27 +75,6 @@
 }
 .aci-lap-num { font-family: var(--ci-display); font-weight: 700; font-size: 3rem; line-height: 1; color: var(--ci-red); direction: ltr; }
 .aci-lap-label { font-family: var(--ci-mono); font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ci-muted); }
-.aci-readouts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.aci-readout {
-  display: flex; flex-direction: column; gap: 4px; padding: 14px 10px; text-align: center;
-  border-radius: 5px; border: 1px solid var(--ci-line);
-  background: color-mix(in srgb, var(--ci-carbon) 45%, transparent);
-}
-.aci-readout-num { font-family: var(--ci-display); font-weight: 700; font-size: 1.7rem; line-height: 1; color: var(--ci-ink); direction: ltr; }
-.aci-readout-lbl { font-family: var(--ci-mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ci-muted); }
-
-.aci-strip { display: flex; gap: 4px; margin-top: 18px; }
-.aci-seg {
-  flex: 1; height: 10px; border-radius: 2px; min-width: 0;
-  background: color-mix(in srgb, var(--ci-ink) 10%, transparent);
-  border: 1px solid var(--ci-line);
-  transition: background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
-}
-.aci-seg.is-lit {
-  background: var(--ci-green);
-  border-color: color-mix(in srgb, var(--ci-green) 60%, transparent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--ci-green) 50%, transparent);
-}
 
 /* Boards */
 .aci-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
@@ -162,16 +140,9 @@
 
 .aci[dir='rtl'] .book-arrow { transform: scaleX(-1); }
 
-@media (min-width: 560px) {
-  .aci-tele-grid { grid-template-columns: 0.9fr 1.4fr; align-items: stretch; }
-}
 @media (min-width: 820px) {
   .aci-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 480px) {
   .aci-next-time { font-size: clamp(2.6rem, 15vw, 3.4rem); }
-  .aci-readouts { grid-template-columns: repeat(3, 1fr); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .aci-seg { transition: none; }
 }

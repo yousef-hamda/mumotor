@@ -20,8 +20,6 @@ export interface AccountReadiness {
   completed: number;
   upcoming: number;
   total: number;
-  hoursDriven: number;
-  pct: number;
 }
 
 /** Fully-resolved dashboard data handed to every skin (never null; the frame

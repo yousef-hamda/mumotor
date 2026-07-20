@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
@@ -13,8 +12,6 @@ import './sumi.css';
 export default function SumiAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(1, readiness.pct));
-  const drawn = useDrawn();
   const initial = (student.name || 'S').charAt(0).toUpperCase();
 
   return (
@@ -59,25 +56,14 @@ export default function SumiAccount({ data, actions, ui }: AccountSkinProps) {
           )}
         </section>
 
-        {/* READINESS — the self-drawing enso + hanko (signature) */}
+        {/* READINESS — honest facts, hanko seal signature */}
         <section className="asu-progress">
-          <div className="asu-enso-wrap">
-            <EnsoRing pct={pct} drawn={drawn} />
-            <div className="asu-enso-center">
-              <span className="asu-enso-num">{readiness.completed}</span>
-              <span className="asu-enso-lbl">{t('lessonsCompleted')}</span>
-            </div>
-          </div>
+          <span className="asu-hanko asu-hanko-seal" aria-hidden="true"><span className="asu-hanko-face">{initial}</span></span>
           <div className="asu-readiness-copy">
             <p className="su-eyebrow">{t('readinessTitle')}</p>
             <div className="asu-facts">
-              <div className="asu-fact">
-                <span className="asu-hanko asu-hanko-seal" aria-hidden="true"><span className="asu-hanko-face">{initial}</span></span>
-                <span className="asu-fact-body"><b>{Math.round(pct * 100)}%</b><span>{t('lessonsCompleted')}</span></span>
-              </div>
-              <div className="asu-fact"><span className="asu-fact-body"><b>{readiness.hoursDriven}</b><span>{t('hoursDriven')}</span></span></div>
+              <div className="asu-fact"><span className="asu-fact-body"><b>{readiness.completed}</b><span>{t('lessonsCompleted')}</span></span></div>
               <div className="asu-fact"><span className="asu-fact-body"><b>{readiness.upcoming}</b><span>{t('statUpcoming')}</span></span></div>
-              <div className="asu-fact"><span className="asu-fact-body"><b>{readiness.total}</b><span>{t('statTotal')}</span></span></div>
             </div>
           </div>
         </section>
@@ -159,31 +145,4 @@ export default function SumiAccount({ data, actions, ui }: AccountSkinProps) {
       </div>
     </div>
   );
-}
-
-/** A brushed enso that draws to `pct` (0..1). Uses pathLength="1" so the dash
- *  maths is unit-normalized; the arc reveals via stroke-dashoffset on mount. */
-function EnsoRing({ pct, drawn }: { pct: number; drawn: boolean }) {
-  const offset = drawn ? 1 - pct : 1;
-  return (
-    <svg className="asu-enso" viewBox="0 0 120 120" width="150" height="150" aria-hidden="true">
-      <circle className="asu-enso-track" cx="60" cy="60" r="52" pathLength={1} />
-      <circle
-        className="asu-enso-arc"
-        cx="60" cy="60" r="52"
-        pathLength={1}
-        style={{ strokeDashoffset: offset }}
-        transform="rotate(-90 60 60)"
-      />
-    </svg>
-  );
-}
-
-function useDrawn(): boolean {
-  const [drawn, setDrawn] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return drawn;
 }

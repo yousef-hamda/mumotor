@@ -11,7 +11,6 @@ import './slate.css';
 export default function SlateAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(100, Math.round(readiness.pct * 100)));
 
   return (
     <div className="ast">
@@ -58,15 +57,7 @@ export default function SlateAccount({ data, actions, ui }: AccountSkinProps) {
           <p className="ast-eyebrow ast-script">{t('readinessTitle')}</p>
           <div className="ast-tiles">
             <ChalkStat value={readiness.completed} label={t('lessonsCompleted')} />
-            <ChalkStat value={readiness.hoursDriven} label={t('hoursDriven')} />
             <ChalkStat value={readiness.upcoming} label={t('statUpcoming')} />
-          </div>
-          <div className="ast-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <svg className="ast-bar-svg" viewBox="0 0 320 22" preserveAspectRatio="none" aria-hidden="true">
-              <rect className="ast-bar-frame" x="1.5" y="1.5" width="317" height="19" rx="9" />
-              <rect className="ast-bar-fill" x="3" y="3" height="16" rx="7" width={Math.max(0, pct * 3.14)} />
-            </svg>
-            <span className="ast-bar-pct ast-script">{pct}%</span>
           </div>
         </section>
 

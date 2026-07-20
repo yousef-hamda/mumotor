@@ -5,13 +5,11 @@ import '../../../../templates/open-road/open-road.css';
 import './open-road.css';
 
 /** open-road — retro 70s road-trip. Cream paper, enamel route badges, dashed-road
- *  dividers, Abril Fatface display. The signature readiness device is an odometer
- *  readout over a dashed road, with the stats as enamel badges. */
+ *  dividers, Abril Fatface display. The readiness section shows two enamel route
+ *  badges — lessons completed and lessons upcoming. */
 export default function OpenRoadAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(Math.max(0, Math.min(1, readiness.pct)) * 100);
-  const odo = String(pct).padStart(3, '0');
 
   return (
     <div className="aor">
@@ -55,22 +53,11 @@ export default function OpenRoadAccount({ data, actions, ui }: AccountSkinProps)
 
         <div className="aor-road" aria-hidden="true" />
 
-        {/* READINESS — odometer over a dashed road + enamel badges */}
+        {/* READINESS — enamel route badges */}
         <section className="aor-progress">
           <span className="or-eyebrow">{t('readinessTitle')}</span>
-          <div className="aor-odo" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t('readinessTitle')}>
-            <div className="aor-odo-dial">
-              {odo.split('').map((d, i) => (
-                <span key={i} className="aor-odo-digit">{d}</span>
-              ))}
-              <span className="aor-odo-pct">%</span>
-            </div>
-            <span className="aor-odo-lbl">{t('lessonsCompleted')}</span>
-            <div className="aor-odo-track"><span className="aor-odo-fill" style={{ inlineSize: `${pct}%` }} /></div>
-          </div>
           <div className="aor-badges">
             <EnamelBadge value={readiness.completed} label={t('lessonsCompleted')} />
-            <EnamelBadge value={readiness.hoursDriven} label={t('hoursDriven')} />
             <EnamelBadge value={readiness.upcoming} label={t('statUpcoming')} />
           </div>
         </section>

@@ -55,29 +55,12 @@
 .amr-next-note { color: var(--mr-muted); margin-top: 6px; font-size: 0.86rem; }
 .amr-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
-/* ── READINESS — elevation route (SIGNATURE) ────────────────────────────────── */
-.amr-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-.amr-legend { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mr-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mr-muted); font-variant-numeric: tabular-nums; }
-.amr-route {
-  display: block; width: 100%; height: 108px;
-  background-image:
-    repeating-radial-gradient(circle at 18% 20%, transparent 0 15px, color-mix(in srgb, var(--mr-contour) 40%, transparent) 15px 16px),
-    repeating-radial-gradient(circle at 84% 76%, transparent 0 19px, color-mix(in srgb, var(--mr-contour) 40%, transparent) 19px 20px);
-  border: 1px solid var(--mr-line); border-radius: 2px;
-}
-.amr-route-base { stroke: var(--mr-contour); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
-.amr-route-track { fill: none; stroke: color-mix(in srgb, var(--mr-ink) 24%, transparent); stroke-width: 1.5; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
-.amr-route-line {
-  fill: none; stroke: var(--mr-route); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1; stroke-dashoffset: 1;
-  transition: stroke-dashoffset 1.5s cubic-bezier(0.62, 0, 0.2, 1);
-}
-.amr-plots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 16px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--mr-line); }
+/* ── READINESS — surveyed plots ─────────────────────────────────────────────── */
+.amr-progress-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.amr-plots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 16px; margin-top: 18px; padding-top: 20px; border-top: 1px solid var(--mr-line); }
 .amr-plot { text-align: start; min-width: 0; }
 .amr-plot-num { display: block; font-family: var(--mr-serif); font-weight: 400; font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1; color: var(--mr-ink); font-variant-numeric: tabular-nums; }
 .amr-plot-lbl { display: block; margin-top: 8px; font-family: var(--mr-mono); font-size: 0.6rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mr-muted); }
-@media (min-width: 560px) { .amr-plots { grid-template-columns: repeat(4, 1fr); } }
 
 /* ── Grid ───────────────────────────────────────────────────────────────────── */
 .amr-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -131,7 +114,3 @@
   .amr-welcome { display: none; }
 }
 
-/* ── Reduced motion ─────────────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .amr-route-line { transition: none; }
-}

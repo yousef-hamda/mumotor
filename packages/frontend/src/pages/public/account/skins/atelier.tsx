@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
@@ -6,15 +5,13 @@ import '../../../../templates/atelier/atelier.css';
 import './atelier.css';
 
 /** atelier — the bespoke tailor's studio dashboard. A course cut to fit: the
- *  readiness panel is a MEASURING-TAPE rail with a thread-red marker sliding to
- *  the fitted percentage; lessons are ruled order-book rows with dotted thread
- *  leaders; panels are dashed-thread swatch cards. Ivory paper, charcoal ink,
- *  one thread-red accent. Scoped to .aat- and the template's --at-* vars. */
+ *  readiness panel presents two ruled measures — lessons completed and lessons
+ *  upcoming — as tailor's tallies; lessons are ruled order-book rows with dotted
+ *  thread leaders; panels are dashed-thread swatch cards. Ivory paper, charcoal
+ *  ink, one thread-red accent. Scoped to .aat- and the template's --at-* vars. */
 export default function AtelierAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.max(0, Math.min(100, Math.round(readiness.pct * 100)));
-  const drawn = useDrawn();
 
   return (
     <div className="aat">
@@ -62,32 +59,11 @@ export default function AtelierAccount({ data, actions, ui }: AccountSkinProps) 
           )}
         </section>
 
-        {/* READINESS — the measuring-tape rail (signature) */}
+        {/* READINESS — tailor's tallies */}
         <section className="aat-panel aat-progress">
           <p className="at-eyebrow">{t('readinessTitle')}</p>
-          <div
-            className="aat-tape"
-            role="progressbar"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={t('readinessTitle')}
-          >
-            <div className="aat-tape-strip">
-              <span className="aat-tape-fill" style={{ inlineSize: drawn ? `${pct}%` : '0%' }} />
-              <span className="aat-tape-marker" style={{ insetInlineStart: `${pct}%` }}>
-                <span className="aat-tape-flag">{pct}%</span>
-              </span>
-            </div>
-            <div className="aat-tape-scale" aria-hidden="true">
-              {[0, 25, 50, 75, 100].map((n) => (
-                <span key={n} className="aat-tape-num">{n}</span>
-              ))}
-            </div>
-          </div>
           <div className="aat-measures">
             <Measure value={readiness.completed} label={t('lessonsCompleted')} />
-            <Measure value={readiness.hoursDriven} label={t('hoursDriven')} />
             <Measure value={readiness.upcoming} label={t('statUpcoming')} />
           </div>
         </section>
@@ -178,15 +154,4 @@ function Measure({ value, label }: { value: number; label: string }) {
       <span className="aat-measure-lbl">{label}</span>
     </div>
   );
-}
-
-/** Toggles true one frame after mount so CSS transitions animate in (snaps
- *  instantly under reduced-motion, where the transitions are disabled). */
-function useDrawn(): boolean {
-  const [drawn, setDrawn] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return drawn;
 }

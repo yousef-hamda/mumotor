@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarClock, Clock, Gauge, LogOut, MapPin, Send, Timer } from 'lucide-react';
+import { ArrowRight, CalendarClock, CheckCircle2, Clock, LogOut, MapPin, Send } from 'lucide-react';
 import type { AccountSkinProps } from '../types';
 import './_default.css';
 
@@ -51,17 +51,10 @@ export default function DefaultSkin({ data, actions, ui }: AccountSkinProps) {
 
         {/* Progress & readiness — honest facts only */}
         <section className="acc-d-progress">
-          <div className="acc-d-ring-wrap">
-            <ProgressRing pct={readiness.pct} />
-            <div className="acc-d-ring-center">
-              <span className="acc-d-ring-num">{readiness.completed}</span>
-              <span className="acc-d-ring-lbl">{t('lessonsCompleted')}</span>
-            </div>
-          </div>
+          <p className="acc-d-eyebrow">{t('readinessTitle')}</p>
           <ul className="acc-d-facts">
-            <li><Gauge size={16} /><b>{readiness.hoursDriven}</b><span>{t('hoursDriven')}</span></li>
+            <li><CheckCircle2 size={16} /><b>{readiness.completed}</b><span>{t('lessonsCompleted')}</span></li>
             <li><CalendarClock size={16} /><b>{readiness.upcoming}</b><span>{t('statUpcoming')}</span></li>
-            <li><Timer size={16} /><b>{readiness.total}</b><span>{t('statTotal')}</span></li>
           </ul>
         </section>
 
@@ -139,17 +132,5 @@ export default function DefaultSkin({ data, actions, ui }: AccountSkinProps) {
         </div>
       </div>
     </div>
-  );
-}
-
-function ProgressRing({ pct }: { pct: number }) {
-  const r = 46;
-  const c = 2 * Math.PI * r;
-  const off = c * (1 - Math.max(0, Math.min(1, pct)));
-  return (
-    <svg className="acc-d-ring" viewBox="0 0 110 110" aria-hidden="true">
-      <circle cx="55" cy="55" r={r} className="acc-d-ring-bg" />
-      <circle cx="55" cy="55" r={r} className="acc-d-ring-fg" strokeDasharray={c} strokeDashoffset={off} transform="rotate(-90 55 55)" />
-    </svg>
   );
 }

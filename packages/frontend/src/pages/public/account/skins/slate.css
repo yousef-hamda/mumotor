@@ -55,11 +55,6 @@
 .ast-tile { flex: 1; min-width: 92px; text-align: center; padding: 8px 6px; }
 .ast-tile-num { display: block; font-family: var(--st-serif); font-weight: 500; font-size: 2.6rem; line-height: 1; color: var(--st-chalk); font-variant-numeric: tabular-nums; direction: ltr; text-shadow: var(--st-dust); }
 .ast-tile-lbl { display: block; margin-top: 4px; font-size: 1.15rem; color: var(--st-sage); line-height: 1.05; }
-.ast-bar { position: relative; margin-top: 18px; display: flex; align-items: center; gap: 12px; }
-.ast-bar-svg { flex: 1; height: 22px; display: block; overflow: visible; }
-.ast-bar-frame { fill: none; stroke: var(--st-chalk); stroke-width: 2; stroke-opacity: 0.6; }
-.ast-bar-fill { fill: var(--st-accent); fill-opacity: 0.9; transition: width 0.9s cubic-bezier(0.22,1,0.36,1); }
-.ast-bar-pct { font-size: 1.5rem; color: var(--st-accent); line-height: 1; min-width: 3ch; text-align: end; font-variant-numeric: tabular-nums; direction: ltr; text-shadow: var(--st-dust); }
 
 /* Rows */
 .ast-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -105,5 +100,4 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ast-uline { animation: none; stroke-dashoffset: 0; }
-  .ast-bar-fill { transition: none; }
 }

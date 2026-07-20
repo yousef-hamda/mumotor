@@ -65,37 +65,8 @@
 .aat-next-note { color: var(--at-muted); margin-top: 6px; font-size: 0.86rem; }
 .aat-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
-/* ── READINESS — measuring-tape rail (SIGNATURE) ────────────────────────────── */
-.aat-tape { margin-top: 8px; padding-top: 26px; }
-.aat-tape-strip {
-  position: relative; height: 24px; border-radius: 3px;
-  background-color: color-mix(in srgb, var(--at-tape) 12%, var(--at-paper));
-  border: 1px solid color-mix(in srgb, var(--at-tape) 45%, transparent);
-  background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--at-tape) 60%, transparent) 0 1px, transparent 1px 10%);
-  overflow: visible;
-}
-.aat-tape-fill {
-  position: absolute; inset-block: 0; inset-inline-start: 0; display: block;
-  background: color-mix(in srgb, var(--at-accent) 20%, transparent);
-  border-inline-end: 2px solid var(--at-accent);
-  transition: inline-size 1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.aat-tape-marker {
-  position: absolute; inset-block-start: 50%; width: 12px; height: 12px; margin-inline-start: -6px;
-  border-radius: 50%; background: var(--at-accent); transform: translateY(-50%);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--at-accent) 20%, transparent);
-}
-.aat-tape-flag {
-  position: absolute; inset-block-end: 20px; inset-inline-start: 50%; transform: translateX(-50%);
-  font-family: var(--at-sans); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
-  color: var(--at-accent); background: var(--at-paper);
-  padding: 2px 8px; border-radius: 3px; border: 1px dashed color-mix(in srgb, var(--at-accent) 55%, transparent);
-  white-space: nowrap; font-variant-numeric: tabular-nums;
-}
-.aat-tape-scale { display: flex; justify-content: space-between; margin-top: 8px; }
-.aat-tape-num { font-family: var(--at-sans); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; color: var(--at-tape); font-variant-numeric: tabular-nums; }
-
-.aat-measures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 16px; margin-top: 26px; padding-top: 22px; border-top: 1px dashed var(--at-line); }
+/* ── READINESS — tailor's tallies ───────────────────────────────────────────── */
+.aat-measures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 16px; margin-top: 18px; padding-top: 22px; border-top: 1px dashed var(--at-line); }
 .aat-measure { text-align: start; min-width: 0; }
 .aat-measure-num {
   display: block; font-family: var(--at-serif); font-weight: 400;
@@ -155,10 +126,5 @@
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .aat-welcome { display: none; }
-  .aat-measures { grid-template-columns: repeat(3, 1fr); gap: 12px 10px; }
-}
-
-/* ── Reduced motion ─────────────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .aat-tape-fill { transition: none; }
+  .aat-measures { gap: 12px 10px; }
 }

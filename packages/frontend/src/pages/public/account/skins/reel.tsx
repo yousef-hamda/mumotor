@@ -11,7 +11,6 @@ import './reel.css';
 export default function ReelAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
-  const pct = Math.round(readiness.pct * 100);
 
   return (
     <div className="arl">
@@ -59,15 +58,10 @@ export default function ReelAccount({ data, actions, ui }: AccountSkinProps) {
         <section className="arl-progress">
           <div className="arl-progress-head">
             <span className="rl-eyebrow">{t('readinessTitle')}</span>
-            <span className="arl-tc">{String(pct).padStart(3, '0')} / 100</span>
           </div>
           <div className="arl-tiles">
             <ReelStat value={readiness.completed} label={t('lessonsCompleted')} />
-            <ReelStat value={readiness.hoursDriven} label={t('hoursDriven')} />
             <ReelStat value={readiness.upcoming} label={t('statUpcoming')} />
-          </div>
-          <div className="arl-strip" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <span className="arl-strip-fill" style={{ inlineSize: `${pct}%` }} />
           </div>
         </section>
 
