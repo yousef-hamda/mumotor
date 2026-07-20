@@ -1,0 +1,184 @@
+{
+  "wizard_name": {
+    "x": 720,
+    "y": 399
+  },
+  "wizard_autofill": {
+    "x": 967,
+    "y": 208
+  },
+  "_switcher_candidates": [
+    {
+      "t": "BOOK A FIRST LESSON",
+      "x": 176,
+      "y": 960
+    },
+    {
+      "t": "SEE PACKAGES",
+      "x": 387,
+      "y": 960
+    },
+    {
+      "t": "CHOOSE PLAN",
+      "x": 269,
+      "y": 2968
+    },
+    {
+      "t": "ACQUIRE THIS PLAN",
+      "x": 720,
+      "y": 2968
+    },
+    {
+      "t": "CHOOSE PLAN",
+      "x": 1171,
+      "y": 2968
+    },
+    {
+      "t": "Do you teach manual ",
+      "x": 720,
+      "y": 7794
+    },
+    {
+      "t": "How quickly can I ge",
+      "x": 720,
+      "y": 7947
+    },
+    {
+      "t": "Do you pick me up?",
+      "x": 720,
+      "y": 8024
+    },
+    {
+      "t": "What if I need to re",
+      "x": 720,
+      "y": 8102
+    },
+    {
+      "t": "Can I use your car f",
+      "x": 720,
+      "y": 8180
+    },
+    {
+      "t": "BOOK A LESSON",
+      "x": 720,
+      "y": 8746
+    },
+    {
+      "t": "+44 7700 900123",
+      "x": 432,
+      "y": 9069
+    },
+    {
+      "t": "hello@northgatedrivi",
+      "x": 432,
+      "y": 9106
+    },
+    {
+      "t": "whatsapp",
+      "x": 76,
+      "y": 9197
+    },
+    {
+      "t": "instagram",
+      "x": 124,
+      "y": 9197
+    },
+    {
+      "t": "facebook",
+      "x": 172,
+      "y": 9197
+    },
+    {
+      "t": "",
+      "x": 539,
+      "y": 855
+    },
+    {
+      "t": "",
+      "x": 592,
+      "y": 855
+    },
+    {
+      "t": "",
+      "x": 781,
+      "y": 855
+    },
+    {
+      "t": "Use this",
+      "x": 868,
+      "y": 855
+    }
+  ],
+  "use_this": {
+    "x": 868,
+    "y": 855
+  },
+  "cz_headline": {
+    "x": 377,
+    "y": 648
+  },
+  "cz_colours": {
+    "x": 1184,
+    "y": 28
+  },
+  "cz_save": {
+    "x": 1300,
+    "y": 28
+  },
+  "cz_done": {
+    "x": 1389,
+    "y": 28
+  },
+  "_publish_candidates": [
+    {
+      "t": "Publishing",
+      "x": 128,
+      "y": 254
+    },
+    {
+      "t": "Unpublish",
+      "x": 1148,
+      "y": 235
+    }
+  ],
+  "copy_code": {
+    "x": 562,
+    "y": 474
+  },
+  "ph_enroll_btn": {
+    "x": 195,
+    "y": 628
+  },
+  "ph_book_btn": {
+    "x": 195,
+    "y": 347
+  },
+  "ph_slot": {
+    "x": 119,
+    "y": 310
+  },
+  "ph_confirm": {
+    "x": 195,
+    "y": 509
+  },
+  "pub_visit": {
+    "x": 1030,
+    "y": 235
+  },
+  "pub_customize": {
+    "x": 899,
+    "y": 235
+  },
+  "wizard_desc": {
+    "x": 720,
+    "y": 540
+  },
+  "wizard_tagline": {
+    "x": 720,
+    "y": 686
+  },
+  "cz_hero_img": {
+    "x": 1081,
+    "y": 660
+  }
+}

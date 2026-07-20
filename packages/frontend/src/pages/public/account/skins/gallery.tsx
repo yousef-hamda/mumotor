@@ -37,8 +37,8 @@ export default function GalleryAccount({ data, actions, ui }: AccountSkinProps) 
               <div className="aga-plate aga-plate-lg">
                 <h1 className="aga-featured-date">{ui.formatDate(next.date)}</h1>
                 <div className="aga-plate-rows">
-                  <div className="aga-plate-row"><span className="aga-plate-k">{t('minShort')}</span><span className="aga-plate-v">{ui.slotRange(next.time, next.duration)} · {next.duration} {t('minShort')}</span></div>
-                  <div className="aga-plate-row"><span className="aga-plate-k" aria-hidden="true">·</span><span className="aga-plate-note">{t('arriveEarly')}</span></div>
+                  <div className="aga-plate-row"><span className="aga-plate-k" aria-hidden="true" /><span className="aga-plate-v">{ui.slotRange(next.time, next.duration)} · {next.duration} {t('minShort')}</span></div>
+                  <div className="aga-plate-row"><span className="aga-plate-k" aria-hidden="true" /><span className="aga-plate-note">{t('arriveEarly')}</span></div>
                 </div>
               </div>
               <Link to={actions.bookHref} className="ga-btn ga-btn-primary aga-book">{t('bookLesson')} <ArrowRight size={15} className="book-arrow" /></Link>

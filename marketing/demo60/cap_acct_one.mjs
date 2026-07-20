@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const WEB='http://localhost:5173';
+const lang=process.argv[2], email=process.argv[3];
+const b=await chromium.launch();
+const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:3});
+await ctx.addInitScript((L)=>localStorage.setItem('mumotor_lang',L),lang);
+const p=await ctx.newPage();
+const errs=[]; p.on('console',m=>{if(m.type()==='error'&&!/429|favicon|manifest/.test(m.text()))errs.push(m.text().slice(0,70));});
+await p.goto(WEB+'/p/davids-driving/account',{waitUntil:'networkidle'}); await p.waitForTimeout(800);
+await p.locator('input[type=email]').first().fill(email);
+await p.locator('button[type=submit]').first().click(); await p.waitForTimeout(2300);
+await p.screenshot({path:`shots_${lang}/ph_account.png`});
+const info=await p.evaluate(()=>({skin:document.querySelector('.account-root')?.className||'none', dir:document.querySelector('.account-root')?.getAttribute('dir'), txt:(document.querySelector('.account-main')?.textContent||'').replace(/\s+/g,' ').slice(0,80)}));
+console.log(`${lang}: ${info.skin.includes('account-gallery')?'gallery✓':info.skin} dir=${info.dir} errs=${errs.length} | ${info.txt}`);
+await b.close();

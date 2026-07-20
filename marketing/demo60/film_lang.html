@@ -225,8 +225,8 @@ window.seek=t=>{ tl.time(Math.min(t,window.__dur)); };
   pset(46.3,'ph_enroll.png');
   sub(46.6,T.studentbooks,54.1,true);
   tap(47.2,PX(200),PY(300)); pswap(47.5,'ph_enroll_filled.png');
-  tap(48.4,PX(C.ph_enroll.x),PY(C.ph_enroll.y)); pswap(48.7,'ph_enrolled.png');
-  tap(49.6,PX(C.ph_book.x),PY(C.ph_book.y)); pswap(49.9,'ph_book.png');
+  tap(48.4,PX(C.ph_enroll.x),PY(C.ph_enroll.y)); pswap(48.7,'ph_account.png');
+  tap(49.6,PX(RTL?274:116),PY(376)); pswap(49.9,'ph_book.png');
   tap(50.8,PX(C.ph_slot.x),PY(C.ph_slot.y)); pswap(51.1,'ph_book_slot.png');
   tap(52.0,PX(C.ph_confirm.x),PY(C.ph_confirm.y)); pswap(52.3,'ph_booked.png');
   toast(52.5,T.t_booked,'green');
@@ -265,7 +265,7 @@ window.seek=t=>{ tl.time(Math.min(t,window.__dur)); };
    't_mumotor_hero.png','t_bezel_hero.png','t_solari_hero.png','t_reel_hero.png','t_gilt_hero.png','t_openroad_hero.png','t_gallery_hero.png',
    'cz_orig.png','cz_text_editing.png','cz_text_new.png','cz_img_picker.png','cz_img_new.png',
    'dash_publishing.png','dash_code.png','sec_0.png','sec_3.png','sec_4.png','sec_6.png','sec_8.png',
-   'ph_enroll.png','ph_enroll_filled.png','ph_enrolled.png','ph_book.png','ph_book_slot.png','ph_booked.png',
+   'ph_enroll.png','ph_enroll_filled.png','ph_account.png','ph_book.png','ph_book_slot.png','ph_booked.png',
    'daily_report.png','logo_word.png','app_icon.png'];
   window.__preload=[];
   await Promise.all(SHOTS.map(s=>Promise.race([
