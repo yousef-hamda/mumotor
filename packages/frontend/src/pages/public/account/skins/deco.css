@@ -54,7 +54,7 @@
 .adc-dial-tick.is-major { stroke-width: 2.25; opacity: 0.85; }
 .adc-dial-hand { stroke: var(--dc-emerald); stroke-width: 3; stroke-linecap: round; transform-origin: 100px 100px; transition: transform 0.9s cubic-bezier(0.22,1,0.36,1); }
 .adc-dial-pivot { fill: var(--dc-gold); stroke: var(--dc-emerald); stroke-width: 1.5; }
-.adc-dial-readout { position: absolute; inset-inline: 0; bottom: 2px; text-align: center; font-family: var(--dc-display); font-size: 1.8rem; color: var(--dc-emerald); font-variant-numeric: tabular-nums; direction: ltr; }
+.adc-dial-readout { display: block; margin-top: 6px; text-align: center; font-family: var(--dc-display); font-size: 1.8rem; color: var(--dc-emerald); font-variant-numeric: tabular-nums; direction: ltr; }
 .adc-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .adc-stats li { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--dc-line); }
 .adc-stats li:last-child { border-bottom: none; }

@@ -62,6 +62,16 @@
     animation-duration: 1.4s;
   }
 }
+/* Icon-only buttons (e.g. the chat send button) reuse each template's flex button;
+   a lone SVG glyph can collapse to 0 width in that flex context. Pin its size so the
+   icon is always visible. (Text+icon buttons keep their own icon sizing.) */
+.account-root button > svg:only-child,
+.account-root a[class] > svg:only-child {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
 /* Touch: 44px min targets on coarse pointers, everywhere in the dashboard. */
 @media (pointer: coarse) {
   .account-root button,
