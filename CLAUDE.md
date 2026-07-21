@@ -24,8 +24,11 @@ students/bookings/reviews/etc. grow under its own `websiteId` and never bleed in
 routes are ownership-gated (`requireOwnedWebsite` → `website.userId !== req.user.id` ⇒ 403; even
 `loadEnrollment(websiteId, …)` is site-scoped), and `DELETE /websites/:id` (typed `DELETE` confirm) cascades
 away **all** of that site's rows. **Railway:** the Prisma datasource is `url = env("DATABASE_URL")` (validated
-in `config/env.ts`), so going live = point `DATABASE_URL` at the Railway Postgres and run
-`npm run db:deploy --workspace @mumotor/backend` (`prisma migrate deploy`) — no code change.
+in `config/env.ts`). **Migrations now auto-apply on deploy** — the `railway.toml` startCommand runs
+`prisma migrate deploy` (against `postgres.railway.internal`, in-container) BEFORE booting node, so every push
+to main applies any pending migration itself (idempotent, forward-only, fail-closed → a bad migration fails the
+healthcheck and Railway keeps the previous deploy up). No manual DB step, no proxy/ssh needed (Jul 21 2026, see
+the `railway-self-migrating-deploy` memory).
 
 ## Run locally
 ```bash
@@ -421,8 +424,9 @@ teacher-messages/checkout/publish/website-create/wizard-draft, per-email login c
 RLS: audit found no IDOR (all queries `websiteId`-scoped, cascade complete), `requireStudent` fail-closed. Validation: shared
 `utils/validation.ts` (`phoneSchema`, `hhmm`, `weekdayHoursSchema`, `boundedRecord()`, `weakPasswordReason`) — `configuration`/
 `businessConfig` capped ~2 MB, settings HH:MM + weekday allowlist, misc string/uuid bounds. New suites: `test/security.integration.mjs`
-(26) + `test/ratelimit.unit.mjs` (5). **⚠️ the tokenVersion migration must be applied to prod** (separate step per railway.toml;
-additive/zero-downtime): `DATABASE_URL="<DATABASE_PUBLIC_URL>" npx prisma migrate deploy`.
+(26) + `test/ratelimit.unit.mjs` (5). (The tokenVersion migration is applied on prod — confirmed clean by the Jul 21
+self-migrating deploy, which reported all 9 migrations present, no drift. New migrations now apply automatically on the
+next push; no manual `DATABASE_URL=... prisma migrate deploy` step.)
 
 **Still open (real):**
 - **Media storage ephemeral**: uploads to local `/uploads` are on a Railway volume now, but `Media.cdnUrl` is still null (no S3/R2/CDN).
