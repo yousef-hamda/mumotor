@@ -145,6 +145,17 @@ router.patch(
     const data = updateSchema.parse(req.body);
     const existing = await loadOwned(req.params.id, req.user!.id);
 
+    // Same rule as publish + every drivingSchool write: a locked (unpaid)
+    // account only manages billing — it doesn't keep editing sites.
+    const state = await getAccountState(req.user!.id);
+    if (state.locked) {
+      throw new ApiError(
+        402,
+        `Your free month has ended. Subscribe for ₪${WEBSITE_PRICE}/month to keep editing your website.`,
+        'PAYMENT_REQUIRED'
+      );
+    }
+
     const merged = data.configuration
       ? { ...(existing.configuration as object), ...data.configuration }
       : undefined;

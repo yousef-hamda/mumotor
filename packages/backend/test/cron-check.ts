@@ -12,6 +12,8 @@ async function main() {
   const teacherReports = await processTeacherDailyReport();
   console.log('\n__CRON_RESULT__', JSON.stringify({ reminders, studentNotifs, teacherReports }));
   await prisma.$disconnect();
+  // Open handles (Redis client / mail transport) otherwise keep the process alive forever.
+  process.exit(0);
 }
 
 main().catch((e) => {

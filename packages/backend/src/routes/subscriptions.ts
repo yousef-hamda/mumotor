@@ -89,6 +89,14 @@ router.post(
     if (plan !== 'FREE' && isProd) {
       throw new ApiError(503, 'Billing is not configured yet. Please try again later.', 'BILLING_NOT_CONFIGURED');
     }
+    // A Stripe-managed subscription can only end through Stripe (portal/webhook);
+    // a local FREE flip would desync the plan from real billing.
+    if (plan === 'FREE' && isProd) {
+      const existing = await prisma.subscription.findUnique({ where: { userId } });
+      if (existing?.stripeSubscriptionId) {
+        throw new ApiError(400, 'Cancel your subscription from the billing portal instead.', 'MANAGED_BY_STRIPE');
+      }
+    }
 
     // Demo fallback (and FREE downgrades): switch plan immediately
     const subscription = await prisma.subscription.upsert({

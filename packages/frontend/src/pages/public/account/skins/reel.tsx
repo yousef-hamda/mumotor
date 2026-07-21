@@ -5,9 +5,10 @@ import '../../../../templates/reel/reel.css';
 import './reel.css';
 
 /** reel — a 35mm cinema cutting room. The next lesson is the "NOW SHOWING" film
- *  frame, readiness is a sprocketed filmstrip timecode gauge, upcoming lessons are
- *  the screening schedule and history runs down a sprocket-hole reel. Projector-warm
- *  film black, technicolor vermilion accent, aged-film gold sprockets. */
+ *  frame, readiness is a pair of timecode stat tiles (lessons completed + upcoming),
+ *  upcoming lessons are the screening schedule and history runs down a sprocket-hole
+ *  reel. Projector-warm film black, technicolor vermilion accent, aged-film gold
+ *  sprockets. */
 export default function ReelAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;

@@ -57,6 +57,11 @@ api.interceptors.response.use(
   }
 );
 
+// Bare instance for PUBLIC (unauthenticated) endpoints: no teacher Bearer header,
+// no cookies, and crucially no 401-logout interceptor — so a signed-in teacher
+// exercising a public student flow that 401s never gets logged out of the app.
+export const publicApi = axios.create({ baseURL, withCredentials: false });
+
 // ---------------------------------------------------------------------------
 // Student portal — a SEPARATE axios instance so the teacher's Bearer token
 // (attached by `api`'s interceptor) never leaks onto student endpoints, and the
@@ -401,53 +406,53 @@ export const drivingSchoolApi = {
       )
       .then((r) => r.data),
 
-  // --- Public ---
+  // --- Public --- (bare publicApi: no teacher token, no 401-logout)
   getPublicSettings: (slug: string) =>
-    api.get<PublicSettings>(`/driving-school/${slug}/public-settings`).then((r) => r.data),
+    publicApi.get<PublicSettings>(`/driving-school/${slug}/public-settings`).then((r) => r.data),
   checkEnrollment: (websiteId: string, email: string) =>
-    api.get<CheckEnrollment>(`/driving-school/${websiteId}/check-enrollment`, { params: { email } }).then((r) => r.data),
+    publicApi.get<CheckEnrollment>(`/driving-school/${websiteId}/check-enrollment`, { params: { email } }).then((r) => r.data),
   enroll: (data: { websiteId: string; enrollmentCode: string; studentName: string; studentEmail: string; studentPhone: string }) =>
-    api
+    publicApi
       .post<{ enrollment: { id: string; studentName: string; studentEmail: string; status: string } }>(
         '/driving-school/enroll',
         data
       )
       .then((r) => r.data),
   validateMagicLink: (token: string) =>
-    api
+    publicApi
       .post<{ email: string; websiteId: string; websiteSlug: string; studentName: string; studentPhone: string | null; status: string }>(
         '/driving-school/validate-magic-link',
         { token }
       )
       .then((r) => r.data),
   getPublicAvailability: (websiteId: string, date: string, email: string) =>
-    api
+    publicApi
       .get<AvailabilityResponse>(`/driving-school/${websiteId}/public-availability`, { params: { date, email } })
       .then((r) => r.data),
   bookLesson: (websiteId: string, data: { studentEmail?: string; date: string; time: string; token?: string }) =>
-    api
+    publicApi
       .post<{ booking: { id: string; date: string; time: string; duration: number; status: string } }>(
         `/driving-school/${websiteId}/book-lesson`,
         data
       )
       .then((r) => r.data),
   validateDailyCode: (websiteId: string, data: { code: string; date: string }) =>
-    api.post<{ valid: boolean }>(`/driving-school/${websiteId}/daily-code/validate`, data).then((r) => r.data),
+    publicApi.post<{ valid: boolean }>(`/driving-school/${websiteId}/daily-code/validate`, data).then((r) => r.data),
   selfDeactivate: (data: { email: string; websiteId: string; enrollmentCode: string }) =>
-    api.post<{ status: string; message: string }>('/driving-school/self-deactivate', data).then((r) => r.data),
+    publicApi.post<{ status: string; message: string }>('/driving-school/self-deactivate', data).then((r) => r.data),
   myBookings: (websiteId: string, data: { email: string; enrollmentCode: string }) =>
-    api
+    publicApi
       .post<{ bookings: { id: string; date: string; time: string; duration: number; cancellable: boolean }[] }>(
         `/driving-school/${websiteId}/my-bookings`,
         data
       )
       .then((r) => r.data.bookings),
   cancelMyBooking: (websiteId: string, bookingId: string, data: { email: string; enrollmentCode: string }) =>
-    api
+    publicApi
       .post<{ cancelled: boolean }>(`/driving-school/${websiteId}/bookings/${bookingId}/cancel-by-student`, data)
       .then((r) => r.data),
   requestMagicLink: (websiteId: string, email: string) =>
-    api.post<{ sent: boolean }>(`/driving-school/${websiteId}/request-magic-link`, { email }).then((r) => r.data),
+    publicApi.post<{ sent: boolean }>(`/driving-school/${websiteId}/request-magic-link`, { email }).then((r) => r.data),
 
   // --- Teacher chat inbox ---
   listConversations: (websiteId: string) =>

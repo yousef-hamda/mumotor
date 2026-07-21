@@ -398,9 +398,13 @@ router.get(
       restMinutes: cfg.restMinutes,
     });
 
-    // Drop past slots when booking for today (app timezone wall-clock).
+    // Mirror POST /book-lesson's same-day rules (app timezone wall-clock):
+    // after the daily cutoff today is closed, and past times are never offered.
     if (diffDays === 0) {
       const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
+      if (nowMin >= (cfg.bookingCutoffHour ?? 18) * 60) {
+        return res.json({ date, slots: [], classDuration: cfg.classDuration });
+      }
       slots = slots.filter((s) => parseTimeToMinutes(s) > nowMin);
     }
 
@@ -454,12 +458,11 @@ router.post(
       throw badRequest(`You can only book up to ${cfg.advanceBookingDays} day(s) in advance`, 'ADVANCE_BOOKING_EXCEEDED');
     }
     if (diffDays === 0) {
-      const now = new Date();
-      if (now.getUTCHours() >= (cfg.bookingCutoffHour ?? 18)) {
+      const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
+      if (nowMin >= (cfg.bookingCutoffHour ?? 18) * 60) {
         throw badRequest('Booking for today is closed', 'BOOKING_CUTOFF_PASSED');
       }
       // Can't book a time that has already passed today (app timezone wall-clock).
-      const nowMin = parseTimeToMinutes(nowInZone(env.APP_TIMEZONE).hhmm);
       if (parseTimeToMinutes(data.time) <= nowMin) {
         throw badRequest('That time has already passed', 'PAST_TIME');
       }
@@ -1182,10 +1185,15 @@ async function loadStudentEnrollment(req: Request) {
   const s = req.student!;
   const enrollment = await prisma.clientEnrollment.findFirst({
     where: { id: s.enrollmentId, websiteId: s.websiteId },
+    include: { website: { select: { status: true } } },
   });
   if (!enrollment) throw unauthorized('Your session has expired', 'BAD_IDENTITY');
   if (enrollment.status !== 'ACTIVE') {
     throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
+  }
+  // A frozen (unpaid) site takes its student portal down with it.
+  if (enrollment.website.status === 'SUSPENDED') {
+    throw forbidden('This site is currently paused.', 'SITE_PAUSED');
   }
   return enrollment;
 }
@@ -1226,6 +1234,14 @@ router.post(
   asyncHandler(async (req, res) => {
     const data = z.object({ email: z.string().email() }).parse(req.body);
     const email = normalizeEmail(data.email);
+    const website = await prisma.website.findUnique({
+      where: { id: req.params.websiteId },
+      select: { status: true },
+    });
+    // A frozen (unpaid) site takes its student portal down with it.
+    if (website?.status === 'SUSPENDED') {
+      throw forbidden('This site is currently paused.', 'SITE_PAUSED');
+    }
     const enrollment = await prisma.clientEnrollment.findUnique({
       where: { websiteId_studentEmail: { websiteId: req.params.websiteId, studentEmail: email } },
     });
@@ -1241,7 +1257,10 @@ router.post(
       websiteId: req.params.websiteId,
       email: enrollment.studentEmail,
     });
-    res.json({ token, student: studentSummary(enrollment) });
+    // classCount here is the DERIVED non-cancelled total (the raw column
+    // double-counts and is never decremented on cancel).
+    const stats = await studentStats(req.params.websiteId, enrollment.studentEmail);
+    res.json({ token, student: { ...studentSummary(enrollment), classCount: stats.total, stats } });
   })
 );
 
@@ -1252,7 +1271,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const enrollment = await loadStudentEnrollment(req);
     const stats = await studentStats(req.params.websiteId, enrollment.studentEmail);
-    res.json({ student: { ...studentSummary(enrollment), stats } });
+    res.json({ student: { ...studentSummary(enrollment), classCount: stats.total, stats } });
   })
 );
 

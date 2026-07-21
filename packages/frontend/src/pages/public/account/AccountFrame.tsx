@@ -2,8 +2,8 @@ import { useEffect, type CSSProperties, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../../lib/utils';
 import { useTemplateFonts } from '../../../templates/shared';
-import { FONT_HREFS, resolveBookTheme } from '../../../lib/templateTheme';
-import { bookT } from '../../../lib/bookingStrings';
+import { dirForLocale, FONT_HREFS, resolveBookTheme } from '../../../lib/templateTheme';
+import { bookLocale, bookT } from '../../../lib/bookingStrings';
 import { applyAppIdentity, resetToMumotorIdentity, siteAppIdentity } from '../../../lib/pwa';
 import { slotRange, formatDate, formatMsgTime, ChatThread, ProfileForm } from './primitives';
 import type { AccountPrimitives, AccountSkinProps } from './types';
@@ -23,6 +23,7 @@ export function AccountFrame({
   schoolName,
   logoSrc,
   publicSlug,
+  locale,
   state,
   Skin,
 }: {
@@ -31,6 +32,9 @@ export function AccountFrame({
   schoolName: string;
   logoSrc: string | null;
   publicSlug: string;
+  /** The SITE's locale — fallback while `state.data` is null (loading/error),
+   *  so those screens don't render English/LTR on an HE/AR site. */
+  locale?: string | null;
   state: AccountState;
   Skin: ComponentType<AccountSkinProps>;
 }) {
@@ -48,8 +52,8 @@ export function AccountFrame({
     return () => resetToMumotorIdentity();
   }, [publicSlug, schoolName, accent, logoSrc]);
 
-  const dir = state.data?.dir ?? 'ltr';
-  const L = state.data?.locale ?? 'en';
+  const dir = state.data?.dir ?? dirForLocale(locale);
+  const L = state.data?.locale ?? bookLocale(locale);
 
   const ui: AccountPrimitives = {
     slotRange,

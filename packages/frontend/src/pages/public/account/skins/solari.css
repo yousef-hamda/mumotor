@@ -6,8 +6,26 @@
   font-family: var(--sl-body, 'Barlow', system-ui, sans-serif);
 }
 .asl { position: relative; display: flex; flex-direction: column; min-height: 100%; }
-.asl-frame { position: fixed; inset: 10px; border: 2px solid color-mix(in srgb, var(--sl-brass) 60%, transparent); border-radius: 6px; pointer-events: none; z-index: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sl-brass) 22%, transparent); }
 .asl > * { position: relative; z-index: 1; }
+/* Brass viewport frame — same technique as the template's .sl-frame: `sticky`
+   (NEVER position:fixed — a fixed signature escapes the builder/Customize
+   in-page preview), capped to one screen, its own flow height cancelled by the
+   negative bottom margin so the sticky range spans the whole page. Declared
+   AFTER `.asl > *` so that equal-specificity rule can't clobber the position. */
+.asl-frame {
+  position: sticky;
+  top: 10px;
+  height: calc(100vh - 20px);
+  height: calc(100dvh - 20px);
+  margin-inline: 10px;
+  margin-bottom: calc(-100vh + 20px);
+  margin-bottom: calc(-100dvh + 20px);
+  border: 2px solid color-mix(in srgb, var(--sl-brass) 60%, transparent);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sl-brass) 22%, transparent);
+}
 
 .asl-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px clamp(18px, 4vw, 44px); border-bottom: 1px solid color-mix(in srgb, var(--sl-brass) 45%, transparent); }
 .asl-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--sl-text); min-width: 0; }

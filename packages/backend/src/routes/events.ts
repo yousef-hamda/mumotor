@@ -30,7 +30,7 @@ router.post(
     const auth = req.headers.authorization;
     if (auth?.startsWith('Bearer ')) {
       try {
-        userId = (jwt.verify(auth.slice(7), env.JWT_SECRET) as { id?: string }).id;
+        userId = (jwt.verify(auth.slice(7), env.JWT_SECRET, { algorithms: ['HS256'] }) as { id?: string }).id;
       } catch {
         /* anonymous is fine */
       }

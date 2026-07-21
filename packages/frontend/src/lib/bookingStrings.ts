@@ -113,14 +113,11 @@ export interface BookStrings {
   yourNextLesson: string;
   contactToCancel: string;
   noUpcoming: string;
-  statCompleted: string;
   statUpcoming: string;
   statTotal: string;
   laterLessons: string;
   upcomingTitle: string;
-  progressTitle: string;
   readinessTitle: string;
-  hoursDriven: string;
   lessonsCompleted: string;
   lessonsBooked: string;
   historyTitle: string;
@@ -246,14 +243,11 @@ const en: BookStrings = {
   yourNextLesson: 'Your next lesson',
   contactToCancel: 'To change or cancel a lesson, contact your instructor.',
   noUpcoming: 'You have no upcoming lessons. Book your next one below.',
-  statCompleted: 'Completed',
   statUpcoming: 'Upcoming',
   statTotal: 'Total lessons',
   laterLessons: 'Later lessons',
   upcomingTitle: 'Upcoming lessons',
-  progressTitle: 'Your progress',
   readinessTitle: 'Readiness',
-  hoursDriven: 'Hours driven',
   lessonsCompleted: 'Lessons done',
   lessonsBooked: 'Booked',
   historyTitle: 'Lesson history',
@@ -377,14 +371,11 @@ const he: BookStrings = {
   yourNextLesson: 'השיעור הבא שלך',
   contactToCancel: 'כדי לשנות או לבטל שיעור, פנו למורה שלכם.',
   noUpcoming: 'אין לך שיעורים קרובים. הזמינו את השיעור הבא למטה.',
-  statCompleted: 'הושלמו',
   statUpcoming: 'קרובים',
   statTotal: 'סה״כ שיעורים',
   laterLessons: 'שיעורים נוספים',
   upcomingTitle: 'שיעורים קרובים',
-  progressTitle: 'ההתקדמות שלך',
   readinessTitle: 'מוכנות',
-  hoursDriven: 'שעות נהיגה',
   lessonsCompleted: 'שיעורים שהושלמו',
   lessonsBooked: 'הוזמנו',
   historyTitle: 'היסטוריית שיעורים',
@@ -508,14 +499,11 @@ const ar: BookStrings = {
   yourNextLesson: 'درسك التالي',
   contactToCancel: 'لتغيير درس أو إلغائه، تواصل مع مدرّبك.',
   noUpcoming: 'ليس لديك دروس قادمة. احجز درسك التالي في الأسفل.',
-  statCompleted: 'مكتملة',
   statUpcoming: 'قادمة',
   statTotal: 'إجمالي الدروس',
   laterLessons: 'دروس لاحقة',
   upcomingTitle: 'الدروس القادمة',
-  progressTitle: 'تقدّمك',
   readinessTitle: 'الجاهزية',
-  hoursDriven: 'ساعات القيادة',
   lessonsCompleted: 'دروس مكتملة',
   lessonsBooked: 'محجوزة',
   historyTitle: 'سجلّ الدروس',

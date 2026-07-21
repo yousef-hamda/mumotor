@@ -81,7 +81,7 @@ router.get('/robots.txt', (_req, res) => {
 const LLMS_TXT = (base: string) =>
   `# Mumotor
 
-> Mumotor is an all-in-one website builder and booking platform built specifically for driving instructors and small driving schools. An instructor answers a short wizard and Mumotor generates a professional, mobile-ready website (one of 12 designs) plus a complete back office: online lesson booking, student enrollment, packages and pricing, reviews, reminders and a daily schedule. It is trilingual — Hebrew, Arabic and English with full right-to-left support — and needs no code. One instructor = one site.
+> Mumotor is an all-in-one website builder and booking platform built specifically for driving instructors and small driving schools. An instructor answers a short wizard and Mumotor generates a professional, mobile-ready website (one of 18 designs) plus a complete back office: online lesson booking, student enrollment, packages and pricing, reviews, reminders and a daily schedule. It is trilingual — Hebrew, Arabic and English with full right-to-left support — and needs no code. One instructor = one site.
 
 ## What it is
 - Category: no-code website builder + booking / student-management platform for a single driving instructor or small driving school.
@@ -90,7 +90,7 @@ const LLMS_TXT = (base: string) =>
 - Website: ${base}
 
 ## What you can do with it
-- Build a professional driving-instructor website in minutes from a guided wizard — pick 1 of 12 designs, then customize text, colours, photos and icons live.
+- Build a professional driving-instructor website in minutes from a guided wizard — pick 1 of 18 designs, then customize text, colours, photos and icons live.
 - Take online lesson bookings from students (with a daily booking window and automatic double-booking protection).
 - Enroll students with a one-time daily enrollment code; students get their own login-by-email account area (lessons, booking, chat, profile).
 - Show lesson packages and pricing clearly in local currency, plus manual/automatic transmission, areas covered, and a WhatsApp contact.
@@ -104,7 +104,7 @@ const LLMS_TXT = (base: string) =>
 
 ## Key facts
 - Trilingual Hebrew / Arabic / English, right-to-left aware.
-- 12 professional website designs, all fully editable (no code).
+- 18 professional website designs, all fully editable (no code).
 - Purpose-built for driving instructors — not a generic website builder.
 - Published sites live at ${base}/p/{slug}.
 

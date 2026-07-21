@@ -25,8 +25,8 @@ router.post(
     const data = z
       .object({ websiteId: z.string().uuid(), studentName: z.string().min(1).max(80), rating: z.number().int().min(1).max(5), comment: z.string().min(1).max(1000) })
       .parse(req.body);
-    const site = await prisma.website.findUnique({ where: { id: data.websiteId }, select: { id: true, userId: true } });
-    if (!site) throw notFound('Driving school not found');
+    const site = await prisma.website.findUnique({ where: { id: data.websiteId }, select: { id: true, userId: true, status: true } });
+    if (!site || site.status !== 'PUBLISHED') throw notFound('Driving school not found');
     const review = await prisma.review.create({ data: { ...data, status: 'PENDING' } });
     void createNotification(site.userId, {
       type: 'REVIEW',

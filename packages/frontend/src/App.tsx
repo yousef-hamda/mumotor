@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { getTenantSlug } from './lib/tenant';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import Landing from './pages/Landing';
@@ -61,122 +62,133 @@ function TenantApp() {
 
 export default function App() {
   // Per-teacher subdomain → serve that teacher's site + student flows only.
-  if (getTenantSlug()) return <TenantApp />;
+  // The boundary sits INSIDE the providers (router/query/auth context stay alive)
+  // but around every route, so a chunk-load failure or render throw shows the
+  // recover card instead of blanking the SPA.
+  if (getTenantSlug()) {
+    return (
+      <ErrorBoundary>
+        <TenantApp />
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <Routes>
-      {/* Marketing + auth */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/builder" element={<BuilderWizard />} />
+    <ErrorBoundary>
+      <Routes>
+        {/* Marketing + auth */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/builder" element={<BuilderWizard />} />
 
-      {/* Template gallery + live interactive previews */}
-      <Route path="/templates" element={<TemplatesGallery />} />
-      <Route path="/templates/:slug" element={<TemplatePreview />} />
-      <Route path="/editor/:id" element={<EditorRedirect />} />
-      <Route
-        path="/customize/:id"
-        element={
-          <ProtectedRoute>
-            <CustomizePage />
-          </ProtectedRoute>
-        }
-      />
+        {/* Template gallery + live interactive previews */}
+        <Route path="/templates" element={<TemplatesGallery />} />
+        <Route path="/templates/:slug" element={<TemplatePreview />} />
+        <Route path="/editor/:id" element={<EditorRedirect />} />
+        <Route
+          path="/customize/:id"
+          element={
+            <ProtectedRoute>
+              <CustomizePage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Teacher dashboard */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardHome />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/driving-school"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DrivingSchool />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/reviews"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Reviews />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/messages"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Messages />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/publishing"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Publishing />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/billing"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Billing />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/settings"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Settings />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+        {/* Teacher dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <DashboardHome />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/driving-school"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <DrivingSchool />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/reviews"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Reviews />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/messages"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Messages />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/publishing"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Publishing />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/billing"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Billing />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/settings"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Settings />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Public student pages */}
-      <Route path="/p/:websiteSlug" element={<PublicSite />} />
-      <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
-      <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
-      <Route path="/p/:websiteSlug/account" element={<StudentAccount />} />
-      <Route path="/p/:websiteSlug/review" element={<LeaveReview />} />
+        {/* Public student pages */}
+        <Route path="/p/:websiteSlug" element={<PublicSite />} />
+        <Route path="/p/:websiteSlug/enroll" element={<Enroll />} />
+        <Route path="/p/:websiteSlug/book-lesson" element={<BookLesson />} />
+        <Route path="/p/:websiteSlug/account" element={<StudentAccount />} />
+        <Route path="/p/:websiteSlug/review" element={<LeaveReview />} />
 
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/404" element={<NotFound />} />
-      <Route path="*" element={<Navigate to="/404" replace />} />
-    </Routes>
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }

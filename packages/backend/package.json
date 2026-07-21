@@ -18,7 +18,8 @@
     "test": "node test/integration.mjs",
     "test:security": "node test/security.integration.mjs",
     "test:ratelimit": "node test/ratelimit.unit.mjs",
-    "test:cron": "tsx test/cron-check.ts"
+    "test:cron": "tsx test/cron-check.ts",
+    "test:billing": "tsx test/billing.check.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

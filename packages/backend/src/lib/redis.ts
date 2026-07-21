@@ -105,6 +105,11 @@ function build(): KVStore {
       logger.warn('Failed to init Redis, using in-memory store', (err as Error).message);
     }
   }
+  if (process.env.NODE_ENV === 'production') {
+    // Per-process fallback: rate limits + one-time tokens stop being shared
+    // across instances, and brute-force protection weakens accordingly.
+    logger.warn('REDIS_URL is not set in production — rate limits are per-process (in-memory) only');
+  }
   logger.info('Using in-memory KV store (set REDIS_URL to enable Redis)');
   return new MemoryStore();
 }

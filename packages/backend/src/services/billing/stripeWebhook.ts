@@ -45,14 +45,26 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
     } else if (event.type === 'customer.subscription.updated') {
       const sub = event.data.object as Stripe.Subscription;
       const status = sub.status === 'active' ? 'ACTIVE' : sub.status === 'past_due' ? 'PAST_DUE' : 'INCOMPLETE';
-      await prisma.subscription.updateMany({ where: { stripeSubscriptionId: sub.id }, data: { status } });
-      if (status === 'ACTIVE') {
-        const row = await prisma.subscription.findFirst({ where: { stripeSubscriptionId: sub.id }, select: { userId: true } });
-        if (row) await restoreUserSites(row.userId);
+      // The subscription quantity IS the website seat count (₪199/site/mo).
+      const quantity = sub.items?.data?.[0]?.quantity;
+      await prisma.subscription.updateMany({
+        where: { stripeSubscriptionId: sub.id },
+        data: { status, ...(quantity && quantity > 0 ? { websiteQuota: quantity } : {}) },
+      });
+      const row = await prisma.subscription.findFirst({ where: { stripeSubscriptionId: sub.id }, select: { userId: true } });
+      if (row) {
+        if (status === 'ACTIVE') await restoreUserSites(row.userId);
+        // PAST_DUE keeps the grace period accountState grants; any other lapse
+        // must freeze the published sites, mirroring subscription.deleted.
+        else if (status !== 'PAST_DUE') await freezeUserSites(row.userId);
       }
     }
   } catch (e) {
+    // 500 so Stripe RETRIES — a swallowed error here permanently misses an
+    // activation/freeze (Stripe only retries non-2xx responses).
     logger.error('Stripe webhook handling error', (e as Error).message);
+    res.status(500).json({ error: 'Webhook handler failed' });
+    return;
   }
   res.json({ received: true });
 }

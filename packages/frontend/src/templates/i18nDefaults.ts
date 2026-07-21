@@ -68,12 +68,19 @@ function containsForeignLocaleDefault(value: unknown, locale: Locale): boolean {
  * Drop Customize overrides that carry a default string from a DIFFERENT language
  * than the site — so a switched language always wins. Two shapes are healed:
  *  - `labels.*` / `copy.*` string overrides (buttons, nav links, headings), and
- *  - whole array overrides (`stats`, `areas`, `faqs`, `packages`, …) where any
- *    item's text is a wrong-language default — these fall back to the freshly
- *    generated, correctly-localized list. This fixes e.g. Arabic stat labels
- *    ("سنوات الخبرة") left on a site later switched to English.
+ *  - array overrides (`stats`, `areas`, `faqs`, `packages`, …) — pruned PER ITEM:
+ *    only items whose text is a wrong-language default are dropped, so a teacher's
+ *    genuine custom entries survive even when one item is a stale foreign default
+ *    (e.g. Arabic "سنوات الخبرة" left in a stats list on a site later switched to
+ *    English). When EVERY item is foreign the whole override is dropped so the
+ *    freshly generated, correctly-localized list renders instead. EXCEPTION:
+ *    `packages` is all-or-nothing — it must stay in lockstep with `plans`
+ *    (see syncPackageOverrideToPlans/reconcilePackageOverride in fromWizard), and
+ *    a partially-pruned array would desync from the plan count — so any foreign
+ *    item drops the whole override.
  * Genuine custom text and same-language defaults are always kept (a custom string
- * matches no locale's default set, so it is never flagged). No-op when clean.
+ * matches no locale's default set, so it is never flagged). No-op when clean:
+ * pure, never mutates the input, and returns the SAME reference unchanged.
  */
 export function pruneForeignLocaleLabels(cz: Customization | undefined | null, locale: Locale): Customization | undefined | null {
   if (!cz || !cz.fields) return cz;
@@ -81,7 +88,17 @@ export function pruneForeignLocaleLabels(cz: Customization | undefined | null, l
   const fields: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(cz.fields)) {
     if ((k.startsWith('labels.') || k.startsWith('copy.')) && isForeignLocaleDefault(v, locale)) { changed = true; continue; }
-    if (Array.isArray(v) && containsForeignLocaleDefault(v, locale)) { changed = true; continue; }
+    if (Array.isArray(v)) {
+      const kept = v.filter((item) => !containsForeignLocaleDefault(item, locale));
+      if (kept.length !== v.length) {
+        changed = true;
+        // packages: whole-array drop (lockstep with plans); otherwise drop the
+        // override entirely only when nothing survives (→ localized defaults).
+        if (k === 'packages' || kept.length === 0) continue;
+        fields[k] = kept;
+        continue;
+      }
+    }
     fields[k] = v;
   }
   return changed ? { ...cz, fields } : cz;

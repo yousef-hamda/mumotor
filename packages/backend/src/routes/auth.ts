@@ -235,7 +235,15 @@ router.post(
       .object({ token: z.string().min(20).max(80), newPassword: passwordSchema })
       .parse(req.body);
 
-    const userId = await kv.getdel(`pwreset:${hashToken(token)}`); // atomic: one use only
+    // Peek (non-consuming) so a weak password doesn't burn the one-use token,
+    // then getdel keeps the atomic single-use guarantee.
+    const resetKey = `pwreset:${hashToken(token)}`;
+    const peekId = await kv.get(resetKey);
+    if (!peekId) throw badRequest('Reset link is invalid or expired', 'RESET_INVALID');
+    const account = await prisma.user.findUnique({ where: { id: peekId }, select: { email: true } });
+    assertStrongPassword(newPassword, account?.email);
+
+    const userId = await kv.getdel(resetKey); // atomic: one use only
     if (!userId) throw badRequest('Reset link is invalid or expired', 'RESET_INVALID');
 
     // Bump tokenVersion so any session created before the reset (e.g. by whoever

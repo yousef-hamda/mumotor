@@ -100,7 +100,7 @@ function landingHtml(): string {
         operatingSystem: 'Web, iOS, Android (PWA)',
         url: baseUrl,
         description:
-          'No-code website builder and booking platform for driving instructors: a professional site (1 of 12 designs), online lesson booking, one-time-code student enrollment, a student account area, packages, reviews and automatic reminders. Trilingual Hebrew/Arabic/English with RTL.',
+          'No-code website builder and booking platform for driving instructors: a professional site (1 of 18 designs), online lesson booking, one-time-code student enrollment, a student account area, packages, reviews and automatic reminders. Trilingual Hebrew/Arabic/English with RTL.',
         offers: { '@type': 'Offer', price: '199', priceCurrency: 'ILS' },
         audience: { '@type': 'Audience', audienceType: 'Driving instructors and small driving schools' },
       },
@@ -116,7 +116,7 @@ function landingHtml(): string {
   };
 
   const features = [
-    ['12 professional templates', 'Designs built for driving instructors, tailored in a visual editor — no code required.'],
+    ['18 professional templates', 'Designs built for driving instructors, tailored in a visual editor — no code required.'],
     ['Enrollment codes', 'Share a code and students self-enroll. No accounts or passwords for you to manage.'],
     ['Online booking', 'Students book into your real availability, and your calendar updates the instant a lesson is taken.'],
     ['Student roster', 'Every student, their lesson count and their progress — organised in one place.'],
@@ -125,7 +125,7 @@ function landingHtml(): string {
   ];
   const steps = [
     ['1 · Describe your school', 'A short wizard covers your hours, pricing and teaching style.'],
-    ['2 · Pick a template', 'Choose one of 12 designs and customise it in the editor.'],
+    ['2 · Pick a template', 'Choose one of 18 designs and customise it in the editor.'],
     ['3 · Publish', 'Go live at your own address in minutes — trilingual by default.'],
     ['4 · Take bookings', 'Students enroll and book; you manage it all from one dashboard.'],
   ];
@@ -181,7 +181,7 @@ function landingHtml(): string {
   <h2>Put your driving school online today</h2>
   <p class="lead">Create your account, set your hours, and share your first enrollment code today — it takes about five minutes.</p>
   <p><a class="cta" href="${baseUrl}/builder">Build your website</a></p>
-  <p><a href="${baseUrl}/templates">See the 12 designs</a> · <a href="${baseUrl}/guides">Read the guides</a></p>
+  <p><a href="${baseUrl}/templates">See the 18 designs</a> · <a href="${baseUrl}/guides">Read the guides</a></p>
 </main>
 <footer><p>© Mumotor — professional websites and booking for independent driving instructors. Trilingual, no code. <a href="${baseUrl}/">mumotor.com</a></p></footer>
 </body></html>`;
@@ -218,7 +218,7 @@ function templatesHtml(): string {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'Mumotor website designs for driving instructors',
-    description: '12 professional, fully-editable website designs for driving instructors — trilingual (Hebrew, Arabic, English).',
+    description: '18 professional, fully-editable website designs for driving instructors — trilingual (Hebrew, Arabic, English).',
     url: `${baseUrl}/templates`,
     isPartOf: { '@type': 'WebSite', name: 'Mumotor', url: baseUrl },
   };
@@ -227,11 +227,11 @@ function templatesHtml(): string {
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>12 website designs for driving instructors | Mumotor</title>
-<meta name="description" content="Browse 12 professional, fully-editable website designs for driving instructors — trilingual (Hebrew, Arabic, English), no code. Pick one and publish in minutes with Mumotor."/>
+<title>18 website designs for driving instructors | Mumotor</title>
+<meta name="description" content="Browse 18 professional, fully-editable website designs for driving instructors — trilingual (Hebrew, Arabic, English), no code. Pick one and publish in minutes with Mumotor."/>
 <link rel="canonical" href="${baseUrl}/templates"/>
 <meta name="robots" content="index, follow"/>
-<meta property="og:title" content="12 website designs for driving instructors | Mumotor"/>
+<meta property="og:title" content="18 website designs for driving instructors | Mumotor"/>
 <meta property="og:url" content="${baseUrl}/templates"/>
 <link rel="icon" href="/favicon.svg"/>
 <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
@@ -241,7 +241,7 @@ function templatesHtml(): string {
 <header><a class="brand" href="${baseUrl}/">Mumotor</a><nav><a href="${baseUrl}/guides">Guides</a> &nbsp; <a href="${baseUrl}/builder">Get started</a></nav></header>
 <main>
   <p class="eyebrow">Designs</p>
-  <h1>12 website designs for driving instructors</h1>
+  <h1>18 website designs for driving instructors</h1>
   <p class="lead">Every design is built for driving instructors and fully editable in a visual editor — no code. All trilingual (Hebrew, Arabic, English) with right-to-left support.</p>
   <p><a class="cta" href="${baseUrl}/builder">Build your website</a></p>
   <div class="grid">${cards}</div>

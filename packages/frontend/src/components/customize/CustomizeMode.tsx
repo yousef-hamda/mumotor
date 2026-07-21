@@ -415,7 +415,7 @@ export default function CustomizeMode({
   const closePopover = () => { commitEditing(); setPopover(null); setSel(null); };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-sand-100">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-sand-100">
       {/* Toolbar */}
       <div className="flex h-14 shrink-0 items-center justify-between gap-2 bg-sand-900 px-2 text-white sm:px-4">
         <span className="flex items-center gap-2 text-sm font-medium">

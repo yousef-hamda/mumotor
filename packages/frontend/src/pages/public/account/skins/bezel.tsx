@@ -5,9 +5,9 @@ import '../../../../templates/bezel/bezel.css';
 import './bezel.css';
 
 /** bezel — a machined instrument. The dashboard is an instrument cluster: readiness
- *  is a large sweeping gauge dial (a signal-red needle reading pct) flanked by
- *  milled readouts; the next lesson is the primary display; upcoming/history are
- *  engraved register rows. Charcoal anodized metal, one signal-red needle. */
+ *  is a pair of milled readouts (lessons completed + upcoming); the next lesson is
+ *  the primary display; upcoming/history are engraved register rows. Charcoal
+ *  anodized metal, one signal-red accent. */
 export default function BezelAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;

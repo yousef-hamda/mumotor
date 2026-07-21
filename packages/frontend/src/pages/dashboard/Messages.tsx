@@ -51,7 +51,7 @@ export default function Messages() {
           description={t('dashboard.messages.emptyDesc')}
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
           {/* Conversation list */}
           <Card className={cn('p-0 overflow-hidden', activeId && 'hidden lg:block')}>
             <ul className="divide-y divide-sand-100">

@@ -25,6 +25,7 @@
   line-height: 1.75;
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   /* Clip any horizontal overflow (e.g. the animated grain overlay) so the page
      scrollbars don't flicker on/off near the footer. Matches the other 11 templates. */
   overflow-x: clip;

@@ -41,7 +41,7 @@ try {
 
   // ── 2b. Glass + premium templates render (smoke + no horizontal overflow) ──
   section('Glass + premium templates');
-  for (const slug of ['mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press', 'reel', 'slate', 'primary', 'gallery', 'gilt', 'sumi', 'atelier', 'nocturne', 'deco']) {
+  for (const slug of ['mumotor', 'meridian', 'bezel', 'solari', 'cadence', 'circuit', 'press', 'reel', 'slate', 'primary', 'gallery', 'gilt', 'sumi', 'atelier', 'nocturne', 'deco', 'grid-ink', 'open-road']) {
     await page.goto(`${WEB}/templates/${slug}`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector(`.tmpl-${slug}`, { timeout: 8000 });
     ok(`${slug} renders`, (await page.locator(`.tmpl-${slug}`).count()) === 1);
@@ -77,7 +77,7 @@ try {
 
   ok('continue to Templates gallery', await clickText(page, /choose a design/));
   await page.waitForTimeout(300);
-  ok('Templates step shows 12 animated concept cards', (await page.locator('.tc-root').count()) >= 12);
+  ok('Templates step shows 18 animated concept cards', (await page.locator('.tc-root').count()) >= 18);
 
   // ── 4. Pick a template → instant live Design step ──
   section('Builder — pick → instant live preview');

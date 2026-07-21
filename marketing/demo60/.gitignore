@@ -7,3 +7,11 @@ audio/
 *.png
 *.log
 node_modules/
+
+# One-shot scratch siblings of the tracked *_lang.* pipeline (not reproducible,
+# mutate the local demo DB) — kept locally, never committed.
+capture_account.mjs
+daily_report.html
+deco_check.mjs
+film.html
+music.py

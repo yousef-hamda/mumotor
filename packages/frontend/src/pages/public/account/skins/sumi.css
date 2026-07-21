@@ -1,8 +1,8 @@
 /* sumi account skin — a sumi-e ink-wash dashboard. Uses the template's own
    --su-* vars + Zen Old Mincho / Zen Kaku fonts (inherited via .tmpl-sumi).
-   Scoped to .asu-. Signature: a self-drawing enso readiness ring + a vermilion
-   hanko seal. Thin ink hairlines, generous quiet space. Colours ONLY var(--su-*)
-   / color-mix. */
+   Scoped to .asu-. Signature: a vermilion hanko seal beside two honest ink
+   readiness figures (completed + upcoming). Thin ink hairlines, generous quiet
+   space. Colours ONLY var(--su-*) / color-mix. */
 .account-root.account-sumi {
   background: var(--su-paper);
   color: var(--su-ink);

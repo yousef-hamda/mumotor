@@ -2,9 +2,14 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { rateLimit } from '../middleware/rateLimit.js';
+import { verifyToken } from '../middleware/auth.js';
 import { env } from '../config/env.js';
 
 const router = Router();
+
+// Teacher-only (the Customize photo picker) — an open proxy would let anyone
+// burn the platform's Unsplash quota.
+router.use(verifyToken);
 
 const querySchema = z.object({
   q: z.string().min(1).max(80),

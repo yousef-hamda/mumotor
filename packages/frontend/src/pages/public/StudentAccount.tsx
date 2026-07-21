@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowRight } from 'lucide-react';
 import { apiError, drivingSchoolApi, studentPortalApi, studentTokenStore } from '../../lib/api';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
 import { bookLocale, bookT, type BookLocale } from '../../lib/bookingStrings';
@@ -105,15 +106,28 @@ function Dashboard({
   const Skin = getAccountSkin(slug);
 
   return (
-    <Suspense
-      fallback={
-        <TemplatedShell slug={slug} publicSlug={publicSlug} theme={theme} locale={settings.locale} dir={dirForLocale(settings.locale)}>
-          <BookSpinner label={bookT(bookLocale(settings.locale), 'loadingAccount')} />
-        </TemplatedShell>
-      }
-    >
-      <AccountFrame slug={slug} theme={theme} schoolName={settings.name} logoSrc={settings.logoSrc ?? null} publicSlug={publicSlug} state={state} Skin={Skin} />
-    </Suspense>
+    // The boundary catches a failed lazy skin chunk (stale hash after a deploy)
+    // so the page recovers instead of blanking; its default card is fine here.
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <TemplatedShell slug={slug} publicSlug={publicSlug} theme={theme} locale={settings.locale} dir={dirForLocale(settings.locale)}>
+            <BookSpinner label={bookT(bookLocale(settings.locale), 'loadingAccount')} />
+          </TemplatedShell>
+        }
+      >
+        <AccountFrame
+          slug={slug}
+          theme={theme}
+          schoolName={settings.name}
+          logoSrc={settings.logoSrc ?? null}
+          publicSlug={publicSlug}
+          locale={settings.locale}
+          state={state}
+          Skin={Skin}
+        />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

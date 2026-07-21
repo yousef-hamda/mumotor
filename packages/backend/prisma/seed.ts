@@ -82,7 +82,7 @@ async function main() {
       tagline: 'Your Road to Confidence',
       businessCategory: 'DRIVING_SCHOOL',
       status: 'PUBLISHED',
-      selectedPreset: 'clear-horizon',
+      selectedPreset: 'open-road',
       locale: 'EN',
       publishedAt: new Date(),
       configuration: { ...businessConfig },
@@ -105,12 +105,12 @@ async function main() {
     },
   });
   // build the published HTML with the real website id (so the in-page booking widget works)
-  const { html } = buildSiteHtml({ website: { id: website.id, name, slug }, config: businessConfig, presetId: 'clear-horizon' });
+  const { html } = buildSiteHtml({ website: { id: website.id, name, slug }, config: businessConfig, presetId: 'open-road' });
   await prisma.website.update({
     where: { id: website.id },
     data: { publishedHtml: html, configuration: { ...businessConfig, generatedHTML: html } },
   });
-  console.log(`  ✓ Website: /site/${website.slug} (PUBLISHED, preset clear-horizon)`);
+  console.log(`  ✓ Website: /site/${website.slug} (PUBLISHED, preset open-road)`);
 
   const students = [
     { name: 'Anna Krause', email: 'anna@example.com', phone: '+972-52-111-1111', status: 'ACTIVE' as const, classCount: 4 },

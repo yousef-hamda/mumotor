@@ -113,20 +113,20 @@ describe('publicToTemplateData', () => {
       experienceLevel: '5-10',
       classDuration: 45,
       locale: 'EN',
-      template: 'night-shift',
+      template: 'solari',
       carPhoto: 'data:car',
       gallery: ['data:g'],
       city: 'Eilat',
       contact: { phone: '050', email: 'e', address: 'Eilat' },
       socialLinks: { Facebook: 'https://fb/x' },
-      customization: { theme: { '--ns-cyan': '#00FF88' }, fields: { 'hero.headline': 'HELLO' } },
+      customization: { theme: { '--sl-amber': '#00FF88' }, fields: { 'hero.headline': 'HELLO' } },
     };
     const d = publicToTemplateData(input);
     expect(d.business.name).toBe('Pub School');
     expect(d.instructor.bio).toBe('Friendly lessons.');
     expect(d.hero.eyebrow).toContain('Eilat');
     expect(d.hero.headline).toBe('HELLO');           // customization applied
-    expect(d.theme?.['--ns-cyan']).toBe('#00FF88');
+    expect(d.theme?.['--sl-amber']).toBe('#00FF88');
     expect(d.contact.facebook).toBe('https://fb/x');
     expect(d.bookingUrl).toBe('/p/pub-school/book-lesson');
     expect(d.enrollUrl).toBe('/p/pub-school/enroll');

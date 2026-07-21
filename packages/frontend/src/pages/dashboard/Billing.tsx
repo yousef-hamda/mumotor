@@ -127,7 +127,7 @@ export default function Billing() {
 
                 <p className="mt-2 flex items-baseline gap-1">
                   <span className="text-4xl font-semibold tracking-tight tabular-nums text-sand-900">
-                    {p.currency ?? '$'}
+                    {p.currency ?? '₪'}
                     {p.price}
                   </span>
                   <span className="text-xs font-medium text-sand-500">/{p.period ?? 'mo'}</span>
@@ -135,8 +135,8 @@ export default function Billing() {
                 {p.note && <p className="mt-1 text-sm text-sand-500">{p.note}</p>}
 
                 <ul className="mt-5 flex-1 space-y-2.5">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-sand-600">
+                  {p.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-sand-600">
                       <Check strokeWidth={2} className="mt-0.5 h-4 w-4 shrink-0 text-sand-900" />
                       {f}
                     </li>

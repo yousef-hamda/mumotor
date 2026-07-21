@@ -90,10 +90,16 @@ export function ChatThread({ messages, loading, onSend, sending, onSeen, L, clas
  */
 export function ProfileForm({ student, onSave, saving, L, classNames }: ProfileFormProps) {
   const [phone, setPhone] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const phoneValue = phone ?? student.phone ?? '';
 
   const save = () => {
-    if (!/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) return;
+    if (!/^[+\d][\d\s-]{6,18}$/.test(phoneValue.trim())) {
+      // Silently returning made the save button look dead — surface it.
+      setError(bookT(L, 'errPhone'));
+      return;
+    }
+    setError(null);
     onSave(phoneValue.trim());
   };
 
@@ -115,10 +121,23 @@ export function ProfileForm({ student, onSave, saving, L, classNames }: ProfileF
           className={classNames?.input}
           type="tel"
           value={phoneValue}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            setError(null);
+          }}
           placeholder={bookT(L, 'phPhone')}
         />,
         bookT(L, 'phoneHint')
+      )}
+      {error && (
+        <span
+          role="alert"
+          className={classNames?.error}
+          // Fallback so every skin shows the message even without its own class.
+          style={classNames?.error ? undefined : { color: '#c43d3d', fontSize: '0.82rem' }}
+        >
+          {error}
+        </span>
       )}
       <button className={classNames?.save} disabled={saving || phone === null} onClick={save}>
         {bookT(L, 'saveChanges')}

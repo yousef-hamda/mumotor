@@ -37,14 +37,14 @@ export default function Settings() {
   });
 
   const qc = useQueryClient();
-  const { data: sites = [] } = useQuery({ queryKey: ['my-websites'], queryFn: websiteApi.list });
+  const { data: sites = [] } = useQuery({ queryKey: ['websites'], queryFn: websiteApi.list });
   const [toDelete, setToDelete] = useState<Website | null>(null);
   const [confirmText, setConfirmText] = useState('');
   const del = useMutation({
     mutationFn: () => websiteApi.remove(toDelete!.id, confirmText),
     onSuccess: () => {
       toast.success(t('dashboard.account.websiteDeletedToast'));
-      qc.invalidateQueries({ queryKey: ['my-websites'] });
+      qc.invalidateQueries({ queryKey: ['websites'] });
       setToDelete(null);
       setConfirmText('');
     },

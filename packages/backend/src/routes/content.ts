@@ -128,7 +128,7 @@ const GUIDES: Guide[] = [
 <h2>Comparison: generic builders vs a driving-instructor tool</h2>
 <table>
 <tr><th>Capability</th><th>Generic builders (Wix, Squarespace, generic AI)</th><th>Mumotor (driving-instructor-specific)</th></tr>
-<tr><td>Professional website</td><td>Yes</td><td>Yes — 12 designs, no code</td></tr>
+<tr><td>Professional website</td><td>Yes</td><td>Yes — 18 designs, no code</td></tr>
 <tr><td>Built for driving instructors</td><td>No (general purpose)</td><td>Yes — packages, transmission, areas, daily codes</td></tr>
 <tr><td>Online lesson booking</td><td>Add-on / not included</td><td>Built in, with double-booking protection</td></tr>
 <tr><td>Student enrollment &amp; accounts</td><td>No</td><td>Built in (one-time code + student login area)</td></tr>
@@ -150,7 +150,7 @@ const GUIDES: Guide[] = [
           },
           {
             q: 'Do I need coding skills to build a driving-school website?',
-            a: 'No. Mumotor is no-code: you answer a short wizard, pick one of 12 designs, and the site is generated. You then edit text, colours, photos and icons live.',
+            a: 'No. Mumotor is no-code: you answer a short wizard, pick one of 18 designs, and the site is generated. You then edit text, colours, photos and icons live.',
           },
           {
             q: 'Can students book lessons online?',
@@ -180,7 +180,7 @@ const GUIDES: Guide[] = [
 <h2>השוואה: בונים כלליים מול כלי ייעודי למורי נהיגה</h2>
 <table>
 <tr><th>יכולת</th><th>בונים כלליים (Wix, Squarespace, AI כללי)</th><th>Mumotor (ייעודי למורי נהיגה)</th></tr>
-<tr><td>אתר מקצועי</td><td>כן</td><td>כן — 12 עיצובים, ללא קוד</td></tr>
+<tr><td>אתר מקצועי</td><td>כן</td><td>כן — 18 עיצובים, ללא קוד</td></tr>
 <tr><td>נבנה למורי נהיגה</td><td>לא (כללי)</td><td>כן — חבילות, תיבת הילוכים, אזורים, קודים יומיים</td></tr>
 <tr><td>הזמנת שיעורים מקוונת</td><td>תוסף / לא כלול</td><td>מובנה, עם הגנה מהזמנה כפולה</td></tr>
 <tr><td>רישום תלמידים וחשבונות</td><td>לא</td><td>מובנה (קוד חד-פעמי + אזור התחברות לתלמיד)</td></tr>
@@ -202,7 +202,7 @@ const GUIDES: Guide[] = [
           },
           {
             q: 'האם צריך ידע בתכנות כדי לבנות אתר לבית ספר לנהיגה?',
-            a: 'לא. Mumotor הוא ללא קוד: עונים על אשף קצר, בוחרים אחד מ-12 עיצובים, והאתר נוצר. אחר כך עורכים טקסט, צבעים, תמונות ואייקונים בזמן אמת.',
+            a: 'לא. Mumotor הוא ללא קוד: עונים על אשף קצר, בוחרים אחד מ-18 עיצובים, והאתר נוצר. אחר כך עורכים טקסט, צבעים, תמונות ואייקונים בזמן אמת.',
           },
           {
             q: 'האם תלמידים יכולים להזמין שיעורים מקוון?',
@@ -232,7 +232,7 @@ const GUIDES: Guide[] = [
 <h2>مقارنة: المنصّات العامة مقابل أداة مخصّصة لمدرّبي القيادة</h2>
 <table>
 <tr><th>الميزة</th><th>المنصّات العامة (Wix، Squarespace، ذكاء اصطناعي عام)</th><th>Mumotor (مخصّص لمدرّبي القيادة)</th></tr>
-<tr><td>موقع احترافي</td><td>نعم</td><td>نعم — 12 تصميماً، بدون برمجة</td></tr>
+<tr><td>موقع احترافي</td><td>نعم</td><td>نعم — 18 تصميماً، بدون برمجة</td></tr>
 <tr><td>مبني لمدرّبي القيادة</td><td>لا (عام)</td><td>نعم — باقات، ناقل حركة، مناطق، رموز يومية</td></tr>
 <tr><td>حجز الدروس عبر الإنترنت</td><td>إضافة / غير مضمّن</td><td>مضمّن، مع حماية من الحجز المزدوج</td></tr>
 <tr><td>تسجيل الطلاب والحسابات</td><td>لا</td><td>مضمّن (رمز لمرّة واحدة + منطقة دخول للطالب)</td></tr>
@@ -254,7 +254,7 @@ const GUIDES: Guide[] = [
           },
           {
             q: 'هل أحتاج مهارات برمجة لبناء موقع مدرسة قيادة؟',
-            a: 'لا. Mumotor بدون برمجة: تجيب عن معالج قصير، تختار أحد 12 تصميماً، ويُنشأ الموقع. ثم تحرّر النص والألوان والصور والأيقونات مباشرةً.',
+            a: 'لا. Mumotor بدون برمجة: تجيب عن معالج قصير، تختار أحد 18 تصميماً، ويُنشأ الموقع. ثم تحرّر النص والألوان والصور والأيقونات مباشرةً.',
           },
           {
             q: 'هل يمكن للطلاب حجز الدروس عبر الإنترنت؟',
@@ -276,14 +276,14 @@ const GUIDES: Guide[] = [
         title: 'How to build a driving instructor website (step-by-step, 2026)',
         description:
           'Step-by-step: how a driving instructor builds a professional website with online booking in minutes — no code — using Mumotor. Trilingual Hebrew/Arabic/English.',
-        tldr: `You can build a professional driving-instructor website with online booking in <b>minutes, without code</b>. Answer a short wizard about your lessons and schedule, pick one of 12 designs, customise text and photos, and publish. With <b>Mumotor</b> the same setup also creates your booking system, student enrollment and automatic reminders — so students can book lessons the moment the site is live. It's trilingual (Hebrew/Arabic/English) and ₪199/month, all included.`,
+        tldr: `You can build a professional driving-instructor website with online booking in <b>minutes, without code</b>. Answer a short wizard about your lessons and schedule, pick one of 18 designs, customise text and photos, and publish. With <b>Mumotor</b> the same setup also creates your booking system, student enrollment and automatic reminders — so students can book lessons the moment the site is live. It's trilingual (Hebrew/Arabic/English) and ₪199/month, all included.`,
         bodyHtml: `
 <h2>Step 1 — Enter your business details</h2>
 <p>Your name, city, transmission (manual, automatic or both), and languages. Mumotor uses these to tailor the site copy and FAQ automatically.</p>
 <h2>Step 2 — Set up lessons, schedule and pricing</h2>
 <p>Add your working days and hours, lesson duration, price per lesson and any packages (e.g. a 10-lesson block), plus your booking window. This same information powers the online booking system.</p>
 <h2>Step 3 — Pick a design</h2>
-<p>Choose one of 12 professional designs. Every design is fully editable — text, colours, photos and icons — with no code.</p>
+<p>Choose one of 18 professional designs. Every design is fully editable — text, colours, photos and icons — with no code.</p>
 <h2>Step 4 — Customise and publish</h2>
 <p>Fine-tune the copy and images live, then publish. Your site goes live at a shareable link, installable as a home-screen app for you and your students.</p>
 <h2>Step 5 — Take bookings and manage students</h2>
@@ -307,14 +307,14 @@ const GUIDES: Guide[] = [
         title: 'איך לבנות אתר למורה נהיגה (שלב אחר שלב, 2026)',
         description:
           'שלב אחר שלב: איך מורה נהיגה בונה אתר מקצועי עם הזמנות מקוונות תוך דקות — ללא קוד — עם Mumotor. תלת-לשוני עברית/ערבית/אנגלית.',
-        tldr: `אפשר לבנות אתר מקצועי למורה נהיגה עם הזמנות מקוונות תוך <b>דקות, ללא קוד</b>. עונים על אשף קצר על השיעורים והלוח, בוחרים אחד מ-12 עיצובים, מתאימים טקסט ותמונות, ומפרסמים. עם <b>Mumotor</b> אותה הגדרה יוצרת גם את מערכת ההזמנות, רישום התלמידים והתזכורות האוטומטיות — כך שתלמידים יכולים להזמין שיעורים ברגע שהאתר עולה. תלת-לשוני (עברית/ערבית/אנגלית) ו-₪199 לחודש, הכול כלול.`,
+        tldr: `אפשר לבנות אתר מקצועי למורה נהיגה עם הזמנות מקוונות תוך <b>דקות, ללא קוד</b>. עונים על אשף קצר על השיעורים והלוח, בוחרים אחד מ-18 עיצובים, מתאימים טקסט ותמונות, ומפרסמים. עם <b>Mumotor</b> אותה הגדרה יוצרת גם את מערכת ההזמנות, רישום התלמידים והתזכורות האוטומטיות — כך שתלמידים יכולים להזמין שיעורים ברגע שהאתר עולה. תלת-לשוני (עברית/ערבית/אנגלית) ו-₪199 לחודש, הכול כלול.`,
         bodyHtml: `
 <h2>שלב 1 — הזינו את פרטי העסק</h2>
 <p>השם, העיר, תיבת ההילוכים (ידני, אוטומט או שניהם), והשפות. Mumotor משתמש בזה כדי להתאים אוטומטית את תוכן האתר והשאלות הנפוצות.</p>
 <h2>שלב 2 — הגדירו שיעורים, לוח זמנים ותמחור</h2>
 <p>הוסיפו ימי ושעות עבודה, משך שיעור, מחיר לשיעור וחבילות (למשל חבילת 10 שיעורים), וחלון ההזמנות. אותו מידע מפעיל את מערכת ההזמנות המקוונת.</p>
 <h2>שלב 3 — בחרו עיצוב</h2>
-<p>בחרו אחד מ-12 עיצובים מקצועיים. כל עיצוב ניתן לעריכה מלאה — טקסט, צבעים, תמונות ואייקונים — ללא קוד.</p>
+<p>בחרו אחד מ-18 עיצובים מקצועיים. כל עיצוב ניתן לעריכה מלאה — טקסט, צבעים, תמונות ואייקונים — ללא קוד.</p>
 <h2>שלב 4 — התאימו ופרסמו</h2>
 <p>כווננו את הטקסט והתמונות בזמן אמת, ואז פרסמו. האתר עולה בכתובת לשיתוף, וניתן להתקנה כאפליקציה במסך הבית עבורכם ועבור התלמידים.</p>
 <h2>שלב 5 — קבלו הזמנות ונהלו תלמידים</h2>
@@ -338,14 +338,14 @@ const GUIDES: Guide[] = [
         title: 'كيف تبني موقعاً لمدرّب القيادة (خطوة بخطوة، 2026)',
         description:
           'خطوة بخطوة: كيف يبني مدرّب القيادة موقعاً احترافياً مع حجز عبر الإنترنت في دقائق — بدون برمجة — باستخدام Mumotor. ثلاثي اللغة عبري/عربي/إنجليزي.',
-        tldr: `يمكنك بناء موقع احترافي لمدرّب القيادة مع حجز عبر الإنترنت في <b>دقائق وبدون برمجة</b>. أجب عن معالج قصير حول دروسك وجدولك، اختر أحد 12 تصميماً، عدّل النص والصور، وانشر. مع <b>Mumotor</b> يُنشئ الإعداد نفسه أيضاً نظام الحجز وتسجيل الطلاب والتذكيرات التلقائية — بحيث يمكن للطلاب حجز الدروس لحظة نشر الموقع. ثلاثي اللغة (عبري/عربي/إنجليزي) و₪199 شهرياً شامل كل شيء.`,
+        tldr: `يمكنك بناء موقع احترافي لمدرّب القيادة مع حجز عبر الإنترنت في <b>دقائق وبدون برمجة</b>. أجب عن معالج قصير حول دروسك وجدولك، اختر أحد 18 تصميماً، عدّل النص والصور، وانشر. مع <b>Mumotor</b> يُنشئ الإعداد نفسه أيضاً نظام الحجز وتسجيل الطلاب والتذكيرات التلقائية — بحيث يمكن للطلاب حجز الدروس لحظة نشر الموقع. ثلاثي اللغة (عبري/عربي/إنجليزي) و₪199 شهرياً شامل كل شيء.`,
         bodyHtml: `
 <h2>الخطوة 1 — أدخل تفاصيل عملك</h2>
 <p>الاسم والمدينة وناقل الحركة (يدوي أو أوتوماتيك أو كلاهما) واللغات. يستخدم Mumotor ذلك لتخصيص محتوى الموقع والأسئلة الشائعة تلقائياً.</p>
 <h2>الخطوة 2 — أعدّ الدروس والجدول والأسعار</h2>
 <p>أضف أيام وساعات العمل ومدّة الدرس وسعر الدرس والباقات (مثل باقة 10 دروس) ونافذة الحجز. المعلومات نفسها تشغّل نظام الحجز عبر الإنترنت.</p>
 <h2>الخطوة 3 — اختر تصميماً</h2>
-<p>اختر أحد 12 تصميماً احترافياً. كل تصميم قابل للتحرير بالكامل — النص والألوان والصور والأيقونات — بدون برمجة.</p>
+<p>اختر أحد 18 تصميماً احترافياً. كل تصميم قابل للتحرير بالكامل — النص والألوان والصور والأيقونات — بدون برمجة.</p>
 <h2>الخطوة 4 — خصّص وانشر</h2>
 <p>اضبط النص والصور مباشرةً ثم انشر. يصبح موقعك مباشراً على رابط قابل للمشاركة، وقابلاً للتثبيت كتطبيق على الشاشة الرئيسية لك ولطلابك.</p>
 <h2>الخطوة 5 — استقبل الحجوزات وأدر الطلاب</h2>

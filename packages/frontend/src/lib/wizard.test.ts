@@ -44,7 +44,7 @@ describe('wizard config', () => {
       businessDescription: 'desc',
       city: 'Tel Aviv',
       address: 'St 1',
-      templateChoice: 'prestige',
+      templateChoice: 'nocturne',
       logoSrc: 'data:logo',
       carPhoto: 'data:car',
       gallery: ['data:g'],
@@ -53,7 +53,7 @@ describe('wizard config', () => {
     };
     const bc = toBusinessConfig(c) as Record<string, unknown>;
     expect(bc.bio).toBe('desc');
-    expect(bc.templateChoice).toBe('prestige');
+    expect(bc.templateChoice).toBe('nocturne');
     expect(bc.logoSrc).toBe('data:logo');
     expect(bc.carPhoto).toBe('data:car');
     expect(bc.gallery).toEqual(['data:g']);

@@ -1,7 +1,8 @@
 /* atelier account skin — the bespoke tailor's studio. Uses the template's own
    --at-* vars + Fraunces/Hanken fonts (inherited via .tmpl-atelier). Scoped to
-   .aat-. Signature: a measuring-tape readiness rail + dashed-thread swatch cards
-   + dotted order-book leaders. Colours are ONLY var(--at-*) / color-mix. */
+   .aat-. Signature: a measuring-tape strip on the next-fitting card, tailor's-tally
+   readiness figures (completed + upcoming) on tape-dashed underlines, dashed-thread
+   swatch cards + dotted order-book leaders. Colours are ONLY var(--at-*) / color-mix. */
 .account-root.account-atelier {
   background: var(--at-paper);
   color: var(--at-ink);

@@ -97,6 +97,14 @@ function num(v: unknown, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** Teacher-supplied colors are interpolated into a raw <style> block — only a
+ *  strict hex literal may pass (anything else = stored XSS on /site/:slug). */
+function safeColor(v: unknown): string | null {
+  return typeof v === 'string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v.trim())
+    ? v.trim()
+    : null;
+}
+
 function darken(hex: string, f: number): string {
   const n = hex.replace('#', '');
   if (n.length !== 6) return hex;
@@ -107,14 +115,17 @@ function darken(hex: string, f: number): string {
 export function buildSiteHtml(opts: BuildOpts): { html: string; metadata: Record<string, unknown> } {
   const preset = getPreset(opts.presetId);
   const c = opts.config ?? {};
-  const colors = { ...preset.colors, ...(c.colors?.primary ? { primary: c.colors.primary } : {}), ...(c.colors?.accent ? { accent: c.colors.accent } : {}) };
-  if (c.colors?.primary) colors.primaryDark = darken(c.colors.primary, 0.18);
+  const primary = safeColor(c.colors?.primary);
+  const accent = safeColor(c.colors?.accent);
+  const colors = { ...preset.colors, ...(primary ? { primary } : {}), ...(accent ? { accent } : {}) };
+  if (primary) colors.primaryDark = darken(primary, 0.18);
   const frontendUrl = opts.frontendUrl ?? env.FRONTEND_URL;
   const slug = opts.website.slug;
   const schoolName = opts.website.name;
   const teacher = c.teacherName || schoolName;
   const tagline = c.tagline || 'Your road to confidence';
-  const locale = c.locale || 'en';
+  // Interpolated into the <html lang> attribute — allowlist, never raw config.
+  const locale = c.locale === 'he' || c.locale === 'ar' ? c.locale : 'en';
   const dir = locale === 'he' || locale === 'ar' ? 'rtl' : 'ltr';
 
   const passRate = num(c.passRate, 95);

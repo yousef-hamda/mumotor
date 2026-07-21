@@ -71,7 +71,7 @@
 .aps-next-note { color: var(--ps-muted); margin-top: 6px; font-size: 0.86rem; }
 .aps-next-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
-/* ── READINESS — printed gauge (SIGNATURE) ──────────────────────────────────── */
+/* ── READINESS — two printed figures + the wax seal (SIGNATURE) ─────────────── */
 .aps-progress { display: flex; align-items: center; gap: clamp(20px, 4vw, 34px); flex-wrap: wrap; }
 .aps-progress-seal { flex-shrink: 0; }
 .aps-progress-body { flex: 1; min-width: 220px; }

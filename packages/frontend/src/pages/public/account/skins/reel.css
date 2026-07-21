@@ -41,7 +41,7 @@
 .arl-frame-empty { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: clamp(20px, 4vw, 30px); flex-wrap: wrap; color: var(--rl-muted); }
 .arl-book { align-self: center; }
 
-/* Readiness — filmstrip gauge */
+/* Readiness — two timecode stat tiles */
 .arl-progress { border: 1px solid var(--rl-goldline); border-radius: 3px; background: var(--rl-panel); padding: clamp(16px, 3vw, 24px); }
 .arl-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .arl-tiles { display: flex; gap: 12px; flex-wrap: wrap; }

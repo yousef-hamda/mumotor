@@ -47,7 +47,11 @@ export function createApp() {
   // (mumotor.com + per-teacher subdomains, Vercel, Railway). Localhost only
   // outside production. Unknown origins get no CORS headers (browser blocks).
   const devOrigins = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/];
-  const prodHosts = [/(^|\.)mumotor\.com$/, /\.vercel\.app$/, /\.up\.railway\.app$/];
+  // Exact hosts only — a `*.vercel.app`-style wildcard would make ANY free
+  // deployment a credentialed origin (a standing CSRF trap if cookie auth ever
+  // returns). The app's own Railway host comes from the platform env.
+  const prodHosts = [/(^|\.)mumotor\.com$/];
+  const selfHost = process.env.RAILWAY_PUBLIC_DOMAIN || null;
   app.use(
     cors({
       origin(origin, cb) {
@@ -55,7 +59,9 @@ export function createApp() {
         if (origin === env.FRONTEND_URL) return cb(null, true);
         if (!isProd && devOrigins.some((r) => r.test(origin))) return cb(null, true);
         try {
-          if (prodHosts.some((r) => r.test(new URL(origin).host))) return cb(null, true);
+          const host = new URL(origin).host;
+          if (prodHosts.some((r) => r.test(host))) return cb(null, true);
+          if (selfHost && host === selfHost) return cb(null, true);
         } catch {
           /* malformed Origin header → not allowed */
         }
@@ -78,6 +84,13 @@ export function createApp() {
   app.use('/api', rateLimit({ keyPrefix: 'api-global', windowSeconds: 60, max: 1000 }));
   app.use('/api', routes);
   app.use('/api', notFoundHandler); // JSON 404 for unknown API routes
+  // These public routers live OUTSIDE /api, so the global backstop above never
+  // sees them — and a cache-missed /site/:slug (or /sitemap.xml) costs a DB
+  // query per request. Generous per-IP ceiling; humans never get near it.
+  app.use(
+    ['/site', '/robots.txt', '/sitemap.xml', '/llms.txt', '/llms-full.txt', '/guides', '/he/guides', '/ar/guides'],
+    rateLimit({ keyPrefix: 'public-pages', windowSeconds: 60, max: 300 })
+  );
   app.use(siteServingRoutes); // GET /site/:slug (published teacher sites)
   app.use(seoRoutes); // GET /robots.txt + /sitemap.xml + /llms.txt (search + AI engines)
   app.use(contentRoutes); // GET /guides + /guides/:slug (server-rendered GEO content, trilingual)

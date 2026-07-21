@@ -100,9 +100,9 @@ export default function Landing() {
           operatingSystem: 'Web, iOS, Android (PWA)',
           url: window.location.origin,
           description:
-            'No-code website builder and booking platform made specifically for driving instructors: a professional site (1 of 12 designs) in minutes, plus online lesson booking, one-time-code student enrollment, a student account area, packages and pricing, reviews, chat, and automatic emails — all from one dashboard. Trilingual Hebrew, Arabic and English with full RTL support.',
+            'No-code website builder and booking platform made specifically for driving instructors: a professional site (1 of 18 designs) in minutes, plus online lesson booking, one-time-code student enrollment, a student account area, packages and pricing, reviews, chat, and automatic emails — all from one dashboard. Trilingual Hebrew, Arabic and English with full RTL support.',
           featureList: [
-            'No-code website builder with 12 professional designs',
+            'No-code website builder with 18 professional designs',
             'Online lesson booking with double-booking protection',
             'Student enrollment via one-time daily code',
             'Student account area (booking, chat, profile)',

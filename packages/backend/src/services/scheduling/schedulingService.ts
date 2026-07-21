@@ -140,6 +140,23 @@ export async function buildDaySchedule(
     return { time, booked: false };
   });
 
+  // A booking made before the teacher changed duration/breaks/hours may no
+  // longer land on the regenerated grid — it must still show (and count), or
+  // the teacher never sees that student coming.
+  const gridTimes = new Set(allTimes);
+  for (const b of bookings) {
+    if (gridTimes.has(b.bookingTime)) continue;
+    slots.push({
+      time: b.bookingTime,
+      booked: true,
+      studentName: b.customerName,
+      studentEmail: b.customerEmail,
+      studentPhone: b.customerPhone ?? undefined,
+      bookingId: b.id,
+    });
+  }
+  slots.sort((a, b) => a.time.localeCompare(b.time));
+
   const bookedCount = slots.filter((s) => s.booked).length;
   return {
     date: dateStr,

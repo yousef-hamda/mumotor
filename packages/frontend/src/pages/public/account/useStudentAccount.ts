@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { apiError, studentPortalApi } from '../../../lib/api';
@@ -40,11 +40,14 @@ export function useStudentAccount(args: {
   const history = useQuery({ queryKey: ['student', 'history', websiteId], queryFn: () => studentPortalApi.history(websiteId), retry: false });
   const messages = useQuery({ queryKey: ['student', 'messages', websiteId], queryFn: () => studentPortalApi.messages(websiteId), refetchInterval: 8000, retry: false });
 
-  // Expired session (401) or paused enrollment (403) → sign out.
+  // Expired session (401) or paused enrollment (403) → sign out. Watch BOTH
+  // `me` AND the always-mounted 8s messages poll — otherwise a token that dies
+  // after `me` has settled keeps the poll hammering the API forever.
   useEffect(() => {
     const s = me.isError ? apiError(me.error).status : 0;
-    if (s === 401 || s === 403) onLogout();
-  }, [me.isError, me.error, onLogout]);
+    const ms = messages.isError ? apiError(messages.error).status : 0;
+    if (s === 401 || s === 403 || ms === 401 || ms === 403) onLogout();
+  }, [me.isError, me.error, messages.isError, messages.error, onLogout]);
 
   const sendMut = useMutation({
     mutationFn: (body: string) => studentPortalApi.sendMessage(websiteId, body),
@@ -60,6 +63,10 @@ export function useStudentAccount(args: {
     onError: (e) => toast.error(apiError(e).message),
   });
 
+  // Bumped whenever markMessagesSeen writes localStorage — localStorage alone
+  // causes no re-render, so without this the unread badge only cleared on the
+  // next 8s poll. The tick re-runs the `unread` derivation below immediately.
+  const [seenTick, setSeenTick] = useState(0);
   const markMessagesSeen = useCallback(() => {
     const list = messages.data;
     if (list && list.length) {
@@ -69,6 +76,7 @@ export function useStudentAccount(args: {
       } catch {
         /* ignore */
       }
+      setSeenTick((n) => n + 1);
     }
   }, [messages.data, websiteId]);
 
@@ -98,6 +106,7 @@ export function useStudentAccount(args: {
 
   const upcoming = lessons.data ?? [];
   const stats = me.data.stats ?? { upcoming: upcoming.length, completed: 0, total: upcoming.length };
+  void seenTick; // read here so the tick is part of this render's unread derivation
   const lastSeen = Number((() => { try { return localStorage.getItem(seenKey(websiteId)); } catch { return 0; } })() ?? 0);
   const unread = (messages.data ?? []).filter((m) => m.sender === 'TEACHER' && new Date(m.createdAt).getTime() > lastSeen).length;
 

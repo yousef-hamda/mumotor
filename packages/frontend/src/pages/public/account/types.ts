@@ -14,8 +14,9 @@ export interface AccountStats {
   completed: number;
   total: number;
 }
-/** Honest progress — ONLY real facts. No invented "lessons remaining"/target.
- *  `pct` is completed-vs-booked (0..1), for a ring/gauge fill. */
+/** Honest progress — ONLY real facts: the two stats every skin shows (lessons
+ *  completed + upcoming booked). No invented "lessons remaining"/target, no
+ *  percentage/meter. */
 export interface AccountReadiness {
   completed: number;
   upcoming: number;
@@ -85,6 +86,9 @@ export interface ProfileFormClassNames {
   hint?: string;
   input?: string;
   save?: string;
+  /** Inline validation message (invalid phone). Optional — skins that don't
+   *  style it get a sensible inline fallback from the primitive. */
+  error?: string;
 }
 export interface ProfileFormProps {
   student: AccountStudent;

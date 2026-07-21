@@ -4,9 +4,9 @@ import type { AccountSkinProps } from '../types';
 import '../../../../templates/sumi/sumi.css';
 import './sumi.css';
 
-/** sumi — a sumi-e (ink-wash) dashboard. The readiness panel is a brushed ENSO
- *  ring that draws itself to the completed percentage, with a vermilion HANKO
- *  seal stamping the student's initial. Lessons are calm ink-hairline rows.
+/** sumi — a sumi-e (ink-wash) dashboard. The readiness panel is two honest ink
+ *  figures (lessons completed + upcoming) beside a vermilion HANKO seal stamping
+ *  the student's initial. Lessons are calm ink-hairline rows.
  *  Warm washi paper, soft sumi ink, one vermilion accent. Scoped to .asu- and
  *  the template's --su-* vars. */
 export default function SumiAccount({ data, actions, ui }: AccountSkinProps) {

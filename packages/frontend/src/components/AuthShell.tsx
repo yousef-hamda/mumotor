@@ -23,8 +23,8 @@ export function AuthShell({ children, points }: { children: ReactNode; points: s
             {t('auth.brandHeadline')}
           </h2>
           <ul className="mt-10 space-y-5">
-            {points.map((p) => (
-              <li key={p} className="flex items-start gap-3">
+            {points.map((p, i) => (
+              <li key={i} className="flex items-start gap-3">
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-sand-400" strokeWidth={1.75} />
                 <span className="text-[15px] leading-relaxed text-sand-400">{p}</span>
               </li>

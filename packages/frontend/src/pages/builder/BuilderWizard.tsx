@@ -168,6 +168,17 @@ export default function BuilderWizard() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, user?.id, restorePrompt]);
+
+  // Autosave is paused while the restore banner is up — if the user keeps editing
+  // anyway, dismiss the banner (keeping their edits, restoring nothing) so the
+  // server draft resumes tracking what they type.
+  const bannerConfig = useRef<WizardConfig | null>(null);
+  useEffect(() => {
+    if (!restorePrompt) { bannerConfig.current = null; return; }
+    if (bannerConfig.current === null) { bannerConfig.current = config; return; }
+    if (config !== bannerConfig.current) setRestorePrompt(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, restorePrompt]);
   // Editing any real content field means the config is no longer "sample" data,
   // so a later language switch must NOT wipe it. Non-content keys don't flip it.
   const NON_CONTENT_KEYS = new Set<keyof WizardConfig>(['locale', 'localeTouched', 'sampleApplied', 'templateChoice', 'customization']);
@@ -206,7 +217,16 @@ export default function BuilderWizard() {
           // so the wizard PlansEditor stays the single source of truth (no desync).
           setConfig((cfg) => {
             const { plans, customization } = syncPackageOverrideToPlans(c, cfg.plans);
-            return { ...cfg, plans: plans ?? cfg.plans, customization: customization ?? undefined };
+            const nextPlans = plans ?? cfg.plans;
+            // Folded package edits are real user content — clear the sample marker so a
+            // later app-language switch can't clearSampleData() them away.
+            const plansChanged = nextPlans !== cfg.plans && JSON.stringify(nextPlans) !== JSON.stringify(cfg.plans);
+            return {
+              ...cfg,
+              plans: nextPlans,
+              customization: customization ?? undefined,
+              ...(plansChanged ? { sampleApplied: false } : {}),
+            };
           });
           toast.success(t('builder.changesSaved'), { position: 'bottom-center' });
         }}
@@ -216,7 +236,16 @@ export default function BuilderWizard() {
   }
 
   return (
-    <div className={cn('flex flex-col bg-sand-50', isDesign ? 'h-[100dvh] overflow-hidden' : 'min-h-screen')}>
+    <div
+      className={cn(
+        'flex flex-col bg-sand-50',
+        isDesign
+          ? // Viewport-locked, but on very short screens (landscape phone) fall back to
+            // normal page scrolling so the action buttons can't be clipped away.
+            'h-[100dvh] overflow-hidden [@media(max-height:480px)]:h-auto [@media(max-height:480px)]:min-h-[100dvh] [@media(max-height:480px)]:overflow-visible'
+          : 'min-h-screen'
+      )}
+    >
       <header className="glass sticky top-0 z-30 border-b border-white/50">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <Link to="/" aria-label={t('builder.mumotorHome')}><Logo size="sm" /></Link>
@@ -243,7 +272,18 @@ export default function BuilderWizard() {
             <span>{t('builder.restoreTitle')}</span>
             <div className="ms-auto flex gap-2">
               <button
-                onClick={() => { setConfig(restorePrompt); setRestorePrompt(null); toast.success(t('builder.draftRestored')); }}
+                onClick={() => {
+                  // A restored draft must honour "site language ALWAYS mirrors app
+                  // language" (the sync effect only fires on app-language CHANGE): force
+                  // the locale, and if the draft is showing sample data for a different
+                  // language, wipe it the same way the sync effect would.
+                  const lang = (i18n.language || '').toLowerCase();
+                  const loc: WizardConfig['locale'] = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
+                  const base = restorePrompt.sampleApplied && restorePrompt.locale !== loc ? clearSampleData(restorePrompt) : restorePrompt;
+                  setConfig({ ...base, locale: loc });
+                  setRestorePrompt(null);
+                  toast.success(t('builder.draftRestored'));
+                }}
                 className="btn-primary !py-1.5 text-xs"
               >
                 {t('builder.restoreCta')}
@@ -401,7 +441,7 @@ function Stepper({ current }: { current: number }) {
         {labels.map((label, i) => {
           const state = i < current ? 'complete' : i === current ? 'current' : 'upcoming';
           return (
-            <li key={label} className={cn('flex items-center', i < labels.length - 1 && 'flex-1')}>
+            <li key={i} className={cn('flex items-center', i < labels.length - 1 && 'flex-1')}>
               <div className="flex items-center gap-2">
                 <span
                   aria-current={state === 'current' ? 'step' : undefined}

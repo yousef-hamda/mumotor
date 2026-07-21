@@ -6,8 +6,9 @@ import './deco.css';
 
 /** deco — the golden age of the automobile. Champagne ivory with emerald + gold
  *  Art-Deco geometry: the next lesson on an engraved plate framed by a sunburst
- *  fan, readiness on a brass floor-dial gauge, upcoming/history framed by gold
- *  hairlines and chevron rules. Gold is ornament only; text is ink/emerald. */
+ *  fan, readiness as two engraved figures (lessons completed + upcoming),
+ *  upcoming/history framed by gold hairlines and chevron rules. Gold is ornament
+ *  only; text is ink/emerald. */
 export default function DecoAccount({ data, actions, ui }: AccountSkinProps) {
   const t = ui.t;
   const { student, readiness, next, upcoming, history, messages, unread } = data;
