@@ -4,10 +4,17 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# Migrations run as a SEPARATE step (do not chain into the start command):
-#   railway run npm run db:deploy --workspace @mumotor/backend
-startCommand = "node packages/backend/dist/index.js"
+# Migrations apply automatically at container start, BEFORE the server boots:
+# `prisma migrate deploy` runs inside the container against DATABASE_URL
+# (postgres.railway.internal) — no public TCP proxy, no `railway ssh` needed
+# (both are unreachable from a dev machine on a network that filters high ports).
+# It only applies PENDING migrations (idempotent, never resets). If a migration
+# fails, node never starts → the healthcheck fails → Railway keeps the previous
+# healthy deployment up (fail-closed). `prisma` ships in the prod image as a
+# runtime dependency so the CLI binary is present. Watch a rollout with: railway logs.
+startCommand = "sh -c './node_modules/.bin/prisma migrate deploy --schema packages/backend/prisma/schema.prisma && node packages/backend/dist/index.js'"
 healthcheckPath = "/api/health"
-healthcheckTimeout = 30
+# Headroom so migrate deploy can finish before the first healthcheck must pass.
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
