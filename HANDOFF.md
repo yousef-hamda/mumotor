@@ -1,3 +1,29 @@
+# Handoff — July 20–21, 2026 (Student-dashboard readiness redesign + demo video re-sync)
+
+All shipped & **DEPLOYED to mumotor.com** (frontend-only, no migration). Detail in the `bespoke-student-dashboards`
+and `free-trial-and-marketing-video` memories.
+
+- **Readiness section redesigned across ALL 18 student dashboards** (`pages/public/account/skins/*`). Owner feedback:
+  "hours driven" is a bad metric and a completion percentage is misleading — but the completed-lessons and upcoming-lessons
+  counts are useful. So each skin's readiness section is now **exactly two honest stats — lessons completed + upcoming** —
+  styled in that template's own language. **Removed everywhere:** the `hoursDriven` stat AND the percentage (both the number
+  and its visual device — ring / gauge / floor-dial / gauge-bar / odometer / constellation / enso ring / tape-rail). Shared
+  change: `AccountReadiness` (types.ts) dropped `hoursDriven`/`pct`; `useStudentAccount` stopped computing them (backend
+  `GET /student/history` still returns `hoursDriven`, now unused — kept for the history timeline). Each skin kept a signature
+  ornament that is NOT a meter (sumi hanko seal, press wax seal). Built via 4 parallel subagents (one contract). Verified:
+  typecheck + build clean; **live-swept all 18** dashboards (no %, no hours, both stats, 0 overflow, 0 console errors);
+  RTL (he/ar) mirrors correctly. **commit 6eb14ba.**
+  - Live-sweep trick: switch `Website.selectedPreset` (it OVERRIDES `configuration.templateChoice` in the settings resolver);
+    log in ONCE then reload per template to dodge the per-email student-login rate-limit.
+- **Demo videos re-synced to the new readiness** (`public/media/marketing.{en,he,ar}.{mp4,webm}` + posters, `?v=9`,
+  `CinematicHero.tsx` V=9). The "student signs in and books" beat shows the gallery dashboard; its shot was re-captured
+  (now two-stat readiness) and all 3 re-rendered. NO other beat changed. **commit 2984322.** Earlier same-day the same beat
+  was first re-cut to show the bespoke gallery dashboard at all (was the old tabbed `book-shell`) as `?v=8` (commit 3d54eba).
+  - Video how-to + the **`shots/` vs `shots_en/` gotcha** (EN reads `shots/`, only AR/HE use the `_lang` suffix) are in the
+    `free-trial-and-marketing-video` memory. Pre-dashboard videos saved at `marketing/video-archive/pre-dashboard-2026-07-20/`.
+
+---
+
 # Handoff — July 16, 2026 (Backend security hardening — 4 pillars)
 
 Full audit + hardening of **Authentication · Rate Limiting · Row-Level Security · Server-Side Validation** (from a 4-agent

@@ -193,9 +193,10 @@ template design** — they are NOT the old app "sand" look.
   query → `AccountData`/`AccountActions`), `AccountFrame` (wraps in `.tmpl-<slug>` + `customization.theme` inline + fonts +
   PWA identity), headless `ChatThread`/`ProfileForm` primitives, `registry.ts` lazy `ACCOUNT_SKINS` (fallback `_default`).
   Each `skins/<slug>.tsx`+`.css` imports its template CSS, colours ONLY via `var(--<slug>…)`/`color-mix` (recolour-safe),
-  reuses `.xx-btn/.xx-panel`. Features: next lesson + Book, progress/readiness (**HONEST facts only** — completed + hoursDriven
-  + done-vs-booked ring, NO invented "remaining"), history/timeline, chat + profile. Backend: additive `GET /student/history`.
-  Full detail in the `bespoke-student-dashboards` memory.
+  reuses `.xx-btn/.xx-panel`. Features: next lesson + Book, **readiness (Jul 20: ONLY two honest stats — lessons completed +
+  upcoming; the "hours driven" stat and the percentage/meter device were REMOVED per owner feedback — `AccountReadiness` no
+  longer has `hoursDriven`/`pct`)**, history/timeline, chat + profile. Backend: additive `GET /student/history` (still returns
+  `hoursDriven`, now unused, kept for the history timeline). Full detail in the `bespoke-student-dashboards` memory.
 - **Booking is TOMORROW-ONLY** (`BookLesson.tsx`): no multi-day grid — books `upcomingDates(2)[1]`, gated by the teacher's
   daily booking window; "No classes tomorrow" when closed. Slots render **start–end** ("08:00 – 09:00", `slotRange()`) with
   a header "Each lesson is N min · arrive 5 minutes early". Done screen: Book-another + Back-to-home + My account. The
