@@ -20,7 +20,8 @@ COPY package.json package-lock.json* ./
 COPY packages/backend/package.json packages/backend/package.json
 RUN npm install --omit=dev --workspace @mumotor/backend --include-workspace-root
 COPY packages/backend/prisma ./packages/backend/prisma
-# reuse the Prisma client generated during the build stage (prisma CLI is a devDep)
+# reuse the Prisma client generated during the build stage (the prisma CLI itself is a
+# runtime dep now — railway.toml runs `prisma migrate deploy` at container start)
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=build /app/packages/backend/dist ./packages/backend/dist

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTenantSlug } from '../../lib/tenant';
+import { SitePausedScreen, isSuspended, type PausedInfo } from '../../components/public/SitePaused';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock } from 'lucide-react';
@@ -195,6 +196,9 @@ export default function BookLesson() {
         <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
+  // Frozen (SUSPENDED) site → on-brand paused screen instead of a form that posts to
+  // /driving-school/undefined/… (the suspended payload has no id) with an English error.
+  if (isSuspended(settings)) return <SitePausedScreen settings={settings as PausedInfo} />;
   if (isError || !settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>

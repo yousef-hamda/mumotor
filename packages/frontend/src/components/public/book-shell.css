@@ -17,7 +17,9 @@
 .book-shell-glow {
   position: fixed;
   inset-block-start: -18vh;
-  inset-inline-start: 50%;
+  /* Physical left (not inset-inline-start) so translateX(-50%) centers the glow in
+     BOTH LTR and RTL — under RTL inset-inline-start = right, which pushed it off-screen. */
+  left: 50%;
   transform: translateX(-50%);
   width: 80vw;
   max-width: 900px;

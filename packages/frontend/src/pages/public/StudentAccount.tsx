@@ -9,6 +9,7 @@ import { TEMPLATES } from '../../templates/registry';
 import { dirForLocale } from '../../lib/templateTheme';
 import { bookLocale, bookT, type BookLocale } from '../../lib/bookingStrings';
 import { useTenantSlug } from '../../lib/tenant';
+import { SitePausedScreen, isSuspended, type PausedInfo } from '../../components/public/SitePaused';
 import { TemplatedShell, BookButton, BookCard, BookField, BookInput, BookSpinner } from '../../components/public/TemplatedShell';
 import { AccountFrame } from './account/AccountFrame';
 import { getAccountSkin } from './account/registry';
@@ -41,6 +42,9 @@ export default function StudentAccount() {
         <BookSpinner label={bookT(L, 'loading')} />
       </TemplatedShell>
     );
+  // Frozen (SUSPENDED) site → on-brand paused screen. Its payload has no id, so the
+  // login/dashboard below would post to /driving-school/undefined/… (#10).
+  if (isSuspended(settings)) return <SitePausedScreen settings={settings as PausedInfo} />;
   if (!settings)
     return (
       <TemplatedShell slug={slug} publicSlug={websiteSlug}>

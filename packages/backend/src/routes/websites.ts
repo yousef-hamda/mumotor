@@ -83,41 +83,51 @@ router.post(
   asyncHandler(async (req, res) => {
     // One website per account on the free plan; extra sites are ₪199/mo each.
     const state = await getAccountState(req.user!.id);
-    if (!state.canAddWebsite) {
-      throw new ApiError(
+    const quotaError = () =>
+      new ApiError(
         402,
         state.locked
           ? `Your free month has ended. Subscribe for ₪${WEBSITE_PRICE}/month to keep your website online.`
           : `Your plan includes ${state.quota} website${state.quota === 1 ? '' : 's'}. Additional websites are ₪${WEBSITE_PRICE}/month each.`,
         'PAYMENT_REQUIRED'
       );
-    }
+    if (!state.canAddWebsite) throw quotaError();
 
     const data = createSchema.parse(req.body);
     const slug = await ensureUniqueSlug(slugify(data.slug || data.name));
 
-    const website = await prisma.website.create({
-      data: {
-        userId: req.user!.id,
-        name: data.name.trim(),
-        slug,
-        tagline: data.tagline?.trim(),
-        businessCategory: 'DRIVING_SCHOOL',
-        status: 'DRAFT',
-        selectedPreset: data.selectedPreset ?? getPreset().id,
-        locale: data.locale ?? 'HE',
-        configuration: {
-          classDuration: DEFAULTS.classDuration,
-          advanceBookingDays: 1, // students book for the next day only
-          bookingCutoffHour: DEFAULTS.bookingCutoffHour,
-          dailyCodeEnabled: true,
-          breakTimes: [],
-          ...(data.configuration ?? {}),
+    // Enforce the quota under a per-user transaction lock so two concurrent creates
+    // can't both pass the count check and exceed the free-tier limit (TOCTOU). The
+    // advisory lock is released when the transaction commits/rolls back.
+    const website = await prisma.$transaction(async (tx) => {
+      // $executeRaw (not $queryRaw) — pg_advisory_xact_lock returns void, which $queryRaw
+      // can't deserialize. We only want the lock's side effect, not a returned row.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${req.user!.id}))`;
+      const count = await tx.website.count({ where: { userId: req.user!.id } });
+      if (count >= state.quota) throw quotaError();
+      return tx.website.create({
+        data: {
+          userId: req.user!.id,
+          name: data.name.trim(),
+          slug,
+          tagline: data.tagline?.trim(),
+          businessCategory: 'DRIVING_SCHOOL',
+          status: 'DRAFT',
+          selectedPreset: data.selectedPreset ?? getPreset().id,
+          locale: data.locale ?? 'HE',
+          configuration: {
+            classDuration: DEFAULTS.classDuration,
+            advanceBookingDays: 1, // students book for the next day only
+            bookingCutoffHour: DEFAULTS.bookingCutoffHour,
+            dailyCodeEnabled: true,
+            breakTimes: [],
+            ...(data.configuration ?? {}),
+          },
+          settings: { create: { businessHours: defaultBusinessHours } },
+          services: { create: { name: 'Driving Lesson', duration: DEFAULTS.classDuration, price: 0 } },
         },
-        settings: { create: { businessHours: defaultBusinessHours } },
-        services: { create: { name: 'Driving Lesson', duration: DEFAULTS.classDuration, price: 0 } },
-      },
-      include: { settings: true },
+        include: { settings: true },
+      });
     });
 
     res.status(201).json({ website });
@@ -171,6 +181,14 @@ router.patch(
       },
       include: { settings: true },
     });
+    // The PWA manifest/icon derive from name/preset/theme (not publishedHtml), so a
+    // rename or accent change here must drop them or they'd serve stale branding for
+    // up to 5 min. (site:<slug> HTML is unchanged until republish, so it's left alone.)
+    await Promise.all([
+      kv.del(`manifest:${website.slug}:path`),
+      kv.del(`manifest:${website.slug}:sub`),
+      kv.del(`icon:${website.slug}`),
+    ]);
     res.json({ website });
   })
 );

@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { prisma } from '../lib/prisma.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
+import { requireActiveAccount } from '../middleware/requireActiveAccount.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, forbidden, notFound } from '../utils/errors.js';
@@ -52,6 +53,7 @@ async function ownWebsite(id: string, userId: string) {
 router.post(
   '/websites/:websiteId/media',
   verifyToken,
+  requireActiveAccount,
   rateLimit({ keyPrefix: 'media-upload', windowSeconds: 600, max: 40, keyFn: (req) => req.user?.id ?? 'anon' }),
   asyncHandler(async (req, res) => {
     await ownWebsite(req.params.websiteId, req.user!.id);

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { verifyToken } from '../middleware/auth.js';
+import { requireActiveAccount } from '../middleware/requireActiveAccount.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { forbidden, notFound } from '../utils/errors.js';
@@ -41,7 +42,12 @@ router.post(
 // GET /reviews/public/:websiteId — approved reviews (for the public site)
 router.get(
   '/public/:websiteId',
+  rateLimit({ keyPrefix: 'reviews-public', windowSeconds: 60, max: 60 }),
   asyncHandler(async (req, res) => {
+    // Only a PUBLISHED site exposes its reviews — a frozen/unpublished site is offline,
+    // so its testimonials shouldn't be scrapeable by anyone who kept the websiteId.
+    const site = await prisma.website.findUnique({ where: { id: req.params.websiteId }, select: { status: true } });
+    if (!site || site.status !== 'PUBLISHED') return res.json({ reviews: [] });
     const reviews = await prisma.review.findMany({
       where: { websiteId: req.params.websiteId, status: 'APPROVED' },
       orderBy: { createdAt: 'desc' },
@@ -53,6 +59,8 @@ router.get(
 
 // --- teacher ---
 router.use(verifyToken);
+// Teacher write actions (approve/reply/delete) are blocked for a locked account.
+router.use(requireActiveAccount);
 
 // GET /reviews?websiteId=
 router.get(

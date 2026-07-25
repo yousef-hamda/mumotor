@@ -2,12 +2,15 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { verifyToken } from '../middleware/auth.js';
+import { requireActiveAccount } from '../middleware/requireActiveAccount.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest } from '../utils/errors.js';
 
 const router = Router();
 router.use(verifyToken);
+// Saving/clearing a draft is an edit action → blocked when the account is locked.
+router.use(requireActiveAccount);
 
 // The config blob is the frontend's WizardConfig, stored opaquely (one per user).
 const MAX_CONFIG_BYTES = 200 * 1024; // photos are data-URLs; cap abuse without breaking normal drafts

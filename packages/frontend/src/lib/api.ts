@@ -219,10 +219,13 @@ export interface PublicReview {
 }
 export const reviewsApi = {
   list: (websiteId: string) => api.get<{ reviews: Review[] }>('/reviews', { params: { websiteId } }).then((r) => r.data.reviews),
+  // Public student surfaces → the public axios instance (no teacher Bearer + no
+  // 401-force-logout interceptor, which would log a teacher out of their own app if
+  // they browsed their public site and one of these 401'd).
   create: (data: { websiteId: string; studentName: string; rating: number; comment: string }) =>
-    api.post<{ review: { id: string; status: string } }>('/reviews', data).then((r) => r.data.review),
+    publicApi.post<{ review: { id: string; status: string } }>('/reviews', data).then((r) => r.data.review),
   publicList: (websiteId: string) =>
-    api.get<{ reviews: PublicReview[] }>(`/reviews/public/${websiteId}`).then((r) => r.data.reviews),
+    publicApi.get<{ reviews: PublicReview[] }>(`/reviews/public/${websiteId}`).then((r) => r.data.reviews),
   update: (id: string, data: { status?: 'PENDING' | 'APPROVED' | 'REJECTED'; reply?: string }) =>
     api.patch<{ review: Review }>(`/reviews/${id}`, data).then((r) => r.data.review),
   remove: (id: string) => api.delete<{ deleted: boolean }>(`/reviews/${id}`).then((r) => r.data),
@@ -438,19 +441,6 @@ export const drivingSchoolApi = {
       .then((r) => r.data),
   validateDailyCode: (websiteId: string, data: { code: string; date: string }) =>
     publicApi.post<{ valid: boolean }>(`/driving-school/${websiteId}/daily-code/validate`, data).then((r) => r.data),
-  selfDeactivate: (data: { email: string; websiteId: string; enrollmentCode: string }) =>
-    publicApi.post<{ status: string; message: string }>('/driving-school/self-deactivate', data).then((r) => r.data),
-  myBookings: (websiteId: string, data: { email: string; enrollmentCode: string }) =>
-    publicApi
-      .post<{ bookings: { id: string; date: string; time: string; duration: number; cancellable: boolean }[] }>(
-        `/driving-school/${websiteId}/my-bookings`,
-        data
-      )
-      .then((r) => r.data.bookings),
-  cancelMyBooking: (websiteId: string, bookingId: string, data: { email: string; enrollmentCode: string }) =>
-    publicApi
-      .post<{ cancelled: boolean }>(`/driving-school/${websiteId}/bookings/${bookingId}/cancel-by-student`, data)
-      .then((r) => r.data),
   requestMagicLink: (websiteId: string, email: string) =>
     publicApi.post<{ sent: boolean }>(`/driving-school/${websiteId}/request-magic-link`, { email }).then((r) => r.data),
 

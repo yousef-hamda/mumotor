@@ -88,7 +88,7 @@ export function SiteInstallPill({ slug, locale }: { slug: string; locale: BookLo
       className="book-install-pill"
       style={{
         position: 'fixed',
-        insetInlineStart: '50%',
+        left: '50%',
         transform: 'translateX(-50%)',
         bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
         zIndex: 60,
@@ -148,7 +148,7 @@ export function SiteInstallPill({ slug, locale }: { slug: string; locale: BookLo
           style={{
             position: 'absolute',
             bottom: 'calc(100% + 10px)',
-            insetInlineStart: '50%',
+            left: '50%',
             transform: 'translateX(-50%)',
             width: 'min(280px, calc(100vw - 32px))',
             padding: '10px 12px',

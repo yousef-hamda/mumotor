@@ -16,9 +16,12 @@ export function formatDateLong(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-/** BookLocale ('en'|'he'|'ar') → BCP-47 tag (Gregorian + Latin digits forced). */
+/** BookLocale ('en'|'he'|'ar') → BCP-47 tag (Gregorian + Latin digits forced).
+ *  Case-insensitive so the raw Prisma Locale enum ('HE'/'AR'/'EN') works too — a
+ *  caller passing 'HE' used to silently fall back to English dates. */
 function bcpFor(locale?: string): string {
-  return locale === 'he' ? 'he' : locale === 'ar' ? 'ar' : 'en-US';
+  const l = locale?.toLowerCase();
+  return l === 'he' ? 'he' : l === 'ar' ? 'ar' : 'en-US';
 }
 
 /** Locale-aware long date — words follow the site language, digits stay Latin (0-9). */

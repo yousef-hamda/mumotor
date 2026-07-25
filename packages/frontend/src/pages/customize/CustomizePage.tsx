@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { websiteApi } from '../../lib/api';
 import { CenteredSpinner } from '../../components/ui';
 import CustomizeMode from '../../components/customize/CustomizeMode';
-import { publicToTemplateData, syncPackageOverrideToPlans, type PublicSiteData } from '../../templates/fromWizard';
+import { publicToTemplateData, syncPackageOverrideToPlans, reconcilePackageOverride, type PublicSiteData } from '../../templates/fromWizard';
 import { TEMPLATES } from '../../templates/registry';
 import type { PlanInput } from '../../lib/wizard';
 import type { Customization } from '../../templates/customize/overrides';
@@ -14,6 +14,7 @@ import type { Customization } from '../../templates/customize/overrides';
 export default function CustomizePage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: website, isLoading } = useQuery({ queryKey: ['website', id], queryFn: () => websiteApi.get(id) });
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -42,7 +43,12 @@ export default function CustomizePage() {
       socialLinks: (cfg.socialLinks as Record<string, string>) ?? null,
     };
     const slug = input.template && TEMPLATES.some((t) => t.slug === input.template) ? input.template : TEMPLATES[0].slug;
-    return { baseData: publicToTemplateData(input), slug, value: (cfg.customization as Customization) ?? undefined, plans: input.plans ?? undefined };
+    const baseData = publicToTemplateData(input);
+    // Drop a stale packages override that structurally desyncs from the plans so the
+    // editor shows the same cards the live site does (and Save can't launder it into
+    // plans). Matches the live render path in buildTemplateData.
+    const value = reconcilePackageOverride((cfg.customization as Customization) ?? undefined, baseData.packages.length) ?? undefined;
+    return { baseData, slug, value, plans: input.plans ?? undefined };
   }, [website]);
 
   useEffect(() => () => clearTimeout(saveTimer.current), []);
@@ -57,7 +63,12 @@ export default function CustomizePage() {
       const { plans, customization } = syncPackageOverrideToPlans(c, built?.plans);
       const configuration: Record<string, unknown> = { customization };
       if (plans) configuration.plans = plans;
-      await websiteApi.update(id, { configuration });
+      const updated = await websiteApi.update(id, { configuration });
+      // Refresh the cache with the server truth so re-opening the editor doesn't render
+      // a stale pre-save snapshot and overwrite this save on the next edit (H1). Also
+      // refresh the dashboard site list.
+      queryClient.setQueryData(['website', id], updated);
+      queryClient.invalidateQueries({ queryKey: ['websites'] });
       // Bottom-center so it never covers the top-right Save/Done buttons.
       toast.success('Saved', { position: 'bottom-center' });
     } catch (e) {

@@ -368,18 +368,17 @@ async function main() {
     ok('bulk-email reports sentCount', typeof r.json?.sentCount === 'number' && r.json.sentCount >= 1, r.json);
   }
 
-  // --- Self-deactivate ---
-  section('Self-deactivate');
+  // --- Deactivate (teacher) → availability blocked ---
+  // The legacy email+enrollment-code self-service routes were removed (the shared
+  // signup code is not a per-student secret); the teacher deactivates instead.
+  section('Deactivate student → availability blocked');
   {
-    const wrong = await req('POST', '/driving-school/self-deactivate', {
-      body: { email: student, websiteId, enrollmentCode: 'WRONGCODE' },
-    });
-    ok('self-deactivate wrong code → 401', wrong.status === 401, wrong.json);
+    const list = await req('GET', `/driving-school/${websiteId}/students?search=${encodeURIComponent(student)}`, { token });
+    const me = list.json?.students?.find((s) => s.studentEmail === student);
+    ok('found student to deactivate', !!me?.id, list.json);
 
-    const good = await req('POST', '/driving-school/self-deactivate', {
-      body: { email: student, websiteId, enrollmentCode: 'DRIVE2026' },
-    });
-    ok('self-deactivate correct code → INACTIVE', good.status === 200 && good.json?.status === 'INACTIVE', good.json);
+    const off = await req('PATCH', `/driving-school/${websiteId}/students/${me?.id}/toggle-status`, { token });
+    ok('teacher deactivate → INACTIVE', off.status === 200 && off.json?.enrollment?.status === 'INACTIVE', off.json);
 
     // now inactive → availability blocked
     const avail = await req('GET', `/driving-school/${websiteId}/public-availability?date=${utcDate(5)}&email=${student}`);

@@ -11,7 +11,7 @@ import {
   appTomorrowUtcMidnight,
   minutesUntilLessonInZone,
 } from '../../utils/time.js';
-import { buildDaySchedule, ensureDailyCode, normalizeConfig } from '../scheduling/schedulingService.js';
+import { buildDaySchedule, ensureDailyCode, getDayHours, normalizeConfig } from '../scheduling/schedulingService.js';
 import {
   sendBookingReminder,
   sendDailyBookingOpen,
@@ -108,12 +108,17 @@ export async function processReviewRequests(): Promise<number> {
 // ── Per-site senders (reused by the tick + the all-sites wrappers) ──────────────
 
 type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration' | 'locale'> & {
+  settings: Pick<SiteSettings, 'businessHours'> | null;
   enrollments: Pick<ClientEnrollment, 'studentEmail' | 'studentName'>[];
 };
 
 /** Email every ACTIVE student of one site that booking is open for tomorrow. */
 async function sendBookingOpenForSite(site: SiteForBookingOpen): Promise<number> {
-  const forDate = appTomorrowUtcMidnight(env.APP_TIMEZONE).toISOString().slice(0, 10);
+  const tomorrow = appTomorrowUtcMidnight(env.APP_TIMEZONE);
+  // Don't tell students "booking is open" when the school is closed tomorrow — they'd
+  // land on "No classes tomorrow". Skip the blast entirely on a closed day.
+  if (!getDayHours(site.settings ?? null, tomorrow)) return 0;
+  const forDate = tomorrow.toISOString().slice(0, 10);
   const bookingUrl = `${env.FRONTEND_URL}/p/${site.slug}/book-lesson`;
   const brand = siteBrand(site);
   let sent = 0;
@@ -159,7 +164,7 @@ async function sendReportForSite(
 export async function processDailyStudentNotifications(): Promise<number> {
   const websites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
-    include: { enrollments: { where: { status: 'ACTIVE' } } },
+    include: { settings: true, enrollments: { where: { status: 'ACTIVE' } } },
   });
   let sent = 0;
   for (const site of websites) sent += await sendBookingOpenForSite(site);

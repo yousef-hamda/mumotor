@@ -36,11 +36,38 @@ export function formatMsgTime(iso: string, L: BookLocale): string {
 export function ChatThread({ messages, loading, onSend, sending, onSeen, L, classNames, placeholder, sendLabel, sendIcon }: ChatThreadProps) {
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Latest values read from inside the mount-once observer without re-subscribing.
+  const onSeenRef = useRef(onSeen);
+  onSeenRef.current = onSeen;
+  const hasMsgsRef = useRef(messages.length > 0);
+  hasMsgsRef.current = messages.length > 0;
+  const visibleRef = useRef(false);
 
+  // Auto-scroll to the newest message whenever the thread changes.
   useEffect(() => {
-    if (messages.length) onSeen();
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  // Mark "seen" only when the thread is actually ON SCREEN — not merely mounted below
+  // the fold. The skins render this chat inline (no tabs), so marking on mount cleared
+  // the unread badge the instant the dashboard loaded, even for an off-screen message (M4).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        visibleRef.current = entries.some((e) => e.isIntersecting);
+        if (visibleRef.current && hasMsgsRef.current) onSeenRef.current();
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // A new message arriving while the thread is already visible also counts as seen.
+  useEffect(() => {
+    if (visibleRef.current && messages.length) onSeenRef.current();
   }, [messages]);
 
   const submit = (e: React.FormEvent) => {

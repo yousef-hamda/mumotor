@@ -78,10 +78,28 @@ export function siteBrand(site: { name: string; configuration?: unknown; locale?
 
 /** From header: the school as the display name over the Mumotor address. */
 function fromField(brand?: EmailBrand): string | { name: string; address: string } {
-  const name = (brand?.fromName ?? brand?.schoolName)?.replace(/[<>"\r\n]/g, '').trim().slice(0, 78);
+  // Strip control chars (header-injection) but KEEP the rest — quoting/encoding
+  // (see encodeDisplayName) makes commas/quotes/non-ASCII safe rather than deleting them.
+  const name = (brand?.fromName ?? brand?.schoolName)?.replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, 78);
   if (!name) return env.EMAIL_FROM;
   const address = env.EMAIL_FROM.match(/<([^>]+)>/)?.[1] ?? env.EMAIL_FROM;
   return { name, address };
+}
+
+/** Make a display name safe to splice into a raw "Name <addr>" From string.
+ *  Non-ASCII (Hebrew/Arabic school names) → RFC-2047 encoded-word; a name with
+ *  characters that break the mailbox grammar (comma, quote, angle bracket, …) →
+ *  RFC-5322 quoted-string. Plain ASCII names pass through unchanged. Without this a
+ *  school named "Cohen, Levi & Sons" produced a malformed From that Resend/SES reject,
+ *  silently failing EVERY branded email for that tenant. */
+function encodeDisplayName(name: string): string {
+  if (/[^ -~]/.test(name)) {
+    return `=?UTF-8?B?${Buffer.from(name, 'utf8').toString('base64')}?=`;
+  }
+  if (/["(),.:;<>@[\]\\]/.test(name)) {
+    return `"${name.replace(/([\\"])/g, '\\$1')}"`;
+  }
+  return name;
 }
 
 export interface SendArgs {
@@ -97,7 +115,7 @@ export interface SendArgs {
 /** From header as an RFC 5322 string ("Name <addr>") for the Resend API. */
 function fromString(brand?: EmailBrand): string {
   const f = fromField(brand);
-  return typeof f === 'string' ? f : `${f.name} <${f.address}>`;
+  return typeof f === 'string' ? f : `${encodeDisplayName(f.name)} <${f.address}>`;
 }
 
 async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {

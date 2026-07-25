@@ -136,18 +136,64 @@ export default function CustomizeMode({
     hist.set({ ...hist.current, theme });
   }, [hist]);
 
-  // Locate the persisted top-level array + the direct parent array for an item path.
-  const resolveList = useCallback((itemPath: string) => {
+  // Compute the customization that results from committing one field edit — SYNC
+  // (so Save/Done can include an in-progress edit without waiting for setState).
+  const computeCommit = useCallback((base: Customization, path: string, raw: string): Customization => {
+    // Read from the SAME pruned view the DOM renders (`data`), so a data-edit index
+    // resolves to the item the user actually sees. Reading from the unpruned override
+    // let an edit land on a healed-away foreign row / resurrect it (M5).
+    const d = base === hist.current ? data : applyOverrides(baseData, pruneForeignLocaleLabels(base, baseData.locale));
+    const root = arrayRootOf(d, path);
+    if (root) {
+      const arr = clone(getPath(d, root)) as unknown[];
+      const rel = path.slice(root.length).replace(/^\./, '');
+      const last = path.split('.').pop()!;
+      const v: unknown = last === 'price' || last === 'value' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
+      setPath({ _: arr } as Record<string, unknown>, `_.${rel}`, v);
+      return { ...base, fields: { ...(base.fields ?? {}), [root]: arr } };
+    }
+    return { ...base, fields: { ...(base.fields ?? {}), [path]: raw } };
+  }, [baseData, data, hist]);
+
+  // Pull the in-progress contentEditable edit (and clear it), or null.
+  const takeEditing = (): { path: string; text: string } | null => {
+    const el = editingRef.current;
+    if (!el) return null;
+    const path = el.dataset.edit!;
+    const text = el.innerText.replace(/\n+$/, '').trim();
+    el.contentEditable = 'false';
+    editingRef.current = null;
+    return { path, text };
+  };
+
+  // Fold any in-progress edit into a customization value WITHOUT touching history —
+  // so a caller (a list op) can hist.set ONCE, combining the edit with its own change.
+  // Returns the base unchanged when there is no real edit (same no-op guard as below).
+  const takeEditingValue = useCallback((base: Customization): Customization => {
+    const e = takeEditing();
+    return e && e.text !== editOrigRef.current ? computeCommit(base, e.path, e.text) : base;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [computeCommit]);
+
+  // Locate the persisted top-level array + the direct parent array for an item path,
+  // against a specific rendered VIEW (so list ops resolve indices from the same view
+  // the user sees, including any just-flushed in-progress edit).
+  const resolveListIn = useCallback((view: unknown, itemPath: string) => {
     const { parentPath, index } = splitItem(itemPath);
-    const store = arrayRootOf(data, itemPath) ?? parentPath;
-    const storeArr = clone(getPath(data, store)) as unknown[];
+    const store = arrayRootOf(view, itemPath) ?? parentPath;
+    const storeArr = clone(getPath(view, store)) as unknown[];
     const rel = parentPath.slice(store.length).replace(/^\./, '');
     const parentArr = (rel ? getPath({ _: storeArr }, `_.${rel}`) : storeArr) as unknown[];
     return { store, storeArr, parentArr, index };
-  }, [data]);
+  }, []);
 
   const listOp = useCallback((itemPath: string, op: 'add' | 'remove') => {
-    const { store, storeArr, parentArr, index } = resolveList(itemPath);
+    // Flush any in-progress edit into the base FIRST, then run the list op against the
+    // resulting view and persist BOTH in a single hist.set — otherwise the list op's
+    // write (built from stale render-time state) clobbers the just-typed edit (M2).
+    const committed = takeEditingValue(hist.current);
+    const view = applyOverrides(baseData, pruneForeignLocaleLabels(committed, baseData.locale));
+    const { store, storeArr, parentArr, index } = resolveListIn(view, itemPath);
     if (!Array.isArray(parentArr)) return;
     if (op === 'add') {
       // FAQs get a CLEAN empty question+answer (not a clone) so the new answer box
@@ -160,23 +206,25 @@ export default function CustomizeMode({
     } else {
       parentArr.splice(index, 1);
     }
-    pushFields({ [store]: storeArr });
+    hist.set({ ...committed, fields: { ...(committed.fields ?? {}), [store]: storeArr } });
     setHover(null);
-  }, [resolveList, pushFields]);
+  }, [baseData, hist, takeEditingValue, resolveListIn]);
 
-  // Reorder within the same group (grab & drop).
+  // Reorder within the same group (grab & drop). Same flush-then-combine as listOp.
   const move = useCallback((fromPath: string, toPath: string) => {
     if (groupOf(fromPath) !== groupOf(toPath)) return;
     const from = splitItem(fromPath).index;
     const to = splitItem(toPath).index;
     if (from === to || Number.isNaN(from) || Number.isNaN(to)) return;
-    const { store, storeArr, parentArr } = resolveList(fromPath);
+    const committed = takeEditingValue(hist.current);
+    const view = applyOverrides(baseData, pruneForeignLocaleLabels(committed, baseData.locale));
+    const { store, storeArr, parentArr } = resolveListIn(view, fromPath);
     if (!Array.isArray(parentArr)) return;
     const [moved] = parentArr.splice(from, 1);
     parentArr.splice(to, 0, moved);
-    pushFields({ [store]: storeArr });
+    hist.set({ ...committed, fields: { ...(committed.fields ?? {}), [store]: storeArr } });
     setHover(null);
-  }, [resolveList, pushFields]);
+  }, [baseData, hist, takeEditingValue, resolveListIn]);
 
   // Index-based reorder (▲/▼ buttons) — the touch-friendly path that works with any
   // input device, unlike HTML5 drag. Keeps the controls on the item at its new index.
@@ -194,42 +242,15 @@ export default function CustomizeMode({
     }
   }, [data, move]);
 
-  // Compute the customization that results from committing one field edit — SYNC
-  // (so Save/Done can include an in-progress edit without waiting for setState).
-  const computeCommit = useCallback((base: Customization, path: string, raw: string): Customization => {
-    const d = applyOverrides(baseData, base);
-    const root = arrayRootOf(d, path);
-    if (root) {
-      const arr = clone(getPath(d, root)) as unknown[];
-      const rel = path.slice(root.length).replace(/^\./, '');
-      const last = path.split('.').pop()!;
-      const v: unknown = last === 'price' || last === 'value' ? Number(raw.replace(/[^\d.]/g, '')) || 0 : raw;
-      setPath({ _: arr } as Record<string, unknown>, `_.${rel}`, v);
-      return { ...base, fields: { ...(base.fields ?? {}), [root]: arr } };
-    }
-    return { ...base, fields: { ...(base.fields ?? {}), [path]: raw } };
-  }, [baseData]);
-
-  // Pull the in-progress contentEditable edit (and clear it), or null.
-  const takeEditing = (): { path: string; text: string } | null => {
-    const el = editingRef.current;
-    if (!el) return null;
-    const path = el.dataset.edit!;
-    const text = el.innerText.replace(/\n+$/, '').trim();
-    el.contentEditable = 'false';
-    editingRef.current = null;
-    return { path, text };
-  };
-
   const commitEditing = useCallback(() => {
-    const e = takeEditing();
     // Skip a no-op edit: if the text is unchanged from what the field showed when
     // editing began, don't persist it. This stops a localized default (e.g. an
     // Arabic "Book now") from being frozen into an override just by clicking the
     // field — which previously leaked the wrong language after a language switch.
-    if (e && e.text !== editOrigRef.current) hist.set(computeCommit(hist.current, e.path, e.text));
+    const c = takeEditingValue(hist.current);
+    if (c !== hist.current) hist.set(c);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hist, computeCommit]);
+  }, [hist, takeEditingValue]);
 
   // ── click to select / edit ─────────────────────────────────────────────────
   const onCanvasClick = useCallback((e: React.MouseEvent) => {
@@ -387,11 +408,22 @@ export default function CustomizeMode({
     commitField(path, url);
   }, [websiteId, commitField]);
 
+  // Pull any in-progress edit and fold it in — but ONLY if the text actually changed
+  // from what the field showed when editing began. Committing an unchanged edit would
+  // freeze a rendered localized default into an override (the July-18 language-leak
+  // bug); commitEditing() already guards this, so doSave/doDone must too.
+  const flushEditing = (): Customization => {
+    const e = takeEditing();
+    if (e && e.text !== editOrigRef.current) {
+      const c = computeCommit(hist.current, e.path, e.text);
+      hist.set(c);
+      return c;
+    }
+    return hist.current;
+  };
   const doSave = async () => {
     if (saving) return;
-    const e = takeEditing();
-    const c = e ? computeCommit(hist.current, e.path, e.text) : hist.current;
-    if (e) hist.set(c);
+    const c = flushEditing();
     setSaving(true);
     try {
       // Await the persist and only mark "Saved" if it actually succeeded — otherwise
@@ -406,9 +438,7 @@ export default function CustomizeMode({
   };
   const doDone = () => {
     if (saving) return;
-    const e = takeEditing();
-    const c = e ? computeCommit(hist.current, e.path, e.text) : hist.current;
-    if (e) hist.set(c);
+    const c = flushEditing();
     if (JSON.stringify(c) !== savedRef.current && !window.confirm(t('customize.discardConfirm'))) return;
     onDone();
   };
@@ -496,10 +526,10 @@ export default function CustomizeMode({
             onDragEnd={() => { dragSrc.current = null; setDropTarget(null); }}
             className="hidden h-7 w-7 cursor-grab place-items-center rounded-md bg-white text-sand-500 shadow ring-1 ring-sand-200 hover:text-sand-800 active:cursor-grabbing mouse:grid"
           ><GripVertical className="h-4 w-4" /></button>
-          <button title={t('customize.moveUp')} aria-label={t('customize.moveUp')} disabled={idx <= 0} onClick={() => { commitEditing(); moveItem(hover.path, -1); }} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronUp className="h-4 w-4" /></button>
-          <button title={t('customize.moveDown')} aria-label={t('customize.moveDown')} disabled={idx >= len - 1} onClick={() => { commitEditing(); moveItem(hover.path, 1); }} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronDown className="h-4 w-4" /></button>
-          <button title={t('customize.addItem')} aria-label={t('customize.addItem')} onClick={() => { commitEditing(); listOp(hover.path, 'add'); }} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500 coarse:h-11 coarse:w-11"><Plus className="h-4 w-4" /></button>
-          <button title={t('customize.removeItem')} aria-label={t('customize.removeItem')} onClick={() => { commitEditing(); listOp(hover.path, 'remove'); }} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50 coarse:h-11 coarse:w-11"><Trash2 className="h-4 w-4" /></button>
+          <button title={t('customize.moveUp')} aria-label={t('customize.moveUp')} disabled={idx <= 0} onClick={() => moveItem(hover.path, -1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronUp className="h-4 w-4" /></button>
+          <button title={t('customize.moveDown')} aria-label={t('customize.moveDown')} disabled={idx >= len - 1} onClick={() => moveItem(hover.path, 1)} className="hidden h-7 w-7 place-items-center rounded-md bg-white text-sand-600 shadow ring-1 ring-sand-200 hover:text-sand-900 disabled:opacity-30 touch:grid coarse:h-11 coarse:w-11"><ChevronDown className="h-4 w-4" /></button>
+          <button title={t('customize.addItem')} aria-label={t('customize.addItem')} onClick={() => listOp(hover.path, 'add')} className="grid h-7 w-7 place-items-center rounded-md bg-purple-600 text-white shadow hover:bg-purple-500 coarse:h-11 coarse:w-11"><Plus className="h-4 w-4" /></button>
+          <button title={t('customize.removeItem')} aria-label={t('customize.removeItem')} onClick={() => listOp(hover.path, 'remove')} className="grid h-7 w-7 place-items-center rounded-md bg-white text-ember-600 shadow ring-1 ring-sand-200 hover:bg-ember-50 coarse:h-11 coarse:w-11"><Trash2 className="h-4 w-4" /></button>
         </div>
         );
       })()}

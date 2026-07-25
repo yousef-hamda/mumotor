@@ -68,7 +68,23 @@ function esc(s: unknown): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    // Escape ' too so a value inside a single-quoted context (e.g. background-image:
+    // url('...')) can't break out and inject extra CSS/markup.
+    .replace(/'/g, '&#39;');
+}
+
+/** Sanitize a teacher-controlled link URL: allow only http/https/mailto/tel and
+ *  relative/anchor URLs. A javascript:/data: URL would execute in the visitor's
+ *  browser on our origin (the legacy /site/:slug page has no CSP), so anything with
+ *  another scheme collapses to "#"; a bare host is promoted to https. */
+function safeHref(url: unknown): string {
+  const v = String(url ?? '').trim();
+  if (!v) return '#';
+  if (/^(https?:|mailto:|tel:)/i.test(v)) return esc(v);
+  if (/^[/#?]/.test(v)) return esc(v); // relative / anchor / query-only
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(v)) return esc(`https://${v}`); // no scheme → assume https
+  return '#'; // some other scheme (javascript:, data:, …) → drop
 }
 
 const DEFAULT_SERVICES: LessonType[] = [
@@ -529,7 +545,7 @@ function renderReviews(x: Ctx): string {
     <p class="eyebrow reveal">${esc(r.eyebrow)}</p><h2 class="h2 reveal">${esc(r.title)}</h2>
     <div class="reviews-grid">
       ${x.reviews.map((rv, i) => `<div class="review reveal" style="transition-delay:${i * 70}ms">
-        <div class="stars">${'★'.repeat(Math.round(rv.rating || 5))}</div>
+        <div class="stars">${'★'.repeat(Math.min(5, Math.max(0, Math.round(Number(rv.rating) || 5))))}</div>
         <p>"${esc(rv.comment)}"</p><b>${esc(rv.name)}</b>
       </div>`).join('')}
     </div>
@@ -606,7 +622,7 @@ function renderFooter(x: Ctx): string {
   const socials = x.c.socialLinks || {};
   const links = Object.entries(socials)
     .filter(([, v]) => v)
-    .map(([k, v]) => `<a href="${esc(v)}" target="_blank" rel="noopener">${esc(k)}</a>`)
+    .map(([k, v]) => `<a href="${safeHref(v)}" target="_blank" rel="noopener">${esc(k)}</a>`)
     .join('');
   return `<footer class="footer"><div class="container footer-inner">
     <div>© ${new Date().getFullYear()} ${esc(x.schoolName)} · ${esc(x.tagline)}</div>

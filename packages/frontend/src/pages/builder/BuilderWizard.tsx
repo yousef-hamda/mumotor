@@ -10,7 +10,7 @@ import { Logo, LogoMark } from '../../components/Logo';
 import { Button, Field, Input, NumberInput, Select, Textarea } from '../../components/ui';
 import { FadeUp, Stagger } from '../../components/motion';
 import { TEMPLATES, type TemplateMeta } from '../../templates/registry';
-import { wizardToTemplateData, syncPackageOverrideToPlans } from '../../templates/fromWizard';
+import { wizardToTemplateData, syncPackageOverrideToPlans, reconcilePackageOverride } from '../../templates/fromWizard';
 import { TemplateRender } from '../../templates/TemplateRender';
 import { TemplateConcept, MumotorAccentDots } from '../../templates/TemplateConcept';
 import CustomizeMode from '../../components/customize/CustomizeMode';
@@ -95,6 +95,9 @@ export default function BuilderWizard() {
     return c;
   });
   const [publishing, setPublishing] = useState(false);
+  // The DRAFT site id from a create() that succeeded before a later publish step failed,
+  // so a retry resumes it instead of orphaning it + burning the free-tier quota (M7).
+  const createdSiteId = useRef<string | null>(null);
   const [result, setResult] = useState<PublishResult | null>(null);
   const [searchParams] = useSearchParams();
 
@@ -207,11 +210,15 @@ export default function BuilderWizard() {
 
   // Customize is a full-screen mode of its own.
   if (step === 'customize') {
+    const czBase = wizardToTemplateData({ ...config, customization: undefined });
     return (
       <CustomizeMode
-        baseData={wizardToTemplateData({ ...config, customization: undefined })}
+        baseData={czBase}
         templateSlug={config.templateChoice || TEMPLATES[0].slug}
-        value={config.customization}
+        // Drop a stale packages override that structurally desyncs from the plans, so
+        // the editor shows the SAME cards the live site does (and a later Save can't
+        // launder the stale override back into plans). Matches the live render path.
+        value={reconcilePackageOverride(config.customization, czBase.packages.length) ?? undefined}
         onSave={(c: Customization) => {
           // Fold any Customize package edits (add/delete/rename/reorder) INTO the plans
           // so the wizard PlansEditor stays the single source of truth (no desync).
@@ -280,7 +287,18 @@ export default function BuilderWizard() {
                   const lang = (i18n.language || '').toLowerCase();
                   const loc: WizardConfig['locale'] = lang.startsWith('he') ? 'HE' : lang.startsWith('ar') ? 'AR' : 'EN';
                   const base = restorePrompt.sampleApplied && restorePrompt.locale !== loc ? clearSampleData(restorePrompt) : restorePrompt;
-                  setConfig({ ...base, locale: loc });
+                  // The SERVER draft is photo-stripped (size cap), so restoring it wholesale
+                  // would silently drop the logo/car/instructor/gallery photos the local
+                  // config still holds. Keep the local images wherever the draft lacks them
+                  // (photo loss is worse than a removed photo reappearing).
+                  setConfig({
+                    ...base,
+                    locale: loc,
+                    logoSrc: base.logoSrc ?? config.logoSrc,
+                    carPhoto: base.carPhoto ?? config.carPhoto,
+                    instructorPhoto: base.instructorPhoto ?? config.instructorPhoto,
+                    gallery: base.gallery?.length ? base.gallery : config.gallery,
+                  });
                   setRestorePrompt(null);
                   toast.success(t('builder.draftRestored'));
                 }}
@@ -386,6 +404,18 @@ export default function BuilderWizard() {
     if ((config.gallery ?? []).some(isDataUrl)) {
       patch.gallery = await Promise.all((config.gallery ?? []).map((g) => up(g, 'GALLERY')));
     }
+    // Customize-in-the-builder photos live as base64 in customization.fields (no
+    // websiteId was available to upload them at edit time). Upload them now and send
+    // the WHOLE customization back (the PATCH shallow-merges configuration, so a partial
+    // customization would drop sibling keys).
+    const cz = config.customization as { fields?: Record<string, unknown> } | undefined;
+    if (cz?.fields && Object.values(cz.fields).some((v) => isDataUrl(v as string))) {
+      const fields: Record<string, unknown> = { ...cz.fields };
+      for (const [k, v] of Object.entries(cz.fields)) {
+        if (isDataUrl(v as string)) fields[k] = await up(v as string, 'GALLERY');
+      }
+      patch.customization = { ...cz, fields };
+    }
     if (Object.keys(patch).length) {
       await websiteApi.update(websiteId, { configuration: patch } as never);
     }
@@ -394,18 +424,29 @@ export default function BuilderWizard() {
   async function doPublish() {
     setPublishing(true);
     try {
-      const website = await websiteApi.create({
-        name: config.businessName.trim() || 'My Driving School',
-        tagline: config.tagline,
-        selectedPreset: config.templateChoice || TEMPLATES[0].slug,
-        locale: config.locale,
-        configuration: toBusinessConfig(config),
-      });
+      // Reuse the DRAFT site from a previous failed attempt instead of creating a new
+      // one — otherwise a retry mints a second site and a trial user (quota 1) hits a
+      // permanent 402 with an orphan draft eating their quota (M7).
+      let websiteId = createdSiteId.current;
+      if (!websiteId) {
+        const website = await websiteApi.create({
+          name: config.businessName.trim() || 'My Driving School',
+          tagline: config.tagline,
+          selectedPreset: config.templateChoice || TEMPLATES[0].slug,
+          locale: config.locale,
+          // Create WITHOUT the base64 images — a single 5 MB-allowed photo (base64 ≈ ×1.37)
+          // blows the backend's 2 MB configuration cap and 400s the whole publish. The
+          // images are uploaded to hosted URLs by swapDataUrlImages() right after (H2).
+          configuration: toBusinessConfig(stripDraftImages(config)),
+        });
+        websiteId = website.id;
+        createdSiteId.current = websiteId;
+      }
       // Swap any base64 data-URI images for real hosted URLs (best-effort): keeps
       // megabytes of base64 out of the DB/cache and lets the logo render in emails,
       // which strip data: URIs (M11/H4). If an upload fails we keep the base64.
-      await swapDataUrlImages(website.id);
-      await drivingSchoolApi.updateSettings(website.id, {
+      await swapDataUrlImages(websiteId);
+      await drivingSchoolApi.updateSettings(websiteId, {
         classDuration: config.classDuration,
         advanceBookingDays: 1,
         bookingCutoffHour: hourOf(config.reportTime, 18),
@@ -416,7 +457,8 @@ export default function BuilderWizard() {
         teacherName: config.teacherName || config.businessName,
         pricePerClass: config.pricePerClass,
       } as never);
-      const res = await websiteApi.publish(website.id);
+      const res = await websiteApi.publish(websiteId);
+      createdSiteId.current = null; // published successfully — no orphan to reuse
       clearWizard();
       void wizardDraftApi.remove().catch(() => { /* best-effort */ });
       setResult(res);
