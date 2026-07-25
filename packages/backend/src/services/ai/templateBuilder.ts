@@ -69,9 +69,18 @@ function esc(s: unknown): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    // Escape ' too so a value inside a single-quoted context (e.g. background-image:
-    // url('...')) can't break out and inject extra CSS/markup.
+    // Also escape ' — standard HTML escaping (safe for single-quoted attributes).
+    // NOTE: this does NOT secure a CSS url('…') inside a style attribute (the browser
+    // decodes &#39; back to ' before the CSS parser runs) — use cssUrl() for that.
     .replace(/'/g, '&#39;');
+}
+
+/** Sanitize a URL for a CSS url('…') context inside a style="" attribute. Escaping is
+ *  useless here because HTML entities are decoded BEFORE CSS parsing, so we strip the
+ *  characters that can break out of url('…'): quotes, parens, backslash, whitespace,
+ *  semicolon. A real image URL contains none of these. */
+function cssUrl(url: unknown): string {
+  return String(url ?? '').replace(/["'()\\\s;]/g, '');
 }
 
 /** Sanitize a teacher-controlled link URL: allow only http/https/mailto/tel and
@@ -589,7 +598,7 @@ function renderBook(x: Ctx): string {
   const t = x.t;
   let aside = '';
   if (layout === 'split') {
-    aside = `<div class="book-aside" style="background-image:url('${esc(x.heroImg)}')"></div>`;
+    aside = `<div class="book-aside" style="background-image:url('${cssUrl(x.heroImg)}')"></div>`;
   } else if (layout === 'sidebar' || layout === 'timeline') {
     aside = `<div class="book-aside"><h3>${esc(t.how.title)}</h3><ol>${t.how.steps.map((s) => `<li>${esc(s.h)}</li>`).join('')}</ol></div>`;
   }

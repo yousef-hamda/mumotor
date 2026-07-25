@@ -105,6 +105,7 @@ router.get(
 router.delete(
   '/media/:id',
   verifyToken,
+  requireActiveAccount,
   asyncHandler(async (req, res) => {
     const media = await prisma.media.findUnique({ where: { id: req.params.id }, include: { website: { select: { userId: true } } } });
     if (!media) throw notFound('Media not found');

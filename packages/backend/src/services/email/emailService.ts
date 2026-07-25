@@ -94,7 +94,23 @@ function fromField(brand?: EmailBrand): string | { name: string; address: string
  *  silently failing EVERY branded email for that tenant. */
 function encodeDisplayName(name: string): string {
   if (/[^ -~]/.test(name)) {
-    return `=?UTF-8?B?${Buffer.from(name, 'utf8').toString('base64')}?=`;
+    // RFC 2047: an encoded-word must be <= 75 chars total. "=?UTF-8?B?" + "?=" is 12,
+    // so cap each word's base64 at 60 chars and split the name on CODEPOINT boundaries
+    // (never mid-surrogate) so each word decodes independently. A long Hebrew/Arabic
+    // name would otherwise emit one oversized (non-conformant) word a strict provider
+    // could reject → the very silent-failure this function exists to prevent.
+    const words: string[] = [];
+    let chunk = '';
+    for (const ch of Array.from(name)) {
+      if (Buffer.from(chunk + ch, 'utf8').toString('base64').length > 60) {
+        words.push(`=?UTF-8?B?${Buffer.from(chunk, 'utf8').toString('base64')}?=`);
+        chunk = ch;
+      } else {
+        chunk += ch;
+      }
+    }
+    if (chunk) words.push(`=?UTF-8?B?${Buffer.from(chunk, 'utf8').toString('base64')}?=`);
+    return words.join(' ');
   }
   if (/["(),.:;<>@[\]\\]/.test(name)) {
     return `"${name.replace(/([\\"])/g, '\\$1')}"`;

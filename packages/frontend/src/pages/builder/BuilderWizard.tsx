@@ -424,21 +424,26 @@ export default function BuilderWizard() {
   async function doPublish() {
     setPublishing(true);
     try {
-      // Reuse the DRAFT site from a previous failed attempt instead of creating a new
-      // one — otherwise a retry mints a second site and a trial user (quota 1) hits a
-      // permanent 402 with an orphan draft eating their quota (M7).
+      // Build create/update fields from the CURRENT wizard state. Images are stripped —
+      // a single 5 MB-allowed photo (base64 ≈ ×1.37) blows the backend's 2 MB configuration
+      // cap and 400s the whole publish; swapDataUrlImages() uploads them right after (H2).
+      const fields = {
+        name: config.businessName.trim() || 'My Driving School',
+        tagline: config.tagline,
+        selectedPreset: config.templateChoice || TEMPLATES[0].slug,
+        locale: config.locale,
+        configuration: toBusinessConfig(stripDraftImages(config)),
+      };
+      // Reuse the DRAFT site from a previous failed attempt instead of creating a new one
+      // — otherwise a retry mints a second site and a trial user (quota 1) hits a permanent
+      // 402 with an orphan draft (M7). On reuse, PATCH the current name/template/locale/
+      // config onto it so edits made BETWEEN attempts (e.g. picking a different template)
+      // aren't silently published with the stale original values.
       let websiteId = createdSiteId.current;
-      if (!websiteId) {
-        const website = await websiteApi.create({
-          name: config.businessName.trim() || 'My Driving School',
-          tagline: config.tagline,
-          selectedPreset: config.templateChoice || TEMPLATES[0].slug,
-          locale: config.locale,
-          // Create WITHOUT the base64 images — a single 5 MB-allowed photo (base64 ≈ ×1.37)
-          // blows the backend's 2 MB configuration cap and 400s the whole publish. The
-          // images are uploaded to hosted URLs by swapDataUrlImages() right after (H2).
-          configuration: toBusinessConfig(stripDraftImages(config)),
-        });
+      if (websiteId) {
+        await websiteApi.update(websiteId, fields);
+      } else {
+        const website = await websiteApi.create(fields);
         websiteId = website.id;
         createdSiteId.current = websiteId;
       }

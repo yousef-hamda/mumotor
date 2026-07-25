@@ -91,7 +91,10 @@ export default function BookLesson() {
   // session for an INSTANT, reliable skip — no waiting on a network call. Older
   // sessions that predate saved info fall back to looking the student up.
   useEffect(() => {
-    if (token || !settings) return;
+    // `!settings.id` guards a frozen (SUSPENDED) site whose payload carries no id — the
+    // render returns the paused screen, but this mount effect runs first, so without the
+    // guard it would fire me(undefined) → /driving-school/undefined/student/me.
+    if (token || !settings || !settings.id) return;
     if (!studentTokenStore.activate(websiteSlug)) return;
     const info = studentTokenStore.info(websiteSlug);
     if (info?.email) {

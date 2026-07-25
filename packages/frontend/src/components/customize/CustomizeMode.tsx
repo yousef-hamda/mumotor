@@ -194,7 +194,12 @@ export default function CustomizeMode({
     const committed = takeEditingValue(hist.current);
     const view = applyOverrides(baseData, pruneForeignLocaleLabels(committed, baseData.locale));
     const { store, storeArr, parentArr, index } = resolveListIn(view, itemPath);
-    if (!Array.isArray(parentArr)) return;
+    if (!Array.isArray(parentArr)) {
+      // The list op can't run, but takeEditingValue already consumed the in-progress
+      // edit — persist it so a mis-tagged element can't silently drop the typed text.
+      if (committed !== hist.current) hist.set(committed);
+      return;
+    }
     if (op === 'add') {
       // FAQs get a CLEAN empty question+answer (not a clone) so the new answer box
       // starts blank and editable; other lists clone the neighbour to keep shape.
@@ -219,7 +224,10 @@ export default function CustomizeMode({
     const committed = takeEditingValue(hist.current);
     const view = applyOverrides(baseData, pruneForeignLocaleLabels(committed, baseData.locale));
     const { store, storeArr, parentArr } = resolveListIn(view, fromPath);
-    if (!Array.isArray(parentArr)) return;
+    if (!Array.isArray(parentArr)) {
+      if (committed !== hist.current) hist.set(committed); // don't drop the flushed edit
+      return;
+    }
     const [moved] = parentArr.splice(from, 1);
     parentArr.splice(to, 0, moved);
     hist.set({ ...committed, fields: { ...(committed.fields ?? {}), [store]: storeArr } });

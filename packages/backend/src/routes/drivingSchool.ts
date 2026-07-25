@@ -65,15 +65,6 @@ const teacher = [verifyToken, requireOwnership, requireActiveAccount];
 
 const normalizeEmail = (e: string) => e.trim().toLowerCase();
 
-const STUDENT_CANCEL_CUTOFF_MINUTES = 120; // students can cancel up to 2h before the lesson
-
-/** Minutes until a booking starts, in the app timezone wall-clock (negative = already started). */
-function minutesUntilLesson(bookingDate: Date, bookingTime: string): number {
-  const { ymd, hhmm } = nowInZone(env.APP_TIMEZONE);
-  const dayDiff = diffDaysUtc(toUtcMidnight(ymd), bookingDate);
-  return dayDiff * 24 * 60 + (parseTimeToMinutes(bookingTime) - parseTimeToMinutes(hhmm));
-}
-
 // get-or-create the single "Driving Lesson" service
 async function getOrCreateLessonService(
   tx: Prisma.TransactionClient,
