@@ -10,6 +10,7 @@ import { dirForLocale } from '../../lib/templateTheme';
 import { bookLocale, bookT, type BookLocale } from '../../lib/bookingStrings';
 import { useTenantSlug } from '../../lib/tenant';
 import { SitePausedScreen, isSuspended, type PausedInfo } from '../../components/public/SitePaused';
+import { GoogleIdButton, googleEnabled } from '../../components/GoogleAuthButton';
 import { TemplatedShell, BookButton, BookCard, BookField, BookInput, BookSpinner } from '../../components/public/TemplatedShell';
 import { AccountFrame } from './account/AccountFrame';
 import { getAccountSkin } from './account/registry';
@@ -156,6 +157,14 @@ function LoginCard({
     onError: (e) => toast.error(apiError(e).message),
   });
 
+  // Sign in with Google — stronger (Google proves the student owns the email) and
+  // one-click. Still requires an existing ACTIVE enrollment on this site.
+  const googleLogin = useMutation({
+    mutationFn: (credential: string) => studentPortalApi.googleLogin(websiteId, credential),
+    onSuccess: (res) => onSuccess(res.token, { email: res.student.email, name: res.student.name }),
+    onError: (e) => toast.error(apiError(e).message),
+  });
+
   return (
     <BookCard>
       <p className="book-eyebrow">{bookT(L, 'studentAccount')}</p>
@@ -178,6 +187,18 @@ function LoginCard({
           {bookT(L, 'signIn')} <ArrowRight className="book-arrow" style={{ height: '1rem', width: '1rem' }} />
         </BookButton>
       </form>
+      {googleEnabled && (
+        <div style={{ marginTop: '1.3rem' }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.55 }}
+          >
+            <span style={{ height: 1, flex: 1, background: 'var(--book-line)', opacity: 0.6 }} />
+            {bookT(L, 'orDivider')}
+            <span style={{ height: 1, flex: 1, background: 'var(--book-line)', opacity: 0.6 }} />
+          </div>
+          <GoogleIdButton onCredential={(c) => googleLogin.mutate(c)} locale={L} disabled={googleLogin.isPending} width={300} />
+        </div>
+      )}
       <p className="book-sub" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
         {bookT(L, 'newStudent')}{' '}
         <Link to={`/p/${slug}/enroll`} className="book-link">

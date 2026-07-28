@@ -100,6 +100,7 @@ export interface BookStrings {
   signInHelper: string;
   signIn: string;
   newStudent: string;
+  orDivider: string;
   enrollWithCode: string;
   loadingAccount: string;
   accountLoadError: string;
@@ -230,6 +231,7 @@ const en: BookStrings = {
   signInHelper: 'Enter the email you enrolled with — no code needed.',
   signIn: 'Sign in',
   newStudent: 'New student?',
+  orDivider: 'or',
   enrollWithCode: 'Enroll with your code',
   loadingAccount: 'Loading your account…',
   accountLoadError: "We couldn't load your account. Please try again.",
@@ -358,6 +360,7 @@ const he: BookStrings = {
   signInHelper: 'הזינו את האימייל שאיתו נרשמתם — בלי צורך בקוד.',
   signIn: 'כניסה',
   newStudent: 'תלמיד חדש?',
+  orDivider: 'או',
   enrollWithCode: 'הרשמה עם הקוד שלכם',
   loadingAccount: 'טוען את האזור שלך…',
   accountLoadError: 'לא הצלחנו לטעון את החשבון שלך. נסו שוב.',
@@ -486,6 +489,7 @@ const ar: BookStrings = {
   signInHelper: 'أدخل البريد الذي سجّلت به — لا حاجة لرمز.',
   signIn: 'تسجيل الدخول',
   newStudent: 'طالب جديد؟',
+  orDivider: 'أو',
   enrollWithCode: 'سجّل برمزك',
   loadingAccount: 'جارٍ تحميل حسابك…',
   accountLoadError: 'تعذّر تحميل حسابك. يُرجى المحاولة مرة أخرى.',

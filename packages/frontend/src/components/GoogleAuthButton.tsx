@@ -8,6 +8,9 @@ import { apiError } from '../lib/api';
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const GSI_SRC = 'https://accounts.google.com/gsi/client';
 
+/** Is Google sign-in configured for this build? */
+export const googleEnabled = Boolean(CLIENT_ID);
+
 // Load the Google Identity Services script once, shared across mounts.
 let gsiPromise: Promise<void> | null = null;
 function loadGsi(): Promise<void> {
@@ -25,27 +28,87 @@ function loadGsi(): Promise<void> {
   return gsiPromise;
 }
 
-/** GIS locale codes are the base language (he/ar/en) — map from our app language. */
+/** GIS locale codes are the base language (he/ar/en) — map from our app/site language. */
 function gsiLocale(lang: string): string {
   const l = (lang || '').toLowerCase();
   return l.startsWith('he') ? 'he' : l.startsWith('ar') ? 'ar' : 'en';
 }
 
 /**
- * "Continue with Google" — renders the official Google Identity Services button, gets a
- * Google ID token, and exchanges it for our session via loginWithGoogle. Renders NOTHING
- * when VITE_GOOGLE_CLIENT_ID is unset (dormant, like the rest of the third-party integrations),
- * so the app is unchanged until Google is configured.
+ * The official Google Identity Services button. Presentational + framework-agnostic:
+ * it just gets a Google ID token (credential) and calls back. Reused by the teacher
+ * auth pages AND the student portal. Renders NOTHING when VITE_GOOGLE_CLIENT_ID is
+ * unset (dormant), so the whole Google path is tree-shaken out until configured.
+ */
+export function GoogleIdButton({
+  onCredential,
+  locale,
+  text = 'continue_with',
+  theme = 'outline',
+  width = 320,
+  disabled = false,
+}: {
+  onCredential: (credential: string) => void;
+  locale?: string;
+  text?: 'continue_with' | 'signin_with' | 'signup_with';
+  theme?: 'outline' | 'filled_blue' | 'filled_black';
+  width?: number;
+  disabled?: boolean;
+}) {
+  const holderRef = useRef<HTMLDivElement>(null);
+  const cbRef = useRef(onCredential);
+  cbRef.current = onCredential;
+
+  useEffect(() => {
+    if (!CLIENT_ID) return;
+    let cancelled = false;
+    loadGsi()
+      .then(() => {
+        const id = window.google?.accounts?.id;
+        if (cancelled || !holderRef.current || !id) return;
+        id.initialize({
+          client_id: CLIENT_ID!,
+          callback: (resp) => {
+            if (resp.credential) cbRef.current(resp.credential);
+          },
+        });
+        holderRef.current.innerHTML = '';
+        id.renderButton(holderRef.current, {
+          type: 'standard',
+          theme,
+          size: 'large',
+          text,
+          shape: 'pill',
+          width,
+          locale: gsiLocale(locale || 'en'),
+        });
+      })
+      .catch(() => {
+        /* offline / script blocked — button just won't appear, other login methods still work */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, text, theme, width]);
+
+  if (!CLIENT_ID) return null;
+  return <div ref={holderRef} className={`flex justify-center ${disabled ? 'pointer-events-none opacity-60' : ''}`} />;
+}
+
+/**
+ * "Continue with Google" for the TEACHER auth pages (login + register): renders the
+ * button, then exchanges the credential for a session via loginWithGoogle. Dormant
+ * (null) when Google isn't configured.
  */
 export function GoogleAuthButton({ redirectTo = '/dashboard' }: { redirectTo?: string }) {
   const { t, i18n } = useTranslation();
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const holderRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
-  // Keep the latest handler without re-initializing GIS on every render.
-  const handleRef = useRef<(credential: string) => void>(() => {});
-  handleRef.current = async (credential: string) => {
+
+  if (!CLIENT_ID) return null; // dormant until configured
+
+  const handle = async (credential: string) => {
     setBusy(true);
     try {
       await loginWithGoogle(credential);
@@ -58,40 +121,6 @@ export function GoogleAuthButton({ redirectTo = '/dashboard' }: { redirectTo?: s
     }
   };
 
-  useEffect(() => {
-    if (!CLIENT_ID) return;
-    let cancelled = false;
-    loadGsi()
-      .then(() => {
-        const id = window.google?.accounts?.id;
-        if (cancelled || !holderRef.current || !id) return;
-        id.initialize({
-          client_id: CLIENT_ID!,
-          callback: (resp) => {
-            if (resp.credential) handleRef.current(resp.credential);
-          },
-        });
-        holderRef.current.innerHTML = '';
-        id.renderButton(holderRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: 'continue_with',
-          shape: 'pill',
-          width: 320,
-          locale: gsiLocale(i18n.language),
-        });
-      })
-      .catch(() => {
-        /* offline / script blocked — the button simply doesn't appear, password login still works */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [i18n.language]);
-
-  if (!CLIENT_ID) return null; // dormant until configured
-
   return (
     <div className="mt-6">
       <div className="mb-5 flex items-center gap-3 text-xs uppercase tracking-wide text-sand-400">
@@ -99,7 +128,7 @@ export function GoogleAuthButton({ redirectTo = '/dashboard' }: { redirectTo?: s
         {t('auth.orDivider')}
         <span className="h-px flex-1 bg-sand-200" />
       </div>
-      <div ref={holderRef} className={`flex justify-center ${busy ? 'pointer-events-none opacity-60' : ''}`} />
+      <GoogleIdButton onCredential={handle} locale={i18n.language} disabled={busy} />
     </div>
   );
 }

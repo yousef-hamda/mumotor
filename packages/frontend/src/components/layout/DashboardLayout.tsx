@@ -166,9 +166,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <LanguageSwitcher className="w-full justify-start" />
         </div>
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand-900 text-sm font-semibold text-white">
-            {user?.name?.charAt(0) ?? 'M'}
-          </span>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand-900 text-sm font-semibold text-white">
+              {user?.name?.charAt(0) ?? 'M'}
+            </span>
+          )}
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-sand-900">{user?.name}</p>
             <p className="truncate text-xs text-sand-500">{user?.email}</p>

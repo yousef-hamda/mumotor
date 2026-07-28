@@ -142,6 +142,11 @@ export const studentPortalApi = {
     studentApi
       .post<{ token: string; student: StudentSummary }>(`/driving-school/${websiteId}/student/login`, data)
       .then((r) => r.data),
+  /** Sign in with Google: exchange the Google ID token for a student session. */
+  googleLogin: (websiteId: string, credential: string) =>
+    studentApi
+      .post<{ token: string; student: StudentSummary }>(`/driving-school/${websiteId}/student/google-login`, { credential })
+      .then((r) => r.data),
   me: (websiteId: string) =>
     studentApi.get<{ student: StudentSummary }>(`/driving-school/${websiteId}/student/me`).then((r) => r.data.student),
   updateProfile: (websiteId: string, data: { studentPhone?: string }) =>

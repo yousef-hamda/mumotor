@@ -7,7 +7,8 @@ import { verifyToken, requireStudent, signStudentToken } from '../middleware/aut
 import { requireActiveAccount } from '../middleware/requireActiveAccount.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
+import { ApiError, badRequest, conflict, forbidden, notFound, unauthorized } from '../utils/errors.js';
+import { verifyGoogleIdToken } from '../services/auth/googleAuth.js';
 import {
   hashEnrollmentCode,
   timingSafeEqualStr,
@@ -1157,6 +1158,29 @@ async function studentStats(websiteId: string, email: string) {
   return { upcoming, completed, total: upcoming + completed };
 }
 
+// Resolve a returning student (by email) to a session on a live site. Shared by the
+// email login and the Google login — the ONLY difference is how the email is trusted
+// (typed vs. Google-verified). Throws the same friendly errors either way.
+async function studentSessionByEmail(websiteId: string, rawEmail: string) {
+  const email = normalizeEmail(rawEmail);
+  const website = await prisma.website.findUnique({ where: { id: websiteId }, select: { status: true } });
+  // A frozen (unpaid) site takes its student portal down with it.
+  if (website?.status === 'SUSPENDED') throw forbidden('This site is currently paused.', 'SITE_PAUSED');
+  const enrollment = await prisma.clientEnrollment.findUnique({
+    where: { websiteId_studentEmail: { websiteId, studentEmail: email } },
+  });
+  if (!enrollment) {
+    throw unauthorized('No account found for this email. New students need the code from their instructor.', 'NO_ACCOUNT');
+  }
+  if (enrollment.status !== 'ACTIVE') {
+    throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
+  }
+  const token = signStudentToken({ sub: enrollment.id, kind: 'student', websiteId, email: enrollment.studentEmail });
+  // classCount here is the DERIVED non-cancelled total (the raw column double-counts).
+  const stats = await studentStats(websiteId, enrollment.studentEmail);
+  return { token, student: { ...studentSummary(enrollment), classCount: stats.total, stats } };
+}
+
 // POST /driving-school/:websiteId/student/login — a RETURNING student signs in
 // with just their email (no code). The one-time enrollment code is the gate for
 // NEW students only (at enroll time). Requires an ACTIVE enrollment.
@@ -1165,34 +1189,29 @@ router.post(
   rateLimit({ keyPrefix: 'student-login', windowSeconds: 60, max: 8 }),
   asyncHandler(async (req, res) => {
     const data = z.object({ email: z.string().email() }).parse(req.body);
-    const email = normalizeEmail(data.email);
-    const website = await prisma.website.findUnique({
-      where: { id: req.params.websiteId },
-      select: { status: true },
-    });
-    // A frozen (unpaid) site takes its student portal down with it.
-    if (website?.status === 'SUSPENDED') {
-      throw forbidden('This site is currently paused.', 'SITE_PAUSED');
+    res.json(await studentSessionByEmail(req.params.websiteId, data.email));
+  })
+);
+
+// POST /driving-school/:websiteId/student/google-login — a returning student signs in
+// with Google. Stronger than the email-only login (Google PROVES the student owns the
+// email) and faster (one click). Still requires an ACTIVE enrollment for THIS site —
+// Google sign-in doesn't self-enroll; new students still need their instructor's code.
+router.post(
+  '/:websiteId/student/google-login',
+  rateLimit({ keyPrefix: 'student-google', windowSeconds: 60, max: 8 }),
+  asyncHandler(async (req, res) => {
+    if (!env.GOOGLE_CLIENT_ID) throw new ApiError(503, 'Google sign-in is not configured', 'GOOGLE_DISABLED');
+    const { credential } = z.object({ credential: z.string().min(1).max(4096) }).parse(req.body);
+    let claims;
+    try {
+      claims = await verifyGoogleIdToken(credential, env.GOOGLE_CLIENT_ID);
+    } catch {
+      throw unauthorized('Google sign-in failed. Please try again.', 'GOOGLE_INVALID');
     }
-    const enrollment = await prisma.clientEnrollment.findUnique({
-      where: { websiteId_studentEmail: { websiteId: req.params.websiteId, studentEmail: email } },
-    });
-    if (!enrollment) {
-      throw unauthorized('No account found for this email. New students need the code from their instructor.', 'NO_ACCOUNT');
-    }
-    if (enrollment.status !== 'ACTIVE') {
-      throw forbidden('Your account is paused. Please contact your instructor.', 'ENROLLMENT_NOT_ACTIVE');
-    }
-    const token = signStudentToken({
-      sub: enrollment.id,
-      kind: 'student',
-      websiteId: req.params.websiteId,
-      email: enrollment.studentEmail,
-    });
-    // classCount here is the DERIVED non-cancelled total (the raw column
-    // double-counts and is never decremented on cancel).
-    const stats = await studentStats(req.params.websiteId, enrollment.studentEmail);
-    res.json({ token, student: { ...studentSummary(enrollment), classCount: stats.total, stats } });
+    if (!claims.email) throw unauthorized('Google did not return an email', 'GOOGLE_NO_EMAIL');
+    if (claims.email_verified === false) throw unauthorized('Your Google email is not verified', 'GOOGLE_UNVERIFIED');
+    res.json(await studentSessionByEmail(req.params.websiteId, claims.email));
   })
 );
 
