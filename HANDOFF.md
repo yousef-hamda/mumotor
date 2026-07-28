@@ -1,3 +1,35 @@
+# Handoff — July 28, 2026 (Sign in with Google + full-audit remediation)
+
+All shipped & **DEPLOYED to mumotor.com**. Detail in the `google-signin`, `audit-fixes-july-24-2026` memories.
+Latest commit `7c70ef5`.
+
+- **Sign in with Google — LIVE (teacher + student).** "Continue with Google" on the teacher login/register
+  AND the student portal (`/p/:slug/account`). Backend verifies the Google ID token with **jose** (deliberately
+  NOT `google-auth-library` — that pulls a transitive advisory; jose is zero-dep so prod `npm audit` stays clean):
+  `POST /auth/google` (teacher) + `POST /:websiteId/student/google-login` (student → matches an ACTIVE enrollment,
+  stronger than the email-only login). Migration `20260728120630_add_google_auth` (applied on prod): `User.passwordHash`
+  nullable + `googleId` unique + `avatarUrl` (teacher photo in the dashboard sidebar). Dormant until
+  `GOOGLE_CLIENT_ID` + `VITE_GOOGLE_CLIENT_ID` set — **both now set on Railway**; unset → 503 + button tree-shaken out.
+  Frontend `GoogleIdButton`/`GoogleAuthButton` (Google Identity Services). OAuth creds saved OUTSIDE the repo at
+  `~/.google/mumotor-oauth.env` (client id 609112153904…). A **`www.*` → apex 301 redirect** (`app.ts`, GET/HEAD only)
+  makes it robust — fixes Google `origin_mismatch` when a visitor lands on www. **What this key CAN'T do:** it's a
+  sign-in credential only — Calendar/Gmail/Drive need Google's app-verification process; Search Console / Analytics /
+  Business Profile / Ads / GCP need entirely different creds. A REAL end-to-end login needs a human click (Google blocks
+  automated sign-in); **owner confirmed teacher + student login work.**
+- **Full-audit remediation (July 24) + adversarial re-audit (July 25) — DEPLOYED (commits `bca6d57`, `33193ca`).**
+  ~30 fixes across security/booking/builder/student pages (removed the vulnerable legacy email+shared-code student routes;
+  paywall gaps; POST /websites quota-race lock; frozen-site handling; strict settings validation; CustomizeMode save/list-op
+  fixes; publish-size + orphan-draft fixes; shared `SitePaused` screen; email From RFC-2047 word-chunking; legacy-generator
+  `safeHref`/`cssUrl` XSS closes; etc.). Only #2 (unauthenticated booking-by-email) kept by owner choice. **NOTE:**
+  pause/finish/delete-student now cancels the student's FUTURE bookings (irreversibly) — the intended #15 fix; flag if the
+  owner wants pausing to be reversible.
+- **Suites (all green):** fe-unit 33 · integration 74 · security 26 · ratelimit 5 · billing 15 · google 13 · e2e 138 (0
+  console errors). **Still open (unrelated, pre-existing):** react-router advisories now show in prod `npm audit`
+  (newly-disclosed CVE-2025-68470 etc. — needs a react-router-dom bump, possibly major 7.x, left out of scope). SES still
+  OFF (awaiting AWS prod access). Stripe still DORMANT.
+
+---
+
 # Handoff — July 20–21, 2026 (Student-dashboard readiness redesign + demo video re-sync)
 
 All shipped & **DEPLOYED to mumotor.com** (frontend-only, no migration). Detail in the `bespoke-student-dashboards`

@@ -332,6 +332,37 @@ using one static manifest.
   the shell + hashed assets (never `/api`, `/site`, `.webmanifest`). SW registers only from a **production build**
   (`import.meta.env.PROD`), so test via the built dist, not the Vite dev server.
 
+## Sign in with Google (July 28, 2026 — LIVE)
+"Continue with Google" for **teachers** (login + register) AND **students** (the portal login at
+`/p/:slug/account`), built the "code-complete, dormant-until-keys" way (like Stripe/SES) and now
+**enabled in prod**. It renders nothing / 503s until `GOOGLE_CLIENT_ID` + `VITE_GOOGLE_CLIENT_ID` are
+set — the whole Google path tree-shakes out of the bundle when unset, so the app is byte-identical until
+configured.
+- **Verification** = `services/auth/googleAuth.ts` `verifyGoogleIdToken()` using **jose**
+  (`createRemoteJWKSet` + `jwtVerify` → RS256 vs Google's JWKS + issuer + audience + expiry). Chosen over
+  `google-auth-library` to keep prod `npm audit` clean (that SDK pulls a moderate transitive advisory).
+- **Teacher**: `POST /auth/google` verifies the Google ID token, then `upsertGoogleUser()` (known
+  `googleId` → that user; same email → link; new → password-less account + free-month trial; P2002-safe)
+  and issues the normal teacher JWT. **Student**: `POST /:websiteId/student/google-login` verifies, then
+  the shared `studentSessionByEmail()` matches an ACTIVE enrollment on that site + issues the student
+  token — stronger than the email-only login (Google proves email ownership) but still needs an existing
+  enrollment (no self-enroll). Both are rate-limited and 503 when Google is unconfigured.
+- **Schema** (migration `20260728120630_add_google_auth`, applied on prod): `User.passwordHash` →
+  **nullable** (password-less Google accounts; the login dummy-hash compare and change-password both guard
+  the null), + `googleId` (`@unique`) + `avatarUrl`. The teacher's Google photo shows in the dashboard
+  sidebar (initial fallback for password accounts).
+- **Frontend**: `components/GoogleAuthButton.tsx` exports `GoogleIdButton` (loads Google Identity
+  Services, renders the official button, localized he/ar/en) + `GoogleAuthButton` (teacher wrapper). The
+  student login card uses `GoogleIdButton` + `studentPortalApi.googleLogin`. Divider strings:
+  `i18n auth.orDivider` (app) / `bookingStrings orDivider` (student portal).
+- **Config**: `GOOGLE_CLIENT_ID` is used by the backend verifier AND the frontend build (Dockerfile
+  `ARG VITE_GOOGLE_CLIENT_ID` → Vite inlines it) — both set on Railway. The OAuth **Web** client's
+  Authorized JS origins must include the serving origin; a **`www.*` → apex 301 redirect** in `app.ts`
+  (GET/HEAD only, so a POST is never method-changed) guarantees visitors land on the registered apex,
+  which permanently fixes Google's `origin_mismatch`. `GOOGLE_CLIENT_SECRET` is unused (ID-token flow).
+  The OAuth creds live OUTSIDE the repo in `~/.google/mumotor-oauth.env`. Full detail in the
+  `google-signin` memory.
+
 ## Status & remaining gaps (updated July 5, 2026)
 Most of the original July-2026 audit (`IMPROVEMENT_PLAN.md`) is now DONE. LIVE at mumotor.com.
 
@@ -438,7 +469,7 @@ next push; no manual `DATABASE_URL=... prisma migrate deploy` step.)
 - **Dead models**: `Page`/`Section` (and `Domain`, until subdomains ship) are unused.
 - **AI branding**: still zero real AI calls — opportunity for Claude bio/SEO copy.
 
-## Testing (all green: fe-unit 33/33 · integration 74/74 · security 26/26 · ratelimit 5/5 · billing 15/15 · E2E 138/138, 0 console errors)
+## Testing (all green: fe-unit 33/33 · integration 74/74 · security 26/26 · ratelimit 5/5 · billing 15/15 · google 13/13 · E2E 138/138, 0 console errors)
 - Frontend unit (vitest): `npm test --workspace @mumotor/frontend`.
 - Backend integration: needs a running API on :4000 (`cd packages/backend && NODE_ENV=test ENABLE_CRON=false npx tsx watch src/index.ts`),
   then `npm test --workspace @mumotor/backend`. `NODE_ENV=test` bypasses the rate limiter.
@@ -447,6 +478,9 @@ next push; no manual `DATABASE_URL=... prisma migrate deploy` step.)
   `dist/` so build first). Rate-limit **429s** only fire outside `NODE_ENV=test` — verify live with a dev-mode server.
 - Backend **billing** money-path (direct DB, no running API needed): `npm run test:billing` (`test/billing.check.ts` — getAccountState
   trial/expired/paid, freezeUserSites, quota-capped restoreUserSites). `npm run test:cron` runs the 3 cron jobs once (console email).
+- Backend **Google sign-in** logic (direct DB, no running API): `npm run test:google` (`test/google-auth.check.ts` — `upsertGoogleUser`
+  create / idempotent / link-by-email / case-insensitive). The token-verify + endpoint paths need `GOOGLE_CLIENT_ID` set (a bad token → 401,
+  unset → 503); a REAL end-to-end login needs a human click (Google blocks automated sign-in).
 - Frontend E2E: `WEB=http://localhost:<port> node packages/frontend/e2e/features.e2e.mjs`. Playwright/chromium live in
   `packages/frontend/node_modules` (not global) — run from the repo root so the local package resolves.
 - GOTCHAS: the integration "tomorrow excludes booked 09:00/10:00" check needs a **fresh** `npm run db:seed` (the seed

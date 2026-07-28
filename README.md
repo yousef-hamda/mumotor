@@ -184,6 +184,8 @@ One Railway service runs **everything**: the API, the published sites, uploads (
 
 See `.env.example` (root). Required: `DATABASE_URL`, `JWT_SECRET`. Optional (the app runs without them): `REDIS_URL`, `SMTP_*`, `STRIPE_*`, AI keys, `S3_*`, `UNSPLASH_ACCESS_KEY` (powers the in-editor "find photo"). Locale: `BUSINESS_TIMEZONE` (default `Asia/Jerusalem`), `DEFAULT_LOCALE` (`he`).
 
+**Sign in with Google** (teacher + student login) is dormant until you set the OAuth **Web** client id: `GOOGLE_CLIENT_ID` (backend token verification) and `VITE_GOOGLE_CLIENT_ID` (frontend, same value — the Dockerfile passes it as a build arg so Vite inlines it). Add your serving origin(s) to the client's *Authorized JavaScript origins* in the Google Cloud Console. `GOOGLE_CLIENT_SECRET` is optional/unused (we use the ID-token flow). See the "Sign in with Google" section in `CLAUDE.md`.
+
 ---
 
 ## Scripts
