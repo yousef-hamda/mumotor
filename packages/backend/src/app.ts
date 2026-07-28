@@ -32,6 +32,19 @@ export function createApp() {
 
   app.set('trust proxy', 1);
 
+  // Canonical host: redirect www.* → the apex so the app has ONE origin. This fixes
+  // Google sign-in `origin_mismatch` when a visitor lands on www (only the apex is a
+  // registered OAuth JS origin) and is the canonical host for SEO. GET/HEAD only, so a
+  // 301 never method-changes an API POST. The apex/localhost/internal healthcheck host
+  // don't start with "www." → untouched (no redirect loop).
+  app.use((req, res, next) => {
+    const host = req.hostname;
+    if ((req.method === 'GET' || req.method === 'HEAD') && host.startsWith('www.')) {
+      return res.redirect(301, `https://${host.slice(4)}${req.originalUrl}`);
+    }
+    next();
+  });
+
   // Security headers on every response (CSP is intentionally omitted: published
   // teacher sites and the SPA rely on inline styles/scripts).
   app.use((_req, res, next) => {
