@@ -10,6 +10,12 @@ COPY packages/backend ./packages/backend
 COPY packages/frontend ./packages/frontend
 # backend: prisma generate + tsc ; frontend: vite build (uses relative /api → same origin)
 RUN npm run build --workspace @mumotor/backend
+# Frontend build-time public config: Vite inlines VITE_* at build. Railway passes service
+# variables as build args, so declaring this ARG means setting VITE_GOOGLE_CLIENT_ID enables
+# the "Continue with Google" button on the next deploy — no code change needed. Empty by
+# default → the button (and all Google client code) is tree-shaken out.
+ARG VITE_GOOGLE_CLIENT_ID=""
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build --workspace @mumotor/frontend
 
 FROM node:20-slim AS prod

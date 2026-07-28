@@ -7,12 +7,13 @@ import { kv } from '../lib/redis.js';
 import { env } from '../config/env.js';
 import { signToken, verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { badRequest, conflict, unauthorized } from '../utils/errors.js';
+import { ApiError, badRequest, conflict, unauthorized } from '../utils/errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { hashToken } from '../utils/crypto.js';
 import { weakPasswordReason, phoneSchema } from '../utils/validation.js';
 import { sendEmailVerification, sendPasswordReset } from '../services/email/emailService.js';
 import { getAccountState, TRIAL_DAYS } from '../services/billing/accountState.js';
+import { upsertGoogleUser, verifyGoogleIdToken } from '../services/auth/googleAuth.js';
 
 const router = Router();
 
@@ -42,8 +43,8 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-function publicUser(u: { id: string; email: string; name: string; phone: string | null; preferredLanguage?: string; role?: string; emailVerified?: boolean }) {
-  return { id: u.id, email: u.email, name: u.name, phone: u.phone, preferredLanguage: u.preferredLanguage, role: u.role, emailVerified: u.emailVerified };
+function publicUser(u: { id: string; email: string; name: string; phone: string | null; preferredLanguage?: string; role?: string; emailVerified?: boolean; avatarUrl?: string | null }) {
+  return { id: u.id, email: u.email, name: u.name, phone: u.phone, preferredLanguage: u.preferredLanguage, role: u.role, emailVerified: u.emailVerified, avatarUrl: u.avatarUrl ?? null };
 }
 
 // Email verification: one-time KV token, 24h TTL, same shape as password reset.
@@ -113,6 +114,35 @@ router.post(
   })
 );
 
+// POST /auth/google — Sign in with Google (ID-token flow). The frontend GIS button
+// returns a Google ID token (`credential`); we verify it against Google (audience =
+// our client id), then create/link the account and issue our own teacher JWT.
+// Dormant (503) until GOOGLE_CLIENT_ID is configured.
+router.post(
+  '/google',
+  rateLimit({ keyPrefix: 'google-auth', windowSeconds: 900, max: 30 }),
+  asyncHandler(async (req, res) => {
+    if (!env.GOOGLE_CLIENT_ID) {
+      throw new ApiError(503, 'Google sign-in is not configured', 'GOOGLE_DISABLED');
+    }
+    const { credential } = z.object({ credential: z.string().min(1).max(4096) }).parse(req.body);
+
+    let claims;
+    try {
+      claims = await verifyGoogleIdToken(credential, env.GOOGLE_CLIENT_ID);
+    } catch {
+      throw unauthorized('Google sign-in failed. Please try again.', 'GOOGLE_INVALID');
+    }
+    if (!claims.email) throw unauthorized('Google did not return an email', 'GOOGLE_NO_EMAIL');
+    // Only trust an email Google itself has verified.
+    if (claims.email_verified === false) throw unauthorized('Your Google email is not verified', 'GOOGLE_UNVERIFIED');
+
+    const user = await upsertGoogleUser(claims);
+    const token = signToken({ id: user.id, email: user.email, tv: user.tokenVersion });
+    res.json({ token, user: publicUser(user) });
+  })
+);
+
 // GET /auth/me
 router.get(
   '/me',
@@ -151,6 +181,8 @@ router.post(
       .parse(req.body);
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user) throw unauthorized('Account not found');
+    // A Google-only account has no local password — direct them to set one via reset.
+    if (!user.passwordHash) throw badRequest('This account signs in with Google. Use "Forgot password" to set a password.', 'NO_PASSWORD');
     const ok = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!ok) throw badRequest('Current password is incorrect', 'BAD_PASSWORD');
     assertStrongPassword(newPassword, user.email);

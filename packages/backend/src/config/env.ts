@@ -57,6 +57,13 @@ const schema = z.object({
   // Only the access key is used (sent as a Client-ID); no secret is stored.
   UNSPLASH_ACCESS_KEY: z.string().optional(),
 
+  // Google Sign-In (dormant until set). GOOGLE_CLIENT_ID is the OAuth 2.0 Web client
+  // id — used to verify the ID token's audience on the backend AND passed to the
+  // frontend button (VITE_GOOGLE_CLIENT_ID). The secret is only needed for the
+  // auth-code flow (not the ID-token flow we use), so it's optional.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
   // Toggle cron jobs (off during tests)
   ENABLE_CRON: z
     .union([z.boolean(), z.string()])

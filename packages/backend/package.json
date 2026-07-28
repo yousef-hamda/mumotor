@@ -19,7 +19,8 @@
     "test:security": "node test/security.integration.mjs",
     "test:ratelimit": "node test/ratelimit.unit.mjs",
     "test:cron": "tsx test/cron-check.ts",
-    "test:billing": "tsx test/billing.check.ts"
+    "test:billing": "tsx test/billing.check.ts",
+    "test:google": "tsx test/google-auth.check.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -33,6 +34,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
+    "jose": "^5.10.0",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.0.9",
     "node-cron": "^4.5.0",

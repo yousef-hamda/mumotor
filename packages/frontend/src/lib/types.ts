@@ -6,6 +6,8 @@ export interface User {
   preferredLanguage?: 'HE' | 'AR' | 'EN';
   role?: string;
   emailVerified?: boolean;
+  /** Profile photo from a linked Google account, if any. */
+  avatarUrl?: string | null;
 }
 
 export interface Review {

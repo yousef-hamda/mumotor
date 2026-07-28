@@ -106,9 +106,16 @@ enum MediaType {
 model User {
   id                String        @id @default(uuid()) @db.Uuid
   email             String        @unique
-  passwordHash      String
+  // Nullable: a "Sign in with Google" account has no local password. Password login
+  // and change-password guard against a null hash; such users can set a password via
+  // the forgot-password flow.
+  passwordHash      String?
   name              String
   phone             String?
+  // Google account linkage (Sign in with Google). Unique so one Google identity maps
+  // to exactly one Mumotor account; null for password-only accounts.
+  googleId          String?       @unique
+  avatarUrl         String?
   role              UserRole      @default(TEACHER)
   preferredLanguage Locale        @default(HE)
   emailVerified     Boolean       @default(false)

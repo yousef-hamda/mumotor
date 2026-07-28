@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/auth';
 import { apiError } from '../../lib/api';
 import { Button, Field, Input } from '../../components/ui';
 import { AuthShell } from '../../components/AuthShell';
+import { GoogleAuthButton } from '../../components/GoogleAuthButton';
 import { FadeUp } from '../../components/motion';
 
 export default function Login() {
@@ -83,6 +84,7 @@ export default function Login() {
             {t('common.signIn')}
           </Button>
         </form>
+        <GoogleAuthButton redirectTo={from} />
         <p className="mt-6 text-center text-sm text-sand-600">
           {t('auth.newHere')}{' '}
           <Link to="/register" className="font-medium text-sun-600 hover:text-sun-700 hover:underline">

@@ -187,6 +187,9 @@ export const authApi = {
     api.post<{ token: string; user: User }>('/auth/register', data).then((r) => r.data),
   login: (data: { email: string; password: string }) =>
     api.post<{ token: string; user: User }>('/auth/login', data).then((r) => r.data),
+  /** Sign in with Google: exchange the Google ID token (credential) for our JWT. */
+  google: (credential: string) =>
+    api.post<{ token: string; user: User }>('/auth/google', { credential }).then((r) => r.data),
   me: () => api.get<{ user: User }>('/auth/me').then((r) => r.data.user),
   /** Full account state (trial/quota/locked) for the paywall gate. */
   account: () => api.get<{ user: User; account: AccountState }>('/auth/me').then((r) => r.data.account),
