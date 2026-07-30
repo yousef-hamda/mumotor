@@ -126,6 +126,29 @@ export interface SendArgs {
   brand?: EmailBrand;
   /** Optional BCC — e.g. the Trustpilot AFS auto-invite on INSTRUCTOR emails only. */
   bcc?: string | string[];
+  /**
+   * Absolute unsubscribe link. Set it on BULK/marketing mail only (A-02): it adds the
+   * List-Unsubscribe + List-Unsubscribe-Post headers Gmail and Yahoo require of bulk
+   * senders, and a visible footer link for humans.
+   *
+   * Deliberately absent on transactional mail — a booking confirmation with an
+   * unsubscribe link invites someone to opt out of the message telling them when their
+   * lesson is, and mailbox providers do not expect one there.
+   */
+  unsubscribeUrl?: string;
+}
+
+/**
+ * RFC 8058 one-click unsubscribe. BOTH headers are required: Gmail/Yahoo will not honour
+ * List-Unsubscribe alone as one-click, and without the POST variant the mailbox provider
+ * may fall back to marking the message as spam instead.
+ */
+function unsubscribeHeaders(url?: string): Record<string, string> {
+  if (!url) return {};
+  return {
+    'List-Unsubscribe': `<${url}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
 }
 
 /** From header as an RFC 5322 string ("Name <addr>") for the Resend API. */
@@ -134,7 +157,7 @@ function fromString(brand?: EmailBrand): string {
   return typeof f === 'string' ? f : `${encodeDisplayName(f.name)} <${f.address}>`;
 }
 
-async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
+async function sendViaResend({ to, subject, html, text, brand, bcc, unsubscribeUrl }: SendArgs): Promise<boolean> {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -148,6 +171,8 @@ async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs):
       subject,
       html,
       text: text ?? stripHtml(html),
+      // One-click unsubscribe headers on bulk mail only (A-02).
+      ...(unsubscribeUrl ? { headers: unsubscribeHeaders(unsubscribeUrl) } : {}),
     }),
     signal: AbortSignal.timeout(15000),
   });
@@ -160,7 +185,7 @@ async function sendViaResend({ to, subject, html, text, brand, bcc }: SendArgs):
   return true;
 }
 
-async function sendViaSES({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
+async function sendViaSES({ to, subject, html, text, brand, bcc, unsubscribeUrl }: SendArgs): Promise<boolean> {
   const bccList = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined;
   const out = await getSes().send(
     new SendEmailCommand({
@@ -175,6 +200,11 @@ async function sendViaSES({ to, subject, html, text, brand, bcc }: SendArgs): Pr
             Html: { Data: html, Charset: 'UTF-8' },
             Text: { Data: text ?? stripHtml(html), Charset: 'UTF-8' },
           },
+          // One-click unsubscribe headers on bulk mail only (A-02). AWS reviews these
+          // when granting production access, and Gmail/Yahoo require them of bulk senders.
+          ...(unsubscribeUrl
+            ? { Headers: Object.entries(unsubscribeHeaders(unsubscribeUrl)).map(([Name, Value]) => ({ Name, Value })) }
+            : {}),
         },
       },
     })
@@ -183,12 +213,13 @@ async function sendViaSES({ to, subject, html, text, brand, bcc }: SendArgs): Pr
   return true;
 }
 
-export async function sendEmail({ to, subject, html, text, brand, bcc }: SendArgs): Promise<boolean> {
+export async function sendEmail({ to, subject, html, text, brand, bcc, unsubscribeUrl }: SendArgs): Promise<boolean> {
   try {
-    if (useSES) return await sendViaSES({ to, subject, html, text, brand, bcc });
-    if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand, bcc });
+    if (useSES) return await sendViaSES({ to, subject, html, text, brand, bcc, unsubscribeUrl });
+    if (env.RESEND_API_KEY) return await sendViaResend({ to, subject, html, text, brand, bcc, unsubscribeUrl });
     const info = await transporter.sendMail({
       from: fromField(brand),
+      ...(unsubscribeUrl ? { headers: unsubscribeHeaders(unsubscribeUrl) } : {}),
       to,
       ...(bcc ? { bcc } : {}),
       subject,
@@ -221,7 +252,7 @@ function stripHtml(html: string): string {
 // Layout + templates
 // ---------------------------------------------------------------------------
 
-function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
+function layout(title: string, bodyHtml: string, brand?: EmailBrand, unsubscribeUrl?: string): string {
   const L: EmailLocale = brand?.locale ?? 'en';
   const rtl = L === 'he' || L === 'ar';
   const name = brand?.schoolName || 'Mumotor';
@@ -241,6 +272,11 @@ function layout(title: string, bodyHtml: string, brand?: EmailBrand): string {
     </div>
     <p style="text-align:center;color:#a1a1aa;font-size:12px;margin-top:20px">
       ${brand?.schoolName ? emailT(L, 'footerSchool', { name: esc(name) }) : emailT(L, 'footerMumotor')}
+      ${
+        unsubscribeUrl
+          ? `<br><a href="${esc(unsubscribeUrl)}" style="color:#a1a1aa;text-decoration:underline">${emailT(L, 'unsubLink')}</a>`
+          : ''
+      }
     </p>
   </div>
 </body></html>`;
@@ -373,7 +409,7 @@ export function sendBookingReminder(
 
 export function sendDailyBookingOpen(
   to: string,
-  data: { studentName: string; bookingUrl: string; forDate: string; brand?: EmailBrand }
+  data: { studentName: string; bookingUrl: string; forDate: string; brand?: EmailBrand; unsubscribeUrl?: string }
 ) {
   const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
@@ -389,8 +425,9 @@ export function sendDailyBookingOpen(
   return sendEmail({
     to,
     subject: school ? emailT(L, 'subjOpenSchool', { school: safeName(school) }) : emailT(L, 'subjOpenNoSchool'),
-    html: layout(emailT(L, 'titleBookingOpen'), body, data.brand),
+    html: layout(emailT(L, 'titleBookingOpen'), body, data.brand, data.unsubscribeUrl),
     brand: data.brand,
+    unsubscribeUrl: data.unsubscribeUrl,
   });
 }
 
@@ -468,7 +505,7 @@ export function sendEnhancedDailyReport(
 
 export function sendBulkCustomEmail(
   to: string,
-  data: { subject: string; body: string; studentName: string; brand?: EmailBrand }
+  data: { subject: string; body: string; studentName: string; brand?: EmailBrand; unsubscribeUrl?: string }
 ) {
   const L: EmailLocale = data.brand?.locale ?? 'en';
   const safeBody = esc(data.body).replace(/\n/g, '<br>');
@@ -478,8 +515,9 @@ export function sendBulkCustomEmail(
   return sendEmail({
     to,
     subject: `${data.subject}${subjectTag(data.brand)}`,
-    html: layout(data.subject, body, data.brand),
+    html: layout(data.subject, body, data.brand, data.unsubscribeUrl),
     brand: data.brand,
+    unsubscribeUrl: data.unsubscribeUrl,
   });
 }
 
@@ -546,7 +584,7 @@ export function sendBookingCancelled(
 
 export function sendReviewRequest(
   to: string,
-  data: { studentName: string; reviewUrl: string; brand?: EmailBrand }
+  data: { studentName: string; reviewUrl: string; brand?: EmailBrand; unsubscribeUrl?: string }
 ) {
   const L: EmailLocale = data.brand?.locale ?? 'en';
   const school = data.brand?.schoolName;
@@ -562,8 +600,9 @@ export function sendReviewRequest(
   return sendEmail({
     to,
     subject: `${emailT(L, 'subjReview')}${subjectTag(data.brand)}`,
-    html: layout(emailT(L, 'titleReview'), body, data.brand),
+    html: layout(emailT(L, 'titleReview'), body, data.brand, data.unsubscribeUrl),
     brand: data.brand,
+    unsubscribeUrl: data.unsubscribeUrl,
   });
 }
 

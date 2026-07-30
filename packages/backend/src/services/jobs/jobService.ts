@@ -23,6 +23,7 @@ import {
 } from '../email/emailService.js';
 import { emailLocale } from '../email/strings.js';
 import { freezeUserSites } from '../billing/siteFreeze.js';
+import { unsubscribeUrl } from '../../utils/unsubscribe.js';
 import { WEBSITE_PRICE } from '../billing/accountState.js';
 
 const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
@@ -103,8 +104,28 @@ export async function processReviewRequests(): Promise<number> {
       status: 'CONFIRMED',
       bookingDate: { lte: today, gte: oldest },
     },
-    include: { website: { select: { slug: true, name: true, configuration: true, status: true, locale: true } } },
+    select: {
+      id: true,
+      websiteId: true,
+      customerEmail: true,
+      customerName: true,
+      bookingDate: true,
+      bookingTime: true,
+      duration: true,
+      website: { select: { slug: true, name: true, configuration: true, status: true, locale: true } },
+    },
   });
+
+  // Bookings key on the email snapshot, not on the enrollment, so resolve the opt-out for
+  // every candidate in one query instead of one per booking.
+  const subs = await prisma.clientEnrollment.findMany({
+    where: {
+      websiteId: { in: [...new Set(candidates.map((b) => b.websiteId))] },
+      studentEmail: { in: [...new Set(candidates.map((b) => b.customerEmail))] },
+    },
+    select: { id: true, websiteId: true, studentEmail: true, unsubscribedAt: true },
+  });
+  const subFor = new Map(subs.map((e) => [`${e.websiteId}|${e.studentEmail}`, e]));
 
   let sent = 0;
   for (const b of candidates) {
@@ -117,10 +138,19 @@ export async function processReviewRequests(): Promise<number> {
         await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
         continue;
       }
+      // A review request is a solicitation, not something the student needs, so it counts
+      // as bulk mail: it honours the opt-out and carries an unsubscribe link (A-02).
+      const sub = subFor.get(`${b.websiteId}|${b.customerEmail}`);
+      if (sub?.unsubscribedAt) {
+        // Mark handled so this booking is not rescanned every 15 minutes forever.
+        await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
+        continue;
+      }
       const ok = await sendReviewRequest(b.customerEmail, {
         studentName: b.customerName,
         reviewUrl: `${env.FRONTEND_URL}/p/${b.website.slug}/review`,
         brand: siteBrand(b.website),
+        unsubscribeUrl: sub ? unsubscribeUrl(sub.id) : undefined,
       });
       if (ok) {
         await prisma.booking.update({ where: { id: b.id }, data: { reviewRequestSent: true } });
@@ -138,7 +168,7 @@ export async function processReviewRequests(): Promise<number> {
 
 type SiteForBookingOpen = Pick<Website, 'slug' | 'name' | 'configuration' | 'locale'> & {
   settings: Pick<SiteSettings, 'businessHours'> | null;
-  enrollments: Pick<ClientEnrollment, 'studentEmail' | 'studentName'>[];
+  enrollments: Pick<ClientEnrollment, 'id' | 'studentEmail' | 'studentName' | 'unsubscribedAt'>[];
 };
 
 /** Email every ACTIVE student of one site that booking is open for tomorrow. */
@@ -152,11 +182,15 @@ async function sendBookingOpenForSite(site: SiteForBookingOpen): Promise<number>
   const brand = siteBrand(site);
   let sent = 0;
   for (const student of site.enrollments) {
+    // Honour the opt-out (A-02). This is the highest-volume send in the product and the
+    // main spam-complaint risk, so it is the one that most needs to stop when asked.
+    if (student.unsubscribedAt) continue;
     const ok = await sendDailyBookingOpen(student.studentEmail, {
       studentName: student.studentName,
       bookingUrl,
       forDate,
       brand,
+      unsubscribeUrl: unsubscribeUrl(student.id),
     });
     if (ok) sent++;
   }
@@ -196,7 +230,10 @@ export async function processDailyStudentNotifications(): Promise<number> {
     select: {
       ...SITE_JOB_FIELDS,
       settings: { select: { businessHours: true } },
-      enrollments: { where: { status: 'ACTIVE' }, select: { studentEmail: true, studentName: true } },
+      enrollments: {
+        where: { status: 'ACTIVE' },
+        select: { id: true, studentEmail: true, studentName: true, unsubscribedAt: true },
+      },
     },
   });
   let sent = 0;
@@ -264,7 +301,10 @@ export async function processDailyRhythmTick(): Promise<{ codes: number; booking
         select: { businessHours: true, lastBookingOpenSentOn: true, lastReportSentOn: true },
       },
       user: { select: { email: true, name: true } },
-      enrollments: { where: { status: 'ACTIVE' }, select: { studentEmail: true, studentName: true } },
+      enrollments: {
+        where: { status: 'ACTIVE' },
+        select: { id: true, studentEmail: true, studentName: true, unsubscribedAt: true },
+      },
     },
   });
 

@@ -25,7 +25,8 @@
     "test:google": "tsx test/google-auth.check.ts",
     "test:notify": "tsx test/notifications.check.ts",
     "test:time": "tsx test/time.unit.ts",
-    "check:env": "tsx test/env-example.check.ts"
+    "check:env": "tsx test/env-example.check.ts",
+    "test:unsub": "tsx test/unsubscribe.check.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

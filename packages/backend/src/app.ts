@@ -9,6 +9,7 @@ import seoRoutes from './routes/seo.js';
 import contentRoutes from './routes/content.js';
 import prerenderRoutes from './routes/prerender.js';
 import publicSiteRenderRoutes from './routes/publicSiteRender.js';
+import unsubscribeRoutes from './routes/unsubscribe.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimit } from './middleware/rateLimit.js';
 import { env, isProd } from './config/env.js';
@@ -114,6 +115,9 @@ export function createApp() {
   // catch-all below, and is rate-limited with the other public pages.
   app.use('/p', rateLimit({ keyPrefix: 'public-site', windowSeconds: 60, max: 300 }));
   app.use(publicSiteRenderRoutes);
+  // Public, unauthenticated unsubscribe (A-02). Mounted before the SPA catch-all; an
+  // unsubscribe link that needs a login is not a working unsubscribe link.
+  app.use(unsubscribeRoutes);
 
   // Single-service deploy (Railway-only): serve the built SPA from this server.
   // /api, /site and /uploads are handled above; everything else → the SPA shell.

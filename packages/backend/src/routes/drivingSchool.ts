@@ -33,6 +33,7 @@ import { hhmm, weekdayHoursSchema } from '../utils/validation.js';
 import { consumeMagicToken, generateMagicToken } from '../services/auth/magicLinkService.js';
 import { createNotification } from '../services/notifications/notificationService.js';
 import { logEvent } from '../services/analytics.js';
+import { unsubscribeUrl } from '../utils/unsubscribe.js';
 import {
   sendBulkCustomEmail,
   sendBookingCancelled,
@@ -1637,12 +1638,14 @@ router.post(
 
     const selectingSpecificStudents = Boolean(data.enrollmentIds && data.enrollmentIds.length > 0);
 
-    let recipients: { studentName: string; studentEmail: string }[];
+    // `unsubscribedAt` comes along so an opted-out student is excluded, and `id` so the
+    // rest get a working unsubscribe link (A-02).
+    let recipients: { id: string; studentName: string; studentEmail: string; unsubscribedAt: Date | null }[];
     let targetGroupToStore: string;
     if (selectingSpecificStudents) {
       recipients = await prisma.clientEnrollment.findMany({
         where: { websiteId: website.id, id: { in: data.enrollmentIds! } },
-        select: { studentName: true, studentEmail: true },
+        select: { id: true, studentName: true, studentEmail: true, unsubscribedAt: true },
       });
       targetGroupToStore = 'selected';
     } else {
@@ -1651,7 +1654,7 @@ router.post(
       if (data.targetGroup === 'inactive') where.status = 'INACTIVE';
       recipients = await prisma.clientEnrollment.findMany({
         where,
-        select: { studentName: true, studentEmail: true },
+        select: { id: true, studentName: true, studentEmail: true, unsubscribedAt: true },
       });
       targetGroupToStore = data.targetGroup;
     }
@@ -1668,12 +1671,18 @@ router.post(
 
     let sentCount = 0;
     let failedCount = 0;
+    // A teacher broadcast is marketing by definition — drop anyone who opted out. Doing it
+    // here rather than in the query keeps the reported recipient count honest below.
+    const optedOut = recipients.filter((r) => r.unsubscribedAt).length;
+    recipients = recipients.filter((r) => !r.unsubscribedAt);
+
     for (const r of recipients) {
       const ok = await sendBulkCustomEmail(r.studentEmail, {
         subject: data.subject,
         body: data.body,
         studentName: r.studentName,
         brand: siteBrand(website),
+        unsubscribeUrl: unsubscribeUrl(r.id),
       });
       if (ok) sentCount++;
       else failedCount++;
@@ -1684,7 +1693,7 @@ router.post(
       data: { sentCount, failedCount, status: failedCount && !sentCount ? 'FAILED' : 'COMPLETED', sentAt: new Date() },
     });
 
-    res.json({ id: updated.id, recipients: recipients.length, sentCount, failedCount, status: updated.status });
+    res.json({ id: updated.id, recipients: recipients.length, sentCount, failedCount, unsubscribed: optedOut, status: updated.status });
   })
 );
 

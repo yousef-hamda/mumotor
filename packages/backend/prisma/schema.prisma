@@ -276,6 +276,10 @@ model ClientEnrollment {
   status         ClientEnrollmentStatus @default(ACTIVE)
   classCount     Int                    @default(0)
   notes          String?
+  // Per-student email opt-out (A-02). Null = subscribed. Only BULK sends check this
+  // (daily booking-open notice, teacher broadcasts, review requests); transactional mail
+  // — confirmations, reminders, cancellations, magic links — always sends.
+  unsubscribedAt DateTime?
   enrolledAt     DateTime               @default(now())
   finishedAt     DateTime?
   createdAt      DateTime               @default(now())
@@ -287,6 +291,7 @@ model ClientEnrollment {
   @@unique([websiteId, enrollmentCode])
   @@index([websiteId])
   @@index([status])
+  @@index([unsubscribedAt])
 }
 
 // Teacher <-> student chat (polling-based). Multi-tenant: every row carries a

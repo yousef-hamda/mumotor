@@ -144,6 +144,17 @@ const en = {
   tbOutro: 'This slot is now closed to other students.',
   subjTeacherBooked: 'New booking — {student}, {date} at {time}',
   titleTeacherBooked: 'New lesson booked',
+  // ── unsubscribe (A-02) ──
+  unsubLink: 'Unsubscribe from these emails',
+  unsubTitle: 'Unsubscribed',
+  unsubDone: 'You will no longer receive booking reminders or announcements from {school}.',
+  unsubKeeps: 'You will still get emails about lessons you actually book — confirmations and cancellations — because those are about your own bookings.',
+  unsubResubscribe: 'Changed your mind? Ask your instructor to turn these back on.',
+  unsubInvalid: 'This unsubscribe link is not valid',
+  unsubInvalidBody: 'The link may have been broken by your email app. Please contact your instructor and they can stop the emails for you.',
+  unsubConfirmBtn: 'Yes, unsubscribe me',
+  unsubConfirmTitle: 'Stop these emails?',
+  unsubConfirmBody: 'You are about to stop booking reminders and announcements from {school}.',
 };
 
 const he: typeof en = {
@@ -253,6 +264,17 @@ const he: typeof en = {
   tbOutro: 'המשבצת הזו סגורה כעת לתלמידים אחרים.',
   subjTeacherBooked: 'שיעור חדש — {student}, {date} בשעה {time}',
   titleTeacherBooked: 'נקבע שיעור חדש',
+  // ── unsubscribe (A-02) ──
+  unsubLink: 'הסרה מרשימת התפוצה',
+  unsubTitle: 'הוסרת מרשימת התפוצה',
+  unsubDone: 'לא תקבל/י יותר תזכורות זימון או הודעות מ{school}.',
+  unsubKeeps: 'עדיין תקבל/י אימיילים על שיעורים שקבעת — אישורים וביטולים — כי הם נוגעים לזימונים שלך.',
+  unsubResubscribe: 'שינית את דעתך? אפשר לבקש מהמורה להפעיל את זה מחדש.',
+  unsubInvalid: 'קישור ההסרה אינו תקין',
+  unsubInvalidBody: 'ייתכן שאפליקציית האימייל שיבשה את הקישור. אפשר לפנות למורה והוא יפסיק עבורך את ההודעות.',
+  unsubConfirmBtn: 'כן, הסר/י אותי',
+  unsubConfirmTitle: 'להפסיק את ההודעות האלה?',
+  unsubConfirmBody: 'עוד רגע תפסיק/י לקבל תזכורות זימון והודעות מ{school}.',
 };
 
 const ar: typeof en = {
@@ -363,6 +385,17 @@ const ar: typeof en = {
   tbOutro: 'هذه الفترة مغلقة الآن أمام الطلاب الآخرين.',
   subjTeacherBooked: 'حجز جديد — {student}، {date} في {time}',
   titleTeacherBooked: 'تم حجز درس جديد',
+  // ── unsubscribe (A-02) ──
+  unsubLink: 'إلغاء الاشتراك من هذه الرسائل',
+  unsubTitle: 'تم إلغاء الاشتراك',
+  unsubDone: 'لن تصلك بعد الآن تذكيرات الحجز أو الإعلانات من {school}.',
+  unsubKeeps: 'ستستمر في تلقّي رسائل حول الدروس التي تحجزها فعليًا — التأكيدات والإلغاءات — لأنها تخص حجوزاتك أنت.',
+  unsubResubscribe: 'غيّرت رأيك؟ اطلب من مدرّبك إعادة تفعيلها.',
+  unsubInvalid: 'رابط إلغاء الاشتراك غير صالح',
+  unsubInvalidBody: 'ربما تسبّب تطبيق البريد في قطع الرابط. تواصل مع مدرّبك ليوقف الرسائل نيابةً عنك.',
+  unsubConfirmBtn: 'نعم، ألغِ اشتراكي',
+  unsubConfirmTitle: 'إيقاف هذه الرسائل؟',
+  unsubConfirmBody: 'أنت على وشك إيقاف تذكيرات الحجز والإعلانات من {school}.',
 };
 
 const DICTS: Record<EmailLocale, typeof en> = { en, he, ar };

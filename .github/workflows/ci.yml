@@ -131,5 +131,10 @@ jobs:
       - name: Booking + cancellation notifications (D-11 / A-04)
         run: npm run test:notify --workspace @mumotor/backend
 
+      - name: Unsubscribe — bulk opt-out, transactional exempt (A-02)
+        run: npm run test:unsub --workspace @mumotor/backend
+        env:
+          APP_URL: http://localhost:4000
+
       - name: Google sign-in account linking
         run: npm run test:google --workspace @mumotor/backend
