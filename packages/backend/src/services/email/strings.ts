@@ -134,6 +134,16 @@ const en = {
     'Reactivate for just ₪{price}/month to bring your site back online and keep everything running — bookings, reminders and your daily schedule.',
   trialBtn: 'Reactivate my website',
   subjTrialExpired: 'Your free month has ended — reactivate for ₪{price}/month',
+  // ── new booking, to the TEACHER (D-11) ──
+  // The teacher had no email at all when a student booked — only an in-dashboard bell and
+  // the next daily report, so a same-day booking could go unannounced entirely.
+  tbHeading: 'New lesson booked',
+  tbBody: '{student} booked a driving lesson with you.',
+  tbLabelStudent: 'Student',
+  tbLabelPhone: 'Phone',
+  tbOutro: 'This slot is now closed to other students.',
+  subjTeacherBooked: 'New booking — {student}, {date} at {time}',
+  titleTeacherBooked: 'New lesson booked',
 };
 
 const he: typeof en = {
@@ -235,6 +245,14 @@ const he: typeof en = {
     'הפעל/י מחדש בעלות של ₪{price} לחודש בלבד כדי להחזיר את האתר לאוויר ולשמור על הכול פעיל — הזמנות, תזכורות ולוח הזמנים היומי שלך.',
   trialBtn: 'הפעלה מחדש של האתר',
   subjTrialExpired: 'החודש החינם שלך הסתיים — הפעלה מחדש ב-₪{price} לחודש',
+  // ── new booking, to the TEACHER (D-11) ──
+  tbHeading: 'נקבע שיעור חדש',
+  tbBody: '{student} קבע/ה איתך שיעור נהיגה.',
+  tbLabelStudent: 'תלמיד/ה',
+  tbLabelPhone: 'טלפון',
+  tbOutro: 'המשבצת הזו סגורה כעת לתלמידים אחרים.',
+  subjTeacherBooked: 'שיעור חדש — {student}, {date} בשעה {time}',
+  titleTeacherBooked: 'נקבע שיעור חדש',
 };
 
 const ar: typeof en = {
@@ -337,6 +355,14 @@ const ar: typeof en = {
     'أعد التفعيل مقابل ₪{price} شهرياً فقط لإعادة موقعك إلى الإنترنت والحفاظ على كل شيء يعمل — الحجوزات والتذكيرات وجدولك اليومي.',
   trialBtn: 'إعادة تفعيل موقعي',
   subjTrialExpired: 'انتهى شهرك المجاني — أعد التفعيل مقابل ₪{price} شهرياً',
+  // ── new booking, to the TEACHER (D-11) ──
+  tbHeading: 'تم حجز درس جديد',
+  tbBody: 'قام {student} بحجز درس قيادة معك.',
+  tbLabelStudent: 'الطالب',
+  tbLabelPhone: 'الهاتف',
+  tbOutro: 'هذه الفترة مغلقة الآن أمام الطلاب الآخرين.',
+  subjTeacherBooked: 'حجز جديد — {student}، {date} في {time}',
+  titleTeacherBooked: 'تم حجز درس جديد',
 };
 
 const DICTS: Record<EmailLocale, typeof en> = { en, he, ar };

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
-import { writeFile } from 'node:fs/promises';
+import { unlink, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { prisma } from '../lib/prisma.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
@@ -10,6 +11,7 @@ import { rateLimit } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { badRequest, forbidden, notFound } from '../utils/errors.js';
 import { uploadsDir } from '../lib/uploads.js';
+import { logger } from '../lib/logger.js';
 
 const router = Router();
 
@@ -21,6 +23,27 @@ const MIME_EXT: Record<string, string> = {
   'image/gif': 'gif',
 };
 const MAX_BYTES = 6 * 1024 * 1024; // ~6MB
+
+/**
+ * Remove an uploaded file from disk, tolerating a name that is already gone.
+ *
+ * The stored `fileName` is a generated UUID, but it is still a value from the database, so
+ * resolve it and confirm it sits inside the uploads directory before unlinking — a name
+ * containing `../` must never let a delete reach outside it.
+ */
+async function unlinkQuietly(fileName: string): Promise<void> {
+  const target = path.resolve(uploadsDir, fileName);
+  if (target !== path.join(uploadsDir, path.basename(fileName))) {
+    logger.warn(`refusing to unlink a media path outside uploads: ${fileName}`);
+    return;
+  }
+  try {
+    await unlink(target);
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code !== 'ENOENT') logger.warn(`could not delete media file ${fileName}: ${code ?? err}`);
+  }
+}
 
 /** The decoded bytes must actually be the image type they claim to be. */
 function matchesMagicBytes(ext: string, buf: Buffer): boolean {
@@ -111,6 +134,12 @@ router.delete(
     if (!media) throw notFound('Media not found');
     if (media.website.userId !== req.user!.id) throw forbidden('Not your media');
     await prisma.media.delete({ where: { id: req.params.id } });
+
+    // Delete the file too (C-02). Only the database row used to be removed, so every
+    // deleted photo stayed on disk forever — invisible, unreferenced and unbounded.
+    // Deliberately after the row delete and non-fatal: the user asked to delete the
+    // media, and a missing/locked file must not turn a successful delete into a 500.
+    if (media.fileName) await unlinkQuietly(media.fileName);
     res.json({ deleted: true });
   })
 );

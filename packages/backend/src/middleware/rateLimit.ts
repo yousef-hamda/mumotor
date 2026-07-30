@@ -1,7 +1,11 @@
 import type { NextFunction, Request, Response } from 'express';
 import { kv } from '../lib/redis.js';
+import { logger } from '../lib/logger.js';
 import { tooMany } from '../utils/errors.js';
 import { isTest } from '../config/env.js';
+
+/** Last time each limiter warned that it had failed open, so an outage can't flood the log. */
+const lastWarnAt = new Map<string, number>();
 
 interface RateLimitOptions {
   windowSeconds: number;
@@ -36,8 +40,21 @@ export function rateLimit(opts: RateLimitOptions) {
         return next(tooMany(`Rate limit exceeded. Try again in ${opts.windowSeconds}s.`));
       }
       next();
-    } catch {
-      // Never block a request because the limiter itself failed.
+    } catch (err) {
+      // Fail OPEN: blocking real customers because our own counter broke is worse than
+      // briefly losing the limit. But it must be LOUD (E-06) — this used to swallow the
+      // error silently, so a Redis outage removed every rate limit (login brute-force,
+      // enrolment guessing, email flooding) with nothing in the logs to say so. Throttled
+      // to one line a minute per limiter so an outage can't itself flood the log.
+      const now = Date.now();
+      const last = lastWarnAt.get(opts.keyPrefix) ?? 0;
+      if (now - last > 60_000) {
+        lastWarnAt.set(opts.keyPrefix, now);
+        logger.error(
+          `RATE LIMIT DISABLED for "${opts.keyPrefix}" — the counter store is failing, so ` +
+            `requests are passing unchecked: ${(err as Error).message}`
+        );
+      }
       next();
     }
   };

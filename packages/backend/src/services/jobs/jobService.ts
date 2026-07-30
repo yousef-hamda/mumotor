@@ -2,7 +2,8 @@ import cron from 'node-cron';
 import type { Website, SiteSettings, User, ClientEnrollment } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { logger } from '../../lib/logger.js';
-import { env } from '../../config/env.js';
+import { env, isProd } from '../../config/env.js';
+import { canAcceptPayment } from '../../lib/stripe.js';
 import {
   nowInZone,
   parseTimeToMinutes,
@@ -28,12 +29,40 @@ const REMINDER_WINDOW_MINUTES = 120; // ~2h before the lesson
 const REVIEW_REQUEST_DELAY_MINUTES = 60; // ask ~1h after the lesson ended
 const REVIEW_REQUEST_MAX_AGE_DAYS = 3; // never chase lessons older than this
 
+/**
+ * The ONLY Website columns any job here needs (E-01).
+ *
+ * These jobs used to load whole Website rows (`include: { website: true }`), which drags
+ * `publishedHtml` — the full generated page — into memory for every site, every tick,
+ * to read an email address and a set of opening hours. Selecting explicitly keeps a tick
+ * proportional to the work instead of to the size of everyone's website.
+ *
+ * `configuration` is needed (normalizeConfig + siteBrand read it) and is now genuinely
+ * small: the duplicated page HTML was removed from it in migration
+ * 20260730120000_drop_duplicated_generated_html. Never re-add a large value to it.
+ */
+const SITE_JOB_FIELDS = {
+  id: true,
+  slug: true,
+  name: true,
+  configuration: true,
+  locale: true,
+  status: true,
+} as const;
+
 /** Every 15 min: email students ~2h before their lesson, set reminderSent. */
 export async function processBookingReminders(): Promise<number> {
   const today = appTodayUtcMidnight(env.APP_TIMEZONE);
   const candidates = await prisma.booking.findMany({
     where: { bookingDate: today, reminderSent: false, status: { in: ['CONFIRMED', 'PENDING'] } },
-    include: { website: true },
+    select: {
+      id: true,
+      customerEmail: true,
+      customerName: true,
+      bookingDate: true,
+      bookingTime: true,
+      website: { select: SITE_JOB_FIELDS },
+    },
   });
 
   let sent = 0;
@@ -164,7 +193,11 @@ async function sendReportForSite(
 export async function processDailyStudentNotifications(): Promise<number> {
   const websites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
-    include: { settings: true, enrollments: { where: { status: 'ACTIVE' } } },
+    select: {
+      ...SITE_JOB_FIELDS,
+      settings: { select: { businessHours: true } },
+      enrollments: { where: { status: 'ACTIVE' }, select: { studentEmail: true, studentName: true } },
+    },
   });
   let sent = 0;
   for (const site of websites) sent += await sendBookingOpenForSite(site);
@@ -176,7 +209,11 @@ export async function processDailyStudentNotifications(): Promise<number> {
 export async function processTeacherDailyReport(): Promise<number> {
   const websites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
-    include: { settings: true, user: true },
+    select: {
+      ...SITE_JOB_FIELDS,
+      settings: { select: { businessHours: true } },
+      user: { select: { email: true, name: true } },
+    },
   });
   let sent = 0;
   for (const site of websites) {
@@ -221,7 +258,14 @@ export async function processDailyRhythmTick(): Promise<{ codes: number; booking
 
   const sites = await prisma.website.findMany({
     where: { businessCategory: 'DRIVING_SCHOOL', status: 'PUBLISHED' },
-    include: { settings: true, user: true, enrollments: { where: { status: 'ACTIVE' } } },
+    select: {
+      ...SITE_JOB_FIELDS,
+      settings: {
+        select: { businessHours: true, lastBookingOpenSentOn: true, lastReportSentOn: true },
+      },
+      user: { select: { email: true, name: true } },
+      enrollments: { where: { status: 'ACTIVE' }, select: { studentEmail: true, studentName: true } },
+    },
   });
 
   let codes = 0;
@@ -267,6 +311,20 @@ export async function processDailyRhythmTick(): Promise<{ codes: number; booking
  * never re-freeze or re-email. Data is never deleted — the site is only paused.
  */
 export async function processExpiredTrials(): Promise<number> {
+  // FAIL-SAFE: never freeze an account that has no way to pay. In production with no
+  // Stripe price configured, POST /subscriptions/checkout returns 503 — so freezing
+  // would take the teacher's site down, lock their dashboard, and point them at a
+  // Subscribe button that cannot work. We return BEFORE any write (no freeze, no
+  // email, no trialExpiredNotifiedAt stamp) so that once billing is configured these
+  // same accounts are picked up and handled normally on the next tick.
+  if (isProd && !canAcceptPayment) {
+    logger.warn(
+      'Trial expiry skipped: billing is not configured (no Stripe price id), so an expired ' +
+        'account could not pay to get its site back. Set STRIPE_SECRET_KEY + a STRIPE_PRICE_* to enable.'
+    );
+    return 0;
+  }
+
   const now = new Date();
   const expired = await prisma.subscription.findMany({
     where: {

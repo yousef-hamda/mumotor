@@ -8,6 +8,7 @@ import siteServingRoutes from './routes/siteServing.js';
 import seoRoutes from './routes/seo.js';
 import contentRoutes from './routes/content.js';
 import prerenderRoutes from './routes/prerender.js';
+import publicSiteRenderRoutes from './routes/publicSiteRender.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimit } from './middleware/rateLimit.js';
 import { env, isProd } from './config/env.js';
@@ -108,6 +109,11 @@ export function createApp() {
   app.use(seoRoutes); // GET /robots.txt + /sitemap.xml + /llms.txt (search + AI engines)
   app.use(contentRoutes); // GET /guides + /guides/:slug (server-rendered GEO content, trilingual)
   app.use(prerenderRoutes); // bot-only server-rendered snapshots of / and /templates
+  // GET /p/:slug — the teacher's own <title>/og:image/JSON-LD substituted into the SPA
+  // shell for everyone, plus readable content for non-JS crawlers. Must precede the SPA
+  // catch-all below, and is rate-limited with the other public pages.
+  app.use('/p', rateLimit({ keyPrefix: 'public-site', windowSeconds: 60, max: 300 }));
+  app.use(publicSiteRenderRoutes);
 
   // Single-service deploy (Railway-only): serve the built SPA from this server.
   // /api, /site and /uploads are handled above; everything else → the SPA shell.

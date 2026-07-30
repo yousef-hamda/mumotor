@@ -299,6 +299,55 @@ export function sendBookingConfirmation(
   });
 }
 
+/**
+ * New booking → the TEACHER (D-11).
+ *
+ * Before this, a booking produced a confirmation for the STUDENT and an in-dashboard
+ * notification for the teacher — a bell they had to be looking at. An instructor teaching
+ * all day would learn about it at the daily schedule email (18:00 by default, and only
+ * about TOMORROW), so a lesson booked for later the same day could go unannounced entirely.
+ *
+ * Sent in the site's language and school-branded, like every other message from that site,
+ * and includes the student's phone so the teacher can act on it from the email alone.
+ */
+export function sendTeacherNewBooking(
+  to: string,
+  data: {
+    studentName: string;
+    studentPhone?: string | null;
+    date: string;
+    time: string;
+    duration?: number;
+    brand?: EmailBrand;
+  }
+) {
+  const L: EmailLocale = data.brand?.locale ?? 'en';
+  const label = (k: 'tbLabelStudent' | 'tbLabelPhone' | 'labelDate' | 'labelTime' | 'labelDuration') =>
+    `<strong style="display:inline-block;width:90px;color:#71717a">${emailT(L, k)}</strong>`;
+  const body = `
+    <h1 style="font-size:20px;margin:0 0 12px;font-weight:700">${emailT(L, 'tbHeading')}</h1>
+    <p style="color:#52525b">${emailT(L, 'tbBody', { student: esc(data.studentName) })}</p>
+    ${infoBox(`
+      <p style="margin:4px 0">${label('tbLabelStudent')} ${esc(data.studentName)}</p>
+      ${
+        data.studentPhone
+          ? // A tappable number: the teacher's most likely next action is to call.
+            `<p style="margin:4px 0">${label('tbLabelPhone')} <a href="tel:${esc(data.studentPhone)}" style="color:#0071e3;text-decoration:none">${esc(data.studentPhone)}</a></p>`
+          : ''
+      }
+      <p style="margin:4px 0">${label('labelDate')} ${esc(data.date)}</p>
+      <p style="margin:4px 0">${label('labelTime')} ${esc(data.time)}</p>
+      ${data.duration ? `<p style="margin:4px 0">${label('labelDuration')} ${emailT(L, 'durationMin', { n: data.duration })}</p>` : ''}
+    `)}
+    <p style="color:#52525b">${emailT(L, 'tbOutro')}</p>`;
+  return sendEmail({
+    to,
+    subject: `${emailT(L, 'subjTeacherBooked', { student: safeName(data.studentName), date: data.date, time: data.time })}${subjectTag(data.brand)}`,
+    html: layout(emailT(L, 'titleTeacherBooked'), body, data.brand),
+    brand: data.brand,
+  });
+}
+
 export function sendBookingReminder(
   to: string,
   data: { studentName: string; date: string; time: string; brand?: EmailBrand }
@@ -534,11 +583,26 @@ export function sendPasswordReset(to: string, data: { name?: string; resetUrl: s
 /**
  * Trustpilot AFS (Automatic Feedback Service): a unique BCC address that makes
  * Trustpilot auto-send a review invitation to the recipient a few days later.
- * BCC it ONLY on INSTRUCTOR emails (Mumotor's own customers) — never on student
- * booking/enrollment emails (students review their instructor, not the platform).
- * Overridable via TRUSTPILOT_AFS_BCC env; falls back to the verified address.
+ *
+ * PRIVACY GATE (F-06). BCC'ing this address hands the recipient's name and email to a
+ * third party, so it is:
+ *   - OFF by default. It only activates when TRUSTPILOT_AFS_BCC is explicitly set,
+ *     which is the deliberate act of enabling third-party review invitations.
+ *   - Never attached to an ACCOUNT-LIFECYCLE email (verification, password reset,
+ *     trial-expiry). Those are sent before the person has agreed to anything — the
+ *     verification mail in particular fires on every signup, so it was handing every
+ *     registration to Trustpilot pre-consent.
+ *   - Never attached to a STUDENT email. Students are the instructor's customers, not
+ *     Mumotor's; they review their instructor, not the platform.
+ *
+ * Before enabling it, name Trustpilot as a processor in the privacy policy (F-01) and
+ * attach it to a deliberate, opt-out-able moment — an instructor who has published and
+ * been active for a while — not to signup. `sendEmail` still accepts a `bcc`, so
+ * re-enabling is one argument on the chosen email, not a rebuild.
+ *
+ * The previous address (kept here only so it isn't lost) was the Mumotor AFS invite
+ * alias: mumotor.com+f1498a9e3f@invite.trustpilot.com
  */
-const TRUSTPILOT_AFS_BCC = process.env.TRUSTPILOT_AFS_BCC || 'mumotor.com+f1498a9e3f@invite.trustpilot.com';
 
 export function sendEmailVerification(to: string, data: { name?: string; verifyUrl: string }) {
   const body = `
@@ -550,15 +614,18 @@ export function sendEmailVerification(to: string, data: { name?: string; verifyU
     to,
     subject: 'Verify your Mumotor email',
     html: layout('Verify email', body),
-    // Instructor sign-up email → Trustpilot auto-invites them to review Mumotor.
-    bcc: TRUSTPILOT_AFS_BCC,
+    // No Trustpilot BCC: this fires at signup, before any consent exists (F-06).
   });
 }
 
 /**
  * Free-month-ended notice (Mumotor → the teacher). Rendered in the teacher's own
  * preferredLanguage (en/he/ar). Not school-branded — this is from Mumotor about
- * their account, so it uses the plain Mumotor layout + Trustpilot AFS BCC.
+ * their account, so it uses the plain Mumotor layout.
+ *
+ * No Trustpilot BCC (F-06): asking someone to review you in the same breath as telling
+ * them their site has been switched off is both a privacy transfer without consent and
+ * the worst possible moment to solicit a review.
  */
 export function sendTrialExpired(
   to: string,
@@ -576,7 +643,6 @@ export function sendTrialExpired(
     to,
     subject: emailT(L, 'subjTrialExpired', { price: String(data.price) }),
     html: layout(emailT(L, 'titleTrialExpired'), body),
-    bcc: TRUSTPILOT_AFS_BCC,
   });
 }
 

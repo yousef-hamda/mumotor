@@ -174,7 +174,7 @@ const en = {
     experience: { '1-3': '1–3 years', '3-5': '3–5 years', '5-10': '5–10 years', '10+': '10+ years' },
   },
   dashboard: {
-    common: { loading: 'Loading…', cancel: 'Cancel', delete: 'Delete', to: 'to', closed: 'Closed' },
+    common: { loading: 'Loading…', cancel: 'Cancel', save: 'Save', delete: 'Delete', to: 'to', closed: 'Closed' },
     home: {
       loading: 'Loading your dashboard',
       welcomeBack: 'Welcome back, {{name}}',
@@ -215,6 +215,13 @@ const en = {
       },
       students: {
         searchPlaceholder: 'Search by name or email…',
+        editStudent: 'Edit details',
+        editTitle: 'Edit student',
+        editDesc: 'Correct their name, phone or your private notes. The email address is fixed — it links their lesson history.',
+        editEmailFixed: 'Email (cannot be changed)',
+        studentUpdated: 'Student updated',
+        cancelledLessons_one: 'This also cancelled 1 upcoming lesson and emailed the student.',
+        cancelledLessons_other: 'This also cancelled {{count}} upcoming lessons and emailed the student.',
         allStatuses: 'All statuses',
         active: 'Active',
         inactive: 'Inactive',
@@ -710,7 +717,7 @@ const he: typeof en = {
     experience: { '1-3': '1–3 שנים', '3-5': '3–5 שנים', '5-10': '5–10 שנים', '10+': '10+ שנים' },
   },
   dashboard: {
-    common: { loading: 'טוען…', cancel: 'ביטול', delete: 'מחיקה', to: 'עד', closed: 'סגור' },
+    common: { loading: 'טוען…', cancel: 'ביטול', save: 'שמירה', delete: 'מחיקה', to: 'עד', closed: 'סגור' },
     home: {
       loading: 'טוען את לוח הבקרה',
       welcomeBack: 'ברוך שובך, {{name}}',
@@ -751,6 +758,13 @@ const he: typeof en = {
       },
       students: {
         searchPlaceholder: 'חיפוש לפי שם או אימייל…',
+        editStudent: 'עריכת פרטים',
+        editTitle: 'עריכת תלמיד',
+        editDesc: 'אפשר לתקן שם, טלפון או הערות פרטיות. כתובת האימייל קבועה — היא מקשרת את היסטוריית השיעורים.',
+        editEmailFixed: 'אימייל (לא ניתן לשינוי)',
+        studentUpdated: 'התלמיד עודכן',
+        cancelledLessons_one: 'הפעולה ביטלה גם שיעור עתידי אחד ונשלח אימייל לתלמיד.',
+        cancelledLessons_other: 'הפעולה ביטלה גם {{count}} שיעורים עתידיים ונשלח אימייל לתלמיד.',
         allStatuses: 'כל הסטטוסים',
         active: 'פעיל',
         inactive: 'לא פעיל',
@@ -1246,7 +1260,7 @@ const ar: typeof en = {
     experience: { '1-3': '1–3 سنوات', '3-5': '3–5 سنوات', '5-10': '5–10 سنوات', '10+': '10+ سنوات' },
   },
   dashboard: {
-    common: { loading: 'جارٍ التحميل…', cancel: 'إلغاء', delete: 'حذف', to: 'إلى', closed: 'مغلق' },
+    common: { loading: 'جارٍ التحميل…', cancel: 'إلغاء', save: 'حفظ', delete: 'حذف', to: 'إلى', closed: 'مغلق' },
     home: {
       loading: 'جارٍ تحميل لوحة التحكم',
       welcomeBack: 'مرحباً بعودتك، {{name}}',
@@ -1287,6 +1301,13 @@ const ar: typeof en = {
       },
       students: {
         searchPlaceholder: 'البحث بالاسم أو البريد…',
+        editStudent: 'تعديل البيانات',
+        editTitle: 'تعديل الطالب',
+        editDesc: 'يمكنك تصحيح الاسم أو الهاتف أو ملاحظاتك الخاصة. عنوان البريد الإلكتروني ثابت — فهو يربط سجل الدروس.',
+        editEmailFixed: 'البريد الإلكتروني (غير قابل للتغيير)',
+        studentUpdated: 'تم تحديث الطالب',
+        cancelledLessons_one: 'أدى هذا أيضًا إلى إلغاء درس قادم واحد وإرسال بريد إلكتروني إلى الطالب.',
+        cancelledLessons_other: 'أدى هذا أيضًا إلى إلغاء {{count}} دروس قادمة وإرسال بريد إلكتروني إلى الطالب.',
         allStatuses: 'كل الحالات',
         active: 'نشط',
         inactive: 'غير نشط',

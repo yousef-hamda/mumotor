@@ -28,6 +28,21 @@ function priceRangeFromPackages(packages: { price: number }[]): string {
 }
 
 /**
+ * Absolutise a sharing image, or drop it.
+ *
+ * A link-preview crawler fetches og:image as a standalone URL, so a site-relative path
+ * is unusable and a `data:` URL (which Customize can produce for an uploaded photo) is
+ * both unusable and potentially enormous. Returning undefined is better than emitting a
+ * broken image — the caller's fallback chain handles it.
+ */
+function absoluteShareImage(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith('/')) return `${window.location.origin}${src}`;
+  return undefined; // data:, blob: or relative — not fetchable by a crawler
+}
+
+/**
  * The published teacher site. Renders the design the teacher chose in the
  * builder, populated with their real data (logo, info, links, hours).
  */
@@ -86,6 +101,13 @@ export default function PublicSite() {
           description:
             templateData.hero.sub ||
             `Book driving lessons with ${templateData.instructor.name || templateData.business.name}. Enroll and schedule online.`,
+          // The teacher's own photo, absolutised — a relative or data: URL is useless to a
+          // link preview. Falls through to the default lesson photo rather than leaving
+          // Mumotor's marketing image in place (A-03).
+          image: absoluteShareImage(
+            templateData.hero.image || templateData.instructor.photo || '/img/default-lesson.jpg'
+          ),
+          url: `${window.location.origin}/p/${websiteSlug}`,
           jsonLd: {
             '@context': 'https://schema.org',
             '@type': 'DrivingSchool',

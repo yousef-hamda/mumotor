@@ -1,24 +1,91 @@
 /**
- * DynamicIcon — render any lucide-react icon by name, so template icons can be
- * swapped from the full icon library in Customize mode.
+ * DynamicIcon — render a lucide icon by name, so template icons can be swapped in
+ * Customize mode.
  *
- * `import * as Lucide` exposes the entire lucide set (1000+ icons) by PascalCase
- * name, so the picker can offer "a lot" of icons and any of them resolves here.
- * `ICON_LIBRARY` is the curated, categorized subset shown in the picker grid
- * (users can also search the full set by name).
+ * WHY THE IMPORTS BELOW ARE EXPLICIT (C-01). This module used to do
+ * `import * as Lucide from 'lucide-react'`, which pulls all ~1,540 icons into whatever
+ * chunk imports it. Every template imports DynamicIcon, so the whole library landed in
+ * the shared chunk that EVERY visitor downloads — a student booking a driving lesson was
+ * fetching the icons for `sailboat`, `biohazard` and `dessert`. It bought nothing: the
+ * picker in Customize only ever renders ICON_LIBRARY, the curated set below, so the other
+ * ~1,400 icons supported no feature at all.
+ *
+ * The static set is therefore exactly: every curated picker icon, plus every name any
+ * template or strings file uses as a default. Tree-shaking keeps only these.
+ *
+ * ADDING AN ICON: add the name to ICON_LIBRARY *and* to the import list. A name that is
+ * missing from the import falls back to the lazy loader below rather than breaking, but
+ * that costs a network round-trip — keep the two lists in step. `npm test` guards this.
  */
-import * as Lucide from 'lucide-react';
-import type { LucideProps } from 'lucide-react';
+import {
+  Activity, AlarmClock, ArrowRight, ArrowUpRight, AtSign, Award, BadgeCheck, BadgePercent,
+  Banknote, BarChart3, Bell, Bike, Book, BookOpen, Brain, Bus, Calendar, CalendarCheck,
+  CalendarClock, CalendarDays, Car, CarFront, CarTaxiFront, Caravan, Check, CheckCheck,
+  ChevronRight, Circle, CircleCheck, CircleCheckBig, CircleDollarSign, CircleDot,
+  CircleGauge, Clapperboard, ClipboardCheck, ClipboardList, Clock, Clock3, Cog, Coins,
+  Compass, Construction, CreditCard, Crown, Diamond, Eye, Feather, FileCheck, Filter, Flag,
+  FlagTriangleRight, Fuel, Gauge, Gem, Gift, Globe, Goal, GraduationCap, Hand, Handshake,
+  Headphones, Heart, HeartHandshake, HelpCircle, Hexagon, Home, Hourglass, Inbox, Infinity,
+  Key, Layers, LifeBuoy, Lightbulb, Link, Lock, Mail, MailOpen, Map, MapPin, MapPinned,
+  Medal, MessageCircle, MessageSquare, MessagesSquare, Milestone, Minus, Navigation,
+  NotebookPen, ParkingCircle, ParkingMeter, PartyPopper, PencilRuler, Percent, Phone,
+  PhoneCall, PiggyBank, Plus, Repeat, Rocket, Route, Ruler, Search, Send, Settings, Share2,
+  Shield, ShieldCheck, Signpost, Sliders, Smartphone, Smile, Sparkles, Square, Star, Tag,
+  Tags, Target, ThumbsUp, Timer, TrafficCone, TrendingUp, Triangle, TriangleAlert, Trophy,
+  Truck, User, UserCheck, UserPlus, Users, Verified, Wallet, Wrench, Zap,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { LucideIcon, LucideProps } from 'lucide-react';
 
-type IconComponent = (props: LucideProps) => JSX.Element;
+// lucide icons are forwardRef components, so use the library's own type rather than a
+// plain function signature — a hand-rolled `(props) => JSX.Element` does not match and
+// only type-checked before because the whole barrel was cast in one go.
+type IconComponent = LucideIcon;
 
-const REGISTRY = Lucide as unknown as Record<string, IconComponent | undefined>;
+/** The statically-bundled icons: the curated picker set + every template default. */
+const REGISTRY: Record<string, IconComponent | undefined> = {
+  Activity, AlarmClock, ArrowRight, ArrowUpRight, AtSign, Award, BadgeCheck,
+  BadgePercent, Banknote, BarChart3, Bell, Bike, Book, BookOpen, Brain, Bus, Calendar,
+  CalendarCheck, CalendarClock, CalendarDays, Car, CarFront, CarTaxiFront, Caravan,
+  Check, CheckCheck, ChevronRight, Circle, CircleCheck, CircleCheckBig,
+  CircleDollarSign, CircleDot, CircleGauge, Clapperboard, ClipboardCheck,
+  ClipboardList, Clock, Clock3, Cog, Coins, Compass, Construction, CreditCard, Crown,
+  Diamond, Eye, Feather, FileCheck, Filter, Flag, FlagTriangleRight, Fuel, Gauge, Gem,
+  Gift, Globe, Goal, GraduationCap, Hand, Handshake, Headphones, Heart, HeartHandshake,
+  HelpCircle, Hexagon, Home, Hourglass, Inbox, Infinity, Key, Layers, LifeBuoy,
+  Lightbulb, Link, Lock, Mail, MailOpen, Map, MapPin, MapPinned, Medal, MessageCircle,
+  MessageSquare, MessagesSquare, Milestone, Minus, Navigation, NotebookPen,
+  ParkingCircle, ParkingMeter, PartyPopper, PencilRuler, Percent, Phone, PhoneCall,
+  PiggyBank, Plus, Repeat, Rocket, Route, Ruler, Search, Send, Settings, Share2,
+  Shield, ShieldCheck, Signpost, Sliders, Smartphone, Smile, Sparkles, Square, Star,
+  Tag, Tags, Target, ThumbsUp, Timer, TrafficCone, TrendingUp, Triangle, TriangleAlert,
+  Trophy, Truck, User, UserCheck, UserPlus, Users, Verified, Wallet, Wrench, Zap
+};
 
-/** True if a lucide icon by this exact PascalCase name exists. */
+/**
+ * Lazy escape hatch for a name outside the static set.
+ *
+ * Reachable when a site's stored `customization.icons` names an icon that is no longer in
+ * ICON_LIBRARY — e.g. a curated entry was removed after a teacher had already chosen it.
+ * Rather than silently degrading that site to a fallback glyph forever, fetch the full
+ * library once, on demand, in its own chunk. Nothing on a normal page load triggers this.
+ */
+let lateRegistry: Record<string, IconComponent | undefined> | null = null;
+let latePromise: Promise<void> | null = null;
+const lateSubscribers = new Set<() => void>();
+
+function loadFullLibrary(): void {
+  if (latePromise) return;
+  latePromise = import('lucide-react').then((mod) => {
+    lateRegistry = mod as unknown as Record<string, IconComponent | undefined>;
+    lateSubscribers.forEach((notify) => notify());
+  });
+}
+
+/** True if this exact PascalCase name resolves to an icon we can render right now. */
 export function iconExists(name?: string): boolean {
   if (!name) return false;
-  const C = REGISTRY[name];
-  return typeof C === 'function';
+  return typeof (REGISTRY[name] ?? lateRegistry?.[name]) === 'function';
 }
 
 export function DynamicIcon({
@@ -26,10 +93,22 @@ export function DynamicIcon({
   fallback = 'Circle',
   ...props
 }: { name?: string; fallback?: string } & LucideProps) {
-  const Cmp =
-    (name && REGISTRY[name]) ||
-    REGISTRY[fallback] ||
-    REGISTRY.Circle!;
+  const known = (name && REGISTRY[name]) || undefined;
+  // Only subscribe/rerender for the rare unknown-name case, so the common path stays a
+  // plain synchronous render with no extra state.
+  const [, bump] = useState(0);
+  const needsLate = Boolean(name) && !known;
+  useEffect(() => {
+    if (!needsLate) return;
+    const notify = () => bump((n) => n + 1);
+    lateSubscribers.add(notify);
+    loadFullLibrary();
+    return () => {
+      lateSubscribers.delete(notify);
+    };
+  }, [needsLate, name]);
+
+  const Cmp = known || (name ? lateRegistry?.[name] : undefined) || REGISTRY[fallback] || REGISTRY.Circle!;
   return <Cmp {...props} />;
 }
 

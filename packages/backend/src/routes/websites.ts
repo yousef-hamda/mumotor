@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { kv } from '../lib/redis.js';
+import { clearSiteCache } from '../lib/siteCache.js';
 import { env } from '../config/env.js';
 import { verifyToken } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
@@ -16,6 +16,24 @@ import { getPreset } from '../services/ai/templatePresets.js';
 import { boundedRecord } from '../utils/validation.js';
 
 const router = Router();
+
+/**
+ * Version history is capped (E-03). Every publish stored another full copy of the page
+ * forever, nothing ever read it back, and publishing is rate-limited at 30 per 10 minutes
+ * — so a teacher iterating on their site quietly accumulated megabytes of dead rows.
+ *
+ * Returns the delete operation to run inside the publish transaction (or nothing, while
+ * still under the cap), keeping the newest KEEP_VERSIONS snapshots.
+ */
+const KEEP_VERSIONS = 10;
+function pruneVersions(websiteId: string, currentVersion: number) {
+  if (currentVersion <= KEEP_VERSIONS) return [];
+  return [
+    prisma.websiteVersion.deleteMany({
+      where: { websiteId, version: { lte: currentVersion - KEEP_VERSIONS } },
+    }),
+  ];
+}
 
 async function ensureUniqueSlug(base: string): Promise<string> {
   let slug = base;
@@ -184,11 +202,7 @@ router.patch(
     // The PWA manifest/icon derive from name/preset/theme (not publishedHtml), so a
     // rename or accent change here must drop them or they'd serve stale branding for
     // up to 5 min. (site:<slug> HTML is unchanged until republish, so it's left alone.)
-    await Promise.all([
-      kv.del(`manifest:${website.slug}:path`),
-      kv.del(`manifest:${website.slug}:sub`),
-      kv.del(`icon:${website.slug}`),
-    ]);
+    await clearSiteCache(website.slug);
     res.json({ website });
   })
 );
@@ -219,26 +233,23 @@ router.post(
     });
 
     const version = (await prisma.websiteVersion.count({ where: { websiteId: website.id } })) + 1;
+
+    // NOTE: the generated HTML is stored ONCE, in `publishedHtml`. It used to be
+    // duplicated into `configuration.generatedHTML` too, which nothing ever read — and
+    // because `configuration` is the small settings blob that background jobs must load,
+    // that duplicate made every job query ~15× heavier than it needed to be (measured:
+    // 11,958 B of configuration, of which 11,145 B was the copy). Do not re-add it.
     await prisma.$transaction([
       prisma.website.update({
         where: { id: website.id },
-        data: {
-          status: 'PUBLISHED',
-          publishedHtml: html,
-          publishedAt: new Date(),
-          configuration: { ...(website.configuration as object), generatedHTML: html },
-        },
+        data: { status: 'PUBLISHED', publishedHtml: html, publishedAt: new Date() },
       }),
       prisma.websiteVersion.create({ data: { websiteId: website.id, version, html } }),
+      // Keep version history bounded — see the prune helper for why (E-03).
+      ...pruneVersions(website.id, version),
     ]);
 
-    await kv.del(`site:${website.slug}`);
-    // PWA manifest/icon are derived from the same branding — drop them too.
-    await Promise.all([
-      kv.del(`manifest:${website.slug}:path`),
-      kv.del(`manifest:${website.slug}:sub`),
-      kv.del(`icon:${website.slug}`),
-    ]);
+    await clearSiteCache(website.slug);
 
     logEvent('site_published', { userId: req.user!.id, props: { template: website.selectedPreset ?? 'unknown' } });
 
@@ -259,13 +270,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const website = await loadOwned(req.params.id, req.user!.id);
     await prisma.website.update({ where: { id: website.id }, data: { status: 'DRAFT' } });
-    await kv.del(`site:${website.slug}`);
-    // PWA manifest/icon are derived from the same branding — drop them too.
-    await Promise.all([
-      kv.del(`manifest:${website.slug}:path`),
-      kv.del(`manifest:${website.slug}:sub`),
-      kv.del(`icon:${website.slug}`),
-    ]);
+    await clearSiteCache(website.slug);
     res.json({ status: 'DRAFT' });
   })
 );
@@ -281,13 +286,7 @@ router.delete(
       throw badRequest('Type DELETE to confirm permanent deletion', 'CONFIRM_REQUIRED');
     }
     await prisma.website.delete({ where: { id: website.id } });
-    await kv.del(`site:${website.slug}`);
-    // PWA manifest/icon are derived from the same branding — drop them too.
-    await Promise.all([
-      kv.del(`manifest:${website.slug}:path`),
-      kv.del(`manifest:${website.slug}:sub`),
-      kv.del(`icon:${website.slug}`),
-    ]);
+    await clearSiteCache(website.slug);
     res.json({ deleted: true });
   })
 );
