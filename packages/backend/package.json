@@ -20,7 +20,12 @@
     "test:ratelimit": "node test/ratelimit.unit.mjs",
     "test:cron": "tsx test/cron-check.ts",
     "test:billing": "tsx test/billing.check.ts",
-    "test:google": "tsx test/google-auth.check.ts"
+    "test:trial": "tsx test/trial-freeze.check.ts",
+    "test:pubsite": "tsx test/public-site-render.check.ts",
+    "test:google": "tsx test/google-auth.check.ts",
+    "test:notify": "tsx test/notifications.check.ts",
+    "test:time": "tsx test/time.unit.ts",
+    "check:env": "tsx test/env-example.check.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

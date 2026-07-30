@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { getTenantSlug } from './lib/tenant';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -9,24 +10,40 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
-import DashboardHome from './pages/dashboard/Dashboard';
-import DrivingSchool from './pages/dashboard/DrivingSchool';
-import Reviews from './pages/dashboard/Reviews';
-import Messages from './pages/dashboard/Messages';
-import Publishing from './pages/dashboard/Publishing';
-import Billing from './pages/dashboard/Billing';
-import Settings from './pages/dashboard/Settings';
-import BuilderWizard from './pages/builder/BuilderWizard';
-import CustomizePage from './pages/customize/CustomizePage';
-import AdminDashboard from './pages/admin/AdminDashboard';
 import PublicSite from './pages/public/PublicSite';
 import Enroll from './pages/public/Enroll';
 import BookLesson from './pages/public/BookLesson';
 import LeaveReview from './pages/public/LeaveReview';
 import StudentAccount from './pages/public/StudentAccount';
-import TemplatesGallery from './pages/templates/TemplatesGallery';
-import TemplatePreview from './pages/templates/TemplatePreview';
 import NotFound from './pages/NotFound';
+
+/**
+ * Teacher-only route trees are lazy (C-01).
+ *
+ * Everything used to be imported eagerly, so the dashboard, builder, Customize editor and
+ * admin console were all inside the single chunk that a STUDENT downloads just to book a
+ * lesson. Splitting them means each audience pays only for what it uses. Landing, auth and
+ * the public student pages stay eager: they are the first paint, and a spinner there would
+ * be a regression, not an optimisation.
+ */
+const DashboardHome = lazy(() => import('./pages/dashboard/Dashboard'));
+const DrivingSchool = lazy(() => import('./pages/dashboard/DrivingSchool'));
+const Reviews = lazy(() => import('./pages/dashboard/Reviews'));
+const Messages = lazy(() => import('./pages/dashboard/Messages'));
+const Publishing = lazy(() => import('./pages/dashboard/Publishing'));
+const Billing = lazy(() => import('./pages/dashboard/Billing'));
+const Settings = lazy(() => import('./pages/dashboard/Settings'));
+const BuilderWizard = lazy(() => import('./pages/builder/BuilderWizard'));
+const CustomizePage = lazy(() => import('./pages/customize/CustomizePage'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const TemplatesGallery = lazy(() => import('./pages/templates/TemplatesGallery'));
+const TemplatePreview = lazy(() => import('./pages/templates/TemplatePreview'));
+
+/** Shown while a lazy route chunk loads. Intentionally minimal — a heavy skeleton flashes
+ *  on fast connections and reads as jank. */
+function RouteFallback() {
+  return <div className="min-h-screen bg-white" aria-busy="true" aria-live="polite" />;
+}
 
 /** The legacy split-pane editor is retired — old /editor links open Customize. */
 function EditorRedirect() {
@@ -75,7 +92,10 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Routes>
+      {/* A single boundary covers every lazy route. ErrorBoundary (outside) already turns
+          a stale-chunk failure after a deploy into one auto-reload, so the two compose. */}
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
         {/* Marketing + auth */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -188,7 +208,8 @@ export default function App() {
 
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </ErrorBoundary>
   );
 }

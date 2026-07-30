@@ -378,10 +378,24 @@ export const drivingSchoolApi = {
     data: { studentName: string; studentEmail: string; studentPhone?: string; notes?: string }
   ) =>
     api.post<{ enrollment: Student }>(`/driving-school/${websiteId}/students`, data).then((r) => r.data),
+  /** Correct a student's details (D-12). Email is intentionally not editable — bookings
+   *  key on it, so changing it would orphan their lesson history. */
+  updateStudent: (
+    websiteId: string,
+    enrollmentId: string,
+    data: { studentName?: string; studentPhone?: string; notes?: string | null }
+  ) =>
+    api.patch<{ enrollment: Student }>(`/driving-school/${websiteId}/students/${enrollmentId}`, data).then((r) => r.data),
+  // These return `cancelledLessons` so the UI can tell the teacher what the action cost
+  // (A-04) — the future lessons it cancelled are not restored by re-activating.
   finishStudent: (websiteId: string, enrollmentId: string) =>
-    api.patch<{ enrollment: Student }>(`/driving-school/${websiteId}/students/${enrollmentId}/finish`).then((r) => r.data),
+    api
+      .patch<{ enrollment: Student; cancelledLessons?: number }>(`/driving-school/${websiteId}/students/${enrollmentId}/finish`)
+      .then((r) => r.data),
   toggleStudentStatus: (websiteId: string, enrollmentId: string) =>
-    api.patch<{ enrollment: Student }>(`/driving-school/${websiteId}/students/${enrollmentId}/toggle-status`).then((r) => r.data),
+    api
+      .patch<{ enrollment: Student; cancelledLessons?: number }>(`/driving-school/${websiteId}/students/${enrollmentId}/toggle-status`)
+      .then((r) => r.data),
   removeStudent: (websiteId: string, enrollmentId: string) =>
     api.delete<{ deleted: boolean }>(`/driving-school/${websiteId}/students/${enrollmentId}`).then((r) => r.data),
   getDailyReport: (websiteId: string, day?: ScheduleDay) =>

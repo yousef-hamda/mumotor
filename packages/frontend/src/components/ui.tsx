@@ -1,14 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useRef,
-  useState,
-  type ButtonHTMLAttributes,
-  type InputHTMLAttributes,
-  type ReactNode,
-  type SelectHTMLAttributes,
-  type TextareaHTMLAttributes,
-} from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useEffect, useId, useRef, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { EnrollmentStatus } from '../lib/types';
@@ -199,13 +189,34 @@ export function Modal({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  // Stable per-instance id so aria-labelledby points at THIS dialog's heading even when
+  // two modals are mounted in the same tree.
+  const titleId = useId();
+  // Escape closes the dialog. Every modal here is cancellable, and a dialog that traps you
+  // until you find the small × is a usability problem as much as an accessibility one.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div className="absolute inset-0 bg-sand-950/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-md flex-col animate-fade-in rounded-2xl border border-white/60 bg-white/85 shadow-elevated backdrop-blur-xl backdrop-saturate-150">
+      {/* role/aria-modal so assistive tech announces this as a dialog rather than as more
+          page content, and aria-labelledby ties the announcement to the visible heading. */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-10 flex max-h-[90dvh] w-full max-w-md flex-col animate-fade-in rounded-2xl border border-white/60 bg-white/85 shadow-elevated backdrop-blur-xl backdrop-saturate-150"
+      >
         <div className="flex shrink-0 items-start justify-between px-6 pb-4 pt-6">
-          <h3 className="text-lg font-bold tracking-tight text-sand-900">{title}</h3>
+          <h3 id={titleId} className="text-lg font-bold tracking-tight text-sand-900">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"

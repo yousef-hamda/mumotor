@@ -20,15 +20,6 @@ export function hashEnrollmentCode(code: string): string {
   return `sha256:${salt}:${sha256(salt, code)}`;
 }
 
-/** Verify a plaintext code against a stored "sha256:{salt}:{hash}" value. */
-export function verifyEnrollmentCode(code: string, stored: string): boolean {
-  const parts = stored.split(':');
-  if (parts.length !== 3 || parts[0] !== 'sha256') return false;
-  const [, salt, hash] = parts;
-  const candidate = sha256(salt, code);
-  return timingSafeEqualStr(candidate, hash);
-}
-
 /** Generate a 6-char uppercase hex daily code, e.g. "A3F8B2". */
 export function generateDailyCodeValue(): string {
   return randomBytes(3).toString('hex').toUpperCase();

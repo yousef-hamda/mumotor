@@ -37,6 +37,7 @@ import {
   sendBulkCustomEmail,
   sendBookingCancelled,
   sendBookingConfirmation,
+  sendTeacherNewBooking,
   sendEnhancedDailyReport,
   sendMagicLink,
   sendWelcomeEnrollment,
@@ -379,7 +380,8 @@ router.post(
 
     const website = await prisma.website.findUnique({
       where: { id: websiteId },
-      include: { settings: true },
+      // The owner's email is needed to tell them a lesson was booked (D-11).
+      include: { settings: true, user: { select: { email: true } } },
     });
     if (!website || website.status !== 'PUBLISHED') throw notFound('Driving school not found');
 
@@ -476,6 +478,17 @@ router.post(
         type: 'BOOKING',
         title: 'New lesson booked',
         body: `${booking.enrollment.studentName} — ${data.date} at ${data.time}`,
+      });
+      // Tell the TEACHER too (D-11). The in-dashboard notification above only reaches an
+      // instructor who happens to be looking at the dashboard; an email reaches one who is
+      // out teaching, which is the normal case.
+      void sendTeacherNewBooking(website.user.email, {
+        studentName: booking.enrollment.studentName,
+        studentPhone: booking.enrollment.studentPhone,
+        date: data.date,
+        time: data.time,
+        duration: cfg.classDuration,
+        brand: siteBrand(website),
       });
       logEvent('booking_created', { props: { websiteId: website.id } });
 
@@ -832,6 +845,99 @@ async function nonCancelledCountsByEmail(
   return new Map(grouped.map((g) => [g.customerEmail, g._count._all]));
 }
 
+/**
+ * Cancel a student's not-yet-started lessons AND tell them (A-04).
+ *
+ * Finishing, pausing or deleting a student silently cancelled every future lesson they had
+ * booked, with no notification to anyone. A teacher tapping "pause" to mean "she's away for
+ * two weeks" destroyed her schedule invisibly — the student either turned up to nothing or
+ * simply stopped coming. Reactivating does NOT restore the bookings, so this is effectively
+ * irreversible and the student has to be told.
+ *
+ * Returns the affected bookings so the caller can report the count to the teacher and the
+ * UI can warn BEFORE the action ("this will cancel 3 upcoming lessons").
+ */
+async function cancelFutureLessonsAndNotify(
+  website: WebsiteWithSettings,
+  enrollment: { studentEmail: string; studentName: string },
+  reason: 'finished' | 'paused' | 'removed'
+): Promise<number> {
+  // Read the rows BEFORE cancelling — afterwards they no longer match the filter, so
+  // there would be nothing left to tell the student about.
+  const affected = await prisma.booking.findMany({
+    where: futureBookingsWhere(website.id, enrollment.studentEmail),
+    select: { bookingDate: true, bookingTime: true },
+    orderBy: [{ bookingDate: 'asc' }, { bookingTime: 'asc' }],
+  });
+  if (!affected.length) return 0;
+
+  for (const b of affected) {
+    // Fire-and-forget, and reusing the existing teacher-cancelled copy: from the student's
+    // side that is exactly what happened — the instructor ended the lesson, not them.
+    void sendBookingCancelled(enrollment.studentEmail, {
+      recipientName: enrollment.studentName,
+      date: b.bookingDate.toISOString().slice(0, 10),
+      time: b.bookingTime,
+      cancelledBy: 'teacher',
+      brand: siteBrand(website),
+    });
+  }
+  logger.info(
+    `cancelled ${affected.length} future lesson(s) for ${enrollment.studentEmail} (${reason}) and notified them`
+  );
+  return affected.length;
+}
+
+// PATCH /driving-school/:websiteId/students/:enrollmentId — correct a student's details.
+//
+// There was no way to edit a student at all (D-12): only finish, pause and delete. A typo
+// in an email meant that student could not log in or receive reminders, and the only
+// "fix" was delete-and-re-add, which wipes their entire lesson history. `notes` was worse
+// than that — settable once in the add form and never changeable again, which made the one
+// place a teacher can record anything about a student effectively useless.
+//
+// studentEmail is deliberately NOT editable here. Bookings carry the email as a snapshot
+// rather than a foreign key, so changing it would orphan the student's lessons: their
+// history would vanish and pause/finish would no longer free their slots. Correcting an
+// email needs a deliberate migration of those rows — a separate, explicit operation.
+const editStudentSchema = z.object({
+  studentName: z.string().min(1).max(120).optional(),
+  studentPhone: z.string().regex(/^[+\d][\d\s-]{6,18}$/, 'A valid phone number is required').optional(),
+  // Nullable so a teacher can CLEAR the notes, not only overwrite them.
+  notes: z.string().max(1000).nullable().optional(),
+}).refine((v) => Object.keys(v).length > 0, { message: 'Nothing to update' });
+
+router.patch(
+  '/:websiteId/students/:enrollmentId',
+  ...teacher,
+  asyncHandler(async (req, res) => {
+    const website = getWebsite(res);
+    const data = editStudentSchema.parse(req.body);
+    await loadEnrollment(website.id, req.params.enrollmentId); // ownership + existence
+
+    const updated = await prisma.clientEnrollment.update({
+      where: { id: req.params.enrollmentId },
+      data: {
+        ...(data.studentName !== undefined ? { studentName: data.studentName.trim() } : {}),
+        ...(data.studentPhone !== undefined ? { studentPhone: data.studentPhone.trim() } : {}),
+        ...(data.notes !== undefined ? { notes: data.notes } : {}),
+      },
+      select: {
+        id: true,
+        studentName: true,
+        studentEmail: true,
+        studentPhone: true,
+        status: true,
+        classCount: true,
+        notes: true,
+        enrolledAt: true,
+        finishedAt: true,
+      },
+    });
+    res.json({ enrollment: updated });
+  })
+);
+
 // PATCH /driving-school/:websiteId/students/:enrollmentId/finish
 router.patch(
   '/:websiteId/students/:enrollmentId/finish',
@@ -839,7 +945,9 @@ router.patch(
   asyncHandler(async (req, res) => {
     const website = getWebsite(res);
     const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);
-    // Finishing a student frees their future slots (no ghost bookings / stray reminders).
+    // Finishing a student frees their future slots (no ghost bookings / stray reminders)
+    // and now tells the student their remaining lessons are off (A-04).
+    const cancelled = await cancelFutureLessonsAndNotify(website, enrollment, 'finished');
     const [, updated] = await prisma.$transaction([
       prisma.booking.updateMany({ where: futureBookingsWhere(website.id, enrollment.studentEmail), data: { status: 'CANCELLED' } }),
       prisma.clientEnrollment.update({
@@ -847,7 +955,7 @@ router.patch(
         data: { status: 'COMPLETED', finishedAt: new Date() },
       }),
     ]);
-    res.json({ enrollment: updated });
+    res.json({ enrollment: updated, cancelledLessons: cancelled });
   })
 );
 
@@ -860,16 +968,21 @@ router.patch(
     const enrollment = await loadEnrollment(website.id, req.params.enrollmentId);
     const nextStatus = enrollment.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     // Pausing a student frees their future slots too; reactivating just clears finishedAt.
+    // NOTE this is not symmetric: reactivating does NOT restore cancelled lessons, which is
+    // why the student is emailed on the way out (A-04).
+    let cancelled = 0;
     const updated =
       nextStatus === 'INACTIVE'
-        ? (
-            await prisma.$transaction([
+        ? await (async () => {
+            cancelled = await cancelFutureLessonsAndNotify(website, enrollment, 'paused');
+            const rows = await prisma.$transaction([
               prisma.booking.updateMany({ where: futureBookingsWhere(website.id, enrollment.studentEmail), data: { status: 'CANCELLED' } }),
               prisma.clientEnrollment.update({ where: { id: enrollment.id }, data: { status: 'INACTIVE' } }),
-            ])
-          )[1]
+            ]);
+            return rows[1];
+          })()
         : await prisma.clientEnrollment.update({ where: { id: enrollment.id }, data: { status: 'ACTIVE', finishedAt: null } });
-    res.json({ enrollment: updated });
+    res.json({ enrollment: updated, cancelledLessons: cancelled });
   })
 );
 
@@ -885,6 +998,7 @@ router.delete(
     // and those ghost bookings would bleed onto anyone who re-enrolls with the same
     // email. Cancel the not-yet-started ones in the same transaction to free the slots
     // (H5). Lessons that already happened (incl. earlier today) stay for history (L13).
+    const cancelled = await cancelFutureLessonsAndNotify(website, enrollment, 'removed');
     await prisma.$transaction([
       prisma.booking.updateMany({
         where: futureBookingsWhere(website.id, enrollment.studentEmail),
@@ -892,7 +1006,7 @@ router.delete(
       }),
       prisma.clientEnrollment.delete({ where: { id: req.params.enrollmentId } }),
     ]);
-    res.json({ deleted: true });
+    res.json({ deleted: true, cancelledLessons: cancelled });
   })
 );
 

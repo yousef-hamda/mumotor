@@ -1,0 +1,135 @@
+# Mumotor CI (G-02).
+#
+# Before this, ~300 automated checks existed and never ran automatically: every push to
+# main deployed straight to the live site with nothing verified in between. Good tests
+# that don't run are documentation.
+#
+# Two jobs, deliberately split:
+#   fast     — typecheck, both builds, and every check that needs no database. Minutes.
+#   database — the suites that need Postgres, on a service container.
+#
+# Kept honest about scope: the suites that need a long-running API server plus a
+# freshly-seeded database (test/integration.mjs, test/security.integration.mjs and the
+# Playwright e2e suite) are NOT run here yet. They are date-sensitive by design — the
+# seed books "its" tomorrow — so wiring them up needs a deterministic seed first, and a
+# flaky required check is worse than an honest gap. Run them locally before a release.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A new push supersedes an in-flight run for the same ref.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    name: Typecheck, build, unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # `prisma generate` — the backend typecheck needs the generated client, and the
+      # frontend build runs `tsc --noEmit` itself.
+      - name: Generate Prisma client
+        run: npm run db:generate --workspace @mumotor/backend
+
+      - name: Typecheck backend
+        run: npx tsc -p packages/backend/tsconfig.json --noEmit
+
+      - name: Typecheck frontend
+        run: npm run typecheck --workspace @mumotor/frontend
+
+      - name: Build backend
+        run: npm run build --workspace @mumotor/backend
+
+      - name: Build frontend
+        run: npm run build --workspace @mumotor/frontend
+
+      - name: Frontend unit tests
+        run: npm test --workspace @mumotor/frontend
+
+      - name: Time + slot logic (H-04)
+        run: npm run test:time --workspace @mumotor/backend
+
+      - name: .env.example matches config/env.ts (G-06)
+        run: npm run check:env --workspace @mumotor/backend
+
+      - name: Rate limiter unit tests
+        run: npm run test:ratelimit --workspace @mumotor/backend
+
+      # Fails the build on a HIGH/CRITICAL advisory in what actually ships. Dev-only
+      # tooling is excluded because a dev-server advisory cannot reach production.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+  database:
+    name: Database-backed suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: otto
+          POSTGRES_PASSWORD: otto
+          POSTGRES_DB: otto_driving
+        ports: ['5432:5432']
+        # Don't start the suites before Postgres can actually accept a connection.
+        options: >-
+          --health-cmd "pg_isready -U otto"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://otto:otto@localhost:5432/otto_driving
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else-000000
+      FRONTEND_URL: http://localhost:4000
+      APP_URL: http://localhost:4000
+      ENABLE_CRON: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy --schema packages/backend/prisma/schema.prisma
+
+      # The public-site render test personalises the built SPA shell, so it needs a dist.
+      - name: Build frontend (shell for the render test)
+        run: npm run build --workspace @mumotor/frontend
+
+      - name: Billing money-path (accountState, freeze, restore)
+        run: npm run test:billing --workspace @mumotor/backend
+
+      - name: Trial freeze must be gated on billing (A-01)
+        run: npm run test:trial --workspace @mumotor/backend
+
+      - name: Teacher site identifies itself, not Mumotor (A-03 / B-01)
+        run: npm run test:pubsite --workspace @mumotor/backend
+        env:
+          FRONTEND_DIST: ${{ github.workspace }}/packages/frontend/dist
+
+      - name: Booking + cancellation notifications (D-11 / A-04)
+        run: npm run test:notify --workspace @mumotor/backend
+
+      - name: Google sign-in account linking
+        run: npm run test:google --workspace @mumotor/backend

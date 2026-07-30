@@ -1,8 +1,12 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { verifyToken } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { forbidden } from '../utils/errors.js';
+import { forbidden, notFound } from '../utils/errors.js';
+import { restoreUserSites } from '../services/billing/siteFreeze.js';
+import { getAccountState } from '../services/billing/accountState.js';
+import { logger } from '../lib/logger.js';
 
 const router = Router();
 
@@ -93,6 +97,69 @@ router.get(
       },
     });
     res.json({ websites });
+  })
+);
+
+// POST /admin/users/:userId/entitlement — the manual escape hatch.
+//
+// Until Stripe is live there is no self-service way for a teacher whose free month
+// lapsed to get their site back, and support ("just fix my site") must not require
+// hand-editing the database. This grants an entitlement directly: extend the trial
+// by N days, and/or set the plan + seat count, then bring any frozen site back online.
+//
+// Deliberately admin-only and deliberately explicit — `plan` is never inferred.
+const entitlementSchema = z
+  .object({
+    /** Extend (or restart) the free window this many days from now. */
+    trialDays: z.number().int().min(0).max(3650).optional(),
+    /** Set the plan outright — use PRO for "this teacher has paid me directly". */
+    plan: z.enum(['FREE', 'PRO', 'STUDIO']).optional(),
+    /** How many live websites the account is entitled to. */
+    websiteQuota: z.number().int().min(0).max(100).optional(),
+    /** Short note for the audit log (who authorised this, why). */
+    reason: z.string().max(200).optional(),
+  })
+  .refine((v) => v.trialDays !== undefined || v.plan !== undefined || v.websiteQuota !== undefined, {
+    message: 'Provide at least one of trialDays, plan or websiteQuota',
+  });
+
+router.post(
+  '/users/:userId/entitlement',
+  asyncHandler(async (req, res) => {
+    const data = entitlementSchema.parse(req.body);
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.userId },
+      select: { id: true, email: true },
+    });
+    if (!user) throw notFound('User not found');
+
+    const trialEndsAt =
+      data.trialDays === undefined
+        ? undefined
+        : new Date(Date.now() + data.trialDays * 24 * 60 * 60 * 1000);
+
+    // Clearing the notified stamp re-arms the trial-expiry job, so a granted extension
+    // is handled cleanly (and re-notified) when it eventually runs out.
+    const update = {
+      ...(data.plan ? { plan: data.plan, status: 'ACTIVE' as const } : {}),
+      ...(data.websiteQuota !== undefined ? { websiteQuota: data.websiteQuota } : {}),
+      ...(trialEndsAt ? { trialEndsAt, trialExpiredNotifiedAt: null } : {}),
+    };
+    await prisma.subscription.upsert({
+      where: { userId: user.id },
+      update,
+      create: { userId: user.id, plan: data.plan ?? 'FREE', websiteQuota: data.websiteQuota ?? 1, trialEndsAt },
+    });
+
+    // Anything frozen by a lapsed trial comes back online, capped at the new quota.
+    const restored = await restoreUserSites(user.id);
+    const account = await getAccountState(user.id);
+
+    logger.info(
+      `admin entitlement: ${user.email} → ${JSON.stringify(update)} (restored ${restored} site(s))` +
+        `${data.reason ? ` — ${data.reason}` : ''} by admin ${req.user!.email}`
+    );
+    res.json({ granted: true, restored, account });
   })
 );
 

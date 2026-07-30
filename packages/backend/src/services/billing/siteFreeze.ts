@@ -1,16 +1,6 @@
 import { prisma } from '../../lib/prisma.js';
-import { kv } from '../../lib/redis.js';
+import { clearSiteCache } from '../../lib/siteCache.js';
 import { getAccountState } from './accountState.js';
-
-/** Drop every cache key derived from a site's slug (HTML + PWA manifest/icon). */
-async function clearSiteCache(slug: string): Promise<void> {
-  await Promise.all([
-    kv.del(`site:${slug}`),
-    kv.del(`manifest:${slug}:path`),
-    kv.del(`manifest:${slug}:sub`),
-    kv.del(`icon:${slug}`),
-  ]);
-}
 
 /**
  * Freeze all of a user's live sites (PUBLISHED → SUSPENDED) and drop their caches

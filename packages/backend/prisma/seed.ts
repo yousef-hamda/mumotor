@@ -106,9 +106,15 @@ async function main() {
   });
   // build the published HTML with the real website id (so the in-page booking widget works)
   const { html } = buildSiteHtml({ website: { id: website.id, name, slug }, config: businessConfig, presetId: 'open-road' });
+  // The HTML lives ONLY in publishedHtml. It used to be copied into
+  // configuration.generatedHTML as well, which nothing read — and since `configuration` is
+  // the small settings blob every background job loads, that copy made each job query ~10×
+  // heavier per site. Migration 20260730120000 strips it from existing rows, the publish
+  // route no longer writes it, and the seed must not reintroduce it (a fresh seed was
+  // putting it straight back).
   await prisma.website.update({
     where: { id: website.id },
-    data: { publishedHtml: html, configuration: { ...businessConfig, generatedHTML: html } },
+    data: { publishedHtml: html, configuration: businessConfig },
   });
   console.log(`  ✓ Website: /site/${website.slug} (PUBLISHED, preset open-road)`);
 

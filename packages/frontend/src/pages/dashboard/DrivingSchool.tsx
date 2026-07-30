@@ -12,6 +12,7 @@ import {
   Check,
   Search,
   Trash2,
+  Pencil,
   PauseCircle,
   PlayCircle,
   GraduationCap,
@@ -150,6 +151,8 @@ function StudentsTab({ website }: { website: Website }) {
   const [page, setPage] = useState(1);
   const [toDelete, setToDelete] = useState<Student | null>(null);
   const emptyAdd = { studentName: '', studentEmail: '', studentPhone: '', notes: '' };
+  const [toEdit, setToEdit] = useState<Student | null>(null);
+  const [editForm, setEditForm] = useState({ studentName: '', studentPhone: '', notes: '' });
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState(emptyAdd);
 
@@ -177,16 +180,24 @@ function StudentsTab({ website }: { website: Website }) {
 
   const toggle = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.toggleStudentStatus(website.id, id),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success(t('dashboard.school.students.statusUpdated'));
+      // Pausing cancels their upcoming lessons and re-activating does NOT restore them,
+      // so say so plainly rather than letting it happen silently (A-04).
+      if (res.cancelledLessons) {
+        toast(t('dashboard.school.students.cancelledLessons', { count: res.cancelledLessons }));
+      }
       invalidate();
     },
     onError: (e) => toast.error(apiError(e).message),
   });
   const finish = useMutation({
     mutationFn: (id: string) => drivingSchoolApi.finishStudent(website.id, id),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success(t('dashboard.school.students.markedCompleted'));
+      if (res.cancelledLessons) {
+        toast(t('dashboard.school.students.cancelledLessons', { count: res.cancelledLessons }));
+      }
       invalidate();
     },
     onError: (e) => toast.error(apiError(e).message),
@@ -196,6 +207,23 @@ function StudentsTab({ website }: { website: Website }) {
     onSuccess: () => {
       toast.success(t('dashboard.school.students.studentDeleted'));
       setToDelete(null);
+      invalidate();
+    },
+    onError: (e) => toast.error(apiError(e).message),
+  });
+  // Editing a student (D-12). There was no way to correct a name, phone or the notes at
+  // all — a typo meant delete-and-re-add, which wipes their whole lesson history.
+  const edit = useMutation({
+    mutationFn: () =>
+      drivingSchoolApi.updateStudent(website.id, toEdit!.id, {
+        studentName: editForm.studentName.trim(),
+        studentPhone: editForm.studentPhone.trim(),
+        // Empty string clears the notes; the API accepts null for exactly that.
+        notes: editForm.notes.trim() || null,
+      }),
+    onSuccess: () => {
+      toast.success(t('dashboard.school.students.studentUpdated'));
+      setToEdit(null);
       invalidate();
     },
     onError: (e) => toast.error(apiError(e).message),
@@ -253,6 +281,17 @@ function StudentsTab({ website }: { website: Website }) {
           <PlayCircle className="h-4 w-4" />
         </button>
       )}
+      <button
+        aria-label={t('dashboard.school.students.editStudent')}
+        title={t('dashboard.school.students.editStudent')}
+        onClick={() => {
+          setToEdit(s);
+          setEditForm({ studentName: s.studentName, studentPhone: s.studentPhone ?? '', notes: s.notes ?? '' });
+        }}
+        className="flex items-center justify-center rounded-lg p-2 text-sand-500 transition-colors hover:bg-sand-100 hover:text-sand-800 coarse:min-h-11 coarse:min-w-11"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
       <button
         aria-label={t('dashboard.school.students.deleteStudent')}
         title={t('dashboard.school.students.deleteShort')}
@@ -414,6 +453,67 @@ function StudentsTab({ website }: { website: Website }) {
             components={{ s: <strong className="text-sand-900" /> }}
           />
         </p>
+      </Modal>
+
+      {/* Edit a student (D-12). Email is shown read-only: bookings key on it, so changing
+          it here would orphan the student's lesson history. */}
+      <Modal
+        open={Boolean(toEdit)}
+        onClose={() => setToEdit(null)}
+        title={t('dashboard.school.students.editTitle')}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setToEdit(null)}>
+              {t('dashboard.common.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              loading={edit.isPending}
+              onClick={() => {
+                // Same rules as adding, so a correction can't create a record the add form
+                // would have rejected.
+                if (editForm.studentName.trim().length < 2) return toast.error(t('dashboard.school.students.errName'));
+                if (!/^[+\d][\d\s-]{6,18}$/.test(editForm.studentPhone.trim()))
+                  return toast.error(t('dashboard.school.students.errPhone'));
+                edit.mutate();
+              }}
+            >
+              {t('dashboard.common.save')}
+            </Button>
+          </>
+        }
+      >
+        <p className="mb-4 text-sm text-sand-600">{t('dashboard.school.students.editDesc')}</p>
+        <div className="space-y-4">
+          <Field label={t('dashboard.school.students.fullName')}>
+            <Input
+              value={editForm.studentName}
+              onChange={(e) => setEditForm({ ...editForm, studentName: e.target.value })}
+              placeholder={t('dashboard.school.students.fullNamePlaceholder')}
+            />
+          </Field>
+          <Field label={t('dashboard.school.students.editEmailFixed')}>
+            <Input value={toEdit?.studentEmail ?? ''} disabled readOnly />
+          </Field>
+          <Field label={t('dashboard.school.students.phone')}>
+            <Input
+              type="tel"
+              value={editForm.studentPhone}
+              onChange={(e) => setEditForm({ ...editForm, studentPhone: e.target.value })}
+              placeholder={t('dashboard.school.students.phonePlaceholder')}
+              required
+            />
+          </Field>
+          <Field label={t('dashboard.school.students.notes')}>
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              placeholder={t('dashboard.school.students.notesPlaceholder')}
+              rows={3}
+              className="input"
+            />
+          </Field>
+        </div>
       </Modal>
 
       <Modal
